@@ -13,6 +13,28 @@
                 "${workspaceFolder}/**/*.js"
             ],
             // "sourceMaps": true
+            "env": {
+                "NODE_ENV": "DEVELOPMENT",
+                "MONGO_URL": "mongodb://localhost/rbac"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "nodemon",
+            "runtimeExecutable": "nodemon",
+            "program": "${workspaceRoot}/main.js",
+            "restart": true,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ],
+            // "sourceMaps": true
+            "env": {
+                "NODE_ENV": "DEVELOPMENT",
+                "MONGO_URL": "mongodb://localhost/rbac",
+            }
         }
     ]
 }

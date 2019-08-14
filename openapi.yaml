@@ -1,0 +1,264 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: 'CMP RBAC API''s '
+
+  servers:
+  - url: 'http://localhost:3000'
+  
+paths:
+
+  /role/capabilities/add:
+    post:
+      tags:
+        - RBAC
+      summary: Add capability to role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - capability
+                - action
+              properties:
+                scope:
+                  type: string
+                  example: Project Name ( howrah )
+                  description: default global scope
+                role:
+                  type: string
+                  example: Project manager
+                capability:
+                  type: string
+                  example: document
+                action:
+                  type: string
+                  example: read
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /role/capabilities/remove:
+    put:
+      tags:
+        - RBAC
+      summary: Remove capability to role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - capability
+                - action
+              properties:
+                scope:
+                  type: string
+                  example: Project Name ( howrah )
+                  description: default global scope
+                role:
+                  type: string
+                  example: Project manager
+                capability:
+                  type: string
+                  example: document
+                action:
+                  type: string
+                  example: howrah
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/role/capabilities/list':
+    get:
+      summary: Get scope capabilities
+      tags:
+        - RBAC
+      parameters:
+        - in: query
+          name: scope
+          schema:
+            type: string
+            example: howrah (project name)
+          description: default global scope
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  '/user/roles/{id}':
+    get:
+      summary: Get user roles
+      tags:
+        - RBAC
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  '/user/role/add/{id}':
+    post:
+      summary: Add role to user
+      tags:
+        - RBAC
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - scope
+              properties:
+                role:
+                  type: string
+                  example: project manager
+                scope:
+                  type: string
+                  example: howrah (project name or global)
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  '/user/role/revoke/{id}':
+    put:
+      summary: rovoke role to user
+      tags:
+        - RBAC
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - scope
+              properties:
+                role:
+                  type: string
+                  example: project manager
+                scope:
+                  type: string
+                  example: howrah (project name or global)
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        error:
+          type: string
+      required:
+        - status
+        - error

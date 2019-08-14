@@ -1,22 +1,50 @@
-import { Users } from "./model";
+import { missing } from "../utils/Const";
+import { casbin_policy } from "../utils/casbinDB_adapter";
 
-export interface User {
-    name: string;
-    id : string | number;
-    role : string;
-}
+//  add role to thr user
+export async function add_role(userId: any, objbody: any) {
+    try {
+        if (!userId || !objbody.scope || !objbody.role) {
+            throw new Error(missing);
+        };
+        let policy: any = await casbin_policy();
+        await policy.LoadPolicy();
+        let data = await policy.AddRoleForUser(userId, objbody.scope, objbody.role);
+        await policy.SavePolicy();
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
 
-const users : Array<User> = [
-    { name: "Admin", id : 1, role: "admin"},
-    { name: "Moderator", id : 2, role: "user"}
-]
-export async function list() : Promise<Array<any>> {
-    return await Users.find().exec();
-}
+//  revoke role to the user
+export async function revoke_role(userId: any, objbody: any) {
+    try {
+        if (!userId || !objbody.scope || !objbody.role) {
+            throw new Error(missing);
+        };
+        let policy: any = await casbin_policy();
+        await policy.LoadPolicy();
+        let data = await policy.deleteRoleForUser(userId, objbody.scope, objbody.role);
+        await policy.SavePolicy();
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
 
-// Uncomment the following to make sure there is atleast one user with admin role.
-// list().then(users => {
-//     if (users.length == 0) {
-//         Users.create({ firstName: "Admin", lastName: "", role : "admin"}).then(user => console.log("Admin created successfully", user));
-//     }
-// })
+//  get role of the user
+export async function get_roles(userId: any) {
+    try {
+        if (!userId) {
+            throw new Error(missing);
+        };
+        let policy: any = await casbin_policy();
+        await policy.LoadPolicy();
+        let data = await policy.GetRolesForUser(userId);
+        await policy.SavePolicy();
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
