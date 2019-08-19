@@ -2,6 +2,8 @@ import { missing } from "../utils/Const";
 import { casbin_policy } from "../utils/casbinDB_adapter";
 import { Users } from "./model";
 import { nodemail } from "../utils/email";
+import { invite_user_form } from "../utils/email_template";
+import { roles } from "../role/role_model";
 
 //  add role to thr user
 export async function add_role(userId: any, objbody: any) {
@@ -46,7 +48,7 @@ export async function get_roles(userId: any, objQuery: any) {
             throw new Error(missing);
         };
         let policy = await casbin_policy();
-        // await policy.loadModel();
+        await policy.loadModel();
         let data
         if (objQuery.project) {
             data = await policy.getRolesForUser(userId, objQuery.project);
@@ -65,11 +67,17 @@ export async function invite_user(objBody: any) {
         if (!objBody.role || !objBody.email || !objBody.username) {
             throw new Error(missing);
         }
+
         let userData = await Users.create({ username: objBody.username, email: objBody.email, role: objBody.role })
+        let userrole: any = await roles.findById(objBody.role)
         let email = await nodemail({
             email: objBody.email,
             subject: "cmp invite user",
-            text: `hi ${objBody.username}\n you are invited for this role ${objBody.role}\n <a href="https://google.com">click here</a> and proceed your registration`
+            html: invite_user_form({
+                username: objBody.username,
+                role: userrole.role,
+                link: `www.google.com`
+            })
         })
         return { status: true, data: userData }
 
@@ -81,7 +89,7 @@ export async function invite_user(objBody: any) {
 };
 
 //  get user list
-export async function edit_user(objBody: any) {
+export async function edit_user_by_admin(id: any, objBody: any) {
     try {
         let obj: any = {}
         if (objBody.role) {
@@ -93,7 +101,7 @@ export async function edit_user(objBody: any) {
         if (objBody.username) {
             obj.username = objBody.username
         };
-        let data = await Users.updataOne(obj, {new: true})
+        let data = await Users.findByIdAndUpdate(id, obj, { new: true })
         return { status: true, data: data }
     } catch (err) {
         console.log(err);
@@ -102,12 +110,28 @@ export async function edit_user(objBody: any) {
 };
 
 // edit user
-export async function user_list() {
+export async function user_list(query: any, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
-        let data = await Users({}, { username: 1, role: 1, email: 1 }).exec()
+        let findQuery = { is_active: true }
+        let check: any = {};
+        check[sort] = ascending ? 1 : -1;
+        let data = await Users.paginate(findQuery, { select: { username: 1, role: 1, }, page: page, limit: parseInt(limit), sort: check })
         return { status: true, data: data }
     } catch (err) {
         console.log(err);
+        throw err;
+    }
+};
+
+//  status user
+export async function user_status(id: any) {
+    try {
+        let user_data: any = await Users.findById(id)
+        if (!user_data) throw new Error("User Not exist");
+        let data = await Users.findByIdAndUpdate(id, { is_active: user_data.is_active == true ? false : true }, { new: true })
+        return { status: true, data: data }
+    } catch (err) {
+        console.log(err)
         throw err;
     }
 }

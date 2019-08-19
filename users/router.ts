@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { add_role, revoke_role, get_roles, invite_user, user_list, edit_user } from "./module";
+import { add_role, revoke_role, get_roles, invite_user, user_list, edit_user_by_admin, user_status } from "./module";
 
 const router = Router();
 
@@ -42,16 +42,26 @@ router.get('/invite', async (req: Request, res: Response, next: Handler) => {
 //  user list
 router.get('/list', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await user_list());
+        req.query.page = req.query.page || 1;
+        req.query.limit = 50;
+        res.status(200).send(await user_list(req.query, req.query.page, req.query.limit));
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     };
 });
 
 //  edit user
-router.get('/edit', async (req: Request, res: Response, next: Handler) => {
+router.get('/edit/:id', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await edit_user(req.body));
+        res.status(200).send(await edit_user_by_admin(req.params.id, req.body));
+    } catch (err) {
+        res.status(400).send({ status: false, error: err.message })
+    };
+});
+
+router.get('/status/:id', async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await user_status(req.params.id));
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     };
