@@ -1,5 +1,6 @@
 import { missing, global_scope } from "../utils/Const";
 import { casbin_policy } from "../utils/casbinDB_adapter";
+import { roles } from "./role_model";
 
 //  add capability for a role
 export async function add_capability(objBody: any) {
@@ -58,3 +59,30 @@ export async function scope_capability_list(objQuery: any) {
     }
 };
 
+// add role 
+export async function add_role(objBody: any) {
+    try {
+        if (!objBody.role) {
+            throw new Error(missing);
+        };
+
+        let data = await roles.create({ role: objBody.role });
+        return { status: true, data: data };
+
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+
+// role list
+export async function role_list() {
+    try {
+        let data = await roles.find({});
+        return { status: true, data: data };
+
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}

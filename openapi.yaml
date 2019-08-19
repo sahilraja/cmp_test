@@ -3,7 +3,7 @@ info:
   version: 1.0.0
   title: 'CMP RBAC API''s '
 
-  servers:
+servers:
   - url: 'http://localhost:3000'
   
 paths:
@@ -251,7 +251,7 @@ paths:
     post:
       summary: invite users
       tags:
-        - users
+        - USERS
       requestBody:
         required: true
         content:
@@ -265,9 +265,9 @@ paths:
                 role:
                   type: string
                   example: project manager
-                scope:
+                email:
                   type: string
-                  example: howrah (project name or global)
+                  example: Jeevan.balla@transerve.com
       responses:
         '200':
           description: success
@@ -283,6 +283,168 @@ paths:
                     type: object
         '400':
           $ref: '#/components/responses/BadRequest'
+          
+  '/user/register':
+    post:
+      summary: register user with that role
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          multipart/form-data::
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+                - phone
+                - upload_photo
+                - about_me
+                - password
+              properties:
+                first_name:
+                  type: string
+                  example: jeevan
+                last_name:
+                  type: string
+                  example: balla
+                phone:
+                  type: number
+                  example: 7989238348
+                upload_photo:
+                  type: string
+                  format: binary
+                about_me:
+                  type: string
+                  example: "project manager for transerve"
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  '/user/login':
+    post:
+      summary: login for user
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: jeevan.balla@transerve.com
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  '/user/forgot':
+    post:
+      summary: user forgot password
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: jeevan.balla@transerve.com
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  '/user/forgot/password/':
+    post:
+      summary: user set password
+      tags:
+        - USERS
+      security:
+        - Bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+
+
+#components
 components:
   responses:
     BadRequest:

@@ -1,15 +1,13 @@
 import * as Enforcer from 'casbin';
-import { default as TypeORMAdapter } from "typeorm-adapter";
 
+import { newEnforcer } from 'casbin';
+const MongooseAdapter = require('@elastic.io/casbin-mongoose-adapter');
 
 export async function casbin_policy() {
     try {
-        // const a = await TypeORMAdapter.newAdapter({
-        //     type: 'mongodb',
-        //     database: 'rbac'
-        // });
-        // return await Enforcer.newEnforcer(__dirname + '\\..\\policy\\model.conf', a);
-        return await Enforcer.newEnforcer(__dirname + '\\..\\policy\\model.conf', __dirname + '\\..\\policy\\policy.csv')
+        const model = __dirname + "\\..\\policy\\model.conf";
+        const adapter = await MongooseAdapter.newAdapter(process.env.MONGO_URL);
+        return await await newEnforcer(model, adapter);
     } catch (err) {
         console.log(err)
         throw err
