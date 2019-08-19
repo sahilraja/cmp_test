@@ -138,6 +138,11 @@ paths:
             type: string
           required: true
           description: user id
+        - in: query
+          name: project
+          schema:
+            type: string
+          description: scope project or global
       responses:
         '200':
           description: success
@@ -242,6 +247,42 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
+  '/user/invite':
+    post:
+      summary: invite users
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - email
+              properties:
+                role:
+                  type: string
+                  example: project manager
+                scope:
+                  type: string
+                  example: howrah (project name or global)
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
 components:
   responses:
     BadRequest:

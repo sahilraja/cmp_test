@@ -8,7 +8,7 @@ router.post('/role/add/:id', async (req: Request, res: Response, next: Handler) 
     try {
         res.status(200).send(await add_role(req.params.id, req.body));
     } catch (err) {
-        res.status(400).send({ status: false, error: err })
+        res.status(400).send({ status: false, error: err.message })
     };
 });
 
@@ -17,16 +17,16 @@ router.put('/role/revoke/:id', async (req: Request, res: Response, next: Handler
     try {
         res.status(200).send(await revoke_role(req.params.id, req.body));
     } catch (err) {
-        res.status(400).send({ status: false, error: err })
+        res.status(400).send({ status: false, error: err.message })
     };
 });
 
 //  role of the user
-router.put('/roles/:id', async (req: Request, res: Response, next: Handler) => {
+router.get('/roles/:id', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await get_roles(req.params.id));
+        res.status(200).send(await get_roles(req.params.id, req.query));
     } catch (err) {
-        res.status(400).send({ status: false, error: err })
+        res.status(400).send({ status: false, error: err.message })
     };
 });
 

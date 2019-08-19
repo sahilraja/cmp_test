@@ -7,10 +7,12 @@ export async function add_role(userId: any, objbody: any) {
         if (!userId || !objbody.scope || !objbody.role) {
             throw new Error(missing);
         };
-        let policy: any = await casbin_policy();
-        await policy.LoadPolicy();
-        let data = await policy.AddRoleForUser(userId, objbody.scope, objbody.role);
-        await policy.SavePolicy();
+        let policy = await casbin_policy();
+        await policy.loadPolicy();
+        let data = await policy.addRoleForUser(userId, objbody.scope, objbody.role);
+        if (data == false) throw new Error("Role Exist")
+        await policy.savePolicy();
+        return { status: true, data: [userId, objbody.scope, objbody.role] }
     } catch (err) {
         console.log(err);
         throw err;
@@ -23,10 +25,12 @@ export async function revoke_role(userId: any, objbody: any) {
         if (!userId || !objbody.scope || !objbody.role) {
             throw new Error(missing);
         };
-        let policy: any = await casbin_policy();
-        await policy.LoadPolicy();
+        let policy = await casbin_policy();
+        await policy.loadPolicy();
         let data = await policy.deleteRoleForUser(userId, objbody.scope, objbody.role);
-        await policy.SavePolicy();
+        if (data == false) throw new Error("Role not Exist")
+        await policy.savePolicy();
+        return { status: true, data: [userId, objbody.scope, objbody.role] }
     } catch (err) {
         console.log(err);
         throw err;
@@ -34,15 +38,20 @@ export async function revoke_role(userId: any, objbody: any) {
 };
 
 //  get role of the user
-export async function get_roles(userId: any) {
+export async function get_roles(userId: any, objQuery: any) {
     try {
         if (!userId) {
             throw new Error(missing);
         };
-        let policy: any = await casbin_policy();
-        await policy.LoadPolicy();
-        let data = await policy.GetRolesForUser(userId);
-        await policy.SavePolicy();
+        let policy = await casbin_policy();
+        // await policy.loadModel();
+        let data
+        if (objQuery.project) {
+            data = await policy.getRolesForUser(userId, objQuery.project);
+        } else {
+            data = await policy.getRolesForUser(userId);
+        }
+        return { status: true, data: data }
     } catch (err) {
         console.log(err);
         throw err;
