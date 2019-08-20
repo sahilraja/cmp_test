@@ -1,5 +1,6 @@
 const SECRET: string = "fCa_BRPu9r9UK-UP^w6rTUjL4IkoW0iT";
 const ACCESS_TOKEN_LIFETIME = '365d';
+const ACCESS_TOKEN_FOR_URL = 30 * 60;
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 const SALTROUNDS = 10;
@@ -24,8 +25,11 @@ export function compare_password(password: any, hash_password: any) {
 
 export async function jwt_create(id: any) {
     return await jwtSign(id, SECRET, { expiresIn: ACCESS_TOKEN_LIFETIME });
-}; // create jwt token 
+}; // create jwt token
 
+export async function jwt_for_url(id: any) {
+    return await jwtSign(id, SECRET, { expiresIn: ACCESS_TOKEN_FOR_URL });
+}; // create jwt token for url
 
 export async function jwt_Verify(id: any) {
     return await jwtVerify(id, SECRET);

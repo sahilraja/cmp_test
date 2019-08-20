@@ -7,7 +7,11 @@ import * as bodyParser from 'body-parser'
 //  module imports
 import * as usersRouter from "./users/router";
 import * as roleRouter from "./role/router";
+import * as projectRouter from "./project/router";
 
+// implement multer
+import * as multer  from "multer";
+var upload = multer({ dest: 'uploads/' });
 
 const app: Application = express();
 

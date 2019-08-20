@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: 'CMP RBAC API''s '
+  title: 'CMP API''s '
 
 servers:
   - url: 'http://localhost:3000'
@@ -261,10 +261,14 @@ paths:
               required:
                 - role
                 - email
+                - username
               properties:
                 role:
                   type: string
                   example: project manager
+                username:
+                  type: string
+                  example: jeevan balla
                 email:
                   type: string
                   example: Jeevan.balla@transerve.com
@@ -441,6 +445,280 @@ paths:
                     type: object
         '400':
           $ref: '#/components/responses/BadRequest'
+          
+  '/project/city/code/add':
+    post:
+      summary: user set password
+      tags:
+        - PROJECT
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - citycode
+                - cityname
+              properties:
+                citycode:
+                  type: string
+                  example: CITIIS-OR-BBR
+                cityname:
+                  type: string
+                  example: vizag
+                description:
+                  type: string
+                  example: project for develop schools
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  '/project/city/code/edit/{id}':
+    post:
+      summary: user set password
+      tags:
+        - PROJECT
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: code _id
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - citycode
+                - cityname
+              properties:
+                citycode:
+                  type: string
+                  example: CITIIS-OR-BBR
+                cityname:
+                  type: string
+                  example: vizag
+                description:
+                  type: string
+                  example: project for develop schools
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+         
+  '/project/city/code/status/{id}':
+    put:
+      summary: user set password
+      tags:
+        - PROJECT
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: code _id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/project/city/code/list':
+    get:
+      summary: user set password
+      tags:
+        - PROJECT
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/role/add':
+    post:
+      summary: user set password
+      tags:
+        - ROLE
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - description
+              properties:
+                role:
+                  type: string
+                  example: project manager
+                description:
+                  type: string
+                  example: project manager for vizag
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  '/role/edit/{id}':
+    post:
+      summary: user set password
+      tags:
+        - ROLE
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: role _id
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: project manager
+                description:
+                  type: string
+                  example: project manager for vizag
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+         
+  '/role/status/{id}':
+    put:
+      summary: user set password
+      tags:
+        - ROLE
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: role _id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/role/list':
+    get:
+      summary: user set password
+      tags:
+        - ROLE
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+          
+  
           
 
 

@@ -134,4 +134,13 @@ export async function user_status(id: any) {
         console.log(err)
         throw err;
     }
-}
+};
+
+// export async function user_register(objBody) {
+//     try {
+//         if(!objBody.phone || )
+//     } catch (err) {
+//         console.log(err);
+//         throw err;
+//     }
+// }
