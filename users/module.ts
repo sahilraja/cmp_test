@@ -136,7 +136,7 @@ export async function user_status(id: any) {
     }
 };
 
-// export async function user_register(objBody) {
+// export async function user_login(objBody) {
 //     try {
 //         if(!objBody.phone || )
 //     } catch (err) {

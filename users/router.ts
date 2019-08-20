@@ -59,6 +59,7 @@ router.get('/edit/:id', async (req: Request, res: Response, next: Handler) => {
     };
 });
 
+//  change status user
 router.get('/status/:id', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await user_status(req.params.id));
@@ -68,13 +69,13 @@ router.get('/status/:id', async (req: Request, res: Response, next: Handler) => 
 });
 
 //  login user
-// router.get('/login', async (req: Request, res: Response, next: Handler) => {
-//     try {
-//         res.status(200).send(await user_login(req.body));
-//     } catch (err) {
-//         res.status(400).send({ status: false, error: err.message })
-//     };
-// });
+router.get('/login', async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await user_login(req.body));
+    } catch (err) {
+        res.status(400).send({ status: false, error: err.message })
+    };
+});
 
 
 export = router;
