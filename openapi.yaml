@@ -5,10 +5,11 @@ info:
 
 servers:
   - url: 'http://localhost:3000'
+  - url: ' http://192.168.1.173:3000'
   
 paths:
 
-  /role/capabilities/add:
+  '/role/capabilities/add':
     post:
       tags:
         - RBAC
@@ -53,7 +54,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /role/capabilities/remove:
+  '/role/capabilities/remove':
     put:
       tags:
         - RBAC
@@ -448,7 +449,7 @@ paths:
           
   '/project/city/code/add':
     post:
-      summary: user set password
+      summary: add city code
       tags:
         - PROJECT
         
@@ -489,7 +490,7 @@ paths:
           
   '/project/city/code/edit/{id}':
     post:
-      summary: user set password
+      summary: edit city code
       tags:
         - PROJECT
         
@@ -538,7 +539,7 @@ paths:
          
   '/project/city/code/status/{id}':
     put:
-      summary: user set password
+      summary: active or inactive city code
       tags:
         - PROJECT
         
@@ -567,7 +568,7 @@ paths:
           
   '/project/city/code/list':
     get:
-      summary: user set password
+      summary: city code list
       tags:
         - PROJECT
       responses:
@@ -588,7 +589,7 @@ paths:
           
   '/role/add':
     post:
-      summary: user set password
+      summary: add role
       tags:
         - ROLE
         
@@ -626,7 +627,7 @@ paths:
           
   '/role/edit/{id}':
     post:
-      summary: user set password
+      summary: edit role
       tags:
         - ROLE
         
@@ -669,7 +670,7 @@ paths:
          
   '/role/status/{id}':
     put:
-      summary: user set password
+      summary: active or inactive role
       tags:
         - ROLE
         
@@ -698,9 +699,269 @@ paths:
           
   '/role/list':
     get:
-      summary: user set password
+      summary: get role list
       tags:
         - ROLE
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/project/tag/add':
+    post:
+      summary: add tag
+      tags:
+        - TAG
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tag
+              properties:
+                tag:
+                  type: string
+                  example: document
+                description:
+                  type: string
+                  example: document for vizag project
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  '/project/tag/edit/{id}':
+    post:
+      summary: edit tag
+      tags:
+        - TAG
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: tag _id
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag:
+                  type: string
+                  example: document
+                description:
+                  type: string
+                  example: document for vizag project
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+         
+  '/project/tag/status/{id}':
+    put:
+      summary: active or inactive tag
+      tags:
+        - TAG
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: tag _id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/project/tag/list':
+    get:
+      summary: get tags list
+      tags:
+        - TAG
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/project/theme/add':
+    post:
+      summary: add theme
+      tags:
+        - THEME
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - theme
+              properties:
+                theme:
+                  type: string
+                  example: dams
+                description:
+                  type: string
+                  example: dam for vizag 
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+          
+  '/project/theme/edit/{id}':
+    post:
+      summary: edit theme
+      tags:
+        - THEME
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: theme _id
+        
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                theme:
+                  type: string
+                  example: Dam
+                description:
+                  type: string
+                  example: Dam for vizag
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+         
+  '/project/theme/status/{id}':
+    put:
+      summary: active or inactive theme
+      tags:
+        - THEME
+        
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: theme _id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        '400':
+          $ref: '#/components/responses/BadRequest' 
+          
+  '/project/theme/list':
+    get:
+      summary: get theme list
+      tags:
+        - THEME
       responses:
         '200':
           description: success

@@ -1,4 +1,4 @@
-import { missing } from "../utils/Const";
+import { MISSING } from "../utils/error_msg";
 import { casbin_policy } from "../utils/casbinDB_adapter";
 import { Users } from "./model";
 import { nodemail } from "../utils/email";
@@ -9,7 +9,7 @@ import { roles } from "../role/role_model";
 export async function add_role(userId: any, objbody: any) {
     try {
         if (!userId || !objbody.scope || !objbody.role) {
-            throw new Error(missing);
+            throw new Error(MISSING);
         };
         let policy = await casbin_policy();
         await policy.loadPolicy();
@@ -27,7 +27,7 @@ export async function add_role(userId: any, objbody: any) {
 export async function revoke_role(userId: any, objbody: any) {
     try {
         if (!userId || !objbody.scope || !objbody.role) {
-            throw new Error(missing);
+            throw new Error(MISSING);
         };
         let policy = await casbin_policy();
         await policy.loadPolicy();
@@ -45,7 +45,7 @@ export async function revoke_role(userId: any, objbody: any) {
 export async function get_roles(userId: any, objQuery: any) {
     try {
         if (!userId) {
-            throw new Error(missing);
+            throw new Error(MISSING);
         };
         let policy = await casbin_policy();
         await policy.loadModel();
@@ -65,7 +65,7 @@ export async function get_roles(userId: any, objQuery: any) {
 export async function invite_user(objBody: any) {
     try {
         if (!objBody.role || !objBody.email || !objBody.username) {
-            throw new Error(missing);
+            throw new Error(MISSING);
         }
 
         let userData = await Users.create({ username: objBody.username, email: objBody.email, role: objBody.role })

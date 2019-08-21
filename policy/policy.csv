@@ -1,5 +1,6 @@
 p, global, Project manager, document, write
 p, project 1, Project manager, document, write
+p, Project Name, Project manager, document, read
 g, jeevan, howrah, project manager
 g, sai, howrah, project manager
 g, ravi, howrah, project manager
