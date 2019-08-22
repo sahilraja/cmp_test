@@ -1,4 +1,4 @@
-import { missing } from "../utils/Const";
+import { MISSING } from "../utils/error_msg" ;
 import { city_code } from "./city_code_model";
 import { Types } from "mongoose";
 import { tags } from "./tag_model";
@@ -8,7 +8,7 @@ import { themes } from "./theme_model";
 export async function create_city_code(reqObject: any) {
     try {
         if (!reqObject.ctiy_code || !reqObject.city_name) {
-            throw new Error(missing);
+            throw new Error(MISSING);
         };
         let data = await city_code.create({
             city_code: reqObject.city_code,
@@ -59,7 +59,7 @@ export async function city_code_status(id: any) {
     try {
         let city = await city_code.findById(id)
         if (!city) {
-            throw new Error(missing)
+            throw new Error(MISSING)
         }
         let data = await city_code.findByIdAndUpdate({ id }, { is_active: city.is_active == true ? false : true })
         return { status: true, data: data }
@@ -74,7 +74,7 @@ export async function city_code_status(id: any) {
 export async function add_tag(reqObject: any) {
     try {
         if (!reqObject.tag) {
-            throw new Error(missing);
+            throw new Error(MISSING);
         };
         let data = await tags.create({
             city_code: reqObject.city_code,
@@ -121,7 +121,7 @@ export async function tag_status(id: any) {
     try {
         let city = await tags.findById(id)
         if (!city) {
-            throw new Error(missing)
+            throw new Error(MISSING)
         }
         let data = await tags.findByIdAndUpdate({ id }, { is_active: city.is_active == true ? false : true })
         return { status: true, data: data }
@@ -135,7 +135,7 @@ export async function tag_status(id: any) {
 export async function add_theme(reqObject: any) {
     try {
         if (!reqObject.theme) {
-            throw new Error(missing);
+            throw new Error(MISSING);
         };
         let data = await themes.create({
             city_code: reqObject.theme,
@@ -182,7 +182,7 @@ export async function theme_status(id: any) {
     try {
         let city = await themes.findById(id)
         if (!city) {
-            throw new Error(missing)
+            throw new Error(MISSING)
         }
         let data = await themes.findByIdAndUpdate({ id }, { is_active: city.is_active == true ? false : true })
         return { status: true, data: data }

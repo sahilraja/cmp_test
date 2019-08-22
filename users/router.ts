@@ -1,34 +1,7 @@
 import { Router, Request, Response, Handler } from "express";
-import { add_role, revoke_role, get_roles, invite_user, user_list, edit_user_by_admin, user_status, user_login, user_invite_resend, validate_link } from "./module";
+import { invite_user, user_list, edit_user_by_admin, user_status, user_login, user_invite_resend, validate_link } from "./module";
 
 const router = Router();
-
-//  add role to the user
-router.post('/role/add/:id', async (req: Request, res: Response, next: Handler) => {
-    try {
-        res.status(200).send(await add_role(req.params.id, req.body));
-    } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
-    };
-});
-
-//  revoke role to the user
-router.put('/role/revoke/:id', async (req: Request, res: Response, next: Handler) => {
-    try {
-        res.status(200).send(await revoke_role(req.params.id, req.body));
-    } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
-    };
-});
-
-//  role of the user
-router.get('/roles/:id', async (req: Request, res: Response, next: Handler) => {
-    try {
-        res.status(200).send(await get_roles(req.params.id, req.query));
-    } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
-    };
-});
 
 //  invite user
 router.post('/invite', async (req: Request, res: Response, next: Handler) => {
@@ -96,13 +69,13 @@ router.get('/login', async (req: Request, res: Response, next: Handler) => {
 });
 
 //  register user
-router.get('/register', async (req: Request, res: Response, next: Handler) => {
-    try {
-        res.status(200).send(await user_register(req.body));
-    } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
-    };
-});
+// router.get('/register', async (req: Request, res: Response, next: Handler) => {
+//     try {
+//         res.status(200).send(await user_register(req.body));
+//     } catch (err) {
+//         res.status(400).send({ status: false, error: err.message })
+//     };
+// });
 
 
 export = router;

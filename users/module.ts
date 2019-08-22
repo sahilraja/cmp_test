@@ -1,67 +1,11 @@
 import { MISSING } from "../utils/error_msg";
-import { casbin_policy } from "../utils/casbinDB_adapter";
 import { Users } from "./model";
 import { nodemail } from "../utils/email";
 import { invite_user_form } from "../utils/email_template";
 import { roles } from "../role/role_model";
+import { jwt_create, jwt_Verify } from "../utils/utils";
 
-//  add role to thr user
-export async function add_role(userId: any, objbody: any) {
-    try {
-        if (!userId || !objbody.scope || !objbody.role) {
-            throw new Error(MISSING);
-        };
-        let policy = await casbin_policy();
-        await policy.loadPolicy();
-        let data = await policy.addRoleForUser(userId, objbody.scope, objbody.role);
-        if (data == false) throw new Error("Role Exist")
-        await policy.savePolicy();
-        return { status: true, data: [userId, objbody.scope, objbody.role] }
-    } catch (err) {
-        console.log(err);
-        throw err;
-    };
-};
-
-//  revoke role to the user
-export async function revoke_role(userId: any, objbody: any) {
-    try {
-        if (!userId || !objbody.scope || !objbody.role) {
-            throw new Error(MISSING);
-        };
-        let policy = await casbin_policy();
-        await policy.loadPolicy();
-        let data = await policy.deleteRoleForUser(userId, objbody.scope, objbody.role);
-        if (data == false) throw new Error("Role not Exist")
-        await policy.savePolicy();
-        return { status: true, data: [userId, objbody.scope, objbody.role] }
-    } catch (err) {
-        console.log(err);
-        throw err;
-    };
-};
-
-//  get role of the user
-export async function get_roles(userId: any, objQuery: any) {
-    try {
-        if (!userId) {
-            throw new Error(MISSING);
-        };
-        let policy = await casbin_policy();
-        await policy.loadModel();
-        let data
-        if (objQuery.project) {
-            data = await policy.getRolesForUser(userId, objQuery.project);
-        } else {
-            data = await policy.getRolesForUser(userId);
-        }
-        return { status: true, data: data }
-    } catch (err) {
-        console.log(err);
-        throw err;
-    };
-};
-
+//  invite user
 export async function invite_user(objBody: any) {
     try {
         if (!objBody.role || !objBody.email || !objBody.username) {
@@ -136,11 +80,73 @@ export async function user_status(id: any) {
     }
 };
 
-// export async function user_login(objBody) {
-//     try {
-//         if(!objBody.phone || )
-//     } catch (err) {
-//         console.log(err);
-//         throw err;
-//     }
-// }
+//  user login
+export async function user_login(objBody: any) {
+    try {
+        if (!objBody.email || !objBody.password) {
+            throw Error("Missing fields.");
+        }
+        if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
+            throw Error("Invalid fields.");
+        }
+        let user_data: any = await Users.findOne({ email: objBody.email });
+        if (!user_data) throw new Error("Invalid User");
+        let result: any = await user_data.comparePassword(objBody.password);
+        if (!result) {
+            throw Error("Invalid login details.");
+        }
+        let token = await jwt_create(user_data.id)
+        return { status: true, data: token };
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+//  resend invite link
+export async function user_invite_resend(id: any) {
+    try {
+        if (!id) throw new Error(MISSING)
+        let user_data: any = await Users.findById(id)
+        let email = await nodemail({
+            email: user_data.email,
+            subject: "cmp invite user",
+            html: invite_user_form({
+                username: user_data.username,
+                role: user_data.role,
+                link: `www.google.com`
+            })
+        })
+        return { status: true, data: "email send successfully" }
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+// validate invite link
+export async function validate_link(token: any) {
+    try {
+        if (!token) throw new Error(MISSING);
+        let token_data: any = await jwt_Verify(token)
+        if (!token_data) throw new Error("Invalid Token.");
+        let user_data = await Users.findById(token_data.id);
+        return { status: true, data: user_data };
+    } catch (err) {
+        console.log(err);
+        throw err
+    };
+};
+
+// user register
+export async function user_register(id: any, objBody: any) {
+    try {
+    if(!id || !objBody.username || !objBody.phone || !objBody.upload_photo || !objBody.aboutme || !objBody.password){
+        throw new Error(MISSING);
+    }
+    
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}

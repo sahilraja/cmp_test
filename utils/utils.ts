@@ -1,4 +1,4 @@
-const SECRET: string = "fCa_BRPu9r9UK-UP^w6rTUjL4IkoW0iT";
+const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 30 * 60;
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
