@@ -1,0 +1,14 @@
+[
+    {
+        "capability" : "create-user",
+        "description" : "Create User",
+        "role" : "program-coordinator",
+        "scope" : "global"
+    },
+    {
+        "capability" : "documents-add",
+        "description" : "Upload documents",
+        "role" : "project-manager",
+        "scope" : "project/*"
+    }
+]

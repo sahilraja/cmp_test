@@ -15,7 +15,8 @@
             // "sourceMaps": true
             "env": {
                 "NODE_ENV": "DEVELOPMENT",
-                "MONGO_URL": "mongodb://localhost/rbac"
+                "MONGO_URL": "mongodb://localhost/rbac",
+                "RBAC_URL": "http://localhost:8081"
             }
         },
         {

@@ -3,6 +3,7 @@ const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 30 * 60;
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
+import * as request from "request";
 const SALTROUNDS = 10;
 
 export function hash_password(password: any) {
@@ -34,3 +35,14 @@ export async function jwt_for_url(id: any) {
 export async function jwt_Verify(id: any) {
     return await jwtVerify(id, SECRET);
 }; // verify jwt token
+
+export async function requestApi(options: any) {
+    return new Promise((resolve, reject) => {
+        request(options, function (err: any, response: any, body: any) {
+            if (err) {
+                reject(err);
+            }
+            resolve(body);
+        });
+    })
+}

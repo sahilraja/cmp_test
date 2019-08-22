@@ -1,254 +1,14 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: 'CMP API''s '
+  title: "CMP API's "
 
 servers:
-  - url: 'http://localhost:3000'
-  - url: ' http://192.168.1.173:3000'
-  
+  - url: "http://localhost:3000"
+  - url: " http://192.168.1.173:3000"
+
 paths:
-
-  '/role/capabilities/add':
-    post:
-      tags:
-        - RBAC
-      summary: Add capability to role
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - role
-                - capability
-                - action
-              properties:
-                scope:
-                  type: string
-                  example: Project Name ( howrah )
-                  description: default global scope
-                role:
-                  type: string
-                  example: Project manager
-                capability:
-                  type: string
-                  example: document
-                action:
-                  type: string
-                  example: read
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  'status:':
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  '/role/capabilities/remove':
-    put:
-      tags:
-        - RBAC
-      summary: Remove capability to role
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - role
-                - capability
-                - action
-              properties:
-                scope:
-                  type: string
-                  example: Project Name ( howrah )
-                  description: default global scope
-                role:
-                  type: string
-                  example: Project manager
-                capability:
-                  type: string
-                  example: document
-                action:
-                  type: string
-                  example: howrah
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  'status:':
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/role/capabilities/list':
-    get:
-      summary: Get scope capabilities
-      tags:
-        - RBAC
-      parameters:
-        - in: query
-          name: scope
-          schema:
-            type: string
-            example: howrah (project name)
-          description: default global scope
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  'status:':
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  '/user/roles/{id}':
-    get:
-      summary: Get user roles
-      tags:
-        - RBAC
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: user id
-        - in: query
-          name: project
-          schema:
-            type: string
-          description: scope project or global
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  'status:':
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  '/user/role/add/{id}':
-    post:
-      summary: Add role to user
-      tags:
-        - RBAC
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: user id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - role
-                - scope
-              properties:
-                role:
-                  type: string
-                  example: project manager
-                scope:
-                  type: string
-                  example: howrah (project name or global)
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  'status:':
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  '/user/role/revoke/{id}':
-    put:
-      summary: rovoke role to user
-      tags:
-        - RBAC
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: user id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - role
-                - scope
-              properties:
-                role:
-                  type: string
-                  example: project manager
-                scope:
-                  type: string
-                  example: howrah (project name or global)
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  'status:':
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  '/user/invite':
+  "/user/invite":
     post:
       summary: invite users
       tags:
@@ -274,22 +34,22 @@ paths:
                   type: string
                   example: Jeevan.balla@transerve.com
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/user/register':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/user/register":
     post:
       summary: register user with that role
       tags:
@@ -327,22 +87,22 @@ paths:
                   type: string
                   example: password
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/user/login':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/user/login":
     post:
       summary: login for user
       tags:
@@ -364,22 +124,22 @@ paths:
                   type: string
                   example: password
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/user/forgot':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/user/forgot":
     post:
       summary: user forgot password
       tags:
@@ -397,22 +157,22 @@ paths:
                   type: string
                   example: jeevan.balla@transerve.com
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/user/forgot/password/':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/user/forgot/password/":
     post:
       summary: user set password
       tags:
@@ -432,27 +192,27 @@ paths:
                   type: string
                   example: password
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/project/city/code/add':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/city/code/add":
     post:
       summary: add city code
       tags:
         - PROJECT
-        
+
       requestBody:
         required: true
         content:
@@ -473,27 +233,27 @@ paths:
                   type: string
                   example: project for develop schools
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/project/city/code/edit/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/city/code/edit/{id}":
     post:
       summary: edit city code
       tags:
         - PROJECT
-        
+
       parameters:
         - in: path
           name: id
@@ -501,7 +261,7 @@ paths:
             type: string
           required: true
           description: code _id
-        
+
       requestBody:
         required: true
         content:
@@ -522,27 +282,27 @@ paths:
                   type: string
                   example: project for develop schools
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-         
-  '/project/city/code/status/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/city/code/status/{id}":
     put:
       summary: active or inactive city code
       tags:
         - PROJECT
-        
+
       parameters:
         - in: path
           name: id
@@ -551,48 +311,48 @@ paths:
           required: true
           description: code _id
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/project/city/code/list':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/city/code/list":
     get:
       summary: city code list
       tags:
         - PROJECT
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/role/add':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/role/add":
     post:
       summary: add role
       tags:
         - ROLE
-        
+
       requestBody:
         required: true
         content:
@@ -610,27 +370,27 @@ paths:
                   type: string
                   example: project manager for vizag
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/role/edit/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/role/edit/{id}":
     post:
       summary: edit role
       tags:
         - ROLE
-        
+
       parameters:
         - in: path
           name: id
@@ -638,7 +398,7 @@ paths:
             type: string
           required: true
           description: role _id
-        
+
       requestBody:
         required: true
         content:
@@ -653,27 +413,27 @@ paths:
                   type: string
                   example: project manager for vizag
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-         
-  '/role/status/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/role/status/{id}":
     put:
       summary: active or inactive role
       tags:
         - ROLE
-        
+
       parameters:
         - in: path
           name: id
@@ -682,48 +442,48 @@ paths:
           required: true
           description: role _id
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/role/list':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/role/list":
     get:
       summary: get role list
       tags:
         - ROLE
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/project/tag/add':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/tag/add":
     post:
       summary: add tag
       tags:
         - TAG
-        
+
       requestBody:
         required: true
         content:
@@ -740,27 +500,27 @@ paths:
                   type: string
                   example: document for vizag project
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/project/tag/edit/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/tag/edit/{id}":
     post:
       summary: edit tag
       tags:
         - TAG
-        
+
       parameters:
         - in: path
           name: id
@@ -768,7 +528,7 @@ paths:
             type: string
           required: true
           description: tag _id
-        
+
       requestBody:
         required: true
         content:
@@ -783,27 +543,27 @@ paths:
                   type: string
                   example: document for vizag project
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-         
-  '/project/tag/status/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/tag/status/{id}":
     put:
       summary: active or inactive tag
       tags:
         - TAG
-        
+
       parameters:
         - in: path
           name: id
@@ -812,48 +572,48 @@ paths:
           required: true
           description: tag _id
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/project/tag/list':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/tag/list":
     get:
       summary: get tags list
       tags:
         - TAG
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/project/theme/add':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/theme/add":
     post:
       summary: add theme
       tags:
         - THEME
-        
+
       requestBody:
         required: true
         content:
@@ -868,29 +628,29 @@ paths:
                   example: dams
                 description:
                   type: string
-                  example: dam for vizag 
+                  example: dam for vizag
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-          
-  '/project/theme/edit/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/theme/edit/{id}":
     post:
       summary: edit theme
       tags:
         - THEME
-        
+
       parameters:
         - in: path
           name: id
@@ -898,7 +658,7 @@ paths:
             type: string
           required: true
           description: theme _id
-        
+
       requestBody:
         required: true
         content:
@@ -913,27 +673,27 @@ paths:
                   type: string
                   example: Dam for vizag
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-         
-  '/project/theme/status/{id}':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/theme/status/{id}":
     put:
       summary: active or inactive theme
       tags:
         - THEME
-        
+
       parameters:
         - in: path
           name: id
@@ -942,46 +702,41 @@ paths:
           required: true
           description: theme _id
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-  '/project/theme/list':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  "/project/theme/list":
     get:
       summary: get theme list
       tags:
         - THEME
       responses:
-        '200':
+        "200":
           description: success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  'status:':
+                  "status:":
                     type: boolean
                     example: true
                   data:
                     type: object
-        '400':
-          $ref: '#/components/responses/BadRequest' 
-          
-          
-  
-          
-
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
 #components
 components:
@@ -991,7 +746,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
   schemas:
     Error:
       type: object
