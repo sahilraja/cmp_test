@@ -7,7 +7,7 @@ export async function init() {
     return new Promise(async (resolve, reject) => {
         let removeOptions = {
             url: `${process.env.RBAC_URL}/capabilities/remove/all`,
-            method: "get",
+            method: "PUT",
             json: true
         }
         let removeCapabilities: any = await requestApi(removeOptions);
@@ -28,4 +28,4 @@ export async function init() {
         if (!addCapabilities.status) throw "Something Went wrong while adding the capabilities.";
         resolve("successfully added new capabilities");
     });
-}
+};
