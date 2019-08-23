@@ -3,7 +3,7 @@ import { add_role, role_list, role_edit, role_status } from "./module";
 
 const router = Router();
 
-//  add role
+//  Add role
 router.get('/add', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await add_role(req.body));
@@ -21,6 +21,7 @@ router.get('/list', async (req: Request, res: Response, next: Handler) => {
     };
 });
 
+//  Edit Role
 router.get('/edit/:id', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await role_edit(req.params.id, req.body));
@@ -29,6 +30,7 @@ router.get('/edit/:id', async (req: Request, res: Response, next: Handler) => {
     };
 });
 
+//  Change Statue
 router.get('/status/:id', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await role_status(req.params.id));
@@ -36,6 +38,5 @@ router.get('/status/:id', async (req: Request, res: Response, next: Handler) => 
         res.status(400).send({ status: false, error: err.message });
     };
 });
-
 
 export = router;
