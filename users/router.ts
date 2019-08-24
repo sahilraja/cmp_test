@@ -3,10 +3,19 @@ import { invite_user, user_list, edit_user_by_admin, user_status, user_login, us
 
 const router = Router();
 
-//  invite user
-router.post('/invite', async (req: Request, res: Response, next: Handler) => {
+//  Invite user
+router.post('/invite', async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await invite_user(req.body));
+        res.status(200).send(await invite_user(req.body, req.locals.user));
+    } catch (err) {
+        res.status(400).send({ status: false, error: err.message })
+    };
+});
+
+// add grants to the user
+router.post('/add/projects', async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await invite_user(req.body, req.locals.user));
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     };

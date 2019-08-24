@@ -5,7 +5,7 @@ const router = Router();
 //  add city code
 router.post("/city/code/add", async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await create_city_code(req.body))
+        res.status(200).send(await create_city_code(req.body, req.locals.user))
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     }
@@ -14,7 +14,7 @@ router.post("/city/code/add", async (req: any, res: any, next: any) => {
 //  edit city code
 router.post("/city/code/edit/:id", async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await edit_city_code(req.params.id, req.body))
+        res.status(200).send(await edit_city_code(req.params.id, req.body, req.locals.user))
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     }

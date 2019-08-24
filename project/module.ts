@@ -1,68 +1,80 @@
-import { MISSING } from "../utils/error_msg" ;
-import { city_code } from "./city_code_model";
+import { MISSING } from "../utils/error_msg";
+import { project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "./tag_model";
 import { themes } from "./theme_model";
+import { checkCapability } from "../utils/utils";
 
-//  add city code
-export async function create_city_code(reqObject: any) {
+//  Add city Code
+export async function create_city_code(reqObject: any, user: any) {
     try {
         if (!reqObject.ctiy_code || !reqObject.city_name) {
             throw new Error(MISSING);
         };
-        let data = await city_code.create({
-            city_code: reqObject.city_code,
-            city_name: reqObject.city_name,
-            description: reqObject.description || "N/A"
-        })
-        return { status: true, data: data }
+        //  check capability
+        let capability = await checkCapability({ role: user.role, scope: "global", capability: "create-project" })
+        if (!capability.status) throw new Error("Invalid User")
+
+        let success = await project.create({
+            reference: reqObject.city_code,
+            city: reqObject.city_name,
+            projectSummary: reqObject.description || "N/A"
+        });
+        return { status: true, data: success }
     } catch (err) {
         console.log(err);
         throw err;
     };
 };
 
-//  edit city code
-export async function edit_city_code(id: any, reqObject: any) {
+//  Edit city Code
+export async function edit_city_code(id: any, reqObject: any, user: any) {
     try {
-        let obj: any = {}
+        if (!id || !user) throw new Error(MISSING);
+        let obj: any = {};
+
+        //  check capability
+        let capability = await checkCapability({ role: user.role, scope: "global", capability: "create-project" })
+        if (!capability.status) throw new Error("Invalid User")
+
         if (reqObject.ctiy_code) {
-            obj.city_code = reqObject.city_code;
+            obj.reference = reqObject.city_code;
         };
         if (reqObject.city_name) {
-            obj.city_name = reqObject.city_name;
+            obj.city = reqObject.city_name;
         };
         if (reqObject.description) {
-            obj.description = reqObject.description;
+            obj.projectSummary = reqObject.description;
         };
-        let data = await city_code.findByIdAndUpdate(id, obj, { new: true })
-        return { status: true, data: data }
+        let success = await project.findByIdAndUpdate(id, obj, { new: true })
+        return { status: true, data: success }
     } catch (err) {
         console.log(err);
         throw err;
     };
 };
 
-//  get list of city code
+//  Get List of city Codes
 export async function city_code_list() {
     try {
-        let data = await city_code.find({ is_active: true })
-        return { status: true, data: data }
+        let success = await project.find({ is_active: true }, { reference: 1, city: 1 })
+        return { status: true, data: success }
     } catch (err) {
         console.log(err);
         throw err;
-    }
+    };
 };
 
 //  edit status of city code
 export async function city_code_status(id: any) {
     try {
-        let city = await city_code.findById(id)
-        if (!city) {
-            throw new Error(MISSING)
+        if (!id) throw new Error(MISSING);
+        let projectData: any = await project.findById(id);
+        if (!projectData) {
+            throw new Error("project not there")
         }
-        let data = await city_code.findByIdAndUpdate({ id }, { is_active: city.is_active == true ? false : true })
-        return { status: true, data: data }
+        let success = await project.findByIdAndUpdate({ id }, { is_active: (projectData.is_active) ? false : true })
+        return { status: true, data: success }
     } catch (err) {
         console.log(err);
         throw err;

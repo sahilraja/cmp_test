@@ -2,37 +2,67 @@ import { MISSING } from "../utils/error_msg";
 import { Users } from "./model";
 import { nodemail } from "../utils/email";
 import { invite_user_form } from "../utils/email_template";
-import { roles } from "../role/role_model";
-import { jwt_create, jwt_Verify } from "../utils/utils";
+import { jwt_create, jwt_Verify, jwt_for_url } from "../utils/utils";
+import { checkRoleScope } from "../role/module";
+import * as request from "request-promise";
 
-//  invite user
-export async function invite_user(objBody: any) {
+
+//  Invite User
+export async function invite_user(objBody: any, user: any) {
     try {
         if (!objBody.role || !objBody.email || !objBody.username) {
             throw new Error(MISSING);
-        }
-
-        let userData = await Users.create({ username: objBody.username, email: objBody.email, role: objBody.role })
-        let userrole: any = await roles.findById(objBody.role)
-        let email = await nodemail({
+        };
+        let admin_scope = await checkRoleScope(user.role, "global");
+        if (!admin_scope) throw new Error("invalid user");
+        let userData = await Users.create({ username: objBody.username, email: objBody.email, role: objBody.role });
+        let token = await jwt_for_url({ user: userData.id, role: objBody.role });
+        let success = await nodemail({
             email: objBody.email,
             subject: "cmp invite user",
             html: invite_user_form({
                 username: objBody.username,
-                role: userrole.role,
-                link: `www.google.com`
+                role: objBody.role,
+                link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
             })
         })
-        return { status: true, data: userData }
-
+        return { status: true, data: userData };
     } catch (err) {
         console.log(err)
         throw err;
-
-    }
+    };
 };
 
-//  get user list
+//  Add projects to that role
+export async function addRolesToUser(userId: any, role: any, projects: any) {
+    try {
+        if (!userId || !projects) {
+            throw new Error(MISSING);
+        };
+        let user_scope = await checkRoleScope(role, "global");
+        if (user_scope) throw new Error("global scope doesn't need projects");
+
+        for (const project of projects) {
+            let Options = {
+                uri: `${process.env.RBAC_URL}/role/add/${userId}`,
+                method: "POST",
+                body: {
+                    "role": role,
+                    "scope": `projects/${project}`
+                },
+                json: true
+            }
+            let success = await request(Options);
+            if (!success.status) throw new Error("fail to create role");
+        }
+        return { success: true, data: "Roles added successfully" };
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+
+//  Get user list
 export async function edit_user_by_admin(id: any, objBody: any) {
     try {
         let obj: any = {}
@@ -141,10 +171,10 @@ export async function validate_link(token: any) {
 // user register
 export async function user_register(id: any, objBody: any) {
     try {
-    if(!id || !objBody.username || !objBody.phone || !objBody.upload_photo || !objBody.aboutme || !objBody.password){
-        throw new Error(MISSING);
-    }
-    
+        if (!id || !objBody.username || !objBody.phone || !objBody.upload_photo || !objBody.aboutme || !objBody.password) {
+            throw new Error(MISSING);
+        }
+
     } catch (err) {
         console.log(err);
         throw err;
