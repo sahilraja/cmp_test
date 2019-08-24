@@ -1,30 +1,32 @@
 import { Router, Request, Response, Handler } from "express";
-import { invite_user, user_list, edit_user_by_admin, user_status, user_login, user_invite_resend, validate_link } from "./module";
+import { inviteUser, user_list, edit_user_by_admin, user_status, user_login, userInviteResend, validLink, addRolesToUser } from "./module";
 
 const router = Router();
 
 //  Invite user
 router.post('/invite', async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await invite_user(req.body, req.locals.user));
+        res.status(200).send(await inviteUser(req.body, req.locals.user));
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     };
 });
 
-// add grants to the user
-router.post('/add/projects', async (req: any, res: any, next: any) => {
+// Add grants to the user
+router.post('/project/:role/add/:id', async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await invite_user(req.body, req.locals.user));
+        const { role, id } = req.params
+        res.status(200).send(await addRolesToUser(id, role, req.body.projects));
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     };
 });
 
-//  resend invite link
-router.get('/invite/resend/:id', async (req: Request, res: Response, next: Handler) => {
+//  Resend invite link
+router.get('/invite/resend/:role/:id', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await user_invite_resend(req.params.id));
+        const { role, id } = req.params
+        res.status(200).send(await userInviteResend(id, role));
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     };
@@ -33,7 +35,7 @@ router.get('/invite/resend/:id', async (req: Request, res: Response, next: Handl
 //  url validation
 router.get("/invite/link/validation/:token", async (req: Request, res: Response, next: Handler) => {
     try {
-        res.send(200).send(await validate_link(req.params.token))
+        res.send(200).send(await validLink(req.params.token))
     } catch (err) {
         res.status(400).send({ status: false, error: err.message })
     }

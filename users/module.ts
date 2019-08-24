@@ -8,7 +8,7 @@ import * as request from "request-promise";
 
 
 //  Invite User
-export async function invite_user(objBody: any, user: any) {
+export async function inviteUser(objBody: any, user: any) {
     try {
         if (!objBody.role || !objBody.email || !objBody.username) {
             throw new Error(MISSING);
@@ -59,10 +59,10 @@ export async function addRolesToUser(userId: any, role: any, projects: any) {
     } catch (err) {
         console.log(err);
         throw err;
-    }
-}
+    };
+};
 
-//  Get user list
+//  Edit user
 export async function edit_user_by_admin(id: any, objBody: any) {
     try {
         let obj: any = {}
@@ -71,10 +71,12 @@ export async function edit_user_by_admin(id: any, objBody: any) {
         };
         if (objBody.email) {
             obj.email = objBody.email
+            obj.emailVerified = false
         };
         if (objBody.username) {
             obj.username = objBody.username
         };
+        // if()
         let data = await Users.findByIdAndUpdate(id, obj, { new: true })
         return { status: true, data: data }
     } catch (err) {
@@ -133,18 +135,20 @@ export async function user_login(objBody: any) {
     };
 };
 
-//  resend invite link
-export async function user_invite_resend(id: any) {
+//  Resend invite link
+export async function userInviteResend(id: any, role: any) {
     try {
         if (!id) throw new Error(MISSING)
-        let user_data: any = await Users.findById(id)
-        let email = await nodemail({
-            email: user_data.email,
+        let userData: any = await Users.findById(id)
+        if (!userData.emailVerified) throw new Error("Email Already Verified")
+        let token = await jwt_for_url({ user: id, role: role });
+        let success = await nodemail({
+            email: userData.email,
             subject: "cmp invite user",
             html: invite_user_form({
-                username: user_data.username,
-                role: user_data.role,
-                link: `www.google.com`
+                username: userData.username,
+                role: role,
+                link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
             })
         })
         return { status: true, data: "email send successfully" }
@@ -154,8 +158,8 @@ export async function user_invite_resend(id: any) {
     };
 };
 
-// validate invite link
-export async function validate_link(token: any) {
+// Validate invite link
+export async function validLink(token: any) {
     try {
         if (!token) throw new Error(MISSING);
         let token_data: any = await jwt_Verify(token)

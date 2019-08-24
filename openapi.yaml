@@ -8,9 +8,11 @@ servers:
   - url: " http://192.168.1.173:3000"
 
 paths:
-  "/user/invite":
+# user apis
+  # Invite User
+  "/user/create":
     post:
-      summary: invite users
+      summary: Invite users
       tags:
         - USERS
       requestBody:
@@ -20,14 +22,10 @@ paths:
             schema:
               type: object
               required:
-                - role
                 - email
-                - username
+                - name
               properties:
-                role:
-                  type: string
-                  example: project manager
-                username:
+                name:
                   type: string
                   example: jeevan balla
                 email:
@@ -41,19 +39,73 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                  userId: 
+                    type: string
+                    example: 123456789
+                      
         "400":
           $ref: "#/components/responses/BadRequest"
-
-  "/user/register":
+  # Add Grants        
+  "/user/grants/add/{id}":
+    post:
+      summary: Add Grants to User
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - projects
+              properties:
+                role:
+                  type: string
+                  example: project lead
+                project:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - project id 1
+                    - project id 2
+                    - project id 3
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: string
+                    example: Roles added successfully
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # User Register
+  "/user/register/{token}":
     post:
       summary: register user with that role
       tags:
         - USERS
+      parameters:
+          - in: path
+            name: token
+            schema:
+              type: string
+            required: true
+            description: Token with user Details
       requestBody:
         required: true
         content:
@@ -61,26 +113,26 @@ paths:
             schema:
               type: object
               required:
-                - first_name
-                - last_name
+                - firstName
+                - lastName
                 - phone
-                - upload_photo
-                - about_me
+                - uploadPhoto
+                - aboutme
                 - password
               properties:
-                first_name:
+                firstName:
                   type: string
                   example: jeevan
-                last_name:
+                lastName:
                   type: string
                   example: balla
                 phone:
                   type: number
                   example: 7989238348
-                upload_photo:
+                uploadPhoto:
                   type: string
                   format: binary
-                about_me:
+                aboutme:
                   type: string
                   example: "project manager for transerve"
                 password:
@@ -94,14 +146,13 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
+                  "token":
                     type: boolean
-                    example: true
-                  data:
-                    type: object
+                    example: kjabsdfviadvhoidjvodjv352kjtrenorg25t1
+
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # user Login
   "/user/login":
     post:
       summary: login for user
@@ -131,14 +182,100 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                  "token":
+                    type: string
+                    example: ebiudhvifjvp9WEI0923ONVJKehv9
         "400":
           $ref: "#/components/responses/BadRequest"
+  # user Roles 
+  "/user/me/role":
+    get:
+      summary: get list roles
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - role 1
+                      - role 2
+                      - role 3
 
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user capabilities
+  "/user/me/capabilities":
+    get:
+      summary: get user capapbilities
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - capability 1
+                      - capability 2
+                      - capability 3
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user details
+  "/user/me/":
+    get:
+      summary: get user details
+      tags:
+        - USERS
+      responses:
+        "200":
+          $ref: "#/components/responses/userME"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user capabilities
+  "/user/resend/invite/{id}":
+    get:
+      summary: register user with that role
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: successfully mail was sent 
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # forgot password
   "/user/forgot":
     post:
       summary: user forgot password
@@ -164,21 +301,17 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                  "success":
+                    type: string
+                    example: successfully mail was sent
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # user set password
   "/user/forgot/password/":
     post:
       summary: user set password
       tags:
         - USERS
-      security:
-        - Bearer: []
       requestBody:
         required: true
         content:
@@ -199,20 +332,129 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
+                  "token":
+                    type: string
+                    example: urgre8t598gwvorjf8hfq439jfao
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user list
+  "/user/list/":
+    get:
+      summary: get user details list
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "list":
                     type: object
+                    properties:
+                      firstName: 
+                        type: string
+                        example: sai jeevan
+                      secondName:
+                        type: string
+                        example: balla
+                      email:
+                        type: string
+                        example: jeevan.balla@transerve.com
+                      is_active: 
+                        type: boolean
+                        example: true
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  #user edit
+  "/user/edit/{id}":
+    post:
+      summary: edit user
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+              properties:
+                name:
+                  type: string
+                  example: jeevan balla
+                email:
+                  type: string
+                  example: Jeevan.balla@transerve.com
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: jeevan balla
+                      email:
+                        type: string
+                        example: Jeevan.balla@transerve.com
+                  
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  #user edit status
+  "/user/status/{id}":
+    put:
+      summary: change user status
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+
         "400":
           $ref: "#/components/responses/BadRequest"
 
+
+#project apis
+  # create project code
   "/project/city/code/add":
     post:
       summary: add city code
       tags:
         - PROJECT
-
       requestBody:
         required: true
         content:
@@ -240,14 +482,21 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
+                  success: 
                     type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      projectName:
+                        type: string
+                        example: vizag
+                      projectSummary:
+                        type: string
+                        example: project for develop schools
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # edit project code
   "/project/city/code/edit/{id}":
     post:
       summary: edit city code
@@ -260,7 +509,7 @@ paths:
           schema:
             type: string
           required: true
-          description: code _id
+          description: project id
 
       requestBody:
         required: true
@@ -289,14 +538,21 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
+                  success: 
                     type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      projectName:
+                        type: string
+                        example: vizag
+                      projectSummary:
+                        type: string
+                        example: project for develop schoolss
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # project inactive
   "/project/city/code/status/{id}":
     put:
       summary: active or inactive city code
@@ -309,7 +565,7 @@ paths:
           schema:
             type: string
           required: true
-          description: code _id
+          description: project id
       responses:
         "200":
           description: success
@@ -318,14 +574,13 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # project list
   "/project/city/code/list":
     get:
       summary: city code list
@@ -339,123 +594,22 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                  success: 
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: 
+                          type: string
+                          example: project_id
+                        referece: 
+                          type: string
+                          example: VIZAG-CODE
+                          description: city codes
+                      
         "400":
           $ref: "#/components/responses/BadRequest"
 
-  "/role/add":
-    post:
-      summary: add role
-      tags:
-        - ROLE
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - role
-                - description
-              properties:
-                role:
-                  type: string
-                  example: project manager
-                description:
-                  type: string
-                  example: project manager for vizag
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        "400":
-          $ref: "#/components/responses/BadRequest"
-
-  "/role/edit/{id}":
-    post:
-      summary: edit role
-      tags:
-        - ROLE
-
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: role _id
-
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                role:
-                  type: string
-                  example: project manager
-                description:
-                  type: string
-                  example: project manager for vizag
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        "400":
-          $ref: "#/components/responses/BadRequest"
-
-  "/role/status/{id}":
-    put:
-      summary: active or inactive role
-      tags:
-        - ROLE
-
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: role _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-        "400":
-          $ref: "#/components/responses/BadRequest"
 
   "/role/list":
     get:
@@ -470,11 +624,19 @@ paths:
               schema:
                 type: object
                 properties:
-                  "status:":
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        scope: 
+                          type: string
+                          example: global
+                        role: 
+                          type: string
+                          example: project lead
+                        
+                      
         "400":
           $ref: "#/components/responses/BadRequest"
 
@@ -747,15 +909,262 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+    userME:
+      description: user schema
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/userSchema"
   schemas:
+  # error schema
     Error:
       type: object
       properties:
-        status:
-          type: boolean
-          example: false
         error:
           type: string
       required:
-        - status
         - error
+  # user schema
+    userSchema:
+      type: object
+      properties:
+        firstName: 
+          type: string
+          example: sai jeevan
+        secondName:
+          type: string
+          example: balla
+        email:
+          type: string
+          example: jeevan.balla@transerve.com
+        emailVerified:
+          type: boolean
+          example: false
+        password: 
+          type: string
+          example: adhdbfverhf92nfn
+          description: hashpassword
+        phone:
+          type: number
+          example: 7989238348
+        phoneVerified:
+          type: boolean
+          example: false
+        aboutme: 
+          type: string
+          example: i am a project manager
+        uploadPhoto:
+          type: string
+          example: https://amazonS3.com/user/profilepic
+        is_active: 
+          type: boolean
+          example: true
+  # project schema
+    projectSchema:
+      type: object
+      properties:
+        projectName: 
+          type: string
+          example: vizag schools develop
+        city:
+          type: string
+          example: vizag
+        projectSummary:
+          type: string
+          example: this project for de develop schools
+        reference: 
+          type: string
+          example: VIZAG-CODE
+        bannerImage:
+          type: string
+          example: https://amazonS3.com/project/banner
+        maturationStartDate:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: 22-1-2019
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        thirdParyAggrementDate:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: 22-1-2019
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        thirdParyAggrementDocument:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: https://Amazons3.com/thirdPary/Aggrement/Document
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        maturationEndDate:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: 22-1-2019
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        projectCost:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        ciitiisGrants:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        fundsReleased:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        fundsUtilised:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        fundsUtilisedDocuments:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: string
+                  example: https://Amazons3.com/fundsUtilised/Documents
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        themes: 
+          type: string
+          example: 12343567890
+          description: theme id
+        is_active: 
+          type: boolean
+          example: true
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -46,5 +46,3 @@ export async function checkRoleScope(role: any, scope: any) {
         throw err
     }
 }
-
-e
