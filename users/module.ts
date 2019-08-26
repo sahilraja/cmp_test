@@ -60,7 +60,7 @@ export async function addRolesToUser(userId: any, role: any, project: any) {
         let success = await request(Options);
         if (!success.status) throw new Error("Fail to get Roles.")
 
-        if (success) {
+        if (success.data.length) {
             //  remove all role 
             let Options = {
                 uri: `${process.env.RBAC_URL}/role/remove/all/${userId}`,
@@ -193,8 +193,14 @@ export async function user_list(query: any, page = 1, limit: any = 100, sort = "
         let findQuery = { is_active: true }
         let check: any = {};
         check[sort] = ascending ? 1 : -1;
-        let data = await Users.paginate(findQuery, { page: page, limit: parseInt(limit), sort: check })
-        return { status: true, data: data }
+        let data = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
+        for (const user of data.docs) {
+            let role = await userRoles(user.id)
+            user.role = role.roles[0]
+            
+
+        }
+        return { status: true, data: data.docs, Pages: data.pages, count: data.total }
     } catch (err) {
         console.log(err);
         throw err;
@@ -237,7 +243,7 @@ export async function user_login(objBody: any) {
         }
         let success = await request(Options);
         if (!success.status) throw new Error("Fail to get Roles.")
-        let token = await jwt_create({ id: user_data.id, role: success[0] })
+        let token = await jwt_create({ id: user_data.id, role: success.data })
         return { token: token };
     } catch (err) {
         console.log(err);
@@ -285,13 +291,13 @@ export async function userDetails(id: any) {
 export async function userRoles(id: any) {
     try {
         let Options = {
-            uri: `${process.env.RBAC_URL}/role/list/user/${id}`,
+            uri: `${process.env.RBAC_URL}/role/list/${id}`,
             method: "GET",
             json: true
         }
         let success = await request(Options);
         if (!success.status) throw new Error("fail to get Roles");
-        return { roles: success }
+        return { roles: success.data }
     } catch (err) {
         console.log(err)
         throw err
@@ -313,7 +319,7 @@ export async function userCapabilities(id: any) {
         }
         let success = await request(Options);
         if (!success.status) throw new Error("fail to get Roles");
-        return { roles: success }
+        return { roles: success.data }
     } catch (err) {
         console.log(err)
         throw err
@@ -369,7 +375,7 @@ export async function setNewPassword(objBody: any, token: any) {
         let success = await request(Options);
         if (!success.status) throw new Error("Fail to get Roles.")
 
-        let newToken = await jwt_create({ id: userDetails.id, role: success[0] })
+        let newToken = await jwt_create({ id: userDetails.id, role: success.data })
         return { token: token }
     } catch (err) {
         console.log(err);
