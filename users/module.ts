@@ -10,7 +10,7 @@ import * as request from "request-promise";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
-        if (!objBody.email || !objBody.name) {
+        if (!objBody.email || !objBody.name || !objBody.role) {
             throw new Error(MISSING);
         };
         let admin_scope = await checkRoleScope(user.role, "global");
@@ -19,19 +19,18 @@ export async function inviteUser(objBody: any, user: any) {
             firstName: objBody.name.split(' ').slice(0, -1).join(' '),
             secondName: objBody.name.split(' ').slice(-1).join(' '),
             email: objBody.email,
-            role: objBody.role
         });
         let token = await jwt_for_url({
             firstName: userData.firstName,
             secondName: userData.secondName,
             email: userData.email,
-            role: userData.role
+            role: objBody.role
         });
         let success = await nodemail({
             email: objBody.email,
             subject: "cmp invite user",
             html: invite_user_form({
-                username: objBody.username,
+                username: objBody.name,
                 role: objBody.role,
                 link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
             })

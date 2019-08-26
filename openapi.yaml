@@ -24,6 +24,7 @@ paths:
               required:
                 - email
                 - name
+                - role
               properties:
                 name:
                   type: string
@@ -31,6 +32,9 @@ paths:
                 email:
                   type: string
                   example: Jeevan.balla@transerve.com
+                role:
+                  type: string
+                  example: project manager
       responses:
         "200":
           description: success
