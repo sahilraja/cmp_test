@@ -11,9 +11,10 @@ const SALTROUNDS = 10;
 export async function authenticate(req: any, res: any, next: any) {
     try {
         if (!req.headers.authorization) throw new Error("Missing token")
-        let token: any = await jwt_Verify(req.headers.authorization)
+        let bearerToken = req.headers.authorization.substring(7, req.headers.authorization.length)
+        let token: any = await jwt_Verify(bearerToken)
         if (!token) throw new Error("Invalid Token")
-        res.locals.user  = await Users.findById(token.id)
+        res.locals.user = await Users.findById(token.id)
         return next();
     } catch (err) {
         console.log(err)

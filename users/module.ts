@@ -46,35 +46,62 @@ export async function inviteUser(objBody: any, user: any) {
 //  Add projects to that role
 export async function addRolesToUser(userId: any, role: any, project: any) {
     try {
-        if (!userId || !project || !role) {
+        if (!userId || !role) {
             throw new Error(MISSING);
         };
         let user_scope = await checkRoleScope(role, "global");
-        if (user_scope) throw new Error("global scope doesn't need projects");
+        if (user_scope && project) throw new Error("global scope doesn't need projects");
 
-        //  remove all role 
         let Options = {
-            uri: `${process.env.RBAC_URL}/role/remove/all/${userId}`,
-            method: "PUT",
+            uri: `${process.env.RBAC_URL}/role/list/${userId}`,
+            method: "GET",
             json: true
         }
         let success = await request(Options);
-        if (!success.status) throw new Error("fail to remove all roles")
+        if (!success.status) throw new Error("Fail to get Roles.")
 
-        //  add all roles
-        for (const code of project) {
+        if (success) {
+            //  remove all role 
+            let Options = {
+                uri: `${process.env.RBAC_URL}/role/remove/all/${userId}`,
+                method: "PUT",
+                json: true
+            }
+            let success = await request(Options);
+            if (!success.status) throw new Error("fail to remove all roles");
+        }
+
+        if (user_scope) {
             let Options = {
                 uri: `${process.env.RBAC_URL}/role/add/${userId}`,
                 method: "POST",
                 body: {
                     "role": role,
-                    "scope": `projects/${code}`
+                    "scope": `global`
                 },
                 json: true
             }
             let success = await request(Options);
             if (!success.status) throw new Error("fail to create role");
-        }
+
+        } else {
+            //  add all roles
+            for (const code of project) {
+                let Options = {
+                    uri: `${process.env.RBAC_URL}/role/add/${userId}`,
+                    method: "POST",
+                    body: {
+                        "role": role,
+                        "scope": `projects/${code}`
+                    },
+                    json: true
+                }
+                let success = await request(Options);
+                if (!success.status) throw new Error("fail to create role");
+            };
+        };
+
+
         return { message: "Roles added successfully" };
     } catch (err) {
         console.log(err);
@@ -96,7 +123,7 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
         if (!name || !password || !phone || !aboutme) {
             throw new Error(MISSING);
         };
-        if (/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(password)) {
+        if (!/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(password)) {
             throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
         }
 
@@ -107,10 +134,11 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
             secondName: name.split(' ').slice(-1).join(' '),
             password: has_Password,
             phone: phone,
-            aboutme: aboutme
+            aboutme: aboutme,
+            emailVerified: true
         }, { new: true });
 
-        let newToken = await jwt_create({ id: success.id });
+        let newToken = await jwt_create({ id: success.id, role: token.role });
         return { token: newToken }
     } catch (err) {
         console.log(err);
@@ -137,7 +165,7 @@ export async function edit_user(id: any, objBody: any) {
             obj.secondName = objBody.secondName;
         };
         if (objBody.password) {
-            if (/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(objBody.password)) {
+            if (!/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(objBody.password)) {
                 throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
             }
             let has_Password = hashPassword(objBody.password)
@@ -202,7 +230,14 @@ export async function user_login(objBody: any) {
         if (!result) {
             throw Error("Invalid login details.");
         }
-        let token = await jwt_create(user_data.id)
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/list/${user_data.id}`,
+            method: "GET",
+            json: true
+        }
+        let success = await request(Options);
+        if (!success.status) throw new Error("Fail to get Roles.")
+        let token = await jwt_create({ id: user_data.id, role: success[0] })
         return { token: token };
     } catch (err) {
         console.log(err);
@@ -319,14 +354,22 @@ export async function setNewPassword(objBody: any, token: any) {
         let verifyToken: any = await jwt_Verify(token);
         if (!verifyToken) throw new Error("Invalid Token.");
 
-        if (/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(objBody.password)) {
+        if (!/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(objBody.password)) {
             throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
         }
         let has_Password = hashPassword(objBody.password)
 
         let userDetails: any = await Users.findByIdAndUpdate(verifyToken.id, { password: has_Password }, { new: true });
 
-        let newToken = await jwt_create({ id: userDetails.id })
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/list/${userDetails.id}`,
+            method: "GET",
+            json: true
+        }
+        let success = await request(Options);
+        if (!success.status) throw new Error("Fail to get Roles.")
+
+        let newToken = await jwt_create({ id: userDetails.id, role: success[0] })
         return { token: token }
     } catch (err) {
         console.log(err);

@@ -157,7 +157,7 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
   # user Login
-  "/user/login":
+  "/user/email/login":
     post:
       summary: login for user
       tags:
@@ -958,9 +958,10 @@ paths:
 #components
 components:
   securitySchemes:
-    token:     # <-- arbitrary name for the security scheme
+    token:            # arbitrary name for the security scheme
       type: http
-      scheme: basic
+      scheme: bearer
+      bearerFormat: JWT 
 
   responses:
     BadRequest:

@@ -9,7 +9,7 @@ const router = Router();
 //  Invite user
 router.post('/create', authenticate, async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await inviteUser(req.body, req.locals.user));
+        res.status(200).send(await inviteUser(req.body, res.locals.user));
     } catch (err) {
         res.status(400).send({ error: err.message })
     };
@@ -74,7 +74,7 @@ router.get('/status/:id', authenticate, async (req: Request, res: Response, next
 });
 
 //  login user
-router.get('/email/login', async (req: Request, res: Response, next: Handler) => {
+router.post('/email/login', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await user_login(req.body));
     } catch (err) {
@@ -85,7 +85,7 @@ router.get('/email/login', async (req: Request, res: Response, next: Handler) =>
 // Get user Details
 router.get("/me", authenticate, async (req: any, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await userDetails(req.locals.user.id));
+        res.status(200).send(await userDetails(res.locals.user.id));
     } catch (err) {
         res.status(400).send({ err: err.message });
     };
@@ -94,7 +94,7 @@ router.get("/me", authenticate, async (req: any, res: Response, next: Handler) =
 // Get user roles
 router.get("/me/role", authenticate, async (req: any, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await userRoles(req.locals.user.id));
+        res.status(200).send(await userRoles(res.locals.user.id));
     } catch (err) {
         res.status(400).send({ err: err.message });
     };
@@ -103,7 +103,7 @@ router.get("/me/role", authenticate, async (req: any, res: Response, next: Handl
 // Get user roles
 router.get("/me/capabilities", authenticate, async (req: any, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await userCapabilities(req.locals.user.id));
+        res.status(200).send(await userCapabilities(res.locals.user.id));
     } catch (err) {
         res.status(400).send({ err: err.message });
     };

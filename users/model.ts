@@ -8,6 +8,7 @@ const userSchema = new Schema({
         type: String,
         unique: true,
         trim: true,
+        lowercase: true,
         match: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
     },
     emailVerified: { type: Boolean, default: false },
