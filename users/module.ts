@@ -43,28 +43,38 @@ export async function inviteUser(objBody: any, user: any) {
 };
 
 //  Add projects to that role
-export async function addRolesToUser(userId: any, role: any, projects: any) {
+export async function addRolesToUser(userId: any, role: any, project: any) {
     try {
-        if (!userId || !projects) {
+        if (!userId || !project || !role) {
             throw new Error(MISSING);
         };
         let user_scope = await checkRoleScope(role, "global");
-        if (user_scope) throw new Error("global scope doesn't need projects");
+        if (!user_scope) throw new Error("global scope doesn't need projects");
 
-        for (const project of projects) {
+        //  remove all role 
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/remove/all/${userId}`,
+            method: "PUT",
+            json: true
+        }
+        let success = await request(Options);
+        if (!success.status) throw new Error("fail to remove all roles")
+
+        //  add all roles
+        for (const code of project) {
             let Options = {
                 uri: `${process.env.RBAC_URL}/role/add/${userId}`,
                 method: "POST",
                 body: {
                     "role": role,
-                    "scope": `projects/${project}`
+                    "scope": `projects/${code}`
                 },
                 json: true
             }
             let success = await request(Options);
             if (!success.status) throw new Error("fail to create role");
         }
-        return { success: true, data: "Roles added successfully" };
+        return { message: "Roles added successfully" };
     } catch (err) {
         console.log(err);
         throw err;
@@ -100,7 +110,7 @@ export async function user_list(query: any, page = 1, limit: any = 100, sort = "
         let findQuery = { is_active: true }
         let check: any = {};
         check[sort] = ascending ? 1 : -1;
-        let data = await Users.paginate(findQuery, { select: { username: 1, role: 1, }, page: page, limit: parseInt(limit), sort: check })
+        let data = await Users.paginate(findQuery, { page: page, limit: parseInt(limit), sort: check })
         return { status: true, data: data }
     } catch (err) {
         console.log(err);

@@ -17,7 +17,7 @@ export async function role_list(objQuery: any) {
         } else if (!role && capabilities) {
             allroles = data.data.map((obj: any) => obj[2]);
         }
-        
+
         let roles = [...new Set(allroles)]
         return { status: true, data: roles }
     } catch (err) {
@@ -29,17 +29,17 @@ export async function role_list(objQuery: any) {
 export async function checkRoleScope(role: any, scope: any) {
     try {
         let Options = {
-            uri: `${process.env.RBAC_URL}/capabilities/list`,
+            uri: `${process.env.RBAC_URL}/capabilities/policy/list`,
             method: "GET",
             json: true
         }
         let data = await request(Options);
         if (!data.status) throw new Error("Error to fetch Roles")
-        data.data.map((obj: any) => {
-            if (role && obj[1].includes(scope)) {
+        for (const policy of data.data) {
+            if (policy[0].includes(role) && policy[1].includes(scope)) {
                 return true
             }
-        });
+        }
         return false
     } catch (err) {
         console.log(err);

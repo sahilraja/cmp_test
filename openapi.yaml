@@ -91,7 +91,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  success: 
+                  message: 
                     type: string
                     example: Roles added successfully
                       

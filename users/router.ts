@@ -13,12 +13,11 @@ router.post('/create', async (req: any, res: any, next: any) => {
 });
 
 // Add grants to the user
-router.post('/project/:role/add/:id', async (req: any, res: any, next: any) => {
+router.post('/grants/add/:id', async (req: any, res: any, next: any) => {
     try {
-        const { role, id } = req.params
-        res.status(200).send(await addRolesToUser(id, role, req.body.projects));
+        res.status(200).send(await addRolesToUser(req.params.id, req.body.role, req.body.project));
     } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
+        res.status(400).send({ error: err.message })
     };
 });
 
