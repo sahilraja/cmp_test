@@ -4,8 +4,24 @@ const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 import * as request from "request-promise"
+import { Users } from '../users/model';
 const SALTROUNDS = 10;
 
+// User Authentication 
+export async function authenticate(req: any, res: any, next: any) {
+    try {
+        if (!req.headers.token) throw new Error("Missing token")
+        let token: any = await jwt_Verify(req.headers.token)
+        if (!token) throw new Error("Invalid Token")
+        res.locals.user  = await Users.findById(token.id)
+        return next();
+    } catch (err) {
+        console.log(err)
+        res.send({ success: false, error: err.message });
+    };
+};
+
+//  Hash password
 export function hash_password(password: any) {
     try {
         return bcrypt.hashSync(password, SALTROUNDS);
@@ -15,6 +31,7 @@ export function hash_password(password: any) {
     };
 };
 
+//  Compare Password
 export function compare_password(password: any, hash_password: any) {
     try {
         return bcrypt.compareSync(password, hash_password)
@@ -24,14 +41,17 @@ export function compare_password(password: any, hash_password: any) {
     };
 };
 
+//  Create JWT life time
 export async function jwt_create(id: any) {
     return await jwtSign(id, SECRET, { expiresIn: ACCESS_TOKEN_LIFETIME });
 };
 
+//  Create JWT One Day
 export async function jwt_for_url(id: any) {
     return await jwtSign(id, SECRET, { expiresIn: ACCESS_TOKEN_FOR_URL });
 };
 
+//  JWT VERIFY
 export async function jwt_Verify(id: any) {
     return await jwtVerify(id, SECRET);
 };
@@ -54,6 +74,6 @@ export async function checkCapability(object: any) {
     } catch (err) {
         console.log(err);
         throw err;
-    }
-}
+    };
+};
 
