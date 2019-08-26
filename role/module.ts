@@ -15,7 +15,8 @@ export async function role_list() {
         await data.data.map((obj: any) => {
             if (!role.includes(obj[0])) {
                 role.push(obj[0])
-                roleList.push({ role: obj[0], scope: obj[1] })
+                let scope = (obj[1].indexOf("/") == -1) ? obj[1] : obj[1].substring(0, obj[1].indexOf("/"))
+                roleList.push({ role: obj[0], scope: scope })
             };
         });
         return { roles: roleList }
