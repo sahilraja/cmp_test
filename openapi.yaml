@@ -117,19 +117,15 @@ paths:
             schema:
               type: object
               required:
-                - firstName
-                - lastName
+                - name
                 - phone
                 - uploadPhoto
                 - aboutme
                 - password
               properties:
-                firstName:
+                name:
                   type: string
-                  example: jeevan
-                lastName:
-                  type: string
-                  example: balla
+                  example: sai jeevan balla
                 phone:
                   type: number
                   example: 7989238348
@@ -917,6 +913,11 @@ paths:
 
 #components
 components:
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
   responses:
     BadRequest:
       description: Bad Request
@@ -939,6 +940,7 @@ components:
           type: string
       required:
         - error
+  
   # user schema
     userSchema:
       type: object
@@ -1162,6 +1164,8 @@ components:
         is_active: 
           type: boolean
           example: true
+security:
+  - bearerAuth: [] 
         
     
     
