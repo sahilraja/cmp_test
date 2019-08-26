@@ -1,8 +1,8 @@
 import { MISSING } from "../utils/error_msg";
 import { Users } from "./model";
 import { nodemail } from "../utils/email";
-import { invite_user_form } from "../utils/email_template";
-import { jwt_create, jwt_Verify, jwt_for_url } from "../utils/utils";
+import { inviteUserForm, forgotPasswordForm } from "../utils/email_template";
+import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword } from "../utils/utils";
 import { checkRoleScope } from "../role/module";
 import * as request from "request-promise";
 
@@ -10,7 +10,7 @@ import * as request from "request-promise";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
-        if (!objBody.email || !objBody.name || !objBody.role || user) {
+        if (!objBody.email || !objBody.name || !objBody.role || !user) {
             throw new Error(MISSING);
         };
         let admin_scope = await checkRoleScope(user.role, "global");
@@ -21,6 +21,7 @@ export async function inviteUser(objBody: any, user: any) {
             email: objBody.email,
         });
         let token = await jwt_for_url({
+            id: userData.id,
             firstName: userData.firstName,
             secondName: userData.secondName,
             email: userData.email,
@@ -29,7 +30,7 @@ export async function inviteUser(objBody: any, user: any) {
         let success = await nodemail({
             email: objBody.email,
             subject: "cmp invite user",
-            html: invite_user_form({
+            html: inviteUserForm({
                 username: objBody.name,
                 role: objBody.role,
                 link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
@@ -49,7 +50,7 @@ export async function addRolesToUser(userId: any, role: any, project: any) {
             throw new Error(MISSING);
         };
         let user_scope = await checkRoleScope(role, "global");
-        if (!user_scope) throw new Error("global scope doesn't need projects");
+        if (user_scope) throw new Error("global scope doesn't need projects");
 
         //  remove all role 
         let Options = {
@@ -90,23 +91,27 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
         let token: any = await jwt_Verify(verifyToken)
         if (!token) throw new Error("Invalid Token")
 
-        const { firstName, secondName, password, phone, aboutme } = objBody
+        const { name, password, phone, aboutme } = objBody
 
-        if (!firstName || !secondName || !password || !phone || !aboutme) {
+        if (!name || !password || !phone || !aboutme) {
             throw new Error(MISSING);
         };
+        if (/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(password)) {
+            throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
+        }
+
+        let has_Password = await hashPassword(password)
 
         let success: any = await Users.findByIdAndUpdate(token.id, {
-            firstName: firstName,
-            secondName: secondName,
-            password: password,
+            firstName: name.split(' ').slice(0, -1).join(' '),
+            secondName: name.split(' ').slice(-1).join(' '),
+            password: has_Password,
             phone: phone,
             aboutme: aboutme
         }, { new: true });
 
         let newToken = await jwt_create({ id: success.id });
         return { token: newToken }
-
     } catch (err) {
         console.log(err);
         throw err;
@@ -132,7 +137,11 @@ export async function edit_user(id: any, objBody: any) {
             obj.secondName = objBody.secondName;
         };
         if (objBody.password) {
-            obj.password = objBody.password;
+            if (/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(objBody.password)) {
+                throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
+            }
+            let has_Password = hashPassword(objBody.password)
+            obj.password = has_Password;
         };
         if (objBody.phone) {
             obj.phone = objBody.phone;
@@ -150,7 +159,7 @@ export async function edit_user(id: any, objBody: any) {
     }
 };
 
-// edit user
+// Get User List
 export async function user_list(query: any, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { is_active: true }
@@ -164,7 +173,7 @@ export async function user_list(query: any, page = 1, limit: any = 100, sort = "
     }
 };
 
-//  status user
+//  User Status
 export async function user_status(id: any) {
     try {
         let user_data: any = await Users.findById(id)
@@ -178,7 +187,7 @@ export async function user_status(id: any) {
     }
 };
 
-//  user login
+//  User Login
 export async function user_login(objBody: any) {
     try {
         if (!objBody.email || !objBody.password) {
@@ -189,12 +198,12 @@ export async function user_login(objBody: any) {
         }
         let user_data: any = await Users.findOne({ email: objBody.email });
         if (!user_data) throw new Error("Invalid User");
-        let result: any = await user_data.comparePassword(objBody.password);
+        let result: any = await comparePassword(objBody.password, user_data.password)
         if (!result) {
             throw Error("Invalid login details.");
         }
         let token = await jwt_create(user_data.id)
-        return { status: true, data: token };
+        return { token: token };
     } catch (err) {
         console.log(err);
         throw err;
@@ -211,7 +220,7 @@ export async function userInviteResend(id: any, role: any) {
         let success = await nodemail({
             email: userData.email,
             subject: "cmp invite user",
-            html: invite_user_form({
+            html: inviteUserForm({
                 username: userData.username,
                 role: role,
                 link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
@@ -224,29 +233,103 @@ export async function userInviteResend(id: any, role: any) {
     };
 };
 
-// Validate invite link
-export async function validLink(token: any) {
+//  Get User Details
+export async function userDetails(id: any) {
     try {
-        if (!token) throw new Error(MISSING);
-        let token_data: any = await jwt_Verify(token)
-        if (!token_data) throw new Error("Invalid Token.");
-        let user_data = await Users.findById(token_data.id);
-        return { status: true, data: user_data };
+        if (!id) {
+            throw new Error(MISSING);
+        };
+        return await Users.findById(id)
     } catch (err) {
         console.log(err);
+        throw err;
+    };
+};
+
+//  Get User Roles
+export async function userRoles(id: any) {
+    try {
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/list/user/${id}`,
+            method: "GET",
+            json: true
+        }
+        let success = await request(Options);
+        if (!success.status) throw new Error("fail to get Roles");
+        return { roles: success }
+    } catch (err) {
+        console.log(err)
         throw err
     };
 };
 
-// user register
-export async function user_register(id: any, objBody: any) {
+//  Get user Capabilities
+export async function userCapabilities(id: any) {
     try {
-        if (!id || !objBody.username || !objBody.phone || !objBody.upload_photo || !objBody.aboutme || !objBody.password) {
-            throw new Error(MISSING);
+        let roles = await userRoles(id)
+        if (roles.roles.length == 0) throw new Error("role not found")
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/capabilities/list`,
+            method: "GET",
+            qs: {
+                role: roles.roles[0]
+            },
+            json: true
         }
+        let success = await request(Options);
+        if (!success.status) throw new Error("fail to get Roles");
+        return { roles: success }
+    } catch (err) {
+        console.log(err)
+        throw err
+    };
+};
 
+//  Forgot Password
+export async function forgotPassword(objBody: any) {
+    try {
+        if (!objBody.email) {
+            throw new Error(MISSING);
+        };
+        let userDetails: any = await Users.findOne({ email: objBody.email });
+        if (!userDetails) throw new Error("User Invalid.")
+        let token = jwt_for_url({ id: userDetails.id })
+        let success = await nodemail({
+            email: userDetails.email,
+            subject: "CMP Reset password instructions",
+            html: forgotPasswordForm({
+                username: userDetails.name,
+                link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
+            })
+        })
+        return { message: "successfully mail was sent." }
     } catch (err) {
         console.log(err);
         throw err;
-    }
-}
+    };
+};
+
+//  set new Password
+export async function setNewPassword(objBody: any, token: any) {
+    try {
+        if (!objBody.password || !token) {
+            throw new Error(MISSING)
+        };
+
+        let verifyToken: any = await jwt_Verify(token);
+        if (!verifyToken) throw new Error("Invalid Token.");
+
+        if (/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(objBody.password)) {
+            throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
+        }
+        let has_Password = hashPassword(objBody.password)
+
+        let userDetails: any = await Users.findByIdAndUpdate(verifyToken.id, { password: has_Password }, { new: true });
+
+        let newToken = await jwt_create({ id: userDetails.id })
+        return { token: token }
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};

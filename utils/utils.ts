@@ -10,8 +10,8 @@ const SALTROUNDS = 10;
 // User Authentication 
 export async function authenticate(req: any, res: any, next: any) {
     try {
-        if (!req.headers.token) throw new Error("Missing token")
-        let token: any = await jwt_Verify(req.headers.token)
+        if (!req.headers.authorization) throw new Error("Missing token")
+        let token: any = await jwt_Verify(req.headers.authorization)
         if (!token) throw new Error("Invalid Token")
         res.locals.user  = await Users.findById(token.id)
         return next();
@@ -22,7 +22,7 @@ export async function authenticate(req: any, res: any, next: any) {
 };
 
 //  Hash password
-export function hash_password(password: any) {
+export function hashPassword(password: any) {
     try {
         return bcrypt.hashSync(password, SALTROUNDS);
     } catch (err) {
@@ -32,7 +32,7 @@ export function hash_password(password: any) {
 };
 
 //  Compare Password
-export function compare_password(password: any, hash_password: any) {
+export function comparePassword(password: any, hash_password: any) {
     try {
         return bcrypt.compareSync(password, hash_password)
     } catch (err) {

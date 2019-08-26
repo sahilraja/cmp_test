@@ -12,6 +12,8 @@ paths:
   # Invite User
   "/user/create":
     post:
+      security:
+        - token: []
       summary: Invite users
       tags:
         - USERS
@@ -52,6 +54,8 @@ paths:
   # Add Grants        
   "/user/grants/add/{id}":
     post:
+      security:
+        - token: []
       summary: Add Grants to User
       tags:
         - USERS
@@ -190,6 +194,8 @@ paths:
   # user Roles 
   "/user/me/role":
     get:
+      security:
+        - token: []
       summary: get list roles
       tags:
         - USERS
@@ -215,6 +221,8 @@ paths:
   # user capabilities
   "/user/me/capabilities":
     get:
+      security:
+        - token: []
       summary: get user capapbilities
       tags:
         - USERS
@@ -240,6 +248,8 @@ paths:
   # user details
   "/user/me/":
     get:
+      security:
+        - token: []
       summary: get user details
       tags:
         - USERS
@@ -251,6 +261,8 @@ paths:
   # user capabilities
   "/user/resend/invite/{id}":
     get:
+      security:
+        - token: []
       summary: register user with that role
       tags:
         - USERS
@@ -340,6 +352,8 @@ paths:
   # user list
   "/user/list/":
     get:
+      security:
+        - token: []
       summary: get user details list
       tags:
         - USERS
@@ -382,6 +396,8 @@ paths:
   #user edit
   "/user/edit/{id}":
     post:
+      security:
+        - token: []
       summary: edit user
       tags:
         - USERS
@@ -432,6 +448,8 @@ paths:
   #user edit status
   "/user/status/{id}":
     put:
+      security:
+        - token: []
       summary: change user status
       tags:
         - USERS
@@ -463,6 +481,8 @@ paths:
   # create project code
   "/project/city/code/add":
     post:
+      security:
+        - token: []
       summary: add city code
       tags:
         - PROJECT
@@ -510,6 +530,8 @@ paths:
   # edit project code
   "/project/city/code/edit/{id}":
     post:
+      security:
+        - token: []
       summary: edit city code
       tags:
         - PROJECT
@@ -566,6 +588,8 @@ paths:
   # project inactive
   "/project/city/code/status/{id}":
     put:
+      security:
+        - token: []
       summary: active or inactive city code
       tags:
         - PROJECT
@@ -594,6 +618,8 @@ paths:
   # project list
   "/project/city/code/list":
     get:
+      security:
+        - token: []
       summary: city code list
       tags:
         - PROJECT
@@ -624,6 +650,8 @@ paths:
 
   "/role/list":
     get:
+      security:
+        - token: []
       summary: get role list
       tags:
         - ROLE
@@ -653,6 +681,8 @@ paths:
 
   "/project/tag/add":
     post:
+      security:
+        - token: []
       summary: add tag
       tags:
         - TAG
@@ -690,6 +720,8 @@ paths:
 
   "/project/tag/edit/{id}":
     post:
+      security:
+        - token: []
       summary: edit tag
       tags:
         - TAG
@@ -733,6 +765,8 @@ paths:
 
   "/project/tag/status/{id}":
     put:
+      security:
+        - token: []
       summary: active or inactive tag
       tags:
         - TAG
@@ -762,6 +796,8 @@ paths:
 
   "/project/tag/list":
     get:
+      security:
+        - token: []
       summary: get tags list
       tags:
         - TAG
@@ -783,6 +819,8 @@ paths:
 
   "/project/theme/add":
     post:
+      security:
+        - token: []
       summary: add theme
       tags:
         - THEME
@@ -820,6 +858,8 @@ paths:
 
   "/project/theme/edit/{id}":
     post:
+      security:
+        - token: []
       summary: edit theme
       tags:
         - THEME
@@ -863,6 +903,8 @@ paths:
 
   "/project/theme/status/{id}":
     put:
+      security:
+        - token: []
       summary: active or inactive theme
       tags:
         - THEME
@@ -892,6 +934,8 @@ paths:
 
   "/project/theme/list":
     get:
+      security:
+        - token: []
       summary: get theme list
       tags:
         - THEME
@@ -914,10 +958,10 @@ paths:
 #components
 components:
   securitySchemes:
-    bearerAuth:            # arbitrary name for the security scheme
+    token:     # <-- arbitrary name for the security scheme
       type: http
-      scheme: bearer
-      bearerFormat: JWT 
+      scheme: basic
+
   responses:
     BadRequest:
       description: Bad Request
@@ -1164,8 +1208,7 @@ components:
         is_active: 
           type: boolean
           example: true
-security:
-  - bearerAuth: [] 
+
         
     
     
