@@ -6,9 +6,9 @@ const router = Router();
 //  list roles
 router.get('/list', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await role_list(req.query));
+        res.status(200).send(await role_list());
     } catch (err) {
-        res.status(400).send({ status: false, error: err.message });
+        res.status(400).send({ error: err.message });
     };
 });
 
