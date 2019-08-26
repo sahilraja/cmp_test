@@ -15,7 +15,7 @@ export async function nodemail(objBody: any) {
       from: 'jeevan.balla@transerve.com',
       to: objBody.email,
       subject: objBody.subject,
-      text: objBody.text
+      html: objBody.html
     };
 
     transporter.sendMail(mailOptions, function (error: any, info: any) {

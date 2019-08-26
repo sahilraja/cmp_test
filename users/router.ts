@@ -24,11 +24,11 @@ router.post('/grants/add/:id', async (req: any, res: any, next: any) => {
 });
 
 // Register User
-router.get("/register/:token", upload.single('uploadPhoto'), async (req: Request, res: Response, next: Handler) => {
+router.post("/register/:token", upload.single('uploadPhoto'), async (req: Request, res: Response, next: Handler) => {
     try {
         res.send(200).send(await RegisterUser(req.body, req.params.token, req.file))
     } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
+        res.status(400).send({ error: err.message })
     }
 });
 

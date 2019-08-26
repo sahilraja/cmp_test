@@ -10,7 +10,7 @@ import * as request from "request-promise";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
-        if (!objBody.email || !objBody.name || !objBody.role) {
+        if (!objBody.email || !objBody.name || !objBody.role || user) {
             throw new Error(MISSING);
         };
         let admin_scope = await checkRoleScope(user.role, "global");
@@ -169,8 +169,9 @@ export async function user_status(id: any) {
     try {
         let user_data: any = await Users.findById(id)
         if (!user_data) throw new Error("User Not exist");
-        let data = await Users.findByIdAndUpdate(id, { is_active: user_data.is_active == true ? false : true }, { new: true })
-        return { status: true, data: data }
+        let active = user_data.is_active == true ? false : true
+        let data = await Users.findByIdAndUpdate(id, { is_active: active }, { new: true })
+        return { message: active ? "avtive" : "inactive" }
     } catch (err) {
         console.log(err)
         throw err;
