@@ -352,20 +352,31 @@ paths:
                 type: object
                 properties:
                   "list":
-                    type: object
-                    properties:
-                      firstName: 
-                        type: string
-                        example: sai jeevan
-                      secondName:
-                        type: string
-                        example: balla
-                      email:
-                        type: string
-                        example: jeevan.balla@transerve.com
-                      is_active: 
-                        type: boolean
-                        example: true
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        firstName: 
+                          type: string
+                          example: sai jeevan
+                        secondName:
+                          type: string
+                          example: balla
+                        role:
+                          type: string
+                          example: project managet
+                        cities: 
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - VIZAG-CODE
+                            - HYD-CODE
+                            - AMR-CODE
+                        is_active: 
+                          type: boolean
+                          example: true
+
         "400":
           $ref: "#/components/responses/BadRequest"
   #user edit

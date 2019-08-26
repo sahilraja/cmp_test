@@ -7,16 +7,26 @@ import { checkRoleScope } from "../role/module";
 import * as request from "request-promise";
 
 
-//  Invite User
+//  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
-        if (!objBody.role || !objBody.email || !objBody.username) {
+        if (!objBody.email || !objBody.name) {
             throw new Error(MISSING);
         };
         let admin_scope = await checkRoleScope(user.role, "global");
         if (!admin_scope) throw new Error("invalid user");
-        let userData = await Users.create({ username: objBody.username, email: objBody.email, role: objBody.role });
-        let token = await jwt_for_url({ user: userData.id, role: objBody.role });
+        let userData: any = await Users.create({
+            firstName: objBody.name.split(' ').slice(0, -1).join(' '),
+            secondName: objBody.name.split(' ').slice(-1).join(' '),
+            email: objBody.email,
+            role: objBody.role
+        });
+        let token = await jwt_for_url({
+            firstName: userData.firstName,
+            secondName: userData.secondName,
+            email: userData.email,
+            role: userData.role
+        });
         let success = await nodemail({
             email: objBody.email,
             subject: "cmp invite user",

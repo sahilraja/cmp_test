@@ -3,6 +3,7 @@ import { connect as mongooseConnect } from "mongoose";
 import { Application, Request, Response, Handler } from "express";
 import { OK, INTERNAL_SERVER_ERROR } from "http-status-codes";
 import * as bodyParser from 'body-parser'
+import * as cors from 'cors';
 
 //  module imports
 import * as usersRouter from "./users/router";
@@ -14,6 +15,9 @@ import * as multer  from "multer";
 var upload = multer({ dest: 'uploads/' });
 
 const app: Application = express();
+
+//  implement cors
+app.use(cors())
 
 //  mongoose connection
 mongooseConnect(process.env.MONGO_URL as any, { useNewUrlParser: true });

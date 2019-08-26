@@ -4,7 +4,7 @@ import { inviteUser, user_list, edit_user_by_admin, user_status, user_login, use
 const router = Router();
 
 //  Invite user
-router.post('/invite', async (req: any, res: any, next: any) => {
+router.post('/create', async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await inviteUser(req.body, req.locals.user));
     } catch (err) {
