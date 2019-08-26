@@ -81,23 +81,69 @@ export async function addRolesToUser(userId: any, role: any, project: any) {
     };
 };
 
+//  Register User
+export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: any) {
+    try {
+        if (!verifyToken) {
+            throw new Error(MISSING)
+        }
+        let token: any = await jwt_Verify(verifyToken)
+        if (!token) throw new Error("Invalid Token")
+
+        const { firstName, secondName, password, phone, aboutme } = objBody
+
+        if (!firstName || !secondName || !password || !phone || !aboutme) {
+            throw new Error(MISSING);
+        };
+
+        let success: any = await Users.findByIdAndUpdate(token.id, {
+            firstName: firstName,
+            secondName: secondName,
+            password: password,
+            phone: phone,
+            aboutme: aboutme
+        }, { new: true });
+
+        let newToken = await jwt_create({ id: success.id });
+        return { token: newToken }
+
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+};
+
 //  Edit user
-export async function edit_user_by_admin(id: any, objBody: any) {
+export async function edit_user(id: any, objBody: any) {
     try {
         let obj: any = {}
-        if (objBody.role) {
-            obj.role = objBody.role
-        };
         if (objBody.email) {
             obj.email = objBody.email
             obj.emailVerified = false
         };
-        if (objBody.username) {
-            obj.username = objBody.username
+        if (objBody.name) {
+            obj.firstName = objBody.name.split(' ').slice(0, -1).join(' ')
+            obj.secondName = objBody.name.split(' ').slice(-1).join(' ')
         };
-        // if()
-        let data = await Users.findByIdAndUpdate(id, obj, { new: true })
-        return { status: true, data: data }
+        if (objBody.firstName) {
+            obj.firstName = objBody.firstName;
+        };
+        if (objBody.secondName) {
+            obj.secondName = objBody.secondName;
+        };
+        if (objBody.password) {
+            obj.password = objBody.password;
+        };
+        if (objBody.phone) {
+            obj.phone = objBody.phone;
+            obj.phoneVerified = false;
+        };
+        if (objBody.aboutme) {
+            obj.aboutme = objBody.aboutme;
+        };
+
+        let data = await Users.findByIdAndUpdate(id, obj, { new: true });
+        return { data: data }
     } catch (err) {
         console.log(err);
         throw err;

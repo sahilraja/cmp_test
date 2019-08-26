@@ -1,5 +1,7 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user_by_admin, user_status, user_login, userInviteResend, validLink, addRolesToUser } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, validLink, addRolesToUser, RegisterUser } from "./module";
+var multer = require('multer')
+var upload = multer()
 
 const router = Router();
 
@@ -20,6 +22,16 @@ router.post('/grants/add/:id', async (req: any, res: any, next: any) => {
         res.status(400).send({ error: err.message })
     };
 });
+
+// Register User
+router.get("/register/:token", upload.single('uploadPhoto'), async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.send(200).send(await RegisterUser(req.body, req.params.token, req.file))
+    } catch (err) {
+        res.status(400).send({ status: false, error: err.message })
+    }
+});
+
 
 //  Resend invite link
 router.get('/invite/resend/:role/:id', async (req: Request, res: Response, next: Handler) => {
@@ -51,12 +63,12 @@ router.get('/list', async (req: Request, res: Response, next: Handler) => {
     };
 });
 
-//  edit user
+//  Edit User
 router.get('/edit/:id', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await edit_user_by_admin(req.params.id, req.body));
+        res.status(200).send(await edit_user(req.params.id, req.body));
     } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
+        res.status(400).send({ error: err.message })
     };
 });
 

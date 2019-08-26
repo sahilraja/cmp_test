@@ -1,6 +1,6 @@
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
-const ACCESS_TOKEN_FOR_URL = 30 * 60;
+const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 import * as request from "request-promise"
