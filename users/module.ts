@@ -36,7 +36,7 @@ export async function inviteUser(objBody: any, user: any) {
                 link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
             })
         })
-        return { status: true, data: userData };
+        return { userId: userData.id };
     } catch (err) {
         console.log(err)
         throw err;

@@ -8,7 +8,7 @@ router.post('/create', async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await inviteUser(req.body, req.locals.user));
     } catch (err) {
-        res.status(400).send({ status: false, error: err.message })
+        res.status(400).send({error: err.message })
     };
 });
 
