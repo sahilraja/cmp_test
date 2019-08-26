@@ -5,7 +5,8 @@ const SALT_WORK_FACTOR = 10;
 
 
 const userSchema = new Schema({
-    username: { type: String, trim: true },
+    firstName: { type: String, trim: true },
+    secondName: { type: String, trim: true },
     email: {
         type: String,
         trim: true,
@@ -16,7 +17,7 @@ const userSchema = new Schema({
     phone: { type: Number, max: 10, min: 10, trim: true },
     phoneVerified: { type: Boolean, default: false },
     aboutme: { type: String, trim: true },
-    uploadPhoto: { type: String, trim: true },
+    uploadPhoto: { type: String },
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 
@@ -39,8 +40,8 @@ userSchema.pre('save', function (next) {
     if (!user.isModified('password')) {
         return next();
     }
-    // generate a salt
 
+    // generate a salt
     bcrypt.genSalt(SALT_WORK_FACTOR, function (err, salt) {
         if (err) return next(err);
         // hash the password using our new salt

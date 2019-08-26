@@ -11,6 +11,7 @@ export function invite_user_form(body: any) {
         Best Regards,<br/>
         Transerve Support.
         `
+        return text
     } catch (err) {
         console.log(err);
         throw err;
