@@ -13,4 +13,4 @@ const schema = new Schema({
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 
-export const documents: any = model("documents", schema);
+export const documents= model("documents", schema);
