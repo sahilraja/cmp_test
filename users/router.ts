@@ -27,7 +27,7 @@ router.post('/grants/add/:id', authenticate, async (req: any, res: any, next: an
 // Register User
 router.post("/register/:token", upload.single('uploadPhoto'), async (req: Request, res: Response, next: Handler) => {
     try {
-        res.send(200).send(await RegisterUser(req.body, req.params.token, req.file))
+        res.status(200).send(await RegisterUser(req.body, req.params.token, req.file))
     } catch (err) {
         res.status(400).send({ error: err.message })
     }

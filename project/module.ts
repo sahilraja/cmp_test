@@ -8,7 +8,7 @@ import { checkCapability } from "../utils/utils";
 //  Add city Code
 export async function create_city_code(reqObject: any, user: any) {
     try {
-        if (!reqObject.ctiy_code || !reqObject.city_name) {
+        if (!reqObject.citycode || !reqObject.cityname) {
             throw new Error(MISSING);
         };
         //  check capability
@@ -16,8 +16,8 @@ export async function create_city_code(reqObject: any, user: any) {
         if (!capability.status) throw new Error("Invalid User")
 
         let success = await project.create({
-            reference: reqObject.city_code,
-            city: reqObject.city_name,
+            reference: reqObject.citycode,
+            city: reqObject.cityname,
             projectSummary: reqObject.description || "N/A"
         });
         return { status: true, data: success }
@@ -37,11 +37,11 @@ export async function edit_city_code(id: any, reqObject: any, user: any) {
         let capability = await checkCapability({ role: user.role, scope: "global", capability: "create-project" })
         if (!capability.status) throw new Error("Invalid User")
 
-        if (reqObject.ctiy_code) {
-            obj.reference = reqObject.city_code;
+        if (reqObject.citycode) {
+            obj.reference = reqObject.citycode;
         };
-        if (reqObject.city_name) {
-            obj.city = reqObject.city_name;
+        if (reqObject.cityname) {
+            obj.city = reqObject.cityname;
         };
         if (reqObject.description) {
             obj.projectSummary = reqObject.description;
@@ -89,7 +89,7 @@ export async function add_tag(reqObject: any) {
             throw new Error(MISSING);
         };
         let data = await tags.create({
-            city_code: reqObject.city_code,
+            tag: reqObject.tag,
             description: reqObject.description || "N/A"
         })
         return { status: true, data: data }

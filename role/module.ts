@@ -47,3 +47,35 @@ export async function checkRoleScope(role: any, scope: any) {
         throw err
     }
 }
+
+export async function userRoleAndScope(userId: any) {
+    try {
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/list/${userId}`,
+            method: "GET",
+            json: true
+        }
+        let success = await request(Options);
+        if (!success.status) throw new Error("Fail to get Roles.")
+        let data: any = []
+        let object: any = {}
+        success.data.map((key: any) => {
+            if (object.role && object.role != key.role) {
+                data.push(object)
+                object = {}
+            }
+            if (object.role == key.role && key.scope != "global") {
+                object.scope.push(key.scope.substring(key.scope.indexOf("/") + 1, key.scope.length))
+            }
+            if (!object.role) {
+                object.role = key.role
+                object.scope = key.scope == "global" ? "global" : [key.scope.substring(key.scope.indexOf("/") + 1, key.scope.length)]
+            }
+        })
+        if (!data.length) data.push(object)
+        return { data: data }
+    } catch (err) {
+        console.log(err)
+        throw err
+    }
+}

@@ -20,22 +20,6 @@ export async function inviteUser(objBody: any, user: any) {
             secondName: objBody.name.split(' ').slice(-1).join(' '),
             email: objBody.email,
         });
-        let token = await jwt_for_url({
-            id: userData.id,
-            firstName: userData.firstName,
-            secondName: userData.secondName,
-            email: userData.email,
-            role: objBody.role
-        });
-        let success = await nodemail({
-            email: objBody.email,
-            subject: "cmp invite user",
-            html: inviteUserForm({
-                username: objBody.name,
-                role: objBody.role,
-                link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
-            })
-        })
         return { userId: userData.id };
     } catch (err) {
         console.log(err)
@@ -101,7 +85,27 @@ export async function addRolesToUser(userId: any, role: any, project: any) {
             };
         };
 
+        if (!success.data.length) {
+            let userDetails: any = await Users.findById(userId)
 
+            let token = await jwt_for_url({
+                id: userId,
+                firstName: userDetails.firstName,
+                secondName: userDetails.secondName,
+                email: userDetails.email,
+                role: role
+            });
+
+            let mailStatus = await nodemail({
+                email: userDetails.email,
+                subject: "cmp invite user",
+                html: inviteUserForm({
+                    username: userDetails.firstName + " " + userDetails.secondName,
+                    role: role,
+                    link: `${process.env.ANGULAR_URL}/user/register/${token}`
+                })
+            })
+        }
         return { message: "Roles added successfully" };
     } catch (err) {
         console.log(err);
@@ -127,6 +131,10 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
             throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
         }
 
+        if (isNaN(phone) || phone.length != 10) {
+            throw new Error("Enter Valid Phone Number.")
+        }
+
         let has_Password = await hashPassword(password)
 
         let success: any = await Users.findByIdAndUpdate(token.id, {
@@ -139,6 +147,7 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
         }, { new: true });
 
         let newToken = await jwt_create({ id: success.id, role: token.role });
+        if (!newToken) throw new Error("fail to create token")
         return { token: newToken }
     } catch (err) {
         console.log(err);
@@ -197,8 +206,6 @@ export async function user_list(query: any, page = 1, limit: any = 100, sort = "
         for (const user of data.docs) {
             let role = await userRoles(user.id)
             user.role = role.roles[0]
-            
-
         }
         return { status: true, data: data.docs, Pages: data.pages, count: data.total }
     } catch (err) {
@@ -243,7 +250,7 @@ export async function user_login(objBody: any) {
         }
         let success = await request(Options);
         if (!success.status) throw new Error("Fail to get Roles.")
-        let token = await jwt_create({ id: user_data.id, role: success.data })
+        let token = await jwt_create({ id: user_data.id, role: success.data[0].role })
         return { token: token };
     } catch (err) {
         console.log(err);
@@ -264,7 +271,7 @@ export async function userInviteResend(id: any, role: any) {
             html: inviteUserForm({
                 username: userData.username,
                 role: role,
-                link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
+                link: `${process.env.ANGULAR_URL}/user/register/${token}`
             })
         })
         return { status: true, data: "email send successfully" }
@@ -297,7 +304,7 @@ export async function userRoles(id: any) {
         }
         let success = await request(Options);
         if (!success.status) throw new Error("fail to get Roles");
-        return { roles: success.data }
+        return { roles: success.data[0].role }
     } catch (err) {
         console.log(err)
         throw err
@@ -313,7 +320,7 @@ export async function userCapabilities(id: any) {
             uri: `${process.env.RBAC_URL}/role/capabilities/list`,
             method: "GET",
             qs: {
-                role: roles.roles[0]
+                role: roles.roles
             },
             json: true
         }

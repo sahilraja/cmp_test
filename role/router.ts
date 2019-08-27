@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { role_list } from "./module";
+import { role_list, userRoleAndScope } from "./module";
 
 const router = Router();
 
@@ -7,6 +7,15 @@ const router = Router();
 router.get('/list', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await role_list());
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+});
+
+//  list roles
+router.get('/scope/list/:userid', async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await userRoleAndScope(req.params.userid));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };

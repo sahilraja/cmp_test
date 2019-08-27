@@ -15,7 +15,7 @@ export async function authenticate(req: any, res: any, next: any) {
         let token: any = await jwt_Verify(bearerToken)
         if (!token) throw new Error("Invalid Token")
         res.locals.user = await Users.findById(token.id)
-        res.locals.user.role = token.role[0]
+        res.locals.user.role = token.role
         return next();
     } catch (err) {
         console.log(err)
