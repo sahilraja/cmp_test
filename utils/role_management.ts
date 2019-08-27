@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { join } from "path";
-import { requestApi } from "./utils";
+import * as request from "request-promise"
 
 
 export async function init() {
@@ -10,7 +10,7 @@ export async function init() {
             method: "PUT",
             json: true
         }
-        let removeCapabilities: any = await requestApi(removeOptions);
+        let removeCapabilities: any = await request(removeOptions);
         if (!removeCapabilities.status) throw "Something Went wrong while removeing the capabilities.";
         let capabilitiesObject = JSON.parse(fs.readFileSync(join(__dirname, "rbac.json"), "utf8"))
         let addOptions = {
@@ -24,7 +24,7 @@ export async function init() {
             },
             json: true
         }
-        let addCapabilities: any = await requestApi(addOptions);
+        let addCapabilities: any = await request(addOptions);
         if (!addCapabilities.status) throw "Something Went wrong while adding the capabilities.";
         resolve("successfully added new capabilities");
     });
