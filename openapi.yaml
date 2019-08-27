@@ -738,6 +738,166 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
+  
+
+  "/docs/create":
+    post:
+      summary: create  doc
+      tags:
+        - RESOURCES
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  example: Annula Report
+    
+                file_description:
+                  type: string
+                  example: Dam for vizag
+                themes:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345    
+             
+                  
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+                      version_id:
+                        type: string
+                        example: 333345
+                    
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+
+  "/docs/{id}/versions":
+    get:
+      summary: get list of doc versions
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+             
+                  
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  versions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        version:
+                          type: string
+                          example: v1
+                        status:
+                          type: string
+                          example: pending
+                        id:
+                          type: string
+                          example: 123224
+                        created_at:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                        updated_at:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                
+                    
+                        
+                    
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+          
+  "/docs/{id}/versions/{versionId}/file":
+    post:
+      summary: Change or create a new file for this version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          required: true
+          description: version _id   
+      requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+               type: object
+               properties:
+                uploadefile:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+                      version_id:
+                        type: string
+                        example: 353535
+                      file_name:
+                        type: string
+                        example: filename.pdf
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"  
+        
+      
+      
+  "docs/{id}/versions/create":
+  
 #components
 components:
   responses:
