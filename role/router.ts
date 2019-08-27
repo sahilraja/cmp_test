@@ -1,39 +1,23 @@
 import { Router, Request, Response, Handler } from "express";
-import { add_role, role_list, role_edit, role_status } from "./module";
+import { role_list, userRoleAndScope } from "./module";
 
 const router = Router();
-
-//  add role
-router.get('/add', async (req: Request, res: Response, next: Handler) => {
-    try {
-        res.status(200).send(await add_role(req.body));
-    } catch (err) {
-        res.status(400).send({ status: false, error: err.message });
-    };
-});
 
 //  list roles
 router.get('/list', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await role_list());
     } catch (err) {
-        res.status(400).send({ status: false, error: err.message });
+        res.status(400).send({ error: err.message });
     };
 });
 
-router.get('/edit/:id', async (req: Request, res: Response, next: Handler) => {
+//  list roles
+router.get('/scope/list/:userid', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await role_edit(req.params.id, req.body));
+        res.status(200).send(await userRoleAndScope(req.params.userid));
     } catch (err) {
-        res.status(400).send({ status: false, error: err.message });
-    };
-});
-
-router.get('/status/:id', async (req: Request, res: Response, next: Handler) => {
-    try {
-        res.status(200).send(await role_status(req.params.id));
-    } catch (err) {
-        res.status(400).send({ status: false, error: err.message });
+        res.status(400).send({ error: err.message });
     };
 });
 

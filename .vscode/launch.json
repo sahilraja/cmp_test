@@ -16,7 +16,8 @@
             "env": {
                 "NODE_ENV": "DEVELOPMENT",
                 "MONGO_URL": "mongodb://localhost/rbac",
-                "RBAC_URL": "http://localhost:8081"
+                "RBAC_URL": "http://localhost:8081",
+                "ANGULAR_URL": "http://localhost:4200"
             }
         },
         {
