@@ -1,14 +1,44 @@
 [
     {
-        "capability" : "create-user",
-        "description" : "Create User",
-        "role" : "program-coordinator",
-        "scope" : "global"
+        "capability": "create-user",
+        "description": "Create User",
+        "role": "Technology Lead",
+        "scope": "global"
     },
     {
-        "capability" : "documents-add",
-        "description" : "Upload documents",
-        "role" : "project-manager",
-        "scope" : "project/*"
+        "capability": "create-project",
+        "description": "Create project",
+        "role": "Program Coordinator",
+        "scope": "global"
+    },
+    {
+        "capability": "document-upload",
+        "description": "upload documents",
+        "role": "Communication Specialist",
+        "scope": "global"
+    },
+    {
+        "capability": "document-approve",
+        "description": "Create User",
+        "role": "Project Incharge",
+        "scope": "project/*"
+    },
+    {
+        "capability": "documents-approve",
+        "description": "Upload documents",
+        "role": "CEO",
+        "scope": "project/*"
+    },
+    {
+        "capability": "documents-upload",
+        "description": "Upload documents",
+        "role": "Mentors",
+        "scope": "project/*"
+    },
+    {
+        "capability": "documents-upload",
+        "description": "Upload documents",
+        "role": "Experts",
+        "scope": "project/*"
     }
 ]

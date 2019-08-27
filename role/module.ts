@@ -1,60 +1,81 @@
-import { MISSING, GLOBAL_SCOPE } from "../utils/error_msg";
-import { roles } from "./role_model";
+import * as request from "request-promise";
 
-// add role 
-export async function add_role(objBody: any) {
-    try {
-        if (!objBody.role || !objBody.description) {
-            throw new Error(MISSING);
-        };
-        let data = await roles.create({ role: objBody.role, description: objBody.description });
-        return { status: true, data: data };
-    } catch (err) {
-        console.log(err);
-        throw err;
-    };
-};
-
-// get role list
+// Get Roles List
 export async function role_list() {
     try {
-        let data = await roles.find({ is_active: true });
-        return { status: true, data: data };
-
-    } catch (err) {
-        console.log(err);
-        throw err;
-    };
-};
-
-//  edit role
-export async function role_edit(id: any, objBody: any) {
-    try {
-        let obj: any = {};
-        if (objBody.role) {
-            obj.role = objBody.role;
-        };
-        if (objBody.description) {
-            obj.description = objBody.description
+        let Options = {
+            uri: `${process.env.RBAC_URL}/capabilities/policy/list`,
+            method: "GET",
+            json: true
         }
-        let data = await roles.findByIdAndUpdate(id, obj, { new: true })
-        return { status: true, data: data };
-
+        let data = await request(Options);
+        if (!data.status) throw new Error("Error to fetch Roles")
+        let role: any[] = []
+        let roleList: any = []
+        await data.data.map((obj: any) => {
+            if (!role.includes(obj[0])) {
+                role.push(obj[0])
+                let scope = (obj[1].indexOf("/") == -1) ? obj[1] : obj[1].substring(0, obj[1].indexOf("/"))
+                roleList.push({ role: obj[0], scope: scope })
+            };
+        });
+        return { roles: roleList }
     } catch (err) {
         console.log(err);
         throw err;
     };
 };
 
-//  change role status
-export async function role_status(id: any) {
+//  Check Role Scope
+export async function checkRoleScope(role: any, scope: any) {
     try {
-        let role_data: any = await roles.findById(id)
-        if (!role_data) throw new Error("Role not Exist");
-        let data = await roles.findByIdAndUpdate(id, { is_active: role_data.is_active == true ? false : true })
-        return { status: true, data: data }
+        let Options = {
+            uri: `${process.env.RBAC_URL}/capabilities/policy/list`,
+            method: "GET",
+            json: true
+        }
+        let data = await request(Options);
+        if (!data.status) throw new Error("Error to fetch Roles")
+        for (const policy of data.data) {
+            if (policy[0].includes(role) && policy[1].includes(scope)) {
+                return true
+            }
+        }
+        return false
     } catch (err) {
         console.log(err);
-        throw err;
+        throw err
+    }
+}
+
+export async function userRoleAndScope(userId: any) {
+    try {
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/list/${userId}`,
+            method: "GET",
+            json: true
+        }
+        let success = await request(Options);
+        if (!success.status) throw new Error("Fail to get Roles.")
+        let data: any = []
+        let object: any = {}
+        success.data.map((key: any) => {
+            if (object.role && object.role != key.role) {
+                data.push(object)
+                object = {}
+            }
+            if (object.role == key.role && key.scope != "global") {
+                object.scope.push(key.scope.substring(key.scope.indexOf("/") + 1, key.scope.length))
+            }
+            if (!object.role) {
+                object.role = key.role
+                object.scope = key.scope == "global" ? "global" : [key.scope.substring(key.scope.indexOf("/") + 1, key.scope.length)]
+            }
+        })
+        if (!data.length) data.push(object)
+        return { data: data }
+    } catch (err) {
+        console.log(err)
+        throw err
     }
 }
