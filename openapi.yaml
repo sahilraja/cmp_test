@@ -1006,10 +1006,10 @@ paths:
             schema:
               type: object
               properties:
-                file_name:
+                name:
                   type: string
                   example: Annula Report
-                file_description:
+                description:
                   type: string
                   example: Dam for vizag
                 themes:
