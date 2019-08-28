@@ -1,4 +1,5 @@
 import { documents } from "./model"
+import * as http from "http";
 
 enum status {
     DRAFT = 0,
@@ -189,4 +190,33 @@ export async function updateDoc(objBody: any, docid: any, versionId: any) {
         console.log(err)
         throw err
     }
+}
+
+export async function uploadToFileService(request : any) {
+    const options : any= {
+        hostname: 'localhost',
+        port: 4040,
+        path: '/files',
+        method: 'POST',
+        headers: request.headers
+    };
+    return new Promise((resolve, reject) => {
+
+    
+    const req = http.request(options, res => {
+        // response.writeHead(200, res.headers);
+        res.setEncoding('utf8');
+        let content = '';
+        res.on('data', (chunk) => {
+            content += chunk;
+        });
+        res.on('end', () => {
+            resolve(content);
+        });
+    });
+    req.on('error', (e) => {
+        console.error(e);
+    });
+    request.pipe(req);
+    });
 }

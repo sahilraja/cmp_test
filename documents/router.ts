@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService } from "./module";
 const router = Router()
 
 // impoet multer
@@ -65,8 +65,9 @@ router.post("/:id/versions/:versionId/reject", async (req: any, res: any, next: 
 // create File
 router.post("/:id/versions/:versionId:/file", upload.single('uploadefile'), async (req: any, res: any, next: any) => {
     try {
-        const { docId, versionId } = req.params
-        res.status(200).send(await createFile(docId, versionId, req.file))
+        const { docId, versionId } = req.params;
+        const fileObj = await uploadToFileService(req);
+        res.status(200).send(fileObj);
     } catch (err) {
         res.status(400).send({ error: err.message })
     };
