@@ -2,9 +2,9 @@ import { documents } from "./model"
 
 enum status {
     DRAFT = 0,
-    PUBLISHED = 1,
-    PENDING = 2,
-    APPROVED = 3
+    APPROVED = 1,
+    REJECTED = 2,
+    PENDING = 3
 }
 
 //  Create Document
@@ -45,7 +45,7 @@ async function insertDOC(body: any, userID: any) {
 //  Get Document Public List
 export async function getDocList() {
     try {
-        let data = await documents.find({ parentId: null, status: status.PUBLISHED });
+        let data = await documents.find({ parentId: null, status: status.APPROVED });
         return { docs: data }
     } catch (error) {
         console.log(error);
@@ -88,5 +88,69 @@ export async function submit(docId: any, versionID: any) {
     } catch (error) {
         console.log(error);
         throw error;
+    };
+};
+
+//  Create New Version
+export async function createNewVersion(docId: any, userId: any) {
+    try {
+        if (!docId) throw new Error("DocId Is Missing.");
+        let docDetails: any = await documents.findById(docId);
+        if (!docDetails) throw new Error("Document Not Exist.")
+        let getDocs: any = await documents.find({ parentId: docDetails.parentID }).sort({ "createdAt": -1 })
+        let createNewDoc = await documents.create({
+            name: docDetails.name,
+            description: docDetails.description,
+            themes: docDetails.themes,
+            tags: docDetails.tags,
+            versionId: getDocs[0].versionId + 1,
+            status: status.DRAFT,
+            ownerId: userId,
+            parentId: docDetails.parentID
+        })
+        return createNewDoc
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+//  Reject Document
+export async function RejectDoc(docId: any) {
+    try {
+        if (!docId) throw new Error("Missing DocID.");
+        let docDetails: any = await documents.findByIdAndUpdate(docId, { status: status.REJECTED }, { new: true });
+        let parentDoc: any = await documents.findById(docDetails.parentID)
+        if (parentDoc.status != status.APPROVED) {
+            await documents.findByIdAndUpdate(parentDoc.id, { status: status.REJECTED })
+        }
+        return { message: "Document Rejected." }
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+// Approve Document
+export async function ApproveDoc(docId: any) {
+    try {
+        if (!docId) throw new Error("Missing DocID.");
+        let docDetails: any = await documents.findByIdAndUpdate(docId, { status: status.APPROVED }, { new: true });
+        let parentDoc: any = await documents.findByIdAndUpdate(docDetails.parentID, { status: status.APPROVED })
+        return { message: "Document Approved." }
+    } catch (err) {
+        console.log(err)
+        throw err
+    };
+};
+
+//  Get Doc Details
+export async function getDocDetails(docId: any) {
+    try {
+        if (!docId) throw new Error("Missing DocID");
+        return await documents.findById(docId);
+    } catch (err) {
+        console.log(err)
+        throw err;
     };
 };

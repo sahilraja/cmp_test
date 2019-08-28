@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { getDocList, getDocListOfMe, createFile, createDOC, submit } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc } from "./module";
 const router = Router()
 
 // impoet multer
@@ -16,7 +16,7 @@ router.post("/create", async (req: any, res: any, next: any) => {
 });
 
 //  Get Public List
-router.post("/list", async (req: any, res: any, next: any) => {
+router.get("/list", async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await getDocList())
     } catch (err) {
@@ -25,9 +25,38 @@ router.post("/list", async (req: any, res: any, next: any) => {
 });
 
 // Get My list
-router.post("/me", async (req: any, res: any, next: any) => {
+router.get("/me", async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await getDocListOfMe(res.locals.user.id))
+    } catch (err) {
+        res.status(400).send({ error: err.message })
+    };
+});
+
+//  Create new Version
+router.post("/:id/versions/create", async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await createNewVersion(req.params.id, res.locals.user.id));
+    } catch (error) {
+        res.status(400).send({ err: error.message });
+    };
+});
+
+// create File
+router.post("/:id/versions/:versionId/publish", async (req: any, res: any, next: any) => {
+    try {
+        const { docId, versionId } = req.params
+        res.status(200).send(await ApproveDoc(docId))
+    } catch (err) {
+        res.status(400).send({ error: err.message })
+    };
+});
+
+// create File
+router.post("/:id/versions/:versionId/reject", async (req: any, res: any, next: any) => {
+    try {
+        const { docId, versionId } = req.params
+        res.status(200).send(await RejectDoc(docId))
     } catch (err) {
         res.status(400).send({ error: err.message })
     };
@@ -51,5 +80,6 @@ router.post("/:id/versions/:versionId/submit", async (req: any, res: any, next: 
         res.status(400).send({ err: error.message });
     };
 });
+
 
 export = router;

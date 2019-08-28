@@ -6,7 +6,7 @@ import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword } fr
 import { checkRoleScope, userRoleAndScope } from "../role/module";
 import * as request from "request-promise";
 import { project } from "../project/project_model";
-import { PaginateResult } from "mongoose";
+import { PaginateResult, Types } from "mongoose";
 
 
 //  Create User
@@ -202,9 +202,9 @@ export async function edit_user(id: any, objBody: any) {
 };
 
 // Get User List
-export async function user_list(query: any, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
+export async function user_list(query: any, userId: any, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
-        let findQuery = {}
+        let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let check: any = {};
         check[sort] = ascending ? 1 : -1;
         let { docs, pages, total }: PaginateResult<any> = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
@@ -212,18 +212,12 @@ export async function user_list(query: any, page = 1, limit: any = 100, sort = "
             const user = { ...doc.toJSON(), id: doc.id }
             let userCapabilities = await userRoleAndScope(user.id)
             user.role = userCapabilities.data[0].role
-            if (userCapabilities.data[0].scope == "global") {
-                user.scope = userCapabilities.data[0].scope
-            } else {
-                user.scope = []
-                await Promise.all(userCapabilities.data[0].scope.filter(async (code: any) => {
-                    let projectDetails: any = await project.findById(code)
-                    user.scope.push(projectDetails.reference)
-                }));
-            }
-            return user;
+            user.scope = (userCapabilities.data[0].scope == "global") ? userCapabilities.data[0].scope : await Promise.all(userCapabilities.data[0].scope.map(async (code: any) => {
+                let projectDetails: any = await project.findById(code)
+                return projectDetails.reference
+            }));
+            return user
         }));
-
         return { data, pages: pages, count: total }
     } catch (err) {
         console.log(err);
