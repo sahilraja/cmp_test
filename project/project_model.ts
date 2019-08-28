@@ -1,9 +1,9 @@
 import { Schema, model } from "mongoose";
 
 const schema = new Schema({
-    projectName: { type: String, trim:true },
+    name: { type: String, trim:true },
     city: { type: String, trim: true },
-    projectSummary: { type: String },
+    summary: { type: String },
     reference: { type: String, unique: true, trim: true, uppercase: true },
     bannerImage: { type: String },
     maturationStartDate: [

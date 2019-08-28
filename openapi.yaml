@@ -519,10 +519,10 @@ paths:
                       reference:
                         type: string
                         example: CITIIS-OR-BBR
-                      projectName:
+                      name:
                         type: string
                         example: vizag
-                      projectSummary:
+                      summary:
                         type: string
                         example: project for develop schools
         "400":
@@ -577,10 +577,10 @@ paths:
                       reference:
                         type: string
                         example: CITIIS-OR-BBR
-                      projectName:
+                      name:
                         type: string
                         example: vizag
-                      projectSummary:
+                      summary:
                         type: string
                         example: project for develop schoolss
         "400":
@@ -1722,13 +1722,13 @@ components:
     projectSchema:
       type: object
       properties:
-        projectName: 
+        name: 
           type: string
           example: vizag schools develop
         city:
           type: string
           example: vizag
-        projectSummary:
+        summary:
           type: string
           example: this project for de develop schools
         reference: 
