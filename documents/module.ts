@@ -148,9 +148,45 @@ export async function ApproveDoc(docId: any) {
 export async function getDocDetails(docId: any) {
     try {
         if (!docId) throw new Error("Missing DocID");
-        return await documents.findById(docId);
+        let publishDocs: any = await documents.find({ parentId: docId, status: status.APPROVED }).sort({ "createdAt": -1 })
+        if (publishDocs.length) throw new Error("Approved Docs Not there.")
+        return publishDocs[0]
     } catch (err) {
         console.log(err)
         throw err;
     };
 };
+
+//  Get doc with Version
+export async function getDocWithVersion(docId: any, versionId: any) {
+    try {
+        if (!docId || !versionId) throw new Error("Missing Fields");
+        return await documents.find({ parentId: docId, versionId: versionId });
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+export async function updateDoc(objBody: any, docid: any, versionId: any) {
+    try {
+        let obj: any = {}
+        if (objBody.name) {
+            obj.name = objBody.name
+        }
+        if (objBody.description) {
+            obj.description = objBody.description
+        }
+        if (objBody.themes) {
+            obj.themes = objBody.themes
+        }
+        if (objBody.tags) {
+            obj.tags = objBody.tags
+        }
+        let updatedDoc = await documents.find({ parentId: docid, versionId: versionId }, obj, { new: true })
+        return updateDoc
+    } catch (err) {
+        console.log(err)
+        throw err
+    }
+}

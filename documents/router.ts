@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc } from "./module";
 const router = Router()
 
 // impoet multer
@@ -80,6 +80,35 @@ router.post("/:id/versions/:versionId/submit", async (req: any, res: any, next: 
         res.status(400).send({ err: error.message });
     };
 });
+
+//  Get Document Details with versions
+router.get("/:id/versions/:versionId", async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await getDocWithVersion(req.params.id, req.params.versionId));
+    } catch (error) {
+        res.status(400).send({ err: error.message });
+    };
+});
+
+//  update exist doc
+router.post("/:id/versions/:versionId", async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await updateDoc(req.body, req.params.id, req.params.versionId));
+    } catch (error) {
+        res.status(400).send({ err: error.message });
+    };
+});
+
+
+//  Get Document Details
+router.get("/:id", async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await getDocDetails(req.params.id));
+    } catch (error) {
+        res.status(400).send({ err: error.message });
+    };
+});
+
 
 
 export = router;
