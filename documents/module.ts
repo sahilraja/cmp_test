@@ -1,5 +1,6 @@
 import { documents } from "./model"
 import * as http from "http";
+import { Types } from "mongoose";
 
 enum status {
     DRAFT = 0,
@@ -157,6 +158,31 @@ export async function getDocDetails(docId: any) {
         throw err;
     };
 };
+
+export async function getDocumentById(docId : string) : Promise<any> {
+    if (!Types.ObjectId.isValid(docId)) {
+        throw new Error('No valid document id given.');
+    }
+    if (!docId) {
+        throw new Error('No document id given.');
+    }
+    const doc = await documents.findById(docId);
+    if (!doc) {
+        throw new Error("No document found with given id");
+    }
+    return doc;
+}
+
+export async function getDocumentVersionById(versionId : string) : Promise<any> {
+    if (!versionId) {
+        throw new Error('No document id given.');
+    }
+    const doc = await documents.findById(versionId);
+    if (!doc) {
+        throw new Error("No document found with given id");
+    }
+    return doc;
+}
 
 //  Get doc with Version
 export async function getDocWithVersion(docId: any, versionId: any) {
