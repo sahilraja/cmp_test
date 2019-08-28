@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, approvalList } from "./module";
 const router = Router()
 
 // impoet multer
@@ -30,6 +30,15 @@ router.get("/me", async (req: any, res: any, next: any) => {
         res.status(200).send(await getDocListOfMe(res.locals.user.id))
     } catch (err) {
         res.status(400).send({ error: err.message })
+    };
+});
+
+//  Get pending Approval parent Docs
+router.get("/approvals", async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await approvalList());
+    } catch (error) {
+        res.status(400).send({ err: error.message });
     };
 });
 
@@ -108,7 +117,6 @@ router.get("/:id", async (req: any, res: any, next: any) => {
         res.status(400).send({ err: error.message });
     };
 });
-
 
 
 export = router;

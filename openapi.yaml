@@ -1006,10 +1006,10 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                file_name:
                   type: string
                   example: Annula Report
-                description:
+                file_description:
                   type: string
                   example: Dam for vizag
                 themes:
@@ -1445,6 +1445,53 @@ paths:
                     example: file downloading
         "400":
           $ref: "#/components/responses/BadRequest"
+    post:
+      summary: Change or create a new file for this version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          required: true
+          description: version _id   
+      requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+               type: object
+               properties:
+                uploadefile:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+                      version_id:
+                        type: string
+                        example: 353535
+                      file_name:
+                        type: string
+                        example: filename.pdf
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
   
   "/docs/{id}/file":
     get:
@@ -1578,6 +1625,8 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
+  
+    
       
       
 
