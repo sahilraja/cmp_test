@@ -3,8 +3,10 @@ import { Users } from "./model";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword } from "../utils/utils";
-import { checkRoleScope } from "../role/module";
+import { checkRoleScope, userRoleAndScope } from "../role/module";
 import * as request from "request-promise";
+import { project } from "../project/project_model";
+import { PaginateResult } from "mongoose";
 
 
 //  Create User
@@ -181,6 +183,9 @@ export async function edit_user(id: any, objBody: any) {
             obj.password = has_Password;
         };
         if (objBody.phone) {
+            if (isNaN(objBody.phone) || objBody.phone.length != 10) {
+                throw new Error("Enter Valid Phone Number.")
+            }
             obj.phone = objBody.phone;
             obj.phoneVerified = false;
         };
@@ -202,12 +207,24 @@ export async function user_list(query: any, page = 1, limit: any = 100, sort = "
         let findQuery = { is_active: true }
         let check: any = {};
         check[sort] = ascending ? 1 : -1;
-        let data = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
-        for (const user of data.docs) {
-            let role = await userRoles(user.id)
-            user.role = role.roles[0]
-        }
-        return { status: true, data: data.docs, Pages: data.pages, count: data.total }
+        let { docs, pages, total } : PaginateResult<any> = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
+        const data = await Promise.all(docs.map( async doc => {
+            const user = {...doc.toJSON(), id : doc.id}
+            let userCapabilities = await userRoleAndScope(user.id)
+            user.role = userCapabilities.data[0].role
+            if (userCapabilities.data[0].scope == "global") {
+                user.scope = userCapabilities.data[0].scope
+            } else {
+                user.scope = []
+                await Promise.all(userCapabilities.data[0].scope.filter(async (code: any) => {
+                    let projectDetails: any = await project.findById(code)
+                    user.scope.push(projectDetails.reference)
+                }));
+            }
+            return user;
+        }));
+        
+        return { data, pages: pages, count: total }
     } catch (err) {
         console.log(err);
         throw err;

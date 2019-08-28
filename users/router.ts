@@ -65,7 +65,7 @@ router.get('/edit/:id', authenticate, async (req: Request, res: Response, next: 
 });
 
 //  change status user
-router.get('/status/:id', authenticate, async (req: Request, res: Response, next: Handler) => {
+router.put('/status/:id', authenticate, async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await user_status(req.params.id));
     } catch (err) {
