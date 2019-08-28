@@ -1,26 +1,29 @@
 import { documents } from "./model"
 
 enum status {
-    PUBLISHED = 0,
-    PENDING = 1,
-    APPROVED = 2
+    DRAFT = 0,
+    PUBLISHED = 1,
+    PENDING = 2,
+    APPROVED = 3
 }
 
+//  Create Document
 export async function createDOC(body: any, userID: any) {
     try {
         if (!body.name) {
-            throw new Error("name should be mandatory")
+            throw new Error("name should be mandatory");
         }
-        let doc = await insertDOC(body, userID)
-        body.parentID = doc.id
-        let response: any = await insertDOC(body, userID)
-        return { doc_id: response.id, version_id: response.versionId }
+        let doc = await insertDOC(body, userID);
+        body.parentID = doc.id;
+        let response: any = await insertDOC(body, userID);
+        return { doc_id: response.id, version_id: response.versionId };
     } catch (error) {
-        console.log(error)
-        throw error
-    }
-}
+        console.log(error);
+        throw error;
+    };
+};
 
+//  create Document module
 async function insertDOC(body: any, userID: any) {
     try {
         return await documents.create({
@@ -29,7 +32,7 @@ async function insertDOC(body: any, userID: any) {
             themes: body.themes,
             tags: body.tags,
             versionId: "1",
-            status: status.PENDING,
+            status: status.DRAFT,
             ownerId: userID,
             parentId: body.parentID ? body.parentID : null
         })
@@ -39,49 +42,51 @@ async function insertDOC(body: any, userID: any) {
     };
 };
 
+//  Get Document Public List
 export async function getDocList() {
     try {
-        let data = await documents.find({ parentId: null, status: status[0] })
+        let data = await documents.find({ parentId: null, status: status.PUBLISHED });
         return { docs: data }
     } catch (error) {
-        console.log(error)
+        console.log(error);
         throw error;
     };
 };
 
+//  Get My Documents
 export async function getDocListOfMe(userid: any) {
     try {
         let data = await documents.find({ parentId: null, ownerId: userid })
         return { docs: data }
     } catch (error) {
-        console.log(error)
+        console.log(error);
         throw error;
     };
 };
 
+//  Create File
 export async function createFile(docId: any, versionId: any, file: any) {
     try {
         if (!docId || !versionId || !file) throw new Error("Missing Fields.");
-        //  call to file host
+        //  call to file host for create File
 
-        return { doc_id: docId, version_id: versionId, fileId: "get file id  " }
+        return { doc_id: docId, version_id: versionId, fileId: "get file id" }
     } catch (error) {
-        console.log(error)
+        console.log(error);
         throw error;
     };
 };
 
-export async function submit(docId:any,versionID:any){
+//  Submit for approval
+export async function submit(docId: any, versionID: any) {
     try {
-        if(!docId){
-            throw new Error("missing doc ID")
+        if (!docId) {
+            throw new Error("missing doc ID");
         }
-        let childDoc:any = await documents.findByIdAndUpdate(docId, {status: status.PENDING}, {new : true})
-        return  await documents.findByIdAndUpdate(childDoc.parentID,{status:status.PENDING},{new:true})
-        
+        let childDoc: any = await documents.findByIdAndUpdate(docId, { status: status.PENDING }, { new: true });
+        return await documents.findByIdAndUpdate(childDoc.parentID, { status: status.PENDING }, { new: true });
     } catch (error) {
-        console.log(error)
-        throw error
-    }
-
-}
+        console.log(error);
+        throw error;
+    };
+};
