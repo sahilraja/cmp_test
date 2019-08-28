@@ -519,10 +519,10 @@ paths:
                       reference:
                         type: string
                         example: CITIIS-OR-BBR
-                      projectName:
+                      name:
                         type: string
                         example: vizag
-                      projectSummary:
+                      summary:
                         type: string
                         example: project for develop schools
         "400":
@@ -577,10 +577,10 @@ paths:
                       reference:
                         type: string
                         example: CITIIS-OR-BBR
-                      projectName:
+                      name:
                         type: string
                         example: vizag
-                      projectSummary:
+                      summary:
                         type: string
                         example: project for develop schoolss
         "400":
@@ -996,6 +996,8 @@ paths:
           
   "/docs/create":
     post:
+      security:
+        - token: []
       summary: Create Doc
       tags:
         - RESOURCES
@@ -1006,10 +1008,10 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                file_name:
                   type: string
                   example: Annula Report
-                description:
+                file_description:
                   type: string
                   example: Dam for vizag
                 themes:
@@ -1046,6 +1048,8 @@ paths:
 
   "/docs/{id}/versions":
     get:
+      security:
+        - token: []
       summary: Get list of doc versions
       tags:
         - RESOURCES
@@ -1093,6 +1097,8 @@ paths:
           
   "/docs/{id}/versions/{versionId}/submit":
     post:
+      security:
+        - token: []
       summary: Submit for Approval
       tags:
         - RESOURCES
@@ -1132,6 +1138,8 @@ paths:
 
   "/docs/list":
     get:
+      security:
+        - token: []
       summary: list of documents
       tags:
         - RESOURCES
@@ -1164,7 +1172,7 @@ paths:
                           type: array
                           items:
                             type: string
-                            example: 
+                          example: 
                               - tagId1234
                               - tagId5432
                         date:
@@ -1176,6 +1184,8 @@ paths:
           
   "/docs/me":
     get:
+      security:
+        - token: []
       summary: my list of documents
       tags:
         - RESOURCES
@@ -1205,7 +1215,7 @@ paths:
                           type: array
                           items:
                             type: string
-                            example: 
+                          example: 
                               - tagId1234
                               - tagId5432
                         date:
@@ -1217,6 +1227,8 @@ paths:
   
   "/docs/{id}/versions/create":
     post:
+      security:
+        - token: []
       summary: create a new copy
       tags:
         - RESOURCES
@@ -1267,6 +1279,8 @@ paths:
           
   "/docs/{id}/versions/{versionId}":
     post:
+      security:
+        - token: []
       summary: update version
       tags:
         - RESOURCES
@@ -1347,184 +1361,9 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-      
-  "/docs/{id}/versions/{versionId}/publish":
-    post:
-      summary: approve and publish automatically
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                    example: document approved
-                  
-        "400":
-          $ref: "#/components/responses/BadRequest"
-          
-  "/docs/{id}/versions/{versionId}/reject":
-    post:
-      summary: reject specific version
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: document rejected
-                  
-        "400":
-          $ref: "#/components/responses/BadRequest"
-          
-  "/docs/{id}/versions/{versionId}/file":
     get:
-      summary: download the file from revision
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                    example: file downloading
-        "400":
-          $ref: "#/components/responses/BadRequest"
-  
-  "/docs/{id}/file":
-    get:
-      summary: download latest version
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                    example: file downloading
-                  
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        
-  "/docs/{id}":
-    get:
-      summary: get Doc details
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                      fileName:
-                        type: string
-                        example: filename1
-                      description:
-                        type: string
-                        example: this document for dams
-                      themes:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - theme1
-                          - theme1
-                      tags:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - tag 1
-                          - tag 2
-                      versionId:
-                        type: string
-                        example: v3
-                      docId:
-                        type: string
-                        example: doc123455
-                  
-        "400":
-          $ref: "#/components/responses/BadRequest"
-          
-  "/docs/{id}/versions/get/{versionId}":
-    get:
+      security:
+        - token: []
       summary: get particular version details
       tags:
         - RESOURCES
@@ -1579,7 +1418,239 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
       
-      
+  "/docs/{id}/versions/{versionId}/publish":
+    post:
+      security:
+        - token: []
+      summary: approve and publish automatically
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          required: true
+          description: version _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: document approved
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/versions/{versionId}/reject":
+    post:
+      security:
+        - token: []
+      summary: reject specific version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          required: true
+          description: version _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: document rejected
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/versions/{versionId}/file":
+    get:
+      security:
+        - token: []
+      summary: download the file from revision
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          required: true
+          description: version _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: file downloading
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    post:
+      security:
+        - token: []
+      summary: Change or create a new file for this version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          required: true
+          description: version _id   
+      requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+               type: object
+               properties:
+                uploadefile:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+                      version_id:
+                        type: string
+                        example: 353535
+                      file_name:
+                        type: string
+                        example: filename.pdf
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/{id}/file":
+    get:
+      security:
+        - token: []
+      summary: download latest version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: file downloading
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        
+  "/docs/{id}":
+    get:
+      security:
+        - token: []
+      summary: get Doc details
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      fileName:
+                        type: string
+                        example: filename1
+                      description:
+                        type: string
+                        example: this document for dams
+                      themes:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - theme1
+                          - theme1
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - tag 1
+                          - tag 2
+                      versionId:
+                        type: string
+                        example: v3
+                      docId:
+                        type: string
+                        example: doc123455
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
 #components
 components:
@@ -1651,13 +1722,13 @@ components:
     projectSchema:
       type: object
       properties:
-        projectName: 
+        name: 
           type: string
           example: vizag schools develop
         city:
           type: string
           example: vizag
-        projectSummary:
+        summary:
           type: string
           example: this project for de develop schools
         reference: 
@@ -1835,6 +1906,8 @@ components:
         is_active: 
           type: boolean
           example: true
+
+        
 
         
     

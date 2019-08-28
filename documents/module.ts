@@ -171,21 +171,33 @@ export async function getDocWithVersion(docId: any, versionId: any) {
 
 export async function updateDoc(objBody: any, docid: any, versionId: any) {
     try {
-        let obj: any = {}
+        let obj: any = {};
         if (objBody.name) {
-            obj.name = objBody.name
-        }
+            obj.name = objBody.name;
+        };
         if (objBody.description) {
-            obj.description = objBody.description
-        }
+            obj.description = objBody.description;
+        };
         if (objBody.themes) {
-            obj.themes = objBody.themes
-        }
+            obj.themes = objBody.themes;
+        };
         if (objBody.tags) {
-            obj.tags = objBody.tags
-        }
-        let updatedDoc = await documents.find({ parentId: docid, versionId: versionId }, obj, { new: true })
-        return updateDoc
+            obj.tags = objBody.tags;
+        };
+        let updatedDoc = await documents.find({ parentId: docid, versionId: versionId }, obj, { new: true });
+        return updateDoc;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+export async function approvalList() {
+    try {
+        let docList = await documents.find({ parentId: { $ne: null }, status: status.PENDING });
+        let parentDocsIdsArray = docList.map((doc: any) => { return doc.id })
+        let parentDocList = await documents.find({ _id: { $in: parentDocsIdsArray } })
+        return parentDocList
     } catch (err) {
         console.log(err)
         throw err

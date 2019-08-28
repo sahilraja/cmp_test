@@ -18,7 +18,7 @@ export async function create_city_code(reqObject: any, user: any) {
         let success = await project.create({
             reference: reqObject.citycode,
             city: reqObject.cityname,
-            projectSummary: reqObject.description || "N/A"
+            summary: reqObject.description || "N/A"
         });
         return { status: true, data: success }
     } catch (err) {
@@ -44,7 +44,7 @@ export async function edit_city_code(id: any, reqObject: any, user: any) {
             obj.city = reqObject.cityname;
         };
         if (reqObject.description) {
-            obj.projectSummary = reqObject.description;
+            obj.summary = reqObject.description;
         };
         let success = await project.findByIdAndUpdate(id, obj, { new: true })
         return { status: true, data: success }
