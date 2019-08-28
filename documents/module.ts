@@ -70,3 +70,18 @@ export async function createFile(docId: any, versionId: any, file: any) {
         throw error;
     };
 };
+
+export async function submit(docId:any,versionID:any){
+    try {
+        if(!docId){
+            throw new Error("missing doc ID")
+        }
+        let childDoc:any = await documents.findByIdAndUpdate(docId, {status: status.PENDING}, {new : true})
+        return  await documents.findByIdAndUpdate(childDoc.parentID,{status:status.PENDING},{new:true})
+        
+    } catch (error) {
+        console.log(error)
+        throw error
+    }
+
+}

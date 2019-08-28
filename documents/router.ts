@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { getDocList, getDocListOfMe, createFile, createDOC } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDOC, submit } from "./module";
 const router = Router()
 var multer = require('multer')
 var upload = multer()
@@ -36,5 +36,13 @@ router.post("/:id/versions/:versionId:/file", upload.single('uploadefile'), asyn
         res.status(400).send({ error: err.message })
     };
 });
+
+router.post("/:id/versions/:versionId/submit",async(req:any,res:any,next:any)=>{
+    try {
+        res.status(200).send(await submit(req.params.id,req.params.versionId))
+    } catch (error) {
+        
+    }
+})
 
 export = router;
