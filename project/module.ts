@@ -169,7 +169,7 @@ export async function add_theme(reqObject: any) {
       throw new Error(MISSING);
     }
     let data = await themes.create({
-      city_code: reqObject.theme,
+      theme: reqObject.theme,
       description: reqObject.description || "N/A"
     });
     return { status: true, data: data };
@@ -184,7 +184,7 @@ export async function edit_theme(id: any, reqObject: any) {
   try {
     let obj: any = {};
     if (reqObject.theme) {
-      obj.tag = reqObject.theme;
+      obj.theme = reqObject.theme;
     }
     if (reqObject.description) {
       obj.description = reqObject.description;

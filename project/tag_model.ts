@@ -6,4 +6,4 @@ const schema = new Schema({
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 
-export const tags: any = model("tags", schema);
+export const tags = model("tags", schema);

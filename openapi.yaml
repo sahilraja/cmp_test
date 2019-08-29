@@ -1456,7 +1456,7 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
   
-  "/docs/{id}/versions/create":
+  "/docs/{id}/versions/{versionId}/create":
     post:
       security:
         - token: []
@@ -1469,8 +1469,40 @@ paths:
           schema:
             type: string
           required: true
-          description: doc _id 
-      
+          description: doc _id
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          required: true
+          description: parent _id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: doc name
+                description:
+                  type: string
+                  example: describe about doc
+                tags: 
+                  type: array
+                  items:
+                    type: string
+                    example:
+                      - tag id123
+                      - tag id123
+                themes:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - themes id123
+                    - theme id133
       responses:
         "200":
           description: success
@@ -1778,7 +1810,7 @@ paths:
               schema:
                type: object
                properties:
-                uploadefile:
+                upfile:
                   type: string
                   format: binary
       responses:
@@ -2144,6 +2176,100 @@ components:
         is_active: 
           type: boolean
           example: true
+    Trackable:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          example: "2019-08-28T12:38:39.258+00:00"
+        modifiedAt:
+          type: string
+          format: date-time
+          example: "2019-08-28T12:40:27.316+00:00"
+    # Document schema
+    DocumentContent:
+      allOf:
+        - $ref: '#/components/schemas/Trackable'
+        - type: object
+        - properties:
+            id:
+              type: string
+              format: uniqueid
+              example: 54313797101372181
+            name: 
+              type: string
+              example: Proposal Document
+            description:
+              type: string
+              example: This is a proposal document that covers the plan to execute and the cost and time estimates
+            fileName:
+              type: string
+              example: proposal.pdf
+            tags:
+              type: array
+              items: 
+                type: string
+              example: ["finance", "proposal"]
+            themes:
+              type: array
+              items: 
+                type: string
+              example: ["maturation", "global", "proposal"]
+    Document:
+      allOf:
+        - $ref: '#/components/schemas/DocumentContent'
+        - type: object
+        - properties:
+            owner:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Amarthya Sen
+                id:
+                  type: string
+                  example: 54213790101372682
+            status:
+              type: string
+              enum: ["unpublished", "published", "deleted", "pending-approval", "rejected"]
+              example: published
+            versionNumber:
+              type: integer
+              description: Latest published version number
+              example: 1
+            versionId:
+              type: string
+              format: uniqueid
+              example: 54313797101372179
+    DocumentVersion:
+      allOf:
+        - $ref: '#/components/schemas/DocumentContent'
+        - type: object
+        - properties:
+            versionNumber:
+              type: number
+              example: 1
+            documentId:
+              type: string
+              format: uniqueid
+              example: 54213790101372681
+            status:
+              type: string
+              enum: ["draft", "submitted", "rejected"]
+    status:
+      type: object
+      properties:
+        APPROVED:
+          type: number
+          example: 1
+        REJECTED:
+          type: number
+          example: 2
+        PENDING:
+          type: number
+          example: 3
+
 
         
 
@@ -2168,3 +2294,10 @@ components:
     
     
     
+
+
+
+
+
+
+          

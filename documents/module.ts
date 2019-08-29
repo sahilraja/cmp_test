@@ -1,6 +1,10 @@
 import { documents } from "./model"
 import * as http from "http";
 import { Types } from "mongoose";
+import { MISSING } from "../utils/error_msg";
+import { userRoleAndScope } from "../role/module";
+import { tags } from "../project/tag_model";
+
 
 enum status {
     DRAFT = 0,
@@ -48,7 +52,14 @@ async function insertDOC(body: any, userID: any) {
 export async function getDocList() {
     try {
         let data = await documents.find({ parentId: null, status: status.APPROVED });
-        return { docs: data }
+        const docList = await Promise.all(data.map(async doc => {
+            const user = { ...doc.toJSON() }
+            user.tags = await getTags(user.tags)
+            user.role = (await userRoleAndScope(user.ownerId)).data[0].role
+            return user
+        }))
+
+        return { docs: docList }
     } catch (error) {
         console.log(error);
         throw error;
@@ -58,7 +69,7 @@ export async function getDocList() {
 //  Get My Documents
 export async function getDocListOfMe(userid: any) {
     try {
-        let data = await documents.find({ parentId: null, ownerId: userid })
+        let data = await documents.find({ parentId: null, ownerId: userid, status: { $ne: status.DRAFT } })
         return { docs: data }
     } catch (error) {
         console.log(error);
@@ -67,14 +78,15 @@ export async function getDocListOfMe(userid: any) {
 };
 
 //  Create File
-export async function createFile(versionId: any, file: any) {
+export async function createFile(docId: string, versionId: string, file: any) {
     try {
-        // if (!docId || !versionId || !file) throw new Error("Missing Fields.");
-        //  call to file host for create File
-        let versionDoc: any = await documents.findByIdAndUpdate(versionId, { fileId: file.id, fileName: file.fileName }, { new: true });
-        await documents.findByIdAndUpdate(versionDoc.parentId, { fileId: file.id, fileName: file.fileName }, { new: true })
-
-        return { doc_id: versionDoc.parentId, version_id: versionId }
+        const { id, name } = JSON.parse(file)
+        if (!id || !name) throw new Error("Missing File Id")
+        let [child, parent]: any = await Promise.all([
+            documents.findByIdAndUpdate(versionId, { fileId: id, fileName: name }, { new: true }).exec(),
+            documents.findByIdAndUpdate(docId, { fileId: id, fileName: name }, { new: true }).exec()
+        ]);
+        return { doc_id: docId, version_id: versionId }
     } catch (error) {
         console.log(error);
         throw error;
@@ -82,13 +94,18 @@ export async function createFile(versionId: any, file: any) {
 };
 
 //  Submit for approval
-export async function submit(docId: any, versionID: any) {
+export async function submit(docId: any, versionId: any) {
     try {
         if (!docId) {
             throw new Error("missing doc ID");
         }
-        let childDoc: any = await documents.findByIdAndUpdate(versionID, { status: status.PENDING }, { new: true });
-        return await documents.findByIdAndUpdate(childDoc.parentID, { status: status.PENDING }, { new: true });
+        let [parent, child]: any = await Promise.all([
+            documents.findById(docId).exec(),
+            documents.findById(versionId).exec()])
+        if (!child.fileId || !parent.fileId) throw new Error("Missing Docs.")
+        let childDoc: any = await documents.findByIdAndUpdate(versionId, { status: status.PENDING }, { new: true });
+        let parentDoc: any = await documents.findByIdAndUpdate(childDoc.parentId, { status: status.PENDING }, { new: true });
+        return { docId: docId, versionId: versionId, fileId: parentDoc.fileId }
     } catch (error) {
         console.log(error);
         throw error;
@@ -96,18 +113,20 @@ export async function submit(docId: any, versionID: any) {
 };
 
 //  Create New Version
-export async function createNewVersion(versionID: any, userId: any, obj: any) {
+export async function createNewVersion(docId: string, versionID: string, userId: any, obj: any) {
     try {
         if (!versionID) throw new Error("DocId Is Missing.");
-        let docDetails: any = await documents.findById(versionID);
-        if (!docDetails) throw new Error("Document Not Exist.")
-        // let getDocs: any = await documents.find({ parentId: docDetails.parentID }).sort({ "createdAt": -1 })
+        let [docDetails, DocList]: any = await Promise.all([
+            documents.find({ _id: Types.ObjectId(versionID), $or: [{ status: status.APPROVED }, { expires: status.REJECTED }] }).exec(),
+            documents.find({ parentId: docId }).sort({ "createdAt": -1 }).exec()
+        ]);
+        if (!docDetails.length) throw new Error("Document Not Exist.")
         let createNewDoc: any = await documents.create({
             name: obj.name,
             description: obj.description,
             themes: obj.themes,
             tags: obj.tags,
-            versionNum: docDetails.versionNum + 1,
+            versionNum: Number(DocList[0].versionNum) + 1,
             status: status.DRAFT,
             ownerId: userId,
             parentId: docDetails.parentId,
@@ -138,11 +157,13 @@ export async function RejectDoc(docId: any) {
 };
 
 // Approve Document
-export async function ApproveDoc(docId: any) {
+export async function ApproveDoc(docId: string, versionId: string) {
     try {
-        if (!docId) throw new Error("Missing DocID.");
-        let docDetails: any = await documents.findByIdAndUpdate(docId, { status: status.APPROVED }, { new: true });
-        let parentDoc: any = await documents.findByIdAndUpdate(docDetails.parentId, { status: status.APPROVED })
+        if (!versionId || !docId) throw new Error("Missing DocID.");
+        let [child, parent] = await Promise.all([
+            documents.findByIdAndUpdate(versionId, { status: status.APPROVED }, { new: true }).exec(),
+            documents.findByIdAndUpdate(docId, { status: status.APPROVED }, { new: true }).exec()
+        ]);
         return { message: "Document Approved." }
     } catch (err) {
         console.log(err)
@@ -156,7 +177,10 @@ export async function getDocDetails(docId: any) {
         if (!docId) throw new Error("Missing DocID");
         let publishDocs: any = await documents.find({ parentId: docId, status: status.APPROVED }).sort({ "createdAt": -1 })
         if (publishDocs.length) throw new Error("Approved Docs Not there.")
-        return publishDocs[0]
+        const docList = publishDocs[0].toJSON()
+        docList.tags = await getTags(docList.tags)
+        docList.role = (await userRoleAndScope(docList.ownerId)).data[0].role
+        return docList
     } catch (err) {
         console.log(err)
         throw err;
@@ -270,5 +294,27 @@ export async function getVersions(docId: string) {
     } catch (error) {
         console.log(error)
         throw error
+    }
+}
+
+export async function getApprovalDoc(docId: string) {
+    try {
+        if (!docId) throw new Error("Missing docId");
+        let [parent, pendingDoc] = await Promise.all([
+            documents.findById(docId).exec(),
+            documents.find({ parentId: docId, status: status.PENDING }).sort({ createdAt: -1 }).exec()])
+        return { original: parent, modified: pendingDoc[0] }
+    } catch (err) {
+        console.log(err)
+        throw err
+    }
+}
+
+async function getTags(tagIds: any[]) {
+    try {
+        return await tags.find({ id: { $in: tagIds } }, { tag: 1 })
+    } catch (err) {
+        console.log(err)
+        throw err
     }
 }
