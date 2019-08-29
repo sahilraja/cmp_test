@@ -6,19 +6,19 @@ const router = Router()
 
 const FILES_SERVER_BASE = process.env.FILES_SERVER_BASE || "http://localhost:4040";
 
-const ensureCanViewDocument = (req: any, res : any, next: NextFunction) => {
+const ensureCanViewDocument: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;
     next();
 }
 
-const ensureCanViewVersion = (req : any, res : any, next: NextFunction) => {
+const ensureCanViewVersion: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;
     //Make sure this is either CS or owner.
     next();
 }
 
 
-const ensureCanEditDocument = (req : any, res : any, next: NextFunction) => {
+const ensureCanEditDocument: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;
     const userId = res.locals.user.id;
     //if (userId not allowed to documentId)
@@ -27,7 +27,7 @@ const ensureCanEditDocument = (req : any, res : any, next: NextFunction) => {
     next();
 }
 
-const ensureCanPublishDocument = (req : any, res : any, next: NextFunction) => {
+const ensureCanPublishDocument: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;
     const userId = res.locals.user.id;
     //if (userId not allowed to publish documentId)
@@ -61,7 +61,7 @@ router.param('versionId', async (req, res, next, value) => {
 //  Create Document
 router.post("/create", async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await createDOC(req.body, res.locals.user.id))
+        res.status(200).send(await createDOC(req.body, res.locals.user.id));
     } catch (err) {
         next(err);
     };
