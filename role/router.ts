@@ -1,5 +1,6 @@
 import { Router, Request, Response, Handler } from "express";
-import { role_list, userRoleAndScope } from "./module";
+import { role_list, userRoleAndScope, usersForRole } from "./module";
+import { try } from "bluebird";
 
 const router = Router();
 
@@ -20,6 +21,14 @@ router.get('/scope/list/:userid', async (req: Request, res: Response, next: Hand
         res.status(400).send({ error: err.message });
     };
 });
+
+router.get("/users/list", async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await usersForRole(req.query.role))
+    } catch (err) {
+        res.status(400).send({ error: err.message })
+    }
+})
 
 
 export = router;

@@ -1,4 +1,5 @@
 import * as request from "request-promise";
+import { Users } from "../users/model";
 
 // Get Roles List
 export async function role_list() {
@@ -79,3 +80,26 @@ export async function userRoleAndScope(userId: any) {
         throw err
     }
 }
+
+export async function usersForRole(role: string) {
+    try {
+        if (!role) throw new Error("Missing Role.");
+        let Options = {
+            uri: `${process.env.RBAC_URL}/role/user/list`,
+            method: "GET",
+            qs: {
+                role: role,
+            },
+            json: true
+        }
+        let success = await request(Options);
+        if (!success) throw new Error("Fail to get users.")
+        let users = await Users.find({ _id: { $in: success.users } }, { firstName: 1, secondName: 1 })
+        return users
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+usersForRole("technology lead")
