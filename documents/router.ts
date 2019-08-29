@@ -95,7 +95,7 @@ router.get("/approvals", async (req, res, next: NextFunction) => {
 });
 
 //  Create new Version
-router.post("/:id/versions/create", ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.post("/versions/:versionId/create", ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await createNewVersion(req.params.id, res.locals.user.id,req.body));
     } catch (err) {
