@@ -49,7 +49,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Hand
     try {
         req.query.page = req.query.page || 1;
         req.query.limit = 50;
-        res.status(200).send(await user_list(req.query, req.query.page, req.query.limit));
+        res.status(200).send(await user_list(req.query, res.locals.user.id, req.query.page, req.query.limit));
     } catch (err) {
         res.status(400).send({ error: err.message })
     };
@@ -65,7 +65,7 @@ router.get('/edit/:id', authenticate, async (req: Request, res: Response, next: 
 });
 
 //  change status user
-router.get('/status/:id', authenticate, async (req: Request, res: Response, next: Handler) => {
+router.put('/status/:id', authenticate, async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await user_status(req.params.id));
     } catch (err) {
