@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import { MISSING } from "../utils/error_msg";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
+import { themes } from "../project/theme_model";
 
 
 enum status {
@@ -70,7 +71,12 @@ export async function getDocList() {
 export async function getDocListOfMe(userid: any) {
     try {
         let data = await documents.find({ parentId: null, ownerId: userid, status: { $ne: status.DRAFT } })
-        return { docs: data }
+        const docList = await Promise.all(data.map(async doc => {
+            const user = { ...doc.toJSON() }
+            user.tags = await getTags(user.tags)
+            return user
+        }))
+        return { docs: docList }
     } catch (error) {
         console.log(error);
         throw error;
@@ -179,6 +185,7 @@ export async function getDocDetails(docId: any) {
         if (publishDocs.length) throw new Error("Approved Docs Not there.")
         const docList = publishDocs[0].toJSON()
         docList.tags = await getTags(docList.tags)
+        docList.themes = await getThemes(docList.themes)
         docList.role = (await userRoleAndScope(docList.ownerId)).data[0].role
         return docList
     } catch (err) {
@@ -216,7 +223,12 @@ export async function getDocumentVersionById(versionId: string): Promise<any> {
 export async function getDocWithVersion(docId: any, versionId: any) {
     try {
         if (!docId || !versionId) throw new Error("Missing Fields");
-        return await documents.find({ parentId: docId, versionId: versionId });
+        let docDetails: any = await documents.findOne({ parentId: docId, versionId: versionId });
+        const docList = docDetails.toJSON()
+        docList.tags = await getTags(docList.tags)
+        docList.themes = await getThemes(docList.themes)
+        docList.role = (await userRoleAndScope(docList.ownerId)).data[0].role
+        return docList
     } catch (err) {
         console.log(err);
         throw err;
@@ -251,7 +263,12 @@ export async function approvalList() {
         let docList = await documents.find({ parentId: { $ne: null }, status: status.PENDING });
         let parentDocsIdsArray = docList.map((doc: any) => { return doc.parentId })
         let parentDocList = await documents.find({ _id: { $in: parentDocsIdsArray } })
-        return parentDocList
+        const List = await Promise.all(parentDocList.map(async doc => {
+            const user = { ...doc.toJSON() }
+            user.tags = await getTags(user.tags)
+            return user
+        }))
+        return List
     } catch (err) {
         console.log(err)
         throw err
@@ -300,10 +317,19 @@ export async function getVersions(docId: string) {
 export async function getApprovalDoc(docId: string) {
     try {
         if (!docId) throw new Error("Missing docId");
-        let [parent, pendingDoc] = await Promise.all([
+        let [parent, pendingDoc]: any = await Promise.all([
             documents.findById(docId).exec(),
             documents.find({ parentId: docId, status: status.PENDING }).sort({ createdAt: -1 }).exec()])
-        return { original: parent, modified: pendingDoc[0] }
+        const parentDoc = parent.toJSON()
+        parentDoc.tags = await getTags(parentDoc.tags)
+        parentDoc.themes = await getThemes(parentDoc.themes)
+        parentDoc.role = (await userRoleAndScope(parentDoc.ownerId)).data[0].role
+        const modifiedDoc = pendingDoc[0].toJSON()
+        modifiedDoc.tags = await getTags(modifiedDoc.tags)
+        modifiedDoc.themes = await getThemes(modifiedDoc.themes)
+        modifiedDoc.role = (await userRoleAndScope(modifiedDoc.ownerId)).data[0].role
+
+        return { original: parentDoc, modified: modifiedDoc }
     } catch (err) {
         console.log(err)
         throw err
@@ -312,7 +338,16 @@ export async function getApprovalDoc(docId: string) {
 
 async function getTags(tagIds: any[]) {
     try {
-        return await tags.find({ id: { $in: tagIds } }, { tag: 1 })
+        return await tags.find({ _id: { $in: tagIds } }, { tag: 1 })
+    } catch (err) {
+        console.log(err)
+        throw err
+    };
+};
+
+async function getThemes(themeIds: any[]) {
+    try {
+        return await themes.find({ _id: { $in: themeIds } }, { tag: 1 })
     } catch (err) {
         console.log(err)
         throw err
