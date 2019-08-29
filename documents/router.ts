@@ -117,8 +117,8 @@ router.post("/:id/versions/:versionId/create", ensureCanEditDocument, async (req
 // get versions
 router.get("/:id/versions", ensureCanPublishDocument, async (req, res, next: NextFunction) => {
     try {
-        const { docId } = req.params
-        res.status(200).send(await getVersions(docId))
+        const { id } = req.params
+        res.status(200).send(await getVersions(id))
     } catch (err) {
         next(err);
     };

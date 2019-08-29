@@ -182,7 +182,7 @@ export async function getDocDetails(docId: any) {
     try {
         if (!docId) throw new Error("Missing DocID");
         let publishDocs: any = await documents.find({ parentId: docId, status: status.APPROVED }).sort({ "createdAt": -1 })
-        if (publishDocs.length) throw new Error("Approved Docs Not there.")
+        if (!publishDocs.length) throw new Error("Approved Docs Not there.")
         const docList = publishDocs[0].toJSON()
         docList.tags = await getTags(docList.tags)
         docList.themes = await getThemes(docList.themes)
@@ -223,7 +223,7 @@ export async function getDocumentVersionById(versionId: string): Promise<any> {
 export async function getDocWithVersion(docId: any, versionId: any) {
     try {
         if (!docId || !versionId) throw new Error("Missing Fields");
-        let docDetails: any = await documents.findOne({ parentId: docId, versionId: versionId });
+        let docDetails: any = await documents.findById(versionId);
         const docList = docDetails.toJSON()
         docList.tags = await getTags(docList.tags)
         docList.themes = await getThemes(docList.themes)
@@ -250,8 +250,14 @@ export async function updateDoc(objBody: any, docid: any, versionId: any) {
         if (objBody.tags) {
             obj.tags = objBody.tags;
         };
-        let updatedDoc = await documents.findByIdAndUpdate(versionId, obj, { new: true });
-        return updatedDoc;
+        let [child, parent]: any = await Promise.all([
+            documents.findByIdAndUpdate(versionId, obj, { new: true }).exec(),
+            documents.findById(docid).exec()
+        ])
+        if (parent.status != status.APPROVED) {
+            await documents.findByIdAndUpdate(docid, obj, { new: true })
+        }
+        return child;
     } catch (err) {
         console.log(err);
         throw err;
@@ -306,7 +312,9 @@ export async function uploadToFileService(request: any) {
 
 export async function getVersions(docId: string) {
     try {
-        let docVersions = await documents.find({ parentId: docId }, { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }).sort({ createdAt: -1 })
+        if(!docId) throw new Error("Missing Doc ID")
+        let docVersions = await documents.find({ parentId: docId, status: { $ne: status.DRAFT } }, { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }).sort({ createdAt: -1 })
+        if(!docVersions.length) throw new Error("Docs Not there")
         return docVersions
     } catch (error) {
         console.log(error)
@@ -347,7 +355,7 @@ async function getTags(tagIds: any[]) {
 
 async function getThemes(themeIds: any[]) {
     try {
-        return await themes.find({ _id: { $in: themeIds } }, { tag: 1 })
+        return await themes.find({ _id: { $in: themeIds } }, { theme: 1 })
     } catch (err) {
         console.log(err)
         throw err
