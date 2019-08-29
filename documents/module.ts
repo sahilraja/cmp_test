@@ -67,13 +67,14 @@ export async function getDocListOfMe(userid: any) {
 };
 
 //  Create File
-export async function createFile(docId: any, versionId: any, file: any) {
+export async function createFile( versionId: any, file: any) {
     try {
         // if (!docId || !versionId || !file) throw new Error("Missing Fields.");
         //  call to file host for create File
-        
+       let versionDoc :any=  await documents.findByIdAndUpdate(versionId,{fileId:file.id,fileName:file.fileName},{new:true});
+       await documents.findByIdAndUpdate(versionDoc.parentId,{fileId:file.id,fileName:file.fileName},{new:true})
 
-        return { doc_id: docId, version_id: versionId, fileId: "get file id" }
+        return {  doc_id:versionDoc.parentId,version_id: versionId }
     } catch (error) {
         console.log(error);
         throw error;
@@ -95,23 +96,25 @@ export async function submit(docId: any, versionID: any) {
 };
 
 //  Create New Version
-export async function createNewVersion(docId: any, userId: any) {
+export async function createNewVersion(versionID: any, userId: any,obj:any) {
     try {
-        if (!docId) throw new Error("DocId Is Missing.");
-        let docDetails: any = await documents.findById(docId);
+        if (!versionID) throw new Error("DocId Is Missing.");
+        let docDetails: any = await documents.findById(versionID);
         if (!docDetails) throw new Error("Document Not Exist.")
-        let getDocs: any = await documents.find({ parentId: docDetails.parentID }).sort({ "createdAt": -1 })
-        let createNewDoc = await documents.create({
-            name: docDetails.name,
-            description: docDetails.description,
-            themes: docDetails.themes,
-            tags: docDetails.tags,
-            versionId: getDocs[0].versionId + 1,
+        // let getDocs: any = await documents.find({ parentId: docDetails.parentID }).sort({ "createdAt": -1 })
+        let createNewDoc :any= await documents.create({
+            name: obj.name,
+            description: obj.description,
+            themes: obj.themes,
+            tags: obj.tags,
+            versionNum: docDetails.versionNum + 1,
             status: status.DRAFT,
             ownerId: userId,
-            parentId: docDetails.parentID
+            parentId: docDetails.parentId,
+            fileName:docDetails.fileName,
+            fileId:docDetails.fileId
         })
-        return createNewDoc
+        return {doc_id:createNewDoc.parentid,versionID:createNewDoc.id}
     } catch (err) {
         console.log(err);
         throw err;
@@ -123,7 +126,7 @@ export async function RejectDoc(docId: any) {
     try {
         if (!docId) throw new Error("Missing DocID.");
         let docDetails: any = await documents.findByIdAndUpdate(docId, { status: status.REJECTED }, { new: true });
-        let parentDoc: any = await documents.findById(docDetails.parentID)
+        let parentDoc: any = await documents.findById(docDetails.parentId)
         if (parentDoc.status != status.APPROVED) {
             await documents.findByIdAndUpdate(parentDoc.id, { status: status.REJECTED })
         }
@@ -139,7 +142,7 @@ export async function ApproveDoc(docId: any) {
     try {
         if (!docId) throw new Error("Missing DocID.");
         let docDetails: any = await documents.findByIdAndUpdate(docId, { status: status.APPROVED }, { new: true });
-        let parentDoc: any = await documents.findByIdAndUpdate(docDetails.parentID, { status: status.APPROVED })
+        let parentDoc: any = await documents.findByIdAndUpdate(docDetails.parentId, { status: status.APPROVED })
         return { message: "Document Approved." }
     } catch (err) {
         console.log(err)

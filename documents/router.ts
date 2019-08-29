@@ -95,9 +95,9 @@ router.get("/approvals", async (req, res, next: NextFunction) => {
 });
 
 //  Create new Version
-router.post("/:id/versions/create", ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.post("/versions/:versionId/create", ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await createNewVersion(req.params.id, res.locals.user.id));
+        res.status(200).send(await createNewVersion(req.params.id, res.locals.user.id,req.body));
     } catch (err) {
         next(err);
     };
@@ -128,7 +128,8 @@ router.post("/:id/versions/:versionId/file", ensureCanEditDocument, async (req, 
     try {
         const { id, versionId } = req.params;
         const fileObj = await uploadToFileService(req);
-        res.status(200).send(fileObj);
+        let response = await createFile(versionId,fileObj);
+        res.status(200).send(response);
     } catch (err) {
         next(err);
     };
