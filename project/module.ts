@@ -236,7 +236,7 @@ export async function getProjectsList(userId: any) {
       list = await project.find({ is_active: true });
     } else {
       list = await project.find({
-        id: { $in: userProjects.data[0].scope },
+        _id: { $in: userProjects.data[0].scope },
         is_active: true
       });
     }
