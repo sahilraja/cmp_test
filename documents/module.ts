@@ -67,14 +67,14 @@ export async function getDocListOfMe(userid: any) {
 };
 
 //  Create File
-export async function createFile( versionId: any, file: any) {
+export async function createFile(versionId: any, file: any) {
     try {
         // if (!docId || !versionId || !file) throw new Error("Missing Fields.");
         //  call to file host for create File
-       let versionDoc :any=  await documents.findByIdAndUpdate(versionId,{fileId:file.id,fileName:file.fileName},{new:true});
-       await documents.findByIdAndUpdate(versionDoc.parentId,{fileId:file.id,fileName:file.fileName},{new:true})
+        let versionDoc: any = await documents.findByIdAndUpdate(versionId, { fileId: file.id, fileName: file.fileName }, { new: true });
+        await documents.findByIdAndUpdate(versionDoc.parentId, { fileId: file.id, fileName: file.fileName }, { new: true })
 
-        return {  doc_id:versionDoc.parentId,version_id: versionId }
+        return { doc_id: versionDoc.parentId, version_id: versionId }
     } catch (error) {
         console.log(error);
         throw error;
@@ -96,13 +96,13 @@ export async function submit(docId: any, versionID: any) {
 };
 
 //  Create New Version
-export async function createNewVersion(versionID: any, userId: any,obj:any) {
+export async function createNewVersion(versionID: any, userId: any, obj: any) {
     try {
         if (!versionID) throw new Error("DocId Is Missing.");
         let docDetails: any = await documents.findById(versionID);
         if (!docDetails) throw new Error("Document Not Exist.")
         // let getDocs: any = await documents.find({ parentId: docDetails.parentID }).sort({ "createdAt": -1 })
-        let createNewDoc :any= await documents.create({
+        let createNewDoc: any = await documents.create({
             name: obj.name,
             description: obj.description,
             themes: obj.themes,
@@ -111,10 +111,10 @@ export async function createNewVersion(versionID: any, userId: any,obj:any) {
             status: status.DRAFT,
             ownerId: userId,
             parentId: docDetails.parentId,
-            fileName:docDetails.fileName,
-            fileId:docDetails.fileId
+            fileName: docDetails.fileName,
+            fileId: docDetails.fileId
         })
-        return {doc_id:createNewDoc.parentid,versionID:createNewDoc.id}
+        return { doc_id: createNewDoc.parentid, versionID: createNewDoc.id }
     } catch (err) {
         console.log(err);
         throw err;
@@ -163,7 +163,7 @@ export async function getDocDetails(docId: any) {
     };
 };
 
-export async function getDocumentById(docId : string) : Promise<any> {
+export async function getDocumentById(docId: string): Promise<any> {
     if (!Types.ObjectId.isValid(docId)) {
         throw new Error('No valid document id given.');
     }
@@ -177,7 +177,7 @@ export async function getDocumentById(docId : string) : Promise<any> {
     return doc;
 }
 
-export async function getDocumentVersionById(versionId : string) : Promise<any> {
+export async function getDocumentVersionById(versionId: string): Promise<any> {
     if (!versionId) {
         throw new Error('No document id given.');
     }
@@ -234,8 +234,8 @@ export async function approvalList() {
     }
 }
 
-export async function uploadToFileService(request : any) {
-    const options : any= {
+export async function uploadToFileService(request: any) {
+    const options: any = {
         hostname: 'localhost',
         port: 4040,
         path: '/files',
@@ -244,21 +244,31 @@ export async function uploadToFileService(request : any) {
     };
     return new Promise((resolve, reject) => {
 
-    
-    const req = http.request(options, res => {
-        // response.writeHead(200, res.headers);
-        res.setEncoding('utf8');
-        let content = '';
-        res.on('data', (chunk) => {
-            content += chunk;
+
+        const req = http.request(options, res => {
+            // response.writeHead(200, res.headers);
+            res.setEncoding('utf8');
+            let content = '';
+            res.on('data', (chunk) => {
+                content += chunk;
+            });
+            res.on('end', () => {
+                resolve(content);
+            });
         });
-        res.on('end', () => {
-            resolve(content);
+        req.on('error', (e) => {
+            console.error(e);
         });
+        request.pipe(req);
     });
-    req.on('error', (e) => {
-        console.error(e);
-    });
-    request.pipe(req);
-    });
+}
+
+export async function getVersions(docId: string) {
+    try {
+        let docVersions = await documents.find({ parentId: docId }, { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }).sort({ createdAt: -1 })
+        return docVersions
+    } catch (error) {
+        console.log(error)
+        throw error
+    }
 }

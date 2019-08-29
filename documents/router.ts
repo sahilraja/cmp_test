@@ -1,5 +1,5 @@
 import { Router, RequestHandler, NextFunction } from "express"
-import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService,approvalList, getDocumentById, getDocumentVersionById } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions } from "./module";
 import { get as httpGet } from "http";
 
 const router = Router()
@@ -97,11 +97,21 @@ router.get("/approvals", async (req, res, next: NextFunction) => {
 //  Create new Version
 router.post("/versions/:versionId/create", ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await createNewVersion(req.params.id, res.locals.user.id,req.body));
+        res.status(200).send(await createNewVersion(req.params.id, res.locals.user.id, req.body));
     } catch (err) {
         next(err);
     };
 });
+
+// get versions
+router.get("/:id/versions", ensureCanPublishDocument, async (req, res, next: NextFunction) => {
+    try {
+        const { docId } = req.params
+        res.status(200).send(await getVersions(docId))
+    } catch (err) {
+        next(err);
+    };
+})
 
 // Publish a specific version to public.
 router.post("/:id/versions/:versionId/publish", ensureCanPublishDocument, async (req, res, next: NextFunction) => {
@@ -128,7 +138,7 @@ router.post("/:id/versions/:versionId/file", ensureCanEditDocument, async (req, 
     try {
         const { id, versionId } = req.params;
         const fileObj = await uploadToFileService(req);
-        let response = await createFile(versionId,fileObj);
+        let response = await createFile(versionId, fileObj);
         res.status(200).send(response);
     } catch (err) {
         next(err);
@@ -140,11 +150,11 @@ router.get("/:id/versions/:versionId/file", ensureCanViewDocument, async (reques
     try {
         const { id, versionId } = request.params;
         const { fileId } = await getDocumentVersionById(id);
-        const req = httpGet( `${FILES_SERVER_BASE}/files/${fileId}`, (res : any) => {
+        const req = httpGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
             response.writeHead(200, res.headers);
             res.pipe(response);
         });
-        req.on('error', (e : Error) => {
+        req.on('error', (e: Error) => {
             next(e);
         });
         req.end();
@@ -154,16 +164,16 @@ router.get("/:id/versions/:versionId/file", ensureCanViewDocument, async (reques
 });
 
 //Download a file for a given document id
-router.get("/:id/file", ensureCanViewDocument ,async (request: any, response: any, next: NextFunction) => {
+router.get("/:id/file", ensureCanViewDocument, async (request: any, response: any, next: NextFunction) => {
     try {
         const { id } = request.params;
         // const { fileId } = await getDocumentById(id);
         const fileId = '5d66b64f7690505a261ab0fd';
-        const req = httpGet( `${FILES_SERVER_BASE}/files/${fileId}`, (res : any) => {
+        const req = httpGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
             response.writeHead(200, res.headers);
             res.pipe(response);
         });
-        req.on('error', (e : Error) => {
+        req.on('error', (e: Error) => {
             next(e);
         });
         req.end();
