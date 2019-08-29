@@ -1,6 +1,9 @@
 import * as fs from "fs";
 import { join } from "path";
 import * as request from "request-promise"
+import { Users } from "../users/model";
+import { hashPassword } from "./utils";
+import { addRolesToUser } from "../users/module";
 
 
 export async function init() {
@@ -29,3 +32,24 @@ export async function init() {
         resolve("successfully added new capabilities");
     });
 };
+
+export async function userInit() {
+    let users = await Users.find({})
+    if (!users.length) {
+        let password = await hashPassword("Citiis@123")
+        let user = await Users.create({
+            "emailVerified": true,
+            "phoneVerified": false,
+            "firstName": "pranay",
+            "secondName": "bhardwaj",
+            "email": "pranay@citiis.com",
+            "aboutme": "Technology lead for CITIIS Project",
+            "password": password,
+            "phone": "7989238348"
+        })
+        let grants = await addRolesToUser(user.id, "technology lead", null)
+        console.log("Initial User successfully Created.")
+    }
+}
+
+userInit().catch(err => console.log(err))

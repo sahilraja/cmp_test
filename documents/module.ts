@@ -108,7 +108,7 @@ export async function submit(docId: any, versionId: any) {
         let [parent, child]: any = await Promise.all([
             documents.findById(docId).exec(),
             documents.findById(versionId).exec()])
-        if (!child.fileId || !parent.fileId) throw new Error("Missing Docs.")
+        if (!child.fileId || !parent.fileId) throw new Error("Need to upload file")
         let childDoc: any = await documents.findByIdAndUpdate(versionId, { status: status.PENDING }, { new: true });
         let parentDoc: any = await documents.findByIdAndUpdate(childDoc.parentId, { status: status.PENDING }, { new: true });
         return { docId: docId, versionId: versionId, fileId: parentDoc.fileId }
@@ -123,10 +123,10 @@ export async function createNewVersion(docId: string, versionID: string, userId:
     try {
         if (!versionID) throw new Error("DocId Is Missing.");
         let [docDetails, DocList]: any = await Promise.all([
-            documents.find({ _id: Types.ObjectId(versionID), $or: [{ status: status.APPROVED }, { expires: status.REJECTED }] }).exec(),
+            documents.findOne({ _id: Types.ObjectId(versionID), $or: [{ status: status.APPROVED }, { status: status.REJECTED }] }).exec(),
             documents.find({ parentId: docId }).sort({ "createdAt": -1 }).exec()
         ]);
-        if (!docDetails.length) throw new Error("Document Not Exist.")
+        if (!docDetails) throw new Error("Document Not Exist.")
         let createNewDoc: any = await documents.create({
             name: obj.name,
             description: obj.description,
@@ -147,11 +147,13 @@ export async function createNewVersion(docId: string, versionID: string, userId:
 };
 
 //  Reject Document
-export async function RejectDoc(docId: any) {
+export async function RejectDoc(docId: string, versionId: string) {
     try {
-        if (!docId) throw new Error("Missing DocID.");
-        let docDetails: any = await documents.findByIdAndUpdate(docId, { status: status.REJECTED }, { new: true });
-        let parentDoc: any = await documents.findById(docDetails.parentId)
+        if (!docId || !versionId) throw new Error("Missing fields");
+        let [child, parentDoc]: any = await Promise.all([
+            documents.findByIdAndUpdate(versionId, { status: status.REJECTED }, { new: true }).exec(),
+            documents.findById(docId).exec()
+        ])
         if (parentDoc.status != status.APPROVED) {
             await documents.findByIdAndUpdate(parentDoc.id, { status: status.REJECTED })
         }
@@ -312,9 +314,9 @@ export async function uploadToFileService(request: any) {
 
 export async function getVersions(docId: string) {
     try {
-        if(!docId) throw new Error("Missing Doc ID")
+        if (!docId) throw new Error("Missing Doc ID")
         let docVersions = await documents.find({ parentId: docId, status: { $ne: status.DRAFT } }, { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }).sort({ createdAt: -1 })
-        if(!docVersions.length) throw new Error("Docs Not there")
+        if (!docVersions.length) throw new Error("Docs Not there")
         return docVersions
     } catch (error) {
         console.log(error)

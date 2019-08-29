@@ -13,7 +13,7 @@ const userSchema = new Schema({
     },
     emailVerified: { type: Boolean, default: false },
     password: { type: String, trim: true },
-    phone: { type: Number, max: 10, min: 10, trim: true },
+    phone: { type: String, max: 10, min: 10, trim: true },
     phoneVerified: { type: Boolean, default: false },
     aboutme: { type: String, trim: true },
     uploadPhoto: { type: String },

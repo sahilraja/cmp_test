@@ -137,8 +137,8 @@ router.post("/:id/versions/:versionId/publish", ensureCanPublishDocument, async 
 // create File
 router.post("/:id/versions/:versionId/reject", ensureCanPublishDocument, async (req, res, next: NextFunction) => {
     try {
-        const { docId, versionId } = req.params
-        res.status(200).send(await RejectDoc(docId))
+        const { id, versionId } = req.params
+        res.status(200).send(await RejectDoc(id, versionId))
     } catch (err) {
         next(err);
     };
