@@ -5,6 +5,8 @@ import { tags } from "./tag_model";
 import { themes } from "./theme_model";
 import { checkCapability } from "../utils/utils";
 import { userRoleAndScope } from "../role/module";
+import { taskModel } from "./task_model";
+import { workflowModel } from "./workflow_model";
 
 //  Add city Code
 export async function create_city_code(reqObject: any, user: any) {
@@ -246,11 +248,55 @@ export async function getProjectsList(userId: any) {
 }
 
 // get project details
-export async function getProjectDetail(projectId:string){
-   try {
-       return await project.findById(projectId)
-   } catch (error) {
-       console.log(error)
-       throw error
-   }
+export async function getProjectDetail(projectId: string) {
+  try {
+    return await project.findById(projectId)
+  } catch (error) {
+    console.log(error)
+    throw error
+  };
+};
+
+//  add task
+export async function createTask(objBody: any, projectId: string) {
+  try {
+    const { name, startDate, endDate, access } = objBody
+    if (!name || !startDate || !endDate || !access) throw new Error(MISSING)
+    let taskCreate = await taskModel.create({
+      name: name,
+      startDate: startDate,
+      endDate: endDate,
+      projectId: projectId
+
+    })
+    let userIds = await Promise.all(access.map(async (obj: any) => {
+      let data = await workflowModel.create({
+        type: obj.type,
+        role: obj.role,
+        user: obj.user,
+        status: "PENDING",
+        taskId: taskCreate.id
+      })
+      return data.id
+    }))
+    let task = await taskModel.findByIdAndUpdate(taskCreate.id, { access: userIds })
+    return task
+  } catch (err) {
+    console.log(err)
+    throw err
+  };
+};
+
+export async function taskList(projectId: any) {
+  try {
+    let taskList = await taskModel.find({ projectId: projectId, is_active: true })
+    for (const task of taskList) {
+      let workflow = await workflowModel.find({ _id: { $in: task.access } })
+      task.access = workflow
+    }
+    return taskList
+  } catch (err) {
+    console.log(err)
+    throw err
+  }
 }

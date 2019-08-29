@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { create_city_code, edit_city_code, city_code_list, city_code_status, add_tag, edit_tag, tag_list, tag_status, add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail } from "./module";
+import { create_city_code, edit_city_code, city_code_list, city_code_status, add_tag, edit_tag, tag_list, tag_status, add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, createTask, taskList } from "./module";
 const router = Router();
 
 //  add city code
@@ -111,20 +111,40 @@ router.put("/theme/status/:id", async (req: any, res: any, next: any) => {
 });
 
 // get projects list
-router.get("/list",async(req,res,next)=>{
-try {
-    res.status(200).send(await getProjectsList(res.locals.user.id))
-} catch (error) {
-    next(error)
-}
+router.get("/list", async (req, res, next) => {
+    try {
+        res.status(200).send(await getProjectsList(res.locals.user.id))
+    } catch (error) {
+        next(error)
+    }
+});
+
+
+
+// add task
+router.post("/:id/task/add", async (req, res, next) => {
+    try {
+        res.status(200).send(await createTask(req.body, req.params.id))
+    } catch (error) {
+        next(error)
+    }
+})
+
+// add task
+router.get("/:id/task/list", async (req, res, next) => {
+    try {
+        res.status(200).send(await taskList(req.params.id))
+    } catch (error) {
+        next(error)
+    }
 })
 
 //get project details
-router.post("/:id",async(req,res,next)=>{
+router.get("/:id", async (req, res, next) => {
     try {
         res.status(200).send(await getProjectDetail(req.params.id))
     } catch (error) {
-        
+        next(error)
     }
 })
 

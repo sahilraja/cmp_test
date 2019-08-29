@@ -95,11 +95,10 @@ export async function usersForRole(role: string) {
         let success = await request(Options);
         if (!success) throw new Error("Fail to get users.")
         let users = await Users.find({ _id: { $in: success.users } }, { firstName: 1, secondName: 1 })
-        return users
+        return { role: role, users: users }
     } catch (err) {
         console.log(err);
         throw err;
     };
 };
 
-usersForRole("technology lead")

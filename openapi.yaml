@@ -646,7 +646,190 @@ paths:
                       
         "400":
           $ref: "#/components/responses/BadRequest"
+  # project List
+  "/project/list":
+    get:
+      security:
+        - token: []
+      summary: get project list
+      tags:
+        - PROJECT
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: 
+                          type: string
+                          example: project_id
+                        name: 
+                          type: string
+                          example: howrah
+                        city:
+                          type: string
+                          example: agarthala
+                        maturationEndDate:
+                          type: string
+                          example: 22-1-2001
+                        theme: 
+                          type: string
+                          example: theme1
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    
+  "/project/{id}":
+      get:
+        security:
+          - token: []
+        summary: get project list
+        tags:
+          - PROJECT
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            $ref: "#/components/responses/project"
+                        
+          "400":
+            $ref: "#/components/responses/BadRequest"
+            
+  "/project/{id}/task/list":
+      get:
+        security:
+          - token: []
+        summary: get project list
+        tags:
+          - PROJECT
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            description: success
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    list: 
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name: 
+                            type: string
+                            example:  Taskname
+                          startDate: 
+                            type: string
+                            example: 22-1-2001
+                          endDate:
+                            type: string
+                            example: 23-2-2019
+                          access:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: owner
+                                role:
+                                  type: string
+                                  example: mentor
+                                status:
+                                  type: string
+                                  example: PENDING
+          "400":
+            $ref: "#/components/responses/BadRequest"
+            
+  # edit project code
+  "/project/{id}/task/add":
+    post:
+      security:
+        - token: []
+      summary: task add
+      tags:
+        - PROJECT
 
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: 
+                  type: string
+                  example:  Taskname
+                startDate: 
+                  type: string
+                  example: 22-1-2001
+                endDate:
+                  type: string
+                  example: 23-2-2019
+                access:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: owner
+                      role:
+                        type: string
+                        example: mentor
+                      status:
+                        type: string
+                        example: PENDING
+                
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schoolss
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   "/role/list":
     get:
@@ -717,6 +900,54 @@ paths:
                       
         "400":
           $ref: "#/components/responses/BadRequest"
+  "/role/user/list/":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: role for get users list
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        role: 
+                          type: string
+                          example: project lead
+                        users:
+                          type: array
+                          items: 
+                            type: object
+                            properties:
+                              id: 
+                                type: string
+                                example: userid212
+                              firsrName: 
+                                type: string
+                                example: james
+                              secondName:
+                                type: string
+                                example: bond
+                                
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
 
   "/project/tag/add":
     post:
@@ -1673,6 +1904,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/userSchema"
+    project:
+      description: project
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/projectSchema"
+    
   schemas:
   # error schema
     Error:
@@ -1906,87 +2144,6 @@ components:
         is_active: 
           type: boolean
           example: true
-    Trackable:
-      type: object
-      properties:
-        createdAt:
-          type: string
-          format: date-time
-          example: "2019-08-28T12:38:39.258+00:00"
-        modifiedAt:
-          type: string
-          format: date-time
-          example: "2019-08-28T12:40:27.316+00:00"
-    # Document schema
-    DocumentContent:
-      allOf:
-        - $ref: '#/components/schemas/Trackable'
-        - type: object
-        - properties:
-            id:
-              type: string
-              format: uniqueid
-              example: 54313797101372181
-            name: 
-              type: string
-              example: Proposal Document
-            description:
-              type: string
-              example: This is a proposal document that covers the plan to execute and the cost and time estimates
-            fileName:
-              type: string
-              example: proposal.pdf
-            tags:
-              type: array
-              items: 
-                type: string
-              example: ["finance", "proposal"]
-            themes:
-              type: array
-              items: 
-                type: string
-              example: ["maturation", "global", "proposal"]
-    Document:
-      allOf:
-        - $ref: '#/components/schemas/DocumentContent'
-        - type: object
-        - properties:
-            owner:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Amarthya Sen
-                id:
-                  type: string
-                  example: 54213790101372682
-            status:
-              type: string
-              enum: ["unpublished", "published", "deleted", "pending-approval", "rejected"]
-              example: published
-            versionNumber:
-              type: integer
-              description: Latest published version number
-              example: 1
-            versionId:
-              type: string
-              format: uniqueid
-              example: 54313797101372179
-    DocumentVersion:
-      allOf:
-        - $ref: '#/components/schemas/DocumentContent'
-        - type: object
-        - properties:
-            versionNumber:
-              type: number
-              example: 1
-            documentId:
-              type: string
-              format: uniqueid
-              example: 54213790101372681
-            status:
-              type: string
-              enum: ["draft", "submitted", "rejected"]
 
         
 
