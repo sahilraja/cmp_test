@@ -6,10 +6,11 @@ const schema = new Schema({
     tags: { type: Array },
     themes: { type: Array },
     fileId: { type: String },
-    versionId: { type: String },
+    versionNum: { type: String },
     status: { type: String, enum: [0, 1, 2, 3] },
     parentId: { type: String },
     ownerId: { type: String },
+    fileName:{type:String},
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 

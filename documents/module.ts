@@ -18,7 +18,7 @@ export async function createDOC(body: any, userID: any) {
         let doc = await insertDOC(body, userID);
         body.parentID = doc.id;
         let response: any = await insertDOC(body, userID);
-        return { doc_id: response.id, version_id: response.versionId };
+        return { doc_id: doc.id, version_id: response.id };
     } catch (error) {
         console.log(error);
         throw error;
@@ -33,7 +33,7 @@ async function insertDOC(body: any, userID: any) {
             description: body.description,
             themes: body.themes,
             tags: body.tags,
-            versionId: "1",
+            versionNum: "1",
             status: status.DRAFT,
             ownerId: userID,
             parentId: body.parentID ? body.parentID : null
@@ -69,8 +69,9 @@ export async function getDocListOfMe(userid: any) {
 //  Create File
 export async function createFile(docId: any, versionId: any, file: any) {
     try {
-        if (!docId || !versionId || !file) throw new Error("Missing Fields.");
+        // if (!docId || !versionId || !file) throw new Error("Missing Fields.");
         //  call to file host for create File
+        
 
         return { doc_id: docId, version_id: versionId, fileId: "get file id" }
     } catch (error) {
@@ -85,7 +86,7 @@ export async function submit(docId: any, versionID: any) {
         if (!docId) {
             throw new Error("missing doc ID");
         }
-        let childDoc: any = await documents.findByIdAndUpdate(docId, { status: status.PENDING }, { new: true });
+        let childDoc: any = await documents.findByIdAndUpdate(versionID, { status: status.PENDING }, { new: true });
         return await documents.findByIdAndUpdate(childDoc.parentID, { status: status.PENDING }, { new: true });
     } catch (error) {
         console.log(error);
@@ -210,8 +211,8 @@ export async function updateDoc(objBody: any, docid: any, versionId: any) {
         if (objBody.tags) {
             obj.tags = objBody.tags;
         };
-        let updatedDoc = await documents.find({ parentId: docid, versionId: versionId }, obj, { new: true });
-        return updateDoc;
+        let updatedDoc = await documents.findByIdAndUpdate(versionId, obj, { new: true });
+        return updatedDoc;
     } catch (err) {
         console.log(err);
         throw err;
@@ -221,7 +222,7 @@ export async function updateDoc(objBody: any, docid: any, versionId: any) {
 export async function approvalList() {
     try {
         let docList = await documents.find({ parentId: { $ne: null }, status: status.PENDING });
-        let parentDocsIdsArray = docList.map((doc: any) => { return doc.id })
+        let parentDocsIdsArray = docList.map((doc: any) => { return doc.parentId })
         let parentDocList = await documents.find({ _id: { $in: parentDocsIdsArray } })
         return parentDocList
     } catch (err) {
