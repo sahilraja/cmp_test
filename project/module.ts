@@ -147,7 +147,7 @@ export async function tag_list() {
 //  edit status of tag
 export async function tag_status(id: any) {
   try {
-    let city = await tags.findById(id);
+    let city:any = await tags.findById(id);
     if (!city) {
       throw new Error(MISSING);
     }

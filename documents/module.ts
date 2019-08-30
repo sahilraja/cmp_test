@@ -338,8 +338,14 @@ export async function getApprovalDoc(docId: string) {
         modifiedDoc.tags = await getTags(modifiedDoc.tags)
         modifiedDoc.themes = await getThemes(modifiedDoc.themes)
         modifiedDoc.role = (await userRoleAndScope(modifiedDoc.ownerId)).data[0].role
+        if(parentDoc.status == status.PENDING){
+            return{original: parentDoc}
+        }
+        else{
+            return { original: parentDoc, modified: modifiedDoc }
+        }
 
-        return { original: parentDoc, modified: modifiedDoc }
+        
     } catch (err) {
         console.log(err)
         throw err

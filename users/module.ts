@@ -211,6 +211,7 @@ export async function user_list(query: any, userId: any, page = 1, limit: any = 
         const data = await Promise.all(docs.map(async doc => {
             const user = { ...doc.toJSON(), id: doc.id }
             let userCapabilities = await userRoleAndScope(user.id)
+            console.log(user.id)
             user.role = userCapabilities.data[0].role
             user.scope = (userCapabilities.data[0].scope == "global") ? userCapabilities.data[0].scope : await Promise.all(userCapabilities.data[0].scope.map(async (code: any) => {
                 let projectDetails: any = await project.findById(code)

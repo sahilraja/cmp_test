@@ -4,8 +4,8 @@ info:
   title: "CMP API's "
 
 servers:
-  - url: "http://localhost:3000"
-  - url: " http://192.168.1.173:3000"
+  - url: "https://cmp-dev.transerve.com/api"
+  - url: " http://localhost:3000"
 
 paths:
 # user apis
