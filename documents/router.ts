@@ -1,6 +1,7 @@
 import { Router, RequestHandler, NextFunction } from "express"
 import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc } from "./module";
 import { get as httpGet } from "http";
+import { authenticate } from "../utils/utils";
 
 const router = Router()
 
@@ -59,7 +60,7 @@ router.param('versionId', async (req, res, next, value) => {
 });
 
 //  Create Document
-router.post("/create", async (req, res, next: NextFunction) => {
+router.post("/create",authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await createDOC(req.body, res.locals.user.id));
     } catch (err) {
@@ -68,7 +69,7 @@ router.post("/create", async (req, res, next: NextFunction) => {
 });
 
 //  Get Public List
-router.get("/list", async (req, res, next: NextFunction) => {
+router.get("/list",authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await getDocList())
     } catch (err) {

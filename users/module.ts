@@ -8,6 +8,7 @@ import * as request from "request-promise";
 import { project } from "../project/project_model";
 import { PaginateResult, Types } from "mongoose";
 
+const ANGULAR_URL = process.env.ANGULAR_URL || "http://localhost:4200"
 
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
@@ -104,7 +105,7 @@ export async function addRolesToUser(userId: any, role: any, project: any) {
                 html: inviteUserForm({
                     username: userDetails.firstName + " " + userDetails.secondName,
                     role: role,
-                    link: `${process.env.ANGULAR_URL}/user/register/${token}`
+                    link: `${ANGULAR_URL}/user/register/${token}`
                 })
             })
         }
@@ -282,7 +283,7 @@ export async function userInviteResend(id: any, role: any) {
             html: inviteUserForm({
                 username: userData.username,
                 role: role,
-                link: `${process.env.ANGULAR_URL}/user/register/${token}`
+                link: `${ANGULAR_URL}/user/register/${token}`
             })
         })
         return { status: true, data: "email send successfully" }
@@ -357,8 +358,8 @@ export async function forgotPassword(objBody: any) {
             email: userDetails.email,
             subject: "CMP Reset password instructions",
             html: forgotPasswordForm({
-                username: userDetails.name,
-                link: `${process.env.ANGULAR_URL}/invite/user/:${token}`
+                username: (userDetails.firstName) ? userDetails.firstName : userDetails.secondName,
+                link: `${ANGULAR_URL}/invite/user/:${token}`
             })
         })
         return { message: "successfully mail was sent." }
