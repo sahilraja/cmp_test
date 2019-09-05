@@ -41,6 +41,8 @@ async function insertDOC(body: any, userID: any) {
             versionNum: "1",
             status: status.DRAFT,
             ownerId: userID,
+            collaborator: body.parentID ? null : body.collaborator,
+            viewer: body.parentID ? null : body.viewer,
             parentId: body.parentID ? body.parentID : null
         })
     } catch (error) {

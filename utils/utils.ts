@@ -58,24 +58,4 @@ export async function jwt_Verify(id: any) {
     return await jwtVerify(id, SECRET);
 };
 
-//  check capabilities
-export async function checkCapability(object: any) {
-    try {
-        const { role, scope, capability } = object
-        let Options = {
-            uri: `${process.env.RBAC_URL}/capabilities/check`,
-            method: "GET",
-            qs: {
-                role: role,
-                scope: scope,
-                capability: capability
-            },
-            json: true
-        }
-        return await request(Options);
-    } catch (err) {
-        console.log(err);
-        throw err;
-    };
-};
 

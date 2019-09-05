@@ -4,9 +4,11 @@ import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope } from "../role/module";
-import * as request from "request-promise";
-import { project } from "../project/project_model";
 import { PaginateResult, Types } from "mongoose";
+import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
+import { groupsModel } from "./group-model";
+import { executionAsyncId } from "async_hooks";
+import { try } from "bluebird";
 
 const ANGULAR_URL = process.env.ANGULAR_URL || "http://localhost:4200"
 
@@ -23,95 +25,30 @@ export async function inviteUser(objBody: any, user: any) {
             secondName: objBody.name.split(' ').slice(-1).join(' '),
             email: objBody.email,
         });
+        let RoleStatus = await addRole(userData.id, objBody.role)
+        if (!RoleStatus.status) {
+            await Users.findByIdAndRemove(userData.id)
+            throw new Error("Fail to create role");
+        }
+        let token = await jwt_for_url({
+            id: userData.id,
+            firstName: userData.firstName,
+            secondName: userData.secondName,
+            email: userData.email,
+            role: objBody.role
+        });
+        let mailStatus = await nodemail({
+            email: userData.email,
+            subject: "cmp invite user",
+            html: inviteUserForm({
+                username: objBody.name,
+                role: objBody.role,
+                link: `${ANGULAR_URL}/user/register/${token}`
+            })
+        })
         return { userId: userData.id };
     } catch (err) {
         console.log(err)
-        throw err;
-    };
-};
-
-//  Add projects to that role
-export async function addRolesToUser(userId: any, role: any, project: any) {
-    try {
-        if (!userId || !role) {
-            throw new Error(MISSING);
-        };
-        let user_scope = await checkRoleScope(role, "global");
-        if (user_scope && project) throw new Error("global scope doesn't need projects");
-
-        let Options = {
-            uri: `${process.env.RBAC_URL}/role/list/${userId}`,
-            method: "GET",
-            json: true
-        }
-        let success = await request(Options);
-        if (!success.status) throw new Error("Fail to get Roles.")
-
-        if (success.data.length) {
-            //  remove all role 
-            let Options = {
-                uri: `${process.env.RBAC_URL}/role/remove/all/${userId}`,
-                method: "PUT",
-                json: true
-            }
-            let success = await request(Options);
-            if (!success.status) throw new Error("fail to remove all roles");
-        }
-
-        if (user_scope) {
-            let Options = {
-                uri: `${process.env.RBAC_URL}/role/add/${userId}`,
-                method: "POST",
-                body: {
-                    "role": role,
-                    "scope": `global`
-                },
-                json: true
-            }
-            let success = await request(Options);
-            if (!success.status) throw new Error("fail to create role");
-
-        } else {
-            //  add all roles
-            for (const code of project) {
-                let Options = {
-                    uri: `${process.env.RBAC_URL}/role/add/${userId}`,
-                    method: "POST",
-                    body: {
-                        "role": role,
-                        "scope": `projects/${code}`
-                    },
-                    json: true
-                }
-                let success = await request(Options);
-                if (!success.status) throw new Error("fail to create role");
-            };
-        };
-
-        if (!success.data.length) {
-            let userDetails: any = await Users.findById(userId)
-
-            let token = await jwt_for_url({
-                id: userId,
-                firstName: userDetails.firstName,
-                secondName: userDetails.secondName,
-                email: userDetails.email,
-                role: role
-            });
-
-            let mailStatus = await nodemail({
-                email: userDetails.email,
-                subject: "cmp invite user",
-                html: inviteUserForm({
-                    username: userDetails.firstName + " " + userDetails.secondName,
-                    role: role,
-                    link: `${ANGULAR_URL}/user/register/${token}`
-                })
-            })
-        }
-        return { message: "Roles added successfully" };
-    } catch (err) {
-        console.log(err);
         throw err;
     };
 };
@@ -123,7 +60,7 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
             throw new Error(MISSING)
         }
         let token: any = await jwt_Verify(verifyToken)
-        if (!token) throw new Error("Invalid Token")
+        if (!token) throw new Error("Invalid Token.")
 
         const { name, password, phone, aboutme } = objBody
 
@@ -155,7 +92,7 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
     } catch (err) {
         console.log(err);
         throw err;
-    }
+    };
 };
 
 //  Edit user
@@ -194,7 +131,7 @@ export async function edit_user(id: any, objBody: any) {
             obj.aboutme = objBody.aboutme;
         };
 
-        let data = await Users.findByIdAndUpdate(id, obj, { new: true });
+        let data: any = await Users.findByIdAndUpdate(id, obj, { new: true });
         return { data: data }
     } catch (err) {
         console.log(err);
@@ -213,10 +150,6 @@ export async function user_list(query: any, userId: any, page = 1, limit: any = 
             const user = { ...doc.toJSON(), id: doc.id }
             let userCapabilities = await userRoleAndScope(user.id)
             user.role = userCapabilities.data[0].role
-            user.scope = (userCapabilities.data[0].scope == "global") ? userCapabilities.data[0].scope : await Promise.all(userCapabilities.data[0].scope.map(async (code: any) => {
-                let projectDetails: any = await project.findById(code)
-                return projectDetails.reference
-            }));
             return user
         }));
         return { data, pages: pages, count: total }
@@ -249,20 +182,16 @@ export async function user_login(objBody: any) {
         if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
             throw Error("Invalid fields.");
         }
-        let user_data: any = await Users.findOne({ email: objBody.email });
-        if (!user_data) throw new Error("Invalid User");
-        let result: any = await comparePassword(objBody.password, user_data.password)
+        let userData: any = await Users.findOne({ email: objBody.email });
+        if (!userData) throw new Error("Invalid User");
+        let result: any = await comparePassword(objBody.password, userData.password)
         if (!result) {
             throw Error("Invalid login details.");
         }
-        let Options = {
-            uri: `${process.env.RBAC_URL}/role/list/${user_data.id}`,
-            method: "GET",
-            json: true
-        }
-        let success = await request(Options);
-        if (!success.status) throw new Error("Fail to get Roles.")
-        let token = await jwt_create({ id: user_data.id, role: success.data[0].role })
+        if (!userData.is_active) throw new Error("Account Deactivated By Admin.")
+        let Role = await getRoles(userData.id)
+        if (!Role.status) throw new Error("Fail to get Roles.")
+        let token = await jwt_create({ id: userData.id, role: Role.data[0].role })
         return { token: token };
     } catch (err) {
         console.log(err);
@@ -309,14 +238,9 @@ export async function userDetails(id: any) {
 //  Get User Roles
 export async function userRoles(id: any) {
     try {
-        let Options = {
-            uri: `${process.env.RBAC_URL}/role/list/${id}`,
-            method: "GET",
-            json: true
-        }
-        let success = await request(Options);
-        if (!success.status) throw new Error("fail to get Roles");
-        return { roles: success.data[0].role }
+        let role = await getRoles(id)
+        if (!role.status) throw new Error("fail to get Roles");
+        return { roles: role.data[0].role }
     } catch (err) {
         console.log(err)
         throw err
@@ -326,22 +250,14 @@ export async function userRoles(id: any) {
 //  Get user Capabilities
 export async function userCapabilities(id: any) {
     try {
-        let roles = await userRoles(id)
+        let roles = await getRoles(id)
         if (roles.roles.length == 0) throw new Error("role not found")
-        let Options = {
-            uri: `${process.env.RBAC_URL}/role/capabilities/list`,
-            method: "GET",
-            qs: {
-                role: roles.roles
-            },
-            json: true
-        }
-        let success = await request(Options);
+        let success = await roleCapabilitylist(roles.roles)
         if (!success.status) throw new Error("fail to get Roles");
         return { roles: success.data }
     } catch (err) {
-        console.log(err)
-        throw err
+        console.log(err);
+        throw err;
     };
 };
 
@@ -385,19 +301,94 @@ export async function setNewPassword(objBody: any, token: any) {
         let has_Password = hashPassword(objBody.password)
 
         let userDetails: any = await Users.findByIdAndUpdate(verifyToken.id, { password: has_Password }, { new: true });
+        let role = await getRoles(userDetails.id)
+        if (!role.status) throw new Error("Fail to get Roles.")
 
-        let Options = {
-            uri: `${process.env.RBAC_URL}/role/list/${userDetails.id}`,
-            method: "GET",
-            json: true
-        }
-        let success = await request(Options);
-        if (!success.status) throw new Error("Fail to get Roles.")
-
-        let newToken = await jwt_create({ id: userDetails.id, role: success.data })
+        let newToken = await jwt_create({ id: userDetails.id, role: role.data })
         return { token: token }
     } catch (err) {
         console.log(err);
+        throw err;
+    };
+};
+
+
+//  Create Group
+export async function createGroup(objBody: any) {
+    try {
+        const { name, description, users } = objBody
+        if (!name || !description || !users) throw new Error("Missing Fiels.");
+        let data = await groupsModel.create({
+            name: name,
+            description: description,
+            users: users
+        });
+        return data
+    } catch (err) {
+        throw err;
+    };
+};
+
+//  change Group status
+export async function groupStatus(id: any) {
+    try {
+        if (!id) throw new Error("Missing Id.")
+        let group: any = await groupsModel.findById(id);
+        if (!group) throw new Error("City Not Found");
+        let data: any = await groupsModel.findByIdAndUpdate(id, { is_active: group.is_active == true ? false : true }, { new: true });
+        return { message: data.is_active ? "Active" : "Inactive" };
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+//  Edit Group
+export async function editGroup(objBody: any, id: string) {
+    try {
+        const { name, description, users } = objBody
+        let obj: any;
+        if (name) {
+            obj.name = name;
+        };
+        if (description) {
+            obj.description = description;
+        };
+        if (users) {
+            obj.users = users;
+        };
+        let data = await groupsModel.findByIdAndUpdate(id, obj, { new: true });
+        return data
+    } catch (err) {
+        throw err;
+    };
+};
+
+//  Get group List
+export async function groupList() {
+    try {
+        let group = await groupsModel.find({});
+        const data = await Promise.all(group.map(async key => {
+            const user = key.toJSON()
+            user.users = user.users.length
+            return user
+        }));
+        return data;
+    } catch (err) {
+        throw err;
+    };
+};
+
+//  Group detail
+export async function groupDetail(id: string) {
+    try {
+        if (!id) throw new Error("Missing Id");
+        let data: any = await groupsModel.findById(id)
+        if (data) throw new Error("Group Not Found.")
+        const group = data.toJSON()
+        group.users = await Users.find({ _id: { $in: group.users } }, { firstName: 1, secondName: 1, email: 1 });
+        return group;
+    } catch (err) {
         throw err;
     };
 };
