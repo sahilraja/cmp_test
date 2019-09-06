@@ -146,8 +146,8 @@ export async function user_list(query: any, userId: any, page = 1, limit: any = 
         let { docs, pages, total }: PaginateResult<any> = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
         const data = await Promise.all(docs.map(async doc => {
             const user = { ...doc.toJSON(), id: doc.id }
-            let userCapabilities = await userRoleAndScope(user.id)
-            user.role = userCapabilities.data[0].role
+            let userCapabilities: any = await userRoleAndScope(user.id)
+            user.role = userCapabilities.global
             return user
         }));
         return { data, pages: pages, count: total }

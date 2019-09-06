@@ -1,11 +1,5 @@
 import { Schema, model } from "mongoose";
 
-enum Status {
-    Draft = 0,
-    Published,
-    Unpublished,
-    Deleted,
-}
 const schema = new Schema({
     name: { type: String, trim: true },
     description: { type: String, trim: true },

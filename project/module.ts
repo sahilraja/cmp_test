@@ -232,7 +232,7 @@ export async function getProjectsList(userId: any) {
     let userProjects: any = await userRoleAndScope(userId);
     if (!userProjects) throw new Error("user have no projects");
     let list;
-    if (userProjects.data[0].scope == "global") {
+    if (userProjects.global) {
       list = await project.find({ is_active: true });
     } else {
       list = await project.find({

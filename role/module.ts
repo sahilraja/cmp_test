@@ -58,23 +58,15 @@ export async function userRoleAndScope(userId: any) {
         }
         let success = await request(Options);
         if (!success.status) throw new Error("Fail to get Roles.")
-        let data: any = []
         let object: any = {}
         success.data.map((key: any) => {
-            if (object.role && object.role != key.role) {
-                data.push(object)
-                object = {}
+            if (object[key.role]) {
+                object[key.role].push(key.scope)
+            } else {
+                object[key.role] = [key.scope]
             }
-            if (object.role == key.role && key.scope != "global") {
-                object.scope.push(key.scope.substring(key.scope.indexOf("/") + 1, key.scope.length))
-            }
-            if (!object.role) {
-                object.role = key.role
-                object.scope = key.scope == "global" ? "global" : [key.scope.substring(key.scope.indexOf("/") + 1, key.scope.length)]
-            }
-        })
-        if (!data.length) data.push(object)
-        return { data: data }
+        });
+        return { data: object }
     } catch (err) {
         console.log(err)
         throw err
@@ -101,4 +93,3 @@ export async function usersForRole(role: string) {
         throw err;
     };
 };
-
