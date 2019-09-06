@@ -119,7 +119,7 @@ router.post("/forgot/password/:token", async (req: any, res: Response, next: Han
 });
 
 //  Add Group
-router.post("/user/group/create", async (req: any, res: any, next: any) => {
+router.post("/group/create", authenticate, async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await createGroup(req.body))
     } catch (err) {
@@ -128,7 +128,7 @@ router.post("/user/group/create", async (req: any, res: any, next: any) => {
 });
 
 //  List Group
-router.get("/user/group/list", async (req: any, res: any, next: any) => {
+router.get("/group/list", authenticate, async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await groupList())
     } catch (err) {
@@ -137,7 +137,7 @@ router.get("/user/group/list", async (req: any, res: any, next: any) => {
 });
 
 //  Edit Group
-router.put("/user/group/:id/edit", async (req: any, res: any, next: any) => {
+router.put("/group/:id/edit", authenticate, async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await editGroup(req.body, req.params.id))
     } catch (err) {
@@ -146,7 +146,7 @@ router.put("/user/group/:id/edit", async (req: any, res: any, next: any) => {
 });
 
 //  edit status of city code
-router.put("/user/group/:id/status", async (req: any, res: any, next: any) => {
+router.put("/group/:id/status", authenticate, async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await groupStatus(req.params.id))
     } catch (err) {
@@ -155,7 +155,7 @@ router.put("/user/group/:id/status", async (req: any, res: any, next: any) => {
 });
 
 //  Group Details
-router.get("/user/group/:id", async (req: any, res: any, next: any) => {
+router.get("/group/:id", authenticate,  async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await groupDetail(req.params.id))
     } catch (err) {

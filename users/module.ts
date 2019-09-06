@@ -7,8 +7,6 @@ import { checkRoleScope, userRoleAndScope } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupsModel } from "./group-model";
-import { executionAsyncId } from "async_hooks";
-import { try } from "bluebird";
 
 const ANGULAR_URL = process.env.ANGULAR_URL || "http://localhost:4200"
 
@@ -347,7 +345,7 @@ export async function groupStatus(id: any) {
 export async function editGroup(objBody: any, id: string) {
     try {
         const { name, description, users } = objBody
-        let obj: any;
+        let obj: any = {}
         if (name) {
             obj.name = name;
         };
@@ -384,7 +382,7 @@ export async function groupDetail(id: string) {
     try {
         if (!id) throw new Error("Missing Id");
         let data: any = await groupsModel.findById(id)
-        if (data) throw new Error("Group Not Found.")
+        if (!data) throw new Error("Group Not Found.")
         const group = data.toJSON()
         group.users = await Users.find({ _id: { $in: group.users } }, { firstName: 1, secondName: 1, email: 1 });
         return group;
