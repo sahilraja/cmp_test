@@ -249,8 +249,8 @@ export async function userRoles(id: any) {
 export async function userCapabilities(id: any) {
     try {
         let roles = await getRoles(id)
-        if (roles.roles.length == 0) throw new Error("role not found")
-        let success = await roleCapabilitylist(roles.roles)
+        if (roles.data.length == 0) throw new Error("role not found")
+        let success = await roleCapabilitylist(roles.data[0].role)
         if (!success.status) throw new Error("fail to get Roles");
         return { roles: success.data }
     } catch (err) {
