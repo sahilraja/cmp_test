@@ -3,10 +3,10 @@ import { project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "./tag_model";
 import { themes } from "./theme_model";
-import { checkCapability } from "../utils/utils";
 import { userRoleAndScope } from "../role/module";
 import { taskModel } from "./task_model";
 import { workflowModel } from "./workflow_model";
+import { checkCapability } from "../utils/rbac";
 
 //  Add city Code
 export async function create_city_code(reqObject: any, user: any) {
@@ -147,7 +147,7 @@ export async function tag_list() {
 //  edit status of tag
 export async function tag_status(id: any) {
   try {
-    let city:any = await tags.findById(id);
+    let city: any = await tags.findById(id);
     if (!city) {
       throw new Error(MISSING);
     }
@@ -232,7 +232,7 @@ export async function getProjectsList(userId: any) {
     let userProjects: any = await userRoleAndScope(userId);
     if (!userProjects) throw new Error("user have no projects");
     let list;
-    if (userProjects.data[0].scope == "global") {
+    if (userProjects.global) {
       list = await project.find({ is_active: true });
     } else {
       list = await project.find({

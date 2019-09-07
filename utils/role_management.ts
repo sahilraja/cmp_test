@@ -3,8 +3,7 @@ import { join } from "path";
 import * as request from "request-promise"
 import { Users } from "../users/model";
 import { hashPassword } from "./utils";
-import { addRolesToUser } from "../users/module";
-
+import { addRole } from "./rbac";
 
 export async function init() {
     return new Promise(async (resolve, reject) => {
@@ -47,7 +46,7 @@ export async function userInit() {
             "password": password,
             "phone": "7989238348"
         })
-        let grants = await addRolesToUser(user.id, "technology lead", null)
+        let grants = await addRole(user.id, "technology lead")
         console.log("Initial User successfully Created.")
     }
 }

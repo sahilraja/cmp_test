@@ -18,7 +18,6 @@ const ensureCanViewVersion: RequestHandler = (req, res, next) => {
     next();
 }
 
-
 const ensureCanEditDocument: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;
     const userId = res.locals.user.id;

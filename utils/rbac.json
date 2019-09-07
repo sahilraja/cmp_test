@@ -52,5 +52,59 @@
         "description": "Upload documents",
         "role": "Experts",
         "scope": "project/*"
+    },
+    {
+        "capability": "add-version",
+        "description": "Add new Version to document",
+        "role": "owner",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-comments",
+        "description": "Add Comments to document",
+        "role": "owner",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-tags",
+        "description": "Add tags to document",
+        "role": "owner",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-collaborator",
+        "description": "Add Collaborator to document",
+        "role": "owner",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-version",
+        "description": "Add new Version to document",
+        "role": "collaborator",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-comments",
+        "description": "Add Comments to document",
+        "role": "collaborator",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-tags",
+        "description": "Add tags to document",
+        "role": "collaborator",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-comments",
+        "description": "Add Comments to document",
+        "role": "viewer",
+        "scope": "document/*"
+    },
+    {
+        "capability": "add-tags",
+        "description": "Add tags to document",
+        "role": "viewer",
+        "scope": "document/*"
     }
 ]

@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, addRolesToUser, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail } from "./module";
 import { authenticate } from "../utils/utils";
 var multer = require('multer')
 var upload = multer()
@@ -10,15 +10,6 @@ const router = Router();
 router.post('/create', authenticate, async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await inviteUser(req.body, res.locals.user));
-    } catch (err) {
-        res.status(400).send({ error: err.message })
-    };
-});
-
-// Add grants to the user
-router.post('/grants/add/:id', authenticate, async (req: any, res: any, next: any) => {
-    try {
-        res.status(200).send(await addRolesToUser(req.params.id, req.body.role, req.body.project));
     } catch (err) {
         res.status(400).send({ error: err.message })
     };
@@ -126,6 +117,52 @@ router.post("/forgot/password/:token", async (req: any, res: Response, next: Han
         res.status(400).send({ err: err.message });
     };
 });
+
+//  Add Group
+router.post("/group/create", authenticate, async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await createGroup(req.body))
+    } catch (err) {
+        next(err)
+    }
+});
+
+//  List Group
+router.get("/group/list", authenticate, async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await groupList())
+    } catch (err) {
+        next(err)
+    }
+});
+
+//  Edit Group
+router.put("/group/:id/edit", authenticate, async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await editGroup(req.body, req.params.id))
+    } catch (err) {
+        next(err)
+    }
+});
+
+//  edit status of city code
+router.put("/group/:id/status", authenticate, async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await groupStatus(req.params.id))
+    } catch (err) {
+        next(err)
+    }
+});
+
+//  Group Details
+router.get("/group/:id", authenticate,  async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await groupDetail(req.params.id))
+    } catch (err) {
+        next(err)
+    }
+});
+
 
 
 

@@ -1,10 +1,11 @@
 import { documents } from "./model"
 import * as http from "http";
 import { Types } from "mongoose";
-import { MISSING } from "../utils/error_msg";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
+import { addRole } from "../utils/rbac";
+import { any } from "bluebird";
 
 
 enum status {
@@ -20,9 +21,14 @@ export async function createDOC(body: any, userID: any) {
         if (!body.name) {
             throw new Error("name should be mandatory");
         }
-        let doc = await insertDOC(body, userID);
+        let doc = await insertDOC(body);
         body.parentID = doc.id;
-        let response: any = await insertDOC(body, userID);
+        let role = await addRole(userID, "owner", `document/${doc.id}`)
+        if (!role.success) {
+            await documents.findByIdAndRemove(doc.id)
+            throw new Error("fail to add role")
+        }
+        let response: any = await insertDOC(body);
         return { doc_id: doc.id, version_id: response.id };
     } catch (error) {
         console.log(error);
@@ -31,7 +37,7 @@ export async function createDOC(body: any, userID: any) {
 };
 
 //  create Document module
-async function insertDOC(body: any, userID: any) {
+async function insertDOC(body: any) {
     try {
         return await documents.create({
             name: body.name,
@@ -40,7 +46,6 @@ async function insertDOC(body: any, userID: any) {
             tags: body.tags,
             versionNum: "1",
             status: status.DRAFT,
-            ownerId: userID,
             parentId: body.parentID ? body.parentID : null
         })
     } catch (error) {
@@ -56,10 +61,10 @@ export async function getDocList() {
         const docList = await Promise.all(data.map(async doc => {
             const user = { ...doc.toJSON() }
             user.tags = await getTags(user.tags)
-            user.role = (await userRoleAndScope(user.ownerId)).data[0].role
+            let role: any = await userRoleAndScope(user.ownerId)
+            user.role = role.global
             return user
-        }))
-
+        }));
         return { docs: docList }
     } catch (error) {
         console.log(error);
@@ -188,7 +193,8 @@ export async function getDocDetails(docId: any) {
         const docList = publishDocs[0].toJSON()
         docList.tags = await getTags(docList.tags)
         docList.themes = await getThemes(docList.themes)
-        docList.role = (await userRoleAndScope(docList.ownerId)).data[0].role
+        let role: any = await userRoleAndScope(docList.ownerId)
+        docList.role = role.global
         return docList
     } catch (err) {
         console.log(err)
@@ -229,7 +235,8 @@ export async function getDocWithVersion(docId: any, versionId: any) {
         const docList = docDetails.toJSON()
         docList.tags = await getTags(docList.tags)
         docList.themes = await getThemes(docList.themes)
-        docList.role = (await userRoleAndScope(docList.ownerId)).data[0].role
+        let role: any = await userRoleAndScope(docList.ownerId)
+        docList.role = role.global
         return docList
     } catch (err) {
         console.log(err);
@@ -333,17 +340,13 @@ export async function getApprovalDoc(docId: string) {
         const parentDoc = parent.toJSON()
         parentDoc.tags = await getTags(parentDoc.tags)
         parentDoc.themes = await getThemes(parentDoc.themes)
-        parentDoc.role = (await userRoleAndScope(parentDoc.ownerId)).data[0].role
+        let parentRole: any = await userRoleAndScope(parentDoc.ownerId)
+        parentDoc.role = parentRole.global
         const modifiedDoc = pendingDoc[0].toJSON()
         modifiedDoc.tags = await getTags(modifiedDoc.tags)
         modifiedDoc.themes = await getThemes(modifiedDoc.themes)
-        modifiedDoc.role = (await userRoleAndScope(modifiedDoc.ownerId)).data[0].role
-        if(parentDoc.status == status.PENDING){
-            return{modified: modifiedDoc}
-        }
-        else{
-            return { original: parentDoc, modified: modifiedDoc }
-        }
+        let modifiedRole: any = await userRoleAndScope(parentDoc.ownerId)
+        parentDoc.role = modifiedRole.global
 
         
     } catch (err) {
@@ -367,5 +370,28 @@ async function getThemes(themeIds: any[]) {
     } catch (err) {
         console.log(err)
         throw err
-    }
-}
+    };
+};
+
+//  Add Collaborator
+export async function addCollaborator(docId: string, collaborators: any[]) {
+    try {
+        if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
+        if (!collaborators) throw new Error("Missing Collaborators.")
+        let data = await documents.findByIdAndUpdate(docId, { collaborator: collaborators }, { new: true })
+        return data
+    } catch (err) {
+        throw err
+    };
+};
+
+//  Add Viewers
+export async function addViewers(docId: string, viewers: any[]) {
+    try {
+        if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
+        if (!viewers) throw new Error("Missing viewers.")
+        let data = await documents.findByIdAndUpdate(docId, { viewer: viewers }, { new: true })
+    } catch (err) {
+        throw err
+    };
+};

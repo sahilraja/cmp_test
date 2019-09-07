@@ -1,4 +1,6 @@
+export const userRouter = {
 
+};
 
 export const GLOBAL_SCOPE = "global";
 

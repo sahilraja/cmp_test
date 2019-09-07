@@ -685,7 +685,7 @@ paths:
                       
         "400":
           $ref: "#/components/responses/BadRequest"
-    
+  # get project  
   "/project/{id}":
       get:
         security:
@@ -706,7 +706,7 @@ paths:
                         
           "400":
             $ref: "#/components/responses/BadRequest"
-            
+  # get task list         
   "/project/{id}/task/list":
       get:
         security:
@@ -759,7 +759,6 @@ paths:
                                   example: PENDING
           "400":
             $ref: "#/components/responses/BadRequest"
-            
   # edit project code
   "/project/{id}/task/add":
     post:
@@ -830,7 +829,9 @@ paths:
                         example: project for develop schoolss
         "400":
           $ref: "#/components/responses/BadRequest"
-
+        
+# roles
+  #roles list
   "/role/list":
     get:
       security:
@@ -862,7 +863,7 @@ paths:
                       
         "400":
           $ref: "#/components/responses/BadRequest"
-          
+  #roles scope list    
   "/role/scope/list/{userid}":
     get:
       security:
@@ -899,7 +900,8 @@ paths:
                         
                       
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: "#/components/responses/BadRequest" 
+  # user list
   "/role/user/list/":
     get:
       security:
@@ -947,8 +949,7 @@ paths:
                                 
         "400":
           $ref: "#/components/responses/BadRequest"
-          
-
+  # add tag
   "/project/tag/add":
     post:
       security:
@@ -987,7 +988,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # edit tag
   "/project/tag/edit/{id}":
     post:
       security:
@@ -1032,7 +1033,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  #change status
   "/project/tag/status/{id}":
     put:
       security:
@@ -1063,7 +1064,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # tag List
   "/project/tag/list":
     get:
       security:
@@ -1086,7 +1087,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # theme add
   "/project/theme/add":
     post:
       security:
@@ -1125,7 +1126,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # theme Edit
   "/project/theme/edit/{id}":
     post:
       security:
@@ -1170,7 +1171,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # Theme Status
   "/project/theme/status/{id}":
     put:
       security:
@@ -1201,7 +1202,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # Theme List
   "/project/theme/list":
     get:
       security:
@@ -1224,7 +1225,7 @@ paths:
                     type: object
         "400":
           $ref: "#/components/responses/BadRequest"
-          
+  # Doc Create     
   "/docs/create":
     post:
       security:
@@ -1275,8 +1276,7 @@ paths:
                         example: 333345
         "400":
           $ref: "#/components/responses/BadRequest"
-          
-
+  # doc Version
   "/docs/{id}/versions":
     get:
       security:
@@ -1325,7 +1325,7 @@ paths:
                     
         "400":
           $ref: "#/components/responses/BadRequest"
-          
+  # submit for approval      
   "/docs/{id}/versions/{versionId}/submit":
     post:
       security:
@@ -1366,7 +1366,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-
+  # doc List
   "/docs/list":
     get:
       security:
@@ -1412,7 +1412,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-          
+  # My list of Docs      
   "/docs/me":
     get:
       security:
@@ -1455,7 +1455,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-  
+  # create a new copy
   "/docs/{id}/versions/{versionId}/create":
     post:
       security:
@@ -1539,7 +1539,7 @@ paths:
                         example: doc123455
         "400":
           $ref: "#/components/responses/BadRequest"
-          
+  # update version     
   "/docs/{id}/versions/{versionId}":
     post:
       security:
@@ -1680,7 +1680,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-      
+  # approve and publish automatically   
   "/docs/{id}/versions/{versionId}/publish":
     post:
       security:
@@ -1715,7 +1715,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-          
+  # reject specific version        
   "/docs/{id}/versions/{versionId}/reject":
     post:
       security:
@@ -1750,7 +1750,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-          
+  # download the file from revision       
   "/docs/{id}/versions/{versionId}/file":
     get:
       security:
@@ -1833,7 +1833,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-  
+  # download latest version
   "/docs/{id}/file":
     get:
       security:
@@ -1862,7 +1862,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
-        
+  # get Doc details     
   "/docs/{id}":
     get:
       security:
@@ -1914,6 +1914,213 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
+  
+  # add group
+  "/user/group/create":
+    post:
+      security:
+        - token: []
+      summary: Create new Group
+      tags:
+        - GROUP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - users
+              properties:
+                name:
+                  type: string
+                  example: group Name
+                description:
+                  type: string
+                  example: Group Description
+                users:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - userId 1
+                    - userId 2
+      responses:
+        "200":
+          $ref: "#/components/responses/group"
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Edit group
+  "/user/group/{id}/edit":
+    put:
+      security:
+        - token: []
+      summary: Edit Group
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: group Name
+                description:
+                  type: string
+                  example: Group Description
+                users:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - userId 1
+                    - userId 2
+      responses:
+        "200":
+          $ref: "#/components/responses/group"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Group Status
+  "/user/group/{id}/status":
+    put:
+      security:
+        - token: []
+      summary: active or inactive group
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: active
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  # Get Group List
+  "/user/group/list":
+    get:
+      security:
+        - token: []
+      summary: Get Group List
+      tags:
+        - GROUP
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: group Name
+                    description:
+                      type: string
+                      example: Group Description
+                    users:
+                      type: number
+                      example: 4
+                    is_active:
+                      type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Edit group
+  "/user/group/{id}":
+    get:
+      security:
+        - token: []
+      summary: Get Group Details
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: group Name
+                    description:
+                      type: string
+                      example: Group Description
+                    users:
+                      type: array
+                      items: 
+                        type: object
+                        properties:
+                          firstName: 
+                            type: string
+                            example: sai jeevan
+                          secondName:
+                            type: string
+                            example: balla
+                          email:
+                            type: string
+                            example: jeevan.balla@transerve.com
+                    is_active:
+                      type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 #components
 components:
@@ -1942,9 +2149,15 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/projectSchema"
-    
+    group:
+      description: project
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/group"
+
   schemas:
-  # error schema
+    # error schema
     Error:
       type: object
       properties:
@@ -1952,8 +2165,7 @@ components:
           type: string
       required:
         - error
-  
-  # user schema
+    # user schema
     userSchema:
       type: object
       properties:
@@ -1988,7 +2200,7 @@ components:
         is_active: 
           type: boolean
           example: true
-  # project schema
+    # project schema
     projectSchema:
       type: object
       properties:
@@ -2269,35 +2481,103 @@ components:
         PENDING:
           type: number
           example: 3
-
-
-        
-
-        
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-
-
-
-
+    task:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Task Name
+        description:
+          type: string
+          example: Task Description
+        dueDate: 
+          type: string
+          example: 22-1-2019
+        assignTo:
+          type: string
+          example: userId
+        supportUsers:
+          type: array
+          items:
+            type: string
+          example: 
+            - userId 1
+            - userId 2
+        priority:
+          type: string
+          enum: [ 0, 1, 2]
+          description: "HIGH = 0, NORMAL = 1, LOW = 2"
+        status:
+          type: string
+          enum: [ 0, 1, 2, 3, 4, 5]
+          description: "ASSIGN = 0, ACCEPT =  1, REJECT = 2, DONE = 3, APPROVE = 4, COMPLETE = 5"
+        workflow:
+          type: object
+          properties:
+            currentStatus:
+              type: string
+              example: "in progress"
+            current user: 
+              type: string
+              example: "userID 12454"
+            users:
+              type: object
+              properties:
+                approvers:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    -user1
+                owner:
+                  type: string
+                  example: user24
+    group:
+      type: object
+      required:
+        - name
+        - users
+      properties:
+        name: 
+          type: string
+          example: group name
+        description:
+          type: string
+          example: group description
+        users:
+          type: array
+          items:
+            type: string
+          example:
+            - userId 1
+            - userId 2
+        is_asctive: 
+          type: boolean
+          example: true
           
+          
+          
+          
+          
+          
+          
+        
+              
+          
+            
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+      
