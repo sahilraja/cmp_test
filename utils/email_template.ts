@@ -4,12 +4,12 @@ export function inviteUserForm(body: any) {
     try {
         const text = `
         Hi  ${body.username},<br/></br>
-        you are invited for this role <b>${body.role}</b><br/> 
-        <a href=${body.link}>click here</a> and proceed your registration<br/>
-        <br/>
+        You are invited by an administrator of CMP platform to join for the role of <b>${body.role}</b><br/> 
+        You can proceed with your registration by accept invitation from this <a href=${body.link}>click here</a><br/>
+        Please ignore if you think this is not intended for you. <br/>
         <br/>
         Best Regards,<br/>
-        Transerve Support.
+        CMP Team.
         `
         return text
     } catch (err) {

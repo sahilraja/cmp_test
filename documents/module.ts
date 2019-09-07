@@ -348,7 +348,7 @@ export async function getApprovalDoc(docId: string) {
         let modifiedRole: any = await userRoleAndScope(parentDoc.ownerId)
         parentDoc.role = modifiedRole.global
 
-        return { original: parentDoc, modified: modifiedDoc }
+        
     } catch (err) {
         console.log(err)
         throw err
