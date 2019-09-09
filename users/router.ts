@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers } from "./module";
 import { authenticate } from "../utils/utils";
 var multer = require('multer')
 var upload = multer()
@@ -154,16 +154,31 @@ router.put("/group/:id/status", authenticate, async (req: any, res: any, next: a
     }
 });
 
-//  Group Details
-router.get("/group/:id", authenticate,  async (req: any, res: any, next: any) => {
+//  Add Member
+router.post("/group/:id/member/add", authenticate, async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await groupDetail(req.params.id))
+        res.status(200).send(await addMember(req.params.id, req.body.users));
     } catch (err) {
-        next(err)
-    }
+        next(err);
+    };
 });
 
+//  Remove Member
+router.post("/group/:id/member/remove", authenticate, async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await removeMembers(req.params.id, req.body.users));
+    } catch (err) {
+        next(err);
+    };
+});
 
-
+//  Group Details
+router.get("/group/:id", authenticate, async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await groupDetail(req.params.id));
+    } catch (err) {
+        next(err);
+    };
+});
 
 export = router;

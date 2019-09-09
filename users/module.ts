@@ -314,12 +314,11 @@ export async function setNewPassword(objBody: any, token: any) {
 //  Create Group
 export async function createGroup(objBody: any) {
     try {
-        const { name, description, users } = objBody
-        if (!name || !description || !users) throw new Error("Missing Fiels.");
+        const { name, description } = objBody
+        if (!name || !description) throw new Error("Missing Fiels.");
         let data = await groupsModel.create({
             name: name,
-            description: description,
-            users: users
+            description: description
         });
         return data
     } catch (err) {
@@ -344,16 +343,13 @@ export async function groupStatus(id: any) {
 //  Edit Group
 export async function editGroup(objBody: any, id: string) {
     try {
-        const { name, description, users } = objBody
+        const { name, description } = objBody
         let obj: any = {}
         if (name) {
             obj.name = name;
         };
         if (description) {
             obj.description = description;
-        };
-        if (users) {
-            obj.users = users;
         };
         let data = await groupsModel.findByIdAndUpdate(id, obj, { new: true });
         return data
@@ -388,5 +384,51 @@ export async function groupDetail(id: string) {
         return group;
     } catch (err) {
         throw err;
+    };
+};
+
+//  Add Member
+export async function addMember(id: string, users: any[]) {
+    try {
+        if (!id || !users) throw new Error("Missing Fields.");
+        if (!Array.isArray(users)) throw new Error("Users must be an Array.")
+        let data: any = await groupsModel.findById(id)
+        if (!data) throw new Error("Group Not Found.");
+        let success: any
+        if (data.users.length) {
+            users.map((user: any) => {
+                if (data.users.includes(user)) throw new Error("User already Exist in this Group.")
+                data.users.push(user)
+            });
+            success = await groupsModel.findByIdAndUpdate(id, { users: data.users }, { new: true })
+        } else {
+            success = await groupsModel.findByIdAndUpdate(id, { users: users }, { new: true });
+        }
+        return success
+    } catch (err) {
+        throw err
+    };
+};
+
+//  Remove Member
+export async function removeMembers(id: string, users: any[]) {
+    try {
+        if (!id || !users) throw new Error("Missing Fields.");
+        if (!Array.isArray(users)) throw new Error("Users must be an Array.")
+        let data: any = await groupsModel.findById(id)
+        if (!data) throw new Error("Group Not Found.");
+        let success: any
+        if (data.users.length) {
+            users.map((user: any) => {
+                if (!data.users.includes(user)) throw new Error("User not Exist in this group")
+                data.users.splice(data.users.indexOf(user), 1)
+            });
+            success = await groupsModel.findByIdAndUpdate(id, { users: data.users }, { new: true })
+        } else {
+            throw new Error("Users Not Found.")
+        }
+        return success
+    } catch (err) {
+        throw err
     };
 };

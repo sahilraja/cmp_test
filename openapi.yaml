@@ -174,10 +174,10 @@ paths:
               properties:
                 email:
                   type: string
-                  example: jeevan.balla@transerve.com
+                  example: pranay@citiis.com
                 password:
                   type: string
-                  example: password
+                  example: Citiis@123
       responses:
         "200":
           description: success
@@ -1939,17 +1939,25 @@ paths:
                 description:
                   type: string
                   example: Group Description
-                users:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    - userId 1
-                    - userId 2
       responses:
         "200":
-          $ref: "#/components/responses/group"
-                  
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  is_active: 
+                    type: boolean
         "400":
           $ref: "#/components/responses/BadRequest"
           
@@ -1981,16 +1989,25 @@ paths:
                 description:
                   type: string
                   example: Group Description
-                users:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    - userId 1
-                    - userId 2
       responses:
         "200":
-          $ref: "#/components/responses/group"
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  is_active: 
+                    type: boolean
         "400":
           $ref: "#/components/responses/BadRequest"
           
@@ -2102,6 +2119,124 @@ paths:
                             example: jeevan.balla@transerve.com
                     is_active:
                       type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  # Add member
+  "/user/group/{id}/member/add":
+    post:
+      security:
+        - token: []
+      summary: Add Member
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items: 
+                    type: string
+                  example:
+                    - userid 1
+                    - uerrid 2
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  users:
+                    type: array
+                    items: 
+                      type: string
+                    example:
+                      - userid 1
+                      - uerrid 2
+                  is_active: 
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Remove member
+  "/user/group/{id}/member/remove":
+    post:
+      security:
+        - token: []
+      summary: Add Member
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items: 
+                    type: string
+                  example:
+                    - userid 1
+                    - uerrid 2
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  users:
+                    type: array
+                    items: 
+                      type: string
+                    example:
+                      - userid 1
+                      - uerrid 2
+                  is_active: 
+                    type: boolean
         "400":
           $ref: "#/components/responses/BadRequest"
   
