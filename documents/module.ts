@@ -62,7 +62,7 @@ export async function getDocList() {
             const user = { ...doc.toJSON() }
             user.tags = await getTags(user.tags)
             let role: any = await userRoleAndScope(user.ownerId)
-            user.role = role.global
+            user.role = role.data.global[0]
             return user
         }));
         return { docs: docList }
@@ -194,7 +194,7 @@ export async function getDocDetails(docId: any) {
         docList.tags = await getTags(docList.tags)
         docList.themes = await getThemes(docList.themes)
         let role: any = await userRoleAndScope(docList.ownerId)
-        docList.role = role.global
+        docList.role = role.data.global[0]
         return docList
     } catch (err) {
         console.log(err)
@@ -236,7 +236,7 @@ export async function getDocWithVersion(docId: any, versionId: any) {
         docList.tags = await getTags(docList.tags)
         docList.themes = await getThemes(docList.themes)
         let role: any = await userRoleAndScope(docList.ownerId)
-        docList.role = role.global
+        docList.role = role.data.global[0]
         return docList
     } catch (err) {
         console.log(err);
@@ -341,12 +341,12 @@ export async function getApprovalDoc(docId: string) {
         parentDoc.tags = await getTags(parentDoc.tags)
         parentDoc.themes = await getThemes(parentDoc.themes)
         let parentRole: any = await userRoleAndScope(parentDoc.ownerId)
-        parentDoc.role = parentRole.global
+        parentDoc.role = parentRole.data.global[0]
         const modifiedDoc = pendingDoc[0].toJSON()
         modifiedDoc.tags = await getTags(modifiedDoc.tags)
         modifiedDoc.themes = await getThemes(modifiedDoc.themes)
         let modifiedRole: any = await userRoleAndScope(parentDoc.ownerId)
-        parentDoc.role = modifiedRole.global
+        parentDoc.role = modifiedRole.data.global[0]
 
         
     } catch (err) {

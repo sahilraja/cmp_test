@@ -147,7 +147,7 @@ export async function user_list(query: any, userId: any, page = 1, limit: any = 
         const data = await Promise.all(docs.map(async doc => {
             const user = { ...doc.toJSON(), id: doc.id }
             let userCapabilities: any = await userRoleAndScope(user.id)
-            user.role = userCapabilities.global
+            user.role = userCapabilities.data.global[0]
             return user
         }));
         return { data, pages: pages, count: total }
