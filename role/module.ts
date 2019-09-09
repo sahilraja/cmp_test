@@ -63,7 +63,7 @@ export async function userRoleAndScope(userId: any) {
             if (object[key.role]) {
                 object[key.role].push(key.scope)
             } else {
-                if (key.scope = "global") {
+                if (key.scope == "global") {
                     object[key.scope] = [key.role]
                 } else {
                     object[key.role] = [key.scope]
