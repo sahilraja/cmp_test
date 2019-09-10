@@ -1,5 +1,5 @@
 import { Router, RequestHandler, NextFunction } from "express"
-import { getDocList, getDocListOfMe, createFile, createDOC, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc } from "./module";
 import { get as httpGet } from "http";
 import { authenticate } from "../utils/utils";
 
@@ -59,16 +59,16 @@ router.param('versionId', async (req, res, next, value) => {
 });
 
 //  Create Document
-router.post("/create",authenticate, async (req, res, next: NextFunction) => {
+router.post("/create", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await createDOC(req.body, res.locals.user.id));
+        res.status(200).send(await createDoc(req.body, res.locals.user.id));
     } catch (err) {
         next(err);
     };
 });
 
 //  Get Public List
-router.get("/list",authenticate, async (req, res, next: NextFunction) => {
+router.get("/list", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await getDocList())
     } catch (err) {
@@ -77,7 +77,7 @@ router.get("/list",authenticate, async (req, res, next: NextFunction) => {
 });
 
 // Get My list
-router.get("/me",authenticate, async (req, res, next: NextFunction) => {
+router.get("/me", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await getDocListOfMe(res.locals.user.id))
     } catch (err) {
@@ -86,7 +86,7 @@ router.get("/me",authenticate, async (req, res, next: NextFunction) => {
 });
 
 //  Get pending Approval parent Docs
-router.get("/approvals",authenticate, async (req, res, next: NextFunction) => {
+router.get("/approvals", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await approvalList());
     } catch (err) {
@@ -95,7 +95,7 @@ router.get("/approvals",authenticate, async (req, res, next: NextFunction) => {
 });
 
 // get pending and Approval parent Docs
-router.get("/approvals/:id",authenticate, async (req, res, next: NextFunction) => {
+router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await getApprovalDoc(req.params.id));
     } catch (err) {
@@ -105,7 +105,7 @@ router.get("/approvals/:id",authenticate, async (req, res, next: NextFunction) =
 
 
 //  Create new Version
-router.post("/:id/versions/:versionId/create",authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.post("/:id/versions/:versionId/create", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
         const { id, versionId } = req.params
         res.status(200).send(await createNewVersion(id, versionId, res.locals.user.id, req.body));
@@ -115,7 +115,7 @@ router.post("/:id/versions/:versionId/create",authenticate, ensureCanEditDocumen
 });
 
 // get versions
-router.get("/:id/versions",authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
+router.get("/:id/versions", authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
     try {
         const { id } = req.params
         res.status(200).send(await getVersions(id))
@@ -125,7 +125,7 @@ router.get("/:id/versions",authenticate, ensureCanPublishDocument, async (req, r
 })
 
 // Publish a specific version to public.
-router.post("/:id/versions/:versionId/publish",authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
+router.post("/:id/versions/:versionId/publish", authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
     try {
         const { id, versionId } = req.params
         res.status(200).send(await ApproveDoc(id, versionId))
@@ -135,7 +135,7 @@ router.post("/:id/versions/:versionId/publish",authenticate, ensureCanPublishDoc
 });
 
 // create File
-router.post("/:id/versions/:versionId/reject",authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
+router.post("/:id/versions/:versionId/reject", authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
     try {
         const { id, versionId } = req.params
         res.status(200).send(await RejectDoc(id, versionId))
@@ -145,11 +145,11 @@ router.post("/:id/versions/:versionId/reject",authenticate, ensureCanPublishDocu
 });
 
 // Upload File for a version.
-router.post("/:id/versions/:versionId/file",authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.post("/:id/file", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
-        const { id, versionId } = req.params;
+        const { id } = req.params;
         const fileObj = await uploadToFileService(req);
-        let response = await createFile(id, versionId, fileObj);
+        let response = await createFile(id, fileObj);
         res.status(200).send(response);
     } catch (err) {
         next(err);
@@ -194,16 +194,16 @@ router.get("/:id/file", ensureCanViewDocument, async (request: any, response: an
 });
 
 //  Submit for approval
-router.post("/:id/versions/:versionId/submit",authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.put("/:id/submit", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await submit(req.params.id, req.params.versionId));
+        res.status(200).send(await submit(req.params.id));
     } catch (err) {
         next(err);
     };
 });
 
 //  Get Document Details with versions
-router.get("/:id/versions/:versionId",authenticate, ensureCanViewDocument, async (req, res, next: NextFunction) => {
+router.get("/:id/versions/:versionId", authenticate, ensureCanViewDocument, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await getDocWithVersion(req.params.id, req.params.versionId));
     } catch (err) {
@@ -212,7 +212,7 @@ router.get("/:id/versions/:versionId",authenticate, ensureCanViewDocument, async
 });
 
 //  update exist doc
-router.post("/:id/versions/:versionId",authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.post("/:id/versions/:versionId", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await updateDoc(req.body, req.params.id, req.params.versionId));
     } catch (err) {
@@ -222,7 +222,7 @@ router.post("/:id/versions/:versionId",authenticate, ensureCanEditDocument, asyn
 
 
 //  Get Document Details
-router.get("/:id",authenticate, ensureCanViewDocument, async (req, res, next: NextFunction) => {
+router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await getDocDetails(req.params.id));
     } catch (err) {

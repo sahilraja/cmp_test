@@ -1741,7 +1741,7 @@ paths:
   #         $ref: "#/components/responses/BadRequest"
   
   # download the file from revision       
-  "/docs/{id}/versions/{versionId}/file":
+  "/docs/{id}/file":
     # get:
     #   security:
     #     - token: []
