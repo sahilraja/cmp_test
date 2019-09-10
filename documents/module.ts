@@ -5,10 +5,8 @@ import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
 import { addRole } from "../utils/rbac";
-import { any } from "bluebird";
 
-
-enum status {
+enum STATUS {
     DRAFT = 0,
     APPROVED = 1,
     REJECTED = 2,
@@ -45,7 +43,7 @@ async function insertDOC(body: any) {
             themes: body.themes,
             tags: body.tags,
             versionNum: "1",
-            status: status.DRAFT,
+            status: STATUS.DRAFT,
             parentId: body.parentID ? body.parentID : null
         })
     } catch (error) {
@@ -57,7 +55,7 @@ async function insertDOC(body: any) {
 //  Get Document Public List
 export async function getDocList() {
     try {
-        let data = await documents.find({ parentId: null, status: status.APPROVED });
+        let data = await documents.find({ parentId: null, status: STATUS.APPROVED });
         const docList = await Promise.all(data.map(async doc => {
             const user = { ...doc.toJSON() }
             user.tags = await getTags(user.tags)
@@ -73,10 +71,15 @@ export async function getDocList() {
 };
 
 //  Get My Documents
-export async function getDocListOfMe(userid: any) {
+export async function getDocListOfMe(userId: any) {
     try {
-        let data = await documents.find({ parentId: null, ownerId: userid, status: { $ne: status.DRAFT } })
-        const docList = await Promise.all(data.map(async doc => {
+        if (!userId) throw new Error("Missing UserId.");
+        let data: any = await userRoleAndScope(userId)
+        if (!data.success) throw new Error("Fail to Fetch User Scopes.");
+        if (!data.data.owner.length) throw new Error("User dont have documents.")
+        let docIds = data.data.owner.map((doc: string) => doc.substring(doc.indexOf("/") + 1))
+        let docs = await documents.find({ _id: { $in: docIds }, status: { $ne: STATUS.DRAFT } })
+        const docList = await Promise.all(docs.map(async doc => {
             const user = { ...doc.toJSON() }
             user.tags = await getTags(user.tags)
             return user
@@ -85,6 +88,15 @@ export async function getDocListOfMe(userid: any) {
     } catch (error) {
         console.log(error);
         throw error;
+    };
+};
+
+//  Get Shared Doc list
+export async function SharedDocList(userId: string) {
+    try {
+        
+    } catch (err) {
+        throw err
     };
 };
 
@@ -114,8 +126,8 @@ export async function submit(docId: any, versionId: any) {
             documents.findById(docId).exec(),
             documents.findById(versionId).exec()])
         if (!child.fileId || !parent.fileId) throw new Error("Need to upload file")
-        let childDoc: any = await documents.findByIdAndUpdate(versionId, { status: status.PENDING }, { new: true });
-        let parentDoc: any = await documents.findByIdAndUpdate(childDoc.parentId, { status: status.PENDING }, { new: true });
+        let childDoc: any = await documents.findByIdAndUpdate(versionId, { status: STATUS.PENDING }, { new: true });
+        let parentDoc: any = await documents.findByIdAndUpdate(childDoc.parentId, { status: STATUS.PENDING }, { new: true });
         return { docId: docId, versionId: versionId, fileId: parentDoc.fileId }
     } catch (error) {
         console.log(error);
@@ -128,7 +140,7 @@ export async function createNewVersion(docId: string, versionID: string, userId:
     try {
         if (!versionID) throw new Error("DocId Is Missing.");
         let [docDetails, DocList]: any = await Promise.all([
-            documents.findOne({ _id: Types.ObjectId(versionID), $or: [{ status: status.APPROVED }, { status: status.REJECTED }] }).exec(),
+            documents.findOne({ _id: Types.ObjectId(versionID), $or: [{ status: STATUS.APPROVED }, { status: STATUS.REJECTED }] }).exec(),
             documents.find({ parentId: docId }).sort({ "createdAt": -1 }).exec()
         ]);
         if (!docDetails) throw new Error("Document Not Exist.")
@@ -138,7 +150,7 @@ export async function createNewVersion(docId: string, versionID: string, userId:
             themes: obj.themes,
             tags: obj.tags,
             versionNum: Number(DocList[0].versionNum) + 1,
-            status: status.DRAFT,
+            status: STATUS.DRAFT,
             ownerId: userId,
             parentId: docDetails.parentId,
             fileName: docDetails.fileName,
@@ -156,11 +168,11 @@ export async function RejectDoc(docId: string, versionId: string) {
     try {
         if (!docId || !versionId) throw new Error("Missing fields");
         let [child, parentDoc]: any = await Promise.all([
-            documents.findByIdAndUpdate(versionId, { status: status.REJECTED }, { new: true }).exec(),
+            documents.findByIdAndUpdate(versionId, { status: STATUS.REJECTED }, { new: true }).exec(),
             documents.findById(docId).exec()
         ])
-        if (parentDoc.status != status.APPROVED) {
-            await documents.findByIdAndUpdate(parentDoc.id, { status: status.REJECTED })
+        if (parentDoc.status != STATUS.APPROVED) {
+            await documents.findByIdAndUpdate(parentDoc.id, { status: STATUS.REJECTED })
         }
         return { message: "Document Rejected." }
     } catch (err) {
@@ -174,8 +186,8 @@ export async function ApproveDoc(docId: string, versionId: string) {
     try {
         if (!versionId || !docId) throw new Error("Missing DocID.");
         let [child, parent] = await Promise.all([
-            documents.findByIdAndUpdate(versionId, { status: status.APPROVED }, { new: true }).exec(),
-            documents.findByIdAndUpdate(docId, { status: status.APPROVED }, { new: true }).exec()
+            documents.findByIdAndUpdate(versionId, { status: STATUS.APPROVED }, { new: true }).exec(),
+            documents.findByIdAndUpdate(docId, { status: STATUS.APPROVED }, { new: true }).exec()
         ]);
         return { message: "Document Approved." }
     } catch (err) {
@@ -188,7 +200,7 @@ export async function ApproveDoc(docId: string, versionId: string) {
 export async function getDocDetails(docId: any) {
     try {
         if (!docId) throw new Error("Missing DocID");
-        let publishDocs: any = await documents.find({ parentId: docId, status: status.APPROVED }).sort({ "createdAt": -1 })
+        let publishDocs: any = await documents.find({ parentId: docId, status: STATUS.APPROVED }).sort({ "createdAt": -1 })
         if (!publishDocs.length) throw new Error("Approved Docs Not there.")
         const docList = publishDocs[0].toJSON()
         docList.tags = await getTags(docList.tags)
@@ -263,7 +275,7 @@ export async function updateDoc(objBody: any, docid: any, versionId: any) {
             documents.findByIdAndUpdate(versionId, obj, { new: true }).exec(),
             documents.findById(docid).exec()
         ])
-        if (parent.status != status.APPROVED) {
+        if (parent.status != STATUS.APPROVED) {
             await documents.findByIdAndUpdate(docid, obj, { new: true })
         }
         return child;
@@ -275,7 +287,7 @@ export async function updateDoc(objBody: any, docid: any, versionId: any) {
 
 export async function approvalList() {
     try {
-        let docList = await documents.find({ parentId: { $ne: null }, status: status.PENDING });
+        let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PENDING });
         let parentDocsIdsArray = docList.map((doc: any) => { return doc.parentId })
         let parentDocList = await documents.find({ _id: { $in: parentDocsIdsArray } })
         const List = await Promise.all(parentDocList.map(async doc => {
@@ -322,7 +334,7 @@ export async function uploadToFileService(request: any) {
 export async function getVersions(docId: string) {
     try {
         if (!docId) throw new Error("Missing Doc ID")
-        let docVersions = await documents.find({ parentId: docId, status: { $ne: status.DRAFT } }, { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }).sort({ createdAt: -1 })
+        let docVersions = await documents.find({ parentId: docId, status: { $ne: STATUS.DRAFT } }, { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }).sort({ createdAt: -1 })
         if (!docVersions.length) throw new Error("Docs Not there")
         return docVersions
     } catch (error) {
@@ -336,7 +348,7 @@ export async function getApprovalDoc(docId: string) {
         if (!docId) throw new Error("Missing docId");
         let [parent, pendingDoc]: any = await Promise.all([
             documents.findById(docId).exec(),
-            documents.find({ parentId: docId, status: status.PENDING }).sort({ createdAt: -1 }).exec()])
+            documents.find({ parentId: docId, status: STATUS.PENDING }).sort({ createdAt: -1 }).exec()])
         const parentDoc = parent.toJSON()
         parentDoc.tags = await getTags(parentDoc.tags)
         parentDoc.themes = await getThemes(parentDoc.themes)
@@ -348,7 +360,7 @@ export async function getApprovalDoc(docId: string) {
         let modifiedRole: any = await userRoleAndScope(parentDoc.ownerId)
         parentDoc.role = modifiedRole.data.global[0]
 
-        
+
     } catch (err) {
         console.log(err)
         throw err

@@ -1230,7 +1230,7 @@ paths:
     post:
       security:
         - token: []
-      summary: Create Doc
+      summary: Create New Document
       tags:
         - RESOURCES
       requestBody:
@@ -1246,13 +1246,6 @@ paths:
                 file_description:
                   type: string
                   example: Dam for vizag
-                themes:
-                  type: array
-                  items:
-                    type: string
-                  example: 
-                    - 12346
-                    - 12345
                 tags:
                   type: array
                   items:
@@ -1271,66 +1264,65 @@ paths:
                       doc_id:
                         type: string
                         example: 343544
-                      version_id:
-                        type: string
-                        example: 333345
         "400":
           $ref: "#/components/responses/BadRequest"
+          
   # doc Version
-  "/docs/{id}/versions":
-    get:
-      security:
-        - token: []
-      summary: Get list of doc versions
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  versions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        version:
-                          type: string
-                          example: v1
-                        status:
-                          type: string
-                          example: pending
-                        id:
-                          type: string
-                          example: 123224
-                        created_at:
-                          type: string
-                          example: "2019-08-26T15:17:29.912Z"
-                        updated_at:
-                          type: string
-                          example: "2019-08-26T15:17:29.912Z"
+  # "/docs/{id}/versions":
+  #   get:
+  #     security:
+  #       - token: []
+  #     summary: Get list of doc versions
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 versions:
+  #                   type: array
+  #                   items:
+  #                     type: object
+  #                     properties:
+  #                       version:
+  #                         type: string
+  #                         example: v1
+  #                       status:
+  #                         type: string
+  #                         example: pending
+  #                       id:
+  #                         type: string
+  #                         example: 123224
+  #                       created_at:
+  #                         type: string
+  #                         example: "2019-08-26T15:17:29.912Z"
+  #                       updated_at:
+  #                         type: string
+  #                         example: "2019-08-26T15:17:29.912Z"
                 
                     
                         
                     
-        "400":
-          $ref: "#/components/responses/BadRequest"
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
   # submit for approval      
-  "/docs/{id}/versions/{versionId}/submit":
-    post:
+  "/docs/{id}/submit":
+    put:
       security:
         - token: []
-      summary: Submit for Approval
+      summary: Submit Document
       tags:
         - RESOURCES
       parameters:
@@ -1340,12 +1332,6 @@ paths:
             type: string
           required: true
           description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
       responses:
         "200":
           description: success
@@ -1354,18 +1340,16 @@ paths:
               schema:
                 type: object
                 properties:
-                      doc_id:
-                        type: string
-                        example: 343544
-                      version_id:
-                        type: string
-                        example: 353535
-                      file_name:
-                        type: string
-                        example: filename.pdf
+                  doc_id:
+                    type: string
+                    example: 343544
+                  file_name:
+                    type: string
+                    example: filename.pdf
                   
         "400":
           $ref: "#/components/responses/BadRequest"
+          
   # doc List
   "/docs/list":
     get:
@@ -1412,6 +1396,7 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
+          
   # My list of Docs      
   "/docs/me":
     get:
@@ -1455,335 +1440,340 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
+          
   # create a new copy
-  "/docs/{id}/versions/{versionId}/create":
-    post:
-      security:
-        - token: []
-      summary: create a new copy
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: parent _id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: doc name
-                description:
-                  type: string
-                  example: describe about doc
-                tags: 
-                  type: array
-                  items:
-                    type: string
-                    example:
-                      - tag id123
-                      - tag id123
-                themes:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    - themes id123
-                    - theme id133
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                      fileName:
-                        type: string
-                        example: filename1
-                      description:
-                        type: string
-                        example: this document for dams
-                      themes:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - theme1
-                          - theme1
-                      tags:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - tag 1
-                          - tag 2
-                      versionId:
-                        type: string
-                        example: v3
-                      docId:
-                        type: string
-                        example: doc123455
-        "400":
-          $ref: "#/components/responses/BadRequest"
+  # "/docs/{id}/versions/{versionId}/create":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: create a new copy
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: parent _id
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               name:
+  #                 type: string
+  #                 example: doc name
+  #               description:
+  #                 type: string
+  #                 example: describe about doc
+  #               tags: 
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                   example:
+  #                     - tag id123
+  #                     - tag id123
+  #               themes:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                 example:
+  #                   - themes id123
+  #                   - theme id133
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                     fileName:
+  #                       type: string
+  #                       example: filename1
+  #                     description:
+  #                       type: string
+  #                       example: this document for dams
+  #                     themes:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - theme1
+  #                         - theme1
+  #                     tags:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - tag 1
+  #                         - tag 2
+  #                     versionId:
+  #                       type: string
+  #                       example: v3
+  #                     docId:
+  #                       type: string
+  #                       example: doc123455
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+          
   # update version     
-  "/docs/{id}/versions/{versionId}":
-    post:
-      security:
-        - token: []
-      summary: update version
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                file_name:
-                  type: string
-                  example: Annula Report
-                file_description:
-                  type: string
-                  example: Dam for vizag
-                themes:
-                  type: array
-                  items:
-                    type: string
-                  example: 
-                    - 12346
-                    - 12345
-                tags:
-                  type: array
-                  items:
-                    type: string
-                  example: 
-                    - 12346
-                    - 12345  
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                      fileName:
-                        type: string
-                        example: filename1
-                      description:
-                        type: string
-                        example: this document for dams
-                      themes:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - theme1
-                          - theme1
-                      tags:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - tag 1
-                          - tag 2
-                      versionId:
-                        type: string
-                        example: v3
-                      docId:
-                        type: string
-                        example: doc123455
+  # "/docs/{id}/versions/{versionId}":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: update version
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: version _id
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               file_name:
+  #                 type: string
+  #                 example: Annula Report
+  #               file_description:
+  #                 type: string
+  #                 example: Dam for vizag
+  #               themes:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                 example: 
+  #                   - 12346
+  #                   - 12345
+  #               tags:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                 example: 
+  #                   - 12346
+  #                   - 12345  
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                     fileName:
+  #                       type: string
+  #                       example: filename1
+  #                     description:
+  #                       type: string
+  #                       example: this document for dams
+  #                     themes:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - theme1
+  #                         - theme1
+  #                     tags:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - tag 1
+  #                         - tag 2
+  #                     versionId:
+  #                       type: string
+  #                       example: v3
+  #                     docId:
+  #                       type: string
+  #                       example: doc123455
                   
-        "400":
-          $ref: "#/components/responses/BadRequest"
-    get:
-      security:
-        - token: []
-      summary: get particular version details
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                      fileName:
-                        type: string
-                        example: filename1
-                      description:
-                        type: string
-                        example: this document for dams
-                      themes:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - theme1
-                          - theme1
-                      tags:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - tag 1
-                          - tag 2
-                      versionId:
-                        type: string
-                        example: v3
-                      docId:
-                        type: string
-                        example: doc123455
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  #   get:
+  #     security:
+  #       - token: []
+  #     summary: get particular version details
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                     fileName:
+  #                       type: string
+  #                       example: filename1
+  #                     description:
+  #                       type: string
+  #                       example: this document for dams
+  #                     themes:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - theme1
+  #                         - theme1
+  #                     tags:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - tag 1
+  #                         - tag 2
+  #                     versionId:
+  #                       type: string
+  #                       example: v3
+  #                     docId:
+  #                       type: string
+  #                       example: doc123455
                   
-        "400":
-          $ref: "#/components/responses/BadRequest"
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
   # approve and publish automatically   
-  "/docs/{id}/versions/{versionId}/publish":
-    post:
-      security:
-        - token: []
-      summary: approve and publish automatically
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                    example: document approved
+  # "/docs/{id}/versions/{versionId}/publish":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: approve and publish automatically
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: version _id
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message: 
+  #                   type: string
+  #                   example: document approved
                   
-        "400":
-          $ref: "#/components/responses/BadRequest"
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
   # reject specific version        
-  "/docs/{id}/versions/{versionId}/reject":
-    post:
-      security:
-        - token: []
-      summary: reject specific version
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: document rejected
+  # "/docs/{id}/versions/{versionId}/reject":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: reject specific version
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: version _id
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: document rejected
                   
-        "400":
-          $ref: "#/components/responses/BadRequest"
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
   # download the file from revision       
   "/docs/{id}/versions/{versionId}/file":
-    get:
-      security:
-        - token: []
-      summary: download the file from revision
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                    example: file downloading
-        "400":
-          $ref: "#/components/responses/BadRequest"
+    # get:
+    #   security:
+    #     - token: []
+    #   summary: download the file from revision
+    #   tags:
+    #     - RESOURCES
+    #   parameters:
+    #     - in: path
+    #       name: id
+    #       schema:
+    #         type: string
+    #       required: true
+    #       description: doc _id 
+    #     - in: path
+    #       name: versionId
+    #       schema:
+    #         type: string
+    #       required: true
+    #       description: version _id
+    #   responses:
+    #     "200":
+    #       description: success
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               message: 
+    #                 type: string
+    #                 example: file downloading
+    #     "400":
+    #       $ref: "#/components/responses/BadRequest"
     post:
       security:
         - token: []
@@ -1797,22 +1787,16 @@ paths:
             type: string
           required: true
           description: doc _id 
-        - in: path
-          name: versionId
-          schema:
-            type: string
-          required: true
-          description: version _id   
       requestBody:
           required: true
           content:
             multipart/form-data:
               schema:
-               type: object
-               properties:
-                upfile:
-                  type: string
-                  format: binary
+                type: object
+                properties:
+                  upfile:
+                    type: string
+                    format: binary
       responses:
         "200":
           description: success
@@ -1824,15 +1808,13 @@ paths:
                       doc_id:
                         type: string
                         example: 343544
-                      version_id:
-                        type: string
-                        example: 353535
                       file_name:
                         type: string
                         example: filename.pdf
                   
         "400":
           $ref: "#/components/responses/BadRequest"
+  
   # download latest version
   "/docs/{id}/file":
     get:
