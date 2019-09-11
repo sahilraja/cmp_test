@@ -1,5 +1,5 @@
 import { Router, RequestHandler, NextFunction } from "express"
-import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList } from "./module";
 import { get as httpGet } from "http";
 import { authenticate } from "../utils/utils";
 
@@ -60,6 +60,15 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 router.get("/list", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await getDocList())
+    } catch (err) {
+        next(err);
+    };
+});
+
+// Get My shared list
+router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        res.status(200).send(await sharedList(res.locals.user.id))
     } catch (err) {
         next(err);
     };

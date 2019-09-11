@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
-import { groupsAddPolicy, groupsRemovePolicy, GetIdsForDoc } from "../utils/groups";
+import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDoc, GetDocIdsForUser } from "../utils/groups";
 import { Users } from "../users/model";
 
 enum STATUS {
@@ -448,7 +448,7 @@ export async function removeViewers(docId: string, viewers: string[]) {
 
 export async function collaboratorList(docId: string) {
     try {
-        let users = await GetIdsForDoc(docId, "collaborator")
+        let users = await GetUserIdsForDoc(docId, "collaborator")
         return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
     } catch (err) {
         throw err
@@ -457,8 +457,17 @@ export async function collaboratorList(docId: string) {
 
 export async function viewerList(docId: string) {
     try {
-        let users = await GetIdsForDoc(docId, "viewer")
+        let users = await GetUserIdsForDoc(docId, "viewer")
         return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function sharedList(userId: string) {
+    try {
+        let docIds = await GetDocIdsForUser(userId)
+        return await documents.find({ _id: { $in: docIds } })
     } catch (err) {
         throw err
     };

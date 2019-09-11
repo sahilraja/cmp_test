@@ -1424,9 +1424,47 @@ paths:
                         name:
                           type: string
                           example: docName
-                        status:
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
                           type: string
-                          example: pending
+                          example: "2019-08-26T15:17:29.912Z"
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # My list of Docs      
+  "/docs/shared/me":
+    get:
+      security:
+        - token: []
+      summary: document list shared with me
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
                         tags:
                           type: array
                           items:
@@ -1897,6 +1935,66 @@ paths:
                   
         "400":
           $ref: "#/components/responses/BadRequest"
+    post:
+      security:
+        - token: []
+      summary: update document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Annula Report
+                description:
+                  type: string
+                  example: Dam for vizag
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+                
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Annula Report
+                  description:
+                    type: string
+                    example: Dam for vizag
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                      - 12346
+                      - 12345 
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+      
  
   # Add collaborators to document    
   "/docs/{id}/collaborator/add":

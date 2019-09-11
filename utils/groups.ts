@@ -59,7 +59,7 @@ export async function groupsPolicyFilter(userId: string, filter: number = 0, pol
 };
 
 
-export async function GetIdsForDoc(docId: string, role: string) {
+export async function GetUserIdsForDoc(docId: string, role: string) {
     try {
         let policies = await groupsPolicyFilter(`document/${docId}`, 1, "p")
         if (!policies.data) throw new Error("policies not found for this document.")
@@ -72,4 +72,17 @@ export async function GetIdsForDoc(docId: string, role: string) {
         throw err;
     };
 };
+
+export async function GetDocIdsForUser(userId: string) {
+    try {
+        let policies = await groupsPolicyFilter(userId, 0, "p")
+        if (!policies.data) throw new Error("policies not found for this User.")
+        let users = policies.data.map((key: string[]) => key[1].substring(key[1].indexOf("/") + 1))
+        return [...new Set(users)]
+    } catch (err) {
+        throw err;
+    };
+};
+
+
 
