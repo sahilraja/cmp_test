@@ -64,7 +64,7 @@ export async function GetUserIdsForDoc(docId: string, role: string) {
         let policies = await groupsPolicyFilter(`document/${docId}`, 1, "p")
         if (!policies.data) throw new Error("policies not found for this document.")
         let users = policies.data.filter((policy: string[]) => {
-            if (policy[2] = role)
+            if (policy[2] == role)
                 return policy[0]
         }).map((key: any) => key[0])
         return [...new Set(users)]
