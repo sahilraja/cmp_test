@@ -318,7 +318,7 @@ export async function setNewPassword(objBody: any, token: any) {
 export async function createGroup(objBody: any) {
     try {
         const { name, description } = objBody
-        if (!name || !description) throw new Error("Missing Fiels.");
+        if (!name || !description) throw new Error("Missing Field.");
         let data = await groupsModel.create({
             name: name,
             description: description

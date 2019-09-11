@@ -1240,10 +1240,10 @@ paths:
             schema:
               type: object
               properties:
-                file_name:
+                name:
                   type: string
                   example: Annula Report
-                file_description:
+                description:
                   type: string
                   example: Dam for vizag
                 tags:
@@ -1741,7 +1741,7 @@ paths:
   #         $ref: "#/components/responses/BadRequest"
   
   # download the file from revision       
-  "/docs/{id}/file":
+  # "/docs/{id}/versions/{versionId}/file":
     # get:
     #   security:
     #     - token: []
@@ -1774,10 +1774,41 @@ paths:
     #                 example: file downloading
     #     "400":
     #       $ref: "#/components/responses/BadRequest"
+    
+  
+  # download latest version
+  "/docs/{id}/file":
+    get:
+      security:
+        - token: []
+      summary: download latest version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: file downloading
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
     post:
       security:
         - token: []
-      summary: Change or create a new file for this version
+      summary: Change or create a New file for this version
       tags:
         - RESOURCES
       parameters:
@@ -1811,36 +1842,6 @@ paths:
                       file_name:
                         type: string
                         example: filename.pdf
-                  
-        "400":
-          $ref: "#/components/responses/BadRequest"
-  
-  # download latest version
-  "/docs/{id}/file":
-    get:
-      security:
-        - token: []
-      summary: download latest version
-      tags:
-        - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-      responses:
-        "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                    example: file downloading
                   
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -1894,6 +1895,264 @@ paths:
                         type: string
                         example: doc123455
                   
+        "400":
+          $ref: "#/components/responses/BadRequest"
+ 
+  # Add collaborators to document    
+  "/docs/{id}/collaborator/add":
+    post:
+      security:
+        - token: []
+      summary: Add collaborators to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added collaborators successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # remove collaborators to document     
+  "/docs/{id}/collaborator/remove":
+    put:
+      security:
+        - token: []
+      summary: Remove collaborators to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: remove collaborators successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  # Add viewers to document    
+  "/docs/{id}/viewer/add":
+    post:
+      security:
+        - token: []
+      summary: Add viewers to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                viewers:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added viewers successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # remove viewers to document     
+  "/docs/{id}/viewer/remove":
+    put:
+      security:
+        - token: []
+      summary: Remove viewer to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: remove viewers successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # remove collaborators to document     
+  "/docs/{id}/collaborator/list":
+    get:
+      security:
+        - token: []
+      summary: Collaborators list for document 
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collaboratores:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        firstName: 
+                          type: string
+                        secondName: 
+                          type: string
+                        email: 
+                          type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  # remove viewers to document     
+  "/docs/{id}/viewer/list":
+    get:
+      security:
+        - token: []
+      summary: viewers list for document 
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  viewers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        firstName: 
+                          type: string
+                        secondName: 
+                          type: string
+                        email: 
+                          type: string
         "400":
           $ref: "#/components/responses/BadRequest"
   
