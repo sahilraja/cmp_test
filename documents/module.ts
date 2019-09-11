@@ -4,7 +4,8 @@ import { Types } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
-import { groupsAddPolicy } from "../utils/groups";
+import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDoc, GetDocIdsForUser } from "../utils/groups";
+import { Users } from "../users/model";
 
 enum STATUS {
     DRAFT = 0,
@@ -19,7 +20,7 @@ export async function createDoc(body: any, userId: string) {
             throw new Error("name should be mandatory");
         }
         let doc = await insertDOC(body, userId);
-        body.parentID = doc.id;
+        body.parentId = doc.id;
         let role = await groupsAddPolicy(userId, doc.id, "owner")
         if (!role.user) {
             await documents.findByIdAndRemove(doc.id)
@@ -43,7 +44,7 @@ async function insertDOC(body: any, userId: string) {
             versionNum: "1",
             status: STATUS.DRAFT,
             ownerId: userId,
-            parentId: body.parentID ? body.parentID : null
+            parentId: body.parentId ? body.parentId : null
         })
     } catch (error) {
         console.log(error);
@@ -75,7 +76,7 @@ export async function getDocList() {
 export async function getDocListOfMe(userId: string) {
     try {
         if (!userId) throw new Error("Missing UserId.");
-        let docs = await documents.find({ ownerId: userId, status: { $ne: STATUS.DRAFT } })
+        let docs = await documents.find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } })
         const docList = await Promise.all(docs.map(async doc => {
             const user = { ...doc.toJSON() }
             user.tags = await getTags(user.tags)
@@ -85,15 +86,6 @@ export async function getDocListOfMe(userId: string) {
     } catch (error) {
         console.log(error);
         throw error;
-    };
-};
-
-//  Get Shared Doc list
-export async function SharedDocList(userId: string) {
-    try {
-
-    } catch (err) {
-        throw err
     };
 };
 
@@ -259,7 +251,7 @@ export async function getDocWithVersion(docId: any, versionId: any) {
     };
 };
 
-export async function updateDoc(objBody: any, docid: any, versionId: any) {
+export async function updateDoc(objBody: any, docId: any) {
     try {
         let obj: any = {};
         if (objBody.name) {
@@ -268,20 +260,26 @@ export async function updateDoc(objBody: any, docid: any, versionId: any) {
         if (objBody.description) {
             obj.description = objBody.description;
         };
-        if (objBody.themes) {
-            obj.themes = objBody.themes;
-        };
         if (objBody.tags) {
             obj.tags = objBody.tags;
         };
-        let [child, parent]: any = await Promise.all([
-            documents.findByIdAndUpdate(versionId, obj, { new: true }).exec(),
-            documents.findById(docid).exec()
+        let [parent, child]: any = await Promise.all([
+            documents.findByIdAndUpdate(docId, obj, { new: true }).exec(),
+            documents.find({ parentId: docId }).sort({ createdAt: -1 }).exec()
         ])
-        if (parent.status != STATUS.APPROVED) {
-            await documents.findByIdAndUpdate(docid, obj, { new: true })
-        }
-        return child;
+        if (!child.length) throw new Error("Versions Not Found.")
+        await documents.create({
+            name: parent.name,
+            description: parent.description,
+            tags: parent.tags,
+            versionNum: Number(child[0].versionNum) + 1,
+            status: parent.status,
+            ownerId: parent.userId,
+            parentId: parent.id,
+            fileId: parent.fileId,
+            fileName: parent.fileName
+        })
+        return parent;
     } catch (err) {
         console.log(err);
         throw err;
@@ -389,23 +387,87 @@ async function getThemes(themeIds: any[]) {
 };
 
 //  Add Collaborator
-export async function addCollaborator(docId: string, collaborators: any[]) {
+export async function addCollaborator(docId: string, collaborators: string[]) {
     try {
         if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
-        if (!collaborators) throw new Error("Missing Collaborators.")
-        let data = await documents.findByIdAndUpdate(docId, { collaborator: collaborators }, { new: true })
-        return data
+        if (!Array.isArray(collaborators)) throw new Error("Missing Collaborators.")
+        await Promise.all([collaborators.map(async (user: string) => {
+            let success = await groupsAddPolicy(user, docId, "collaborator")
+            if (!success.user) throw new Error(`${user} have already these permissions`)
+        })])
+        return { message: "added collaborators successfully." }
+    } catch (err) {
+        throw err
+    };
+};
+
+//  remove Collaborator
+export async function removeCollaborator(docId: string, collaborators: string[]) {
+    try {
+        if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
+        if (!Array.isArray(collaborators)) throw new Error("Missing Collaborators.")
+        await Promise.all([collaborators.map(async (user: string) => {
+            let success = await groupsRemovePolicy(user, docId, "collaborator")
+            if (!success.user) throw new Error(`${user} don't have these permissions`)
+        })])
+        return { message: "Remove collaborators successfully." }
     } catch (err) {
         throw err
     };
 };
 
 //  Add Viewers
-export async function addViewers(docId: string, viewers: any[]) {
+export async function addViewers(docId: string, viewers: string[]) {
     try {
         if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
-        if (!viewers) throw new Error("Missing viewers.")
-        let data = await documents.findByIdAndUpdate(docId, { viewer: viewers }, { new: true })
+        if (!Array.isArray(viewers)) throw new Error("Missing viewers.")
+        await Promise.all([viewers.map(async (user: string) => {
+            let success = await groupsAddPolicy(user, docId, "viewer")
+            if (!success.user) throw new Error(`${user} have already these permissions`)
+        })])
+        return { message: "added viewers successfully." }
+    } catch (err) {
+        throw err
+    };
+};
+
+//  remove Viewers
+export async function removeViewers(docId: string, viewers: string[]) {
+    try {
+        if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
+        if (!Array.isArray(viewers)) throw new Error("Missing viewers.")
+        await Promise.all([viewers.map(async (user: string) => {
+            let success = await groupsRemovePolicy(user, docId, "viewer")
+            if (!success.user) throw new Error(`${user} don't have these permissions`)
+        })])
+        return { message: "remove viewers successfully." }
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function collaboratorList(docId: string) {
+    try {
+        let users = await GetUserIdsForDoc(docId, "collaborator")
+        return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function viewerList(docId: string) {
+    try {
+        let users = await GetUserIdsForDoc(docId, "viewer")
+        return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function sharedList(userId: string) {
+    try {
+        let docIds = await GetDocIdsForUser(userId)
+        return await documents.find({ _id: { $in: docIds } })
     } catch (err) {
         throw err
     };
