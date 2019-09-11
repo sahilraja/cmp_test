@@ -2253,7 +2253,149 @@ paths:
                           type: string
         "400":
           $ref: "#/components/responses/BadRequest"
+   
+  "/docs/{id}/share":
+    post:
+      security:
+        - token: []
+      summary: doc share to users
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: 
+                type: object
+                $ref: "#/components/schemas/DocPermissions"
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/share/list":
+    get:
+      security:
+        - token: []
+      summary: shared users list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  $ref: "#/components/schemas/DocPermissions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/share/{type}/{userId}/edit":
+    put:
+      security:
+        - token: []
+      summary: edit user permission
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: user Id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: owner
+        - in: path
+          name: type
+          schema:
+            type: string
+          required: true
+          description: type
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocPermissions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
   
+  "/user/suggestion":
+    get:
+      security:
+        - token: []
+      summary: shared users list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: true
+          description: sarch name
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  $ref: "#/components/schemas/DocPermissions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
   # add group
   "/user/group/create":
     post:
@@ -3028,6 +3170,42 @@ components:
         is_asctive: 
           type: boolean
           example: true
+          
+    DocPermissions:
+      allOf:
+        - $ref: "#/components/schemas/UserSuggestion"
+        - type: object
+          required: 
+            - permission
+          properties:
+            permission:
+              type: string
+              enum: ["owner", "collaborator", "viewer"]
+          
+    UserSuggestion:
+      type: object
+      required: 
+        - id
+      properties:
+        id:
+          type: string
+          example: 12345432112424
+          description: groupId or userId
+        name:
+          type: string
+          example: hello
+          description: group name or user name
+        email:
+          type: string
+          example: jeevan+23@transerve.com
+          description: user or group email
+        type: 
+          type: string
+          example: user
+          enum: ["group", "user"]
+
+    
+          
           
           
           

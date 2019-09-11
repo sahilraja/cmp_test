@@ -1,4 +1,11 @@
 import * as request from "request-promise";
+import { addCollaborator } from "../documents/module";
+
+enum role {
+    owner = 0,
+    collaborator = 1,
+    viewer = 2
+};
 
 // Add Policies for Documents
 export async function groupsAddPolicy(userId: string, docId: string, role: string) {
@@ -83,6 +90,19 @@ export async function GetDocIdsForUser(userId: string) {
         throw err;
     };
 };
+
+export async function getRoleOfDoc(userId: string, docId: string) {
+    try {
+        let policies = await groupsPolicyFilter(userId, 0, "p")
+        if (!policies.data) throw new Error("policies not found for this User.");
+        policies.data.map((key: string[]) => {
+            if()
+        })
+
+    } catch (err) {
+        throw err;
+    }
+}
 
 
 
