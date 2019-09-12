@@ -4,8 +4,9 @@ import { Types } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
-import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDoc, GetDocIdsForUser } from "../utils/groups";
+import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc } from "../utils/groups";
 import { Users } from "../users/model";
+import { groupsModel } from "../users/group-model";
 
 enum STATUS {
     DRAFT = 0,
@@ -448,7 +449,7 @@ export async function removeViewers(docId: string, viewers: string[]) {
 
 export async function collaboratorList(docId: string) {
     try {
-        let users = await GetUserIdsForDoc(docId, "collaborator")
+        let users = await GetUserIdsForDocWithRole(docId, "collaborator")
         return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
     } catch (err) {
         throw err
@@ -457,7 +458,7 @@ export async function collaboratorList(docId: string) {
 
 export async function viewerList(docId: string) {
     try {
-        let users = await GetUserIdsForDoc(docId, "viewer")
+        let users = await GetUserIdsForDocWithRole(docId, "viewer")
         return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
     } catch (err) {
         throw err
@@ -473,14 +474,74 @@ export async function sharedList(userId: string) {
     };
 };
 
-// export async function shareDocToUsers(userIds: string, role: string) {
-//     try {
-//         if (!Types.ObjectId.isValid(userIds)) throw new Error("Given id not Valid");
-//         if(!role) throw new Error("Missing Role.");
-        
+export async function invitePeople(docId: string, users: object[], role: string) {
+    try {
+        if (!docId || !users || !role) throw new Error("Missing fields.");
+        Promise.all([users.map(async (user: any) => {
+            await shareDoc(user.id, user.type, docId, role)
+        })])
+        return { message: "added successfully." }
+    } catch (err) {
+        throw err
+    };
+};
 
+export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string) {
+    try {
+        if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
+        let userRole: any = await getRoleOfDoc(userId, docId);
+        await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2])
+        await await groupsAddPolicy(`${type}/${userId}`, docId, role)
+        return { message: "add successfully." }
+    } catch (err) {
+        throw err
+    };
+};
 
-//     } catch (err) {
-//         throw err
-//     }
-// }
+export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string) {
+    try {
+        if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
+        await groupsRemovePolicy(`${type}/${userId}`, docId, role)
+        return { message: "Remove successfully." }
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function invitePeopleList(docId: string) {
+    try {
+        if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
+        let users = await GetUserIdsForDoc(docId)
+        if (!users) throw new Error("fail to fetch user id.")
+        let userGroup: any = {}
+        users.map((user: any) => {
+            userGroup[user.split("/")[0]].push(user.split("/")[1])
+        })
+        if (userGroup.user) {
+            var userData: any = await Users.find({ _id: { $in: userGroup.user } }, { firstName: 1, secondName: 1, email: 1 })
+            userData = await Promise.all([userData.map(async (user: any) => {
+                return {
+                    name: user.firstName + " " + user.secondName,
+                    type: "user",
+                    email: user.email,
+                    role: ((await getRoleOfDoc(user.id, docId)) as any)[2]
+                }
+            })])
+        }
+        if (userGroup.group) {
+            var groupData: any = await groupsModel.find({ _id: { $in: userGroup.group } }, { name: 1 })
+            groupData = await Promise.all([groupData.map(async (user: any) => {
+                return {
+                    name: name,
+                    type: "group",
+                    email: "N/A",
+                    role: ((await getRoleOfDoc(user.id, docId)) as any)[2]
+                }
+            })])
+        }
+        return { ...userData, ...groupData }
+    } catch (err) {
+        throw err;
+    };
+};
+

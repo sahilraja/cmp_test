@@ -1,5 +1,5 @@
 import { Router, RequestHandler, NextFunction } from "express"
-import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove } from "./module";
 import { get as httpGet } from "http";
 import { authenticate } from "../utils/utils";
 
@@ -258,6 +258,44 @@ router.get("/:id/viewer/list", authenticate, async (req, res, next: NextFunction
 router.get("/:id/collaborator/list", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await collaboratorList(req.params.id));
+    } catch (err) {
+        next(err);
+    };
+});
+
+//  invite user
+router.post("/:id/share", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        res.status(200).send(await invitePeople(req.params.id, req.body.users, req.query.role));
+    } catch (err) {
+        next(err);
+    };
+});
+
+//  invite user list
+router.get("/:id/share/list", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        res.status(200).send(await invitePeopleList(req.params.id));
+    } catch (err) {
+        next(err);
+    };
+});
+
+//  invite user edit
+router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        const { id, type, userId } = req.params
+        res.status(200).send(await invitePeopleEdit(id, userId, type, req.query.role));
+    } catch (err) {
+        next(err);
+    };
+});
+
+//  invite user edit
+router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        const { id, type, userId } = req.params
+        res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role));
     } catch (err) {
         next(err);
     };
