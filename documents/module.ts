@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
-import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc } from "../utils/groups";
+import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc, GetDocCapabilitiesForUser } from "../utils/groups";
 import { Users } from "../users/model";
 import { groupsModel } from "../users/group-model";
 
@@ -515,7 +515,11 @@ export async function invitePeopleList(docId: string) {
         if (!users) throw new Error("fail to fetch user id.")
         let userGroup: any = {}
         users.map((user: any) => {
-            userGroup[user.split("/")[0]].push(user.split("/")[1])
+            if (userGroup[user.split("/")[0]]) {
+                userGroup[user.split("/")[0]].push(user.split("/")[1])
+            } else {
+                userGroup[user.split("/")[0]] = [user.split("/")[1]]
+            }
         })
         if (userGroup.user) {
             var userData: any = await Users.find({ _id: { $in: userGroup.user } }, { firstName: 1, secondName: 1, email: 1 })
@@ -542,6 +546,14 @@ export async function invitePeopleList(docId: string) {
         return { ...userData, ...groupData }
     } catch (err) {
         throw err;
+    };
+};
+
+export async function docCapabilities(docId: string, userId: string) {
+    try {
+        return await GetDocCapabilitiesForUser(userId, docId)
+    } catch (err) {
+        throw err
     };
 };
 

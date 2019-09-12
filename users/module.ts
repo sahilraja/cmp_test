@@ -146,10 +146,10 @@ export async function user_list(query: any, userId: any, page = 1, limit: any = 
         let { docs, pages, total }: PaginateResult<any> = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
         const data = await Promise.all(docs.map(async doc => {
             const user = { ...doc.toJSON(), id: doc.id }
-            
+
             let userCapabilities: any = await userRoleAndScope(user.id)
             console.log("user is ", user.id)
-            console.log("user capabilities" , userCapabilities.data)
+            console.log("user capabilities", userCapabilities.data)
             user.role = userCapabilities.data.global[0]
             return user
         }));
@@ -431,6 +431,17 @@ export async function removeMembers(id: string, users: any[]) {
             throw new Error("Users Not Found.")
         }
         return success
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function userSuggestions(search: string) {
+    try {
+        if (!search) throw new Error("Missing name.")
+        let groups = await groupsModel.find({ name: new RegExp(search, "i") })
+        let users = await Users.find({ $or: [{ firstName: { name: new RegExp(search, "i") } }, { secondName: { name: new RegExp(search, "i") } }] });
+        return [...groups, ...users]
     } catch (err) {
         throw err
     };
