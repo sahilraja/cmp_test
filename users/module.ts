@@ -438,9 +438,8 @@ export async function removeMembers(id: string, users: any[]) {
 
 export async function userSuggestions(search: string) {
     try {
-        if (!search) throw new Error("Missing name.")
-        let groups = await groupsModel.find({ name: new RegExp(search, "i") })
-        let users = await Users.find({ $or: [{ firstName: { name: new RegExp(search, "i") } }, { secondName: { name: new RegExp(search, "i") } }] });
+        let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
+        let users = await Users.find({ $or: [{ firstName: new RegExp(search, "i") }, { secondName: new RegExp(search, "i") }] }, { firstName: 1, secondName: 1 });
         return [...groups, ...users]
     } catch (err) {
         throw err

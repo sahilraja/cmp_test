@@ -175,7 +175,7 @@ router.post("/group/:id/member/remove", authenticate, async (req: any, res: any,
 //  user group list
 router.get("/suggestion", authenticate, async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await userSuggestions(req.params.search));
+        res.status(200).send(await userSuggestions(req.query.search));
     } catch (err) {
         next(err);
     };

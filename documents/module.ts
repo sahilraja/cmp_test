@@ -1,6 +1,6 @@
 import { documents } from "./model"
 import * as http from "http";
-import { Types } from "mongoose";
+import { Types, STATES } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
@@ -11,7 +11,8 @@ import { groupsModel } from "../users/group-model";
 enum STATUS {
     DRAFT = 0,
     DONE = 1,
-    APPROVED = 2
+    PUBLISHED = 2,
+    UNPUBLISHED = 3
 }
 
 //  Create Document
@@ -543,7 +544,7 @@ export async function invitePeopleList(docId: string) {
                 }
             })])
         }
-        return { ...userData, ...groupData }
+        return [...userData, ...groupData]
     } catch (err) {
         throw err;
     };
@@ -557,3 +558,59 @@ export async function docCapabilities(docId: string, userId: string) {
     };
 };
 
+export async function published(docId: string, userId: string) {
+    try {
+        let doc: any = await documents.findById(docId)
+        return await documents.create(
+            {
+                name: doc.name,
+                description: doc.description,
+                themes: doc.themes,
+                tags: doc.tags,
+                versionNum: 1,
+                status: STATUS.PUBLISHED,
+                ownerId: userId,
+                parentId: doc.parentId,
+                fileName: doc.fileName,
+                fileId: doc.fileId
+            }
+        )
+
+    } catch (err) {
+        throw err
+    }
+}
+
+export async function unPublished(docId: string) {
+    try {
+        return await documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true })
+    } catch (err) {
+        throw err
+    }
+}
+
+export async function replaceDoc(docId: string, replaceDoc: string, userId: string) {
+    try {
+        let [doc, unPublished]: any = await Promise.all([
+            documents.findById(replaceDoc).exec(),
+            documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true }).exec()
+        ])
+        return await documents.create(
+            {
+                name: doc.name,
+                description: doc.description,
+                themes: doc.themes,
+                tags: doc.tags,
+                versionNum: 1,
+                status: STATUS.PUBLISHED,
+                ownerId: userId,
+                parentId: doc.parentId,
+                fileName: doc.fileName,
+                fileId: doc.fileId
+            }
+        )
+
+    } catch (err) {
+        throw err
+    }
+}
