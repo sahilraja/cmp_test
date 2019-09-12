@@ -82,7 +82,7 @@ export async function GetUserIdsForDocWithRole(docId: string, role: string) {
 
 export async function GetDocIdsForUser(userId: string) {
     try {
-        let policies = await groupsPolicyFilter(userId, 0, "p")
+        let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
         if (!policies.data) throw new Error("policies not found for this User.")
         let users = policies.data.map((key: string[]) => key[1].substring(key[1].indexOf("/") + 1))
         return [...new Set(users)]
@@ -93,7 +93,7 @@ export async function GetDocIdsForUser(userId: string) {
 
 export async function getRoleOfDoc(userId: string, docId: string) {
     try {
-        let policies = await groupsPolicyFilter(userId, 0, "p")
+        let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
         if (!policies.data) throw new Error("policies not found for this User.");
         policies.data.map((key: string[]) => {
             if (key[1].includes(docId) && ["owner", "collaborator", "viewer"].includes(key[2]))
@@ -130,3 +130,16 @@ export async function GetUserIdsForDoc(docId: string) {
     };
 };
 
+export async function GetDocCapabilitiesForUser(userId: string, docId: string) {
+    try {
+        let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
+        if (!policies.data) throw new Error("policies not found for this User.")
+        let capability = policies.data.filter((policy: string[]) => {
+            if (policy[1].includes(docId))
+                return policy
+        }).map((key: any) => key[2])
+        return [...new Set(capability)]
+    } catch (err) {
+        throw err;
+    };
+};

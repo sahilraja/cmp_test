@@ -1,5 +1,5 @@
 import { Router, RequestHandler, NextFunction } from "express"
-import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove, docCapabilities } from "./module";
 import { get as httpGet } from "http";
 import { authenticate } from "../utils/utils";
 
@@ -296,6 +296,15 @@ router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, 
     try {
         const { id, type, userId } = req.params
         res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role));
+    } catch (err) {
+        next(err);
+    };
+});
+
+//  update exist doc
+router.get("/:id//docs/{id}/capabilities", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        res.status(200).send(await docCapabilities(res.locals.user.id, req.params.id));
     } catch (err) {
         next(err);
     };

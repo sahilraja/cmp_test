@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions } from "./module";
 import { authenticate } from "../utils/utils";
 var multer = require('multer')
 var upload = multer()
@@ -167,6 +167,15 @@ router.post("/group/:id/member/add", authenticate, async (req: any, res: any, ne
 router.post("/group/:id/member/remove", authenticate, async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await removeMembers(req.params.id, req.body.users));
+    } catch (err) {
+        next(err);
+    };
+});
+
+//  user group list
+router.get("/suggestion", authenticate, async (req: any, res: any, next: any) => {
+    try {
+        res.status(200).send(await userSuggestions(req.params.search));
     } catch (err) {
         next(err);
     };
