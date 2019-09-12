@@ -2273,16 +2273,19 @@ paths:
           schema:
             type: string
           required: true
-          description: doc _id 
+          description: collaborator
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: array
-              items: 
-                type: object
-                $ref: "#/components/schemas/DocPermissions"
+              type: object
+              properties:
+                users:
+                  type: array
+                  items: 
+                    type: object
+                    $ref: "#/components/schemas/DocPermissions"
       responses:
         "200":
           description: success
@@ -2356,7 +2359,7 @@ paths:
           schema:
             type: string
           required: true
-          description: type
+          description: group
 
       responses:
         "200":
@@ -2364,7 +2367,59 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DocPermissions"
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+                    
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/{id}/share/{type}/{userId}/remove":
+    delete:
+      security:
+        - token: []
+      summary: edit user permission
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: user Id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: owner
+        - in: path
+          name: type
+          schema:
+            type: string
+          required: true
+          description: user
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
         "400":
           $ref: "#/components/responses/BadRequest"
   
@@ -2396,6 +2451,149 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
           
+  "/docs/{id}/capabilities":
+    get:
+      security:
+        - token: []
+      summary: get Doc Capabilities for user
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - capabilitiy 1
+                      - capability 2
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/{id}/publish":
+    get:
+      security:
+        - token: []
+      summary: publish a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/unpublish":
+    get:
+      security:
+        - token: []
+      summary: unPublish a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/{id}/replace/{replaceDocId}":
+    get:
+      security:
+        - token: []
+      summary: Replace a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: replaceDocId
+          schema:
+            type: string
+          required: true
+          description: replace doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/publish/list":
+    get:
+      security:
+        - token: []
+      summary: Publish doc list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: replaceDocId
+          schema:
+            type: string
+          required: true
+          description: replace doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest" 
+    
   # add group
   "/user/group/create":
     post:
@@ -2720,6 +2918,7 @@ paths:
                     type: boolean
         "400":
           $ref: "#/components/responses/BadRequest"
+
   
   
   
