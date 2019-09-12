@@ -473,14 +473,14 @@ export async function sharedList(userId: string) {
     };
 };
 
-export async function shareDocToUsers(userIds: string, role: string) {
-    try {
-        if (!Types.ObjectId.isValid(userIds)) throw new Error("Given id not Valid");
-        if(!role) throw new Error("Missing Role.");
+// export async function shareDocToUsers(userIds: string, role: string) {
+//     try {
+//         if (!Types.ObjectId.isValid(userIds)) throw new Error("Given id not Valid");
+//         if(!role) throw new Error("Missing Role.");
         
 
 
-    } catch (err) {
-        throw err
-    }
-}
+//     } catch (err) {
+//         throw err
+//     }
+// }

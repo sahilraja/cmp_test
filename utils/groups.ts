@@ -91,18 +91,18 @@ export async function GetDocIdsForUser(userId: string) {
     };
 };
 
-export async function getRoleOfDoc(userId: string, docId: string) {
-    try {
-        let policies = await groupsPolicyFilter(userId, 0, "p")
-        if (!policies.data) throw new Error("policies not found for this User.");
-        policies.data.map((key: string[]) => {
-            if()
-        })
+// export async function getRoleOfDoc(userId: string, docId: string) {
+//     try {
+//         let policies = await groupsPolicyFilter(userId, 0, "p")
+//         if (!policies.data) throw new Error("policies not found for this User.");
+//         policies.data.map((key: string[]) => {
+//             // if()
+//         })
 
-    } catch (err) {
-        throw err;
-    }
-}
+//     } catch (err) {
+//         throw err;
+//     }
+// }
 
 
 
