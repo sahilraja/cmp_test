@@ -2484,7 +2484,7 @@ paths:
           $ref: "#/components/responses/BadRequest"
   
   "/docs/{id}/publish":
-    get:
+    post:
       security:
         - token: []
       summary: publish a document
@@ -2508,7 +2508,7 @@ paths:
           $ref: "#/components/responses/BadRequest"
           
   "/docs/{id}/unpublish":
-    get:
+    put:
       security:
         - token: []
       summary: unPublish a document
@@ -2532,7 +2532,7 @@ paths:
           $ref: "#/components/responses/BadRequest"
   
   "/docs/{id}/replace/{replaceDocId}":
-    get:
+    post:
       security:
         - token: []
       summary: Replace a document
@@ -2568,19 +2568,6 @@ paths:
       summary: Publish doc list
       tags:
         - RESOURCES
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: doc _id 
-        - in: path
-          name: replaceDocId
-          schema:
-            type: string
-          required: true
-          description: replace doc _id
       responses:
         "200":
           description: success
