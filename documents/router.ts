@@ -1,5 +1,5 @@
 import { Router, RequestHandler, NextFunction } from "express"
-import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove, docCapabilities, published, unPublished, replaceDoc } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove, docCapabilities, published, unPublished, replaceDoc, publishList } from "./module";
 import { get as httpGet } from "http";
 import { authenticate } from "../utils/utils";
 
@@ -69,6 +69,15 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
 router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await sharedList(res.locals.user.id))
+    } catch (err) {
+        next(err);
+    };
+});
+
+// Get My shared list
+router.get("/publish/list", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        res.status(200).send(await publishList(res.locals.user.id))
     } catch (err) {
         next(err);
     };
@@ -311,7 +320,7 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 });
 
 //  update exist doc
-router.get("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
+router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await published(req.params.id, res.locals.user.id));
     } catch (err) {
@@ -320,7 +329,7 @@ router.get("/:id/publish", authenticate, async (req, res, next: NextFunction) =>
 });
 
 //  update exist doc
-router.get("/:id/unpublish", authenticate, async (req, res, next: NextFunction) => {
+router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await unPublished(req.params.id));
     } catch (err) {
@@ -329,7 +338,7 @@ router.get("/:id/unpublish", authenticate, async (req, res, next: NextFunction) 
 });
 
 //  update exist doc
-router.get("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
+router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
     try {
         res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user.id));
     } catch (err) {

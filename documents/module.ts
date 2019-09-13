@@ -57,7 +57,7 @@ async function insertDOC(body: any, userId: string) {
 //  Get Document Public List
 export async function getDocList() {
     try {
-        let data = await documents.find({ parentId: null, status: STATUS.APPROVED });
+        let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED });
         if (!data) throw new Error("approved Docs Not There.")
         const docList = await Promise.all(data.map(async doc => {
             const user = { ...doc.toJSON() }
@@ -610,6 +610,14 @@ export async function replaceDoc(docId: string, replaceDoc: string, userId: stri
             }
         )
 
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function publishList(userId: string) {
+    try {
+        return await documents.find({ ownerId: userId, status: STATUS.PUBLISHED })
     } catch (err) {
         throw err
     }
