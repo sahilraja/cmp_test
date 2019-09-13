@@ -146,3 +146,65 @@ export async function GetDocCapabilitiesForUser(userId: string, docId: string) {
         throw err;
     };
 };
+
+// user Group list
+export async function userGroupsList(userId: string) {
+    try {
+        let Options = {
+            uri: `${process.env.GROUPS_URL}/group/list/${userId}`,
+            method: "GET",
+            json: true
+        }
+        return (await request(Options)).groups;
+    } catch (err) {
+        throw err;
+    };
+};
+
+// group user list
+export async function groupUserList(groupId: string) {
+    try {
+        let Options = {
+            uri: `${process.env.GROUPS_URL}/group/user/list/${groupId}`,
+            method: "GET",
+            json: true
+        }
+        return (await request(Options)).users;
+    } catch (err) {
+        throw err;
+    };
+};
+
+export async function addUserToGroup(userId: string, groupId: string) {
+    try {
+        let Options = {
+            uri: `${process.env.GROUPS_URL}/group/user/add`,
+            method: "GET",
+            body: {
+                userId: userId,
+                groupId: groupId
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
+
+export async function removeUserToGroup(userId: string, groupId: string) {
+    try {
+        let Options = {
+            uri: `${process.env.GROUPS_URL}/group/user/remove`,
+            method: "GET",
+            body: {
+                userId: userId,
+                groupId: groupId
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};

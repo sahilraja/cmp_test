@@ -622,5 +622,3 @@ export async function publishList(userId: string) {
         throw err
     };
 };
-
-export async function requestPermission

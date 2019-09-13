@@ -7,6 +7,7 @@ import { checkRoleScope, userRoleAndScope } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupsModel } from "./group-model";
+import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 
 const ANGULAR_URL = process.env.ANGULAR_URL || "http://localhost:4200"
 
@@ -365,11 +366,11 @@ export async function editGroup(objBody: any, id: string) {
 export async function groupList() {
     try {
         let group = await groupsModel.find({});
-        const data = group.map((key: any) => {
-            const user = key.toJSON()
-            user.users = user.users.length
+        const data = await Promise.all([group.map(async (key: any) => {
+            const user = await groupUserList(key._id)
+            user.users = user.length
             return user
-        });
+        })])
         return data;
     } catch (err) {
         throw err;
@@ -383,7 +384,8 @@ export async function groupDetail(id: string) {
         let data: any = await groupsModel.findById(id)
         if (!data) throw new Error("Group Not Found.")
         const group = data.toJSON()
-        group.users = await Users.find({ _id: { $in: group.users } }, { firstName: 1, secondName: 1, email: 1 });
+        let userIds = await groupUserList(data._id)
+        group.users = await Users.find({ _id: { $in: userIds } }, { firstName: 1, secondName: 1, email: 1 });
         return group;
     } catch (err) {
         throw err;
@@ -397,17 +399,10 @@ export async function addMember(id: string, users: any[]) {
         if (!Array.isArray(users)) throw new Error("Users must be an Array.")
         let data: any = await groupsModel.findById(id)
         if (!data) throw new Error("Group Not Found.");
-        let success: any
-        if (data.users.length) {
-            users.map((user: any) => {
-                if (data.users.includes(user)) throw new Error("User already Exist in this Group.")
-                data.users.push(user)
-            });
-            success = await groupsModel.findByIdAndUpdate(id, { users: data.users }, { new: true })
-        } else {
-            success = await groupsModel.findByIdAndUpdate(id, { users: users }, { new: true });
-        }
-        return success
+        await Promise.all([users.map(async (user: any) => {
+            await addUserToGroup(user, id)
+        })])
+        return { message: "added successfully" }
     } catch (err) {
         throw err
     };
@@ -420,17 +415,10 @@ export async function removeMembers(id: string, users: any[]) {
         if (!Array.isArray(users)) throw new Error("Users must be an Array.")
         let data: any = await groupsModel.findById(id)
         if (!data) throw new Error("Group Not Found.");
-        let success: any
-        if (data.users.length) {
-            users.map((user: any) => {
-                if (!data.users.includes(user)) throw new Error("User not Exist in this group")
-                data.users.splice(data.users.indexOf(user), 1)
-            });
-            success = await groupsModel.findByIdAndUpdate(id, { users: data.users }, { new: true })
-        } else {
-            throw new Error("Users Not Found.")
-        }
-        return success
+        await Promise.all([users.map(async (user: any) => {
+            await removeUserToGroup(user, id)
+        })])
+        return { message: "added successfully" }
     } catch (err) {
         throw err
     };
