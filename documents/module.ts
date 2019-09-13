@@ -479,7 +479,7 @@ export async function invitePeople(docId: string, users: object[], role: string)
     try {
         if (!docId || !users || !role) throw new Error("Missing fields.");
         Promise.all([users.map(async (user: any) => {
-            await shareDoc(user.id, user.type, docId, role)
+            await shareDoc(user._id, user.type, docId, role)
         })])
         return { message: "added successfully." }
     } catch (err) {
@@ -620,5 +620,7 @@ export async function publishList(userId: string) {
         return await documents.find({ ownerId: userId, status: STATUS.PUBLISHED })
     } catch (err) {
         throw err
-    }
-}
+    };
+};
+
+export async function requestPermission

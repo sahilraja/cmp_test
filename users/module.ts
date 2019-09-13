@@ -365,11 +365,11 @@ export async function editGroup(objBody: any, id: string) {
 export async function groupList() {
     try {
         let group = await groupsModel.find({});
-        const data = await Promise.all(group.map(async key => {
+        const data = group.map((key: any) => {
             const user = key.toJSON()
             user.users = user.users.length
             return user
-        }));
+        });
         return data;
     } catch (err) {
         throw err;
@@ -441,7 +441,7 @@ export async function userSuggestions(search: string) {
         let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
         let users: any = await Users.find({ $or: [{ firstName: new RegExp(search, "i") }, { secondName: new RegExp(search, "i") }] }, { firstName: 1, secondName: 1 });
-        users = await Promise.all([users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: ((await userRoleAndScope(user.id)) as any).data.global[0] } })])
+        users = await Promise.all([users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: ((await userRoleAndScope(user._id)) as any).data.global[0] } })])
         return [...groups, ...users]
     } catch (err) {
         throw err

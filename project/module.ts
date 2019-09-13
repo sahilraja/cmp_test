@@ -22,12 +22,11 @@ export async function create_city_code(reqObject: any, user: any) {
     });
     if (!capability.status) throw new Error("Invalid User");
 
-    let success = await project.create({
+    return await project.create({
       reference: reqObject.citycode,
       city: reqObject.cityname,
       summary: reqObject.description || "N/A"
     });
-    return { status: true, data: success };
   } catch (err) {
     console.log(err);
     throw err;
@@ -57,8 +56,7 @@ export async function edit_city_code(id: any, reqObject: any, user: any) {
     if (reqObject.description) {
       obj.summary = reqObject.description;
     }
-    let success = await project.findByIdAndUpdate(id, obj, { new: true });
-    return { status: true, data: success };
+    return await project.findByIdAndUpdate(id, obj, { new: true });
   } catch (err) {
     console.log(err);
     throw err;
@@ -68,11 +66,10 @@ export async function edit_city_code(id: any, reqObject: any, user: any) {
 //  Get List of city Codes
 export async function city_code_list() {
   try {
-    let success = await project.find(
+    return await project.find(
       { is_active: true },
       { reference: 1, city: 1 }
     );
-    return { status: true, data: success };
   } catch (err) {
     console.log(err);
     throw err;
@@ -87,11 +84,10 @@ export async function city_code_status(id: any) {
     if (!projectData) {
       throw new Error("project not there");
     }
-    let success = await project.findByIdAndUpdate(
+    return await project.findByIdAndUpdate(
       { id },
       { is_active: projectData.is_active ? false : true }
     );
-    return { status: true, data: success };
   } catch (err) {
     console.log(err);
     throw err;
@@ -104,11 +100,10 @@ export async function add_tag(reqObject: any) {
     if (!reqObject.tag) {
       throw new Error(MISSING);
     }
-    let data = await tags.create({
+    return await tags.create({
       tag: reqObject.tag,
       description: reqObject.description || "N/A"
     });
-    return { status: true, data: data };
   } catch (err) {
     console.log(err);
     throw err;
@@ -125,8 +120,7 @@ export async function edit_tag(id: any, reqObject: any) {
     if (reqObject.description) {
       obj.description = reqObject.description;
     }
-    let data = await tags.findByIdAndUpdate(id, obj, { new: true });
-    return { status: true, data: data };
+    return await tags.findByIdAndUpdate(id, obj, { new: true });
   } catch (err) {
     console.log(err);
     throw err;
@@ -136,8 +130,7 @@ export async function edit_tag(id: any, reqObject: any) {
 //  get list of tags
 export async function tag_list() {
   try {
-    let data = await tags.find({ is_active: true });
-    return { status: true, data: data };
+    return await tags.find({ is_active: true });
   } catch (err) {
     console.log(err);
     throw err;
@@ -151,11 +144,10 @@ export async function tag_status(id: any) {
     if (!city) {
       throw new Error(MISSING);
     }
-    let data = await tags.findByIdAndUpdate(
+    return await tags.findByIdAndUpdate(
       { id },
       { is_active: city.is_active == true ? false : true }
     );
-    return { status: true, data: data };
   } catch (err) {
     console.log(err);
     throw err;
@@ -168,11 +160,10 @@ export async function add_theme(reqObject: any) {
     if (!reqObject.theme) {
       throw new Error(MISSING);
     }
-    let data = await themes.create({
+    return await themes.create({
       theme: reqObject.theme,
       description: reqObject.description || "N/A"
     });
-    return { status: true, data: data };
   } catch (err) {
     console.log(err);
     throw err;
@@ -189,8 +180,7 @@ export async function edit_theme(id: any, reqObject: any) {
     if (reqObject.description) {
       obj.description = reqObject.description;
     }
-    let data = await themes.findByIdAndUpdate(id, obj, { new: true });
-    return { status: true, data: data };
+    return await themes.findByIdAndUpdate(id, obj, { new: true });
   } catch (err) {
     console.log(err);
     throw err;
@@ -200,8 +190,7 @@ export async function edit_theme(id: any, reqObject: any) {
 //  get list of theme
 export async function theme_list() {
   try {
-    let data = await themes.find({ is_active: true });
-    return { status: true, data: data };
+    return await themes.find({ is_active: true });
   } catch (err) {
     console.log(err);
     throw err;
@@ -215,11 +204,10 @@ export async function theme_status(id: any) {
     if (!city) {
       throw new Error(MISSING);
     }
-    let data = await themes.findByIdAndUpdate(
+    return await themes.findByIdAndUpdate(
       { id },
       { is_active: city.is_active == true ? false : true }
     );
-    return { status: true, data: data };
   } catch (err) {
     console.log(err);
     throw err;
