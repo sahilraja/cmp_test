@@ -190,6 +190,7 @@ export async function user_login(objBody: any) {
         }
         let userData: any = await Users.findOne({ email: objBody.email });
         if (!userData) throw new Error("Invalid User");
+        if (!userData.emailVerified) throw new Error("User Not Register.")
         let result: any = await comparePassword(objBody.password, userData.password)
         if (!result) {
             throw Error("Invalid login details.");
@@ -370,11 +371,9 @@ export async function editGroup(objBody: any, id: string) {
 export async function groupList() {
     try {
         let group = await groupsModel.find({});
-        const data = await Promise.all([group.map(async (key: any) => {
-            const user = await groupUserList(key._id)
-            user.users = user.length
-            return user
-        })])
+        const data = await Promise.all(group.map(async (key: any) => {
+            return { ...key.toJSON(), users: ((await groupUserList(key._id)) as any).length }
+        }))
         return data;
     } catch (err) {
         throw err;
