@@ -61,6 +61,10 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
         let token: any = await jwt_Verify(verifyToken)
         if (!token) throw new Error("Invalid Token.")
 
+        let user: any = await Users.findById(token.id)
+        if (user.emailVerified) {
+            throw new Error("Already User Register.")
+        }
         const { name, password, phone, aboutme } = objBody
 
         if (!name || !password || !phone || !aboutme) {
