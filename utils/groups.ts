@@ -85,7 +85,7 @@ export async function GetDocIdsForUser(userId: string) {
         let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
         if (!policies.data) throw new Error("policies not found for this User.")
         let users = policies.data.filter((policy: string[]) => {
-            if (policy[2] == "owner" || policy[2] == "collaborator" || policy[2] == "viewer")
+            if (policy[2] == "collaborator" || policy[2] == "viewer")
                 return policy
         }).map((key: string[]) => key[1].substring(key[1].indexOf("/") + 1))
         return [...new Set(users)]

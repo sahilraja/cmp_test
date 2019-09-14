@@ -38,7 +38,7 @@ export async function inviteUser(objBody: any, user: any) {
         });
         let mailStatus = await nodemail({
             email: userData.email,
-            subject: "cmp invite user",
+            subject: "Invitation from CITIIS Management Platform",
             html: inviteUserForm({
                 username: objBody.name,
                 role: objBody.role,
