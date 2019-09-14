@@ -277,7 +277,7 @@ export async function forgotPassword(objBody: any) {
             subject: "CMP Reset password instructions",
             html: forgotPasswordForm({
                 username: (userDetails.firstName) ? userDetails.firstName : userDetails.secondName,
-                link: `${ANGULAR_URL}/invite/user/:${token}`
+                link: `${ANGULAR_URL}/user/reset-password/:${token}`
             })
         })
         return { message: "successfully mail was sent." }
@@ -426,11 +426,12 @@ export async function removeMembers(id: string, users: any[]) {
 
 export async function userSuggestions(search: string) {
     try {
-        let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
-        groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
+        // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
+        // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
         let users: any = await Users.find({ $or: [{ firstName: new RegExp(search, "i") }, { secondName: new RegExp(search, "i") }] }, { firstName: 1, secondName: 1 });
-        users = await Promise.all([users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: ((await userRoleAndScope(user._id)) as any).data.global[0] } })])
-        return [...groups, ...users]
+        users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: ((await userRoleAndScope(user._id)) as any).data.global[0] } }))
+        //  groups removed in removed
+        return [...users]
     } catch (err) {
         throw err
     };

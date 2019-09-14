@@ -130,7 +130,8 @@ export async function edit_tag(id: any, reqObject: any) {
 //  get list of tags
 export async function tag_list() {
   try {
-    return await tags.find({ is_active: true });
+    let success = await tags.find({ is_active: true });
+    return { status: true, data: success }
   } catch (err) {
     console.log(err);
     throw err;

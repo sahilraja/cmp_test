@@ -30,7 +30,7 @@ export function forgotPasswordForm(body: any) {
         <br/>
         <br/>
         Best Regards,<br/>
-        Transerve Support.
+        CMP Team.
         </center>
         `
         return text

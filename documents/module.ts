@@ -23,7 +23,7 @@ export async function createDoc(body: any, userId: string) {
         }
         let doc = await insertDOC(body, userId);
         body.parentId = doc.id;
-        let role = await groupsAddPolicy(userId, doc.id, "owner")
+        let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner")
         if (!role.user) {
             await documents.findByIdAndRemove(doc.id)
             throw new Error("fail to add role")
@@ -197,11 +197,9 @@ export async function ApproveDoc(docId: string, versionId: string) {
 export async function getDocDetails(docId: any) {
     try {
         if (!docId) throw new Error("Missing DocID");
-        let publishDocs: any = await documents.find({ parentId: docId, status: STATUS.DONE }).sort({ "createdAt": -1 })
-        if (!publishDocs.length) throw new Error("Approved Docs Not there.")
-        const docList = publishDocs[0].toJSON()
+        let publishDocs: any = await documents.findById(docId)
+        const docList = publishDocs.toJSON()
         docList.tags = await getTags(docList.tags)
-        docList.themes = await getThemes(docList.themes)
         let role: any = await userRoleAndScope(docList.ownerId)
         docList.role = role.data.global[0]
         return docList
@@ -290,7 +288,7 @@ export async function updateDoc(objBody: any, docId: any) {
 
 export async function approvalList() {
     try {
-        let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PENDING });
+        let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PUBLISHED });
         let parentDocsIdsArray = docList.map((doc: any) => { return doc.parentId })
         let parentDocList = await documents.find({ _id: { $in: parentDocsIdsArray } })
         const List = await Promise.all(parentDocList.map(async doc => {
@@ -513,7 +511,8 @@ export async function invitePeopleList(docId: string) {
     try {
         if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
         let users = await GetUserIdsForDoc(docId)
-        if (!users) throw new Error("fail to fetch user id.")
+        let total: any = []
+        if (!users.length) return {}
         let userGroup: any = {}
         users.map((user: any) => {
             if (userGroup[user.split("/")[0]]) {
@@ -524,27 +523,29 @@ export async function invitePeopleList(docId: string) {
         })
         if (userGroup.user) {
             var userData: any = await Users.find({ _id: { $in: userGroup.user } }, { firstName: 1, secondName: 1, email: 1 })
-            userData = await Promise.all([userData.map(async (user: any) => {
+            userData = await Promise.all(userData.map(async (user: any) => {
                 return {
                     name: user.firstName + " " + user.secondName,
                     type: "user",
                     email: user.email,
                     role: ((await getRoleOfDoc(user.id, docId)) as any)[2]
                 }
-            })])
+            }))
+            total = [...userData]
         }
         if (userGroup.group) {
             var groupData: any = await groupsModel.find({ _id: { $in: userGroup.group } }, { name: 1 })
-            groupData = await Promise.all([groupData.map(async (user: any) => {
+            groupData = await Promise.all(groupData.map(async (user: any) => {
                 return {
                     name: name,
                     type: "group",
                     email: "N/A",
                     role: ((await getRoleOfDoc(user.id, docId)) as any)[2]
                 }
-            })])
+            }))
+            total = (!total.length) ? [...groupData] : total.concat(groupData)
         }
-        return [...userData, ...groupData]
+        return total
     } catch (err) {
         throw err;
     };

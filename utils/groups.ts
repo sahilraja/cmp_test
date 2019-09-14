@@ -98,10 +98,11 @@ export async function getRoleOfDoc(userId: string, docId: string) {
     try {
         let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
         if (!policies.data) throw new Error("policies not found for this User.");
-        policies.data.map((key: string[]) => {
+        let data = policies.data.filter((key: string[]) => {
             if (key[1].includes(docId) && ["owner", "collaborator", "viewer"].includes(key[2]))
                 return key
         })
+        return data[0]
     } catch (err) {
         throw err;
     };

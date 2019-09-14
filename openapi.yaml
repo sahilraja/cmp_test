@@ -319,11 +319,18 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
   # user set password
-  "/user/forgot/password/":
+  "/user/forgot/password/{token}":
     post:
       summary: user set password
       tags:
         - USERS
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+          description: token
       requestBody:
         required: true
         content:
