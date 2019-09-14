@@ -190,7 +190,7 @@ export async function user_login(objBody: any) {
         }
         let userData: any = await Users.findOne({ email: objBody.email });
         if (!userData) throw new Error("Invalid User");
-        if (!userData.emailVerified) throw new Error("User Not Register.")
+        if (!userData.emailVerified) throw new Error("User not registered")
         let result: any = await comparePassword(objBody.password, userData.password)
         if (!result) {
             throw Error("Invalid login details.");

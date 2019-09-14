@@ -209,3 +209,21 @@ export async function removeUserToGroup(userId: string, groupId: string) {
         throw err;
     };
 };
+
+export async function checkCapability(user: string, scope: string, capability: string) {
+    try {
+        let Options = {
+            uri: `${process.env.GROUPS_URL}/policy/enforce`,
+            method: "GET",
+            qs: {
+                userId: user,
+                scope: scope,
+                capability: capability
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};

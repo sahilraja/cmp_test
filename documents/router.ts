@@ -313,7 +313,7 @@ router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, 
 //  update exist doc
 router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await docCapabilities(res.locals.user.id, req.params.id));
+        res.status(200).send(await docCapabilities(req.params.id, res.locals.user.id));
     } catch (err) {
         next(err);
     };
@@ -349,7 +349,7 @@ router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: N
 //  update exist doc
 router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await updateDoc(req.body, req.params.id));
+        res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user.id));
     } catch (err) {
         next(err);
     };

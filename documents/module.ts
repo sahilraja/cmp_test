@@ -4,7 +4,7 @@ import { Types, STATES } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
-import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc, GetDocCapabilitiesForUser } from "../utils/groups";
+import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc, GetDocCapabilitiesForUser, checkCapability } from "../utils/groups";
 import { Users } from "../users/model";
 import { groupsModel } from "../users/group-model";
 
@@ -251,8 +251,10 @@ export async function getDocWithVersion(docId: any, versionId: any) {
     };
 };
 
-export async function updateDoc(objBody: any, docId: any) {
+export async function updateDoc(objBody: any, docId: any, userId: string) {
     try {
+        let capbility = await GetDocCapabilitiesForUser(userId, docId)
+        if (capbility.includes("viewer")) throw new Error("User have no such capability to update.")
         let obj: any = {};
         if (objBody.name) {
             obj.name = objBody.name;
