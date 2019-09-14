@@ -527,6 +527,7 @@ export async function invitePeopleList(docId: string) {
             var userData: any = await Users.find({ _id: { $in: userGroup.user } }, { firstName: 1, secondName: 1, email: 1 })
             userData = await Promise.all(userData.map(async (user: any) => {
                 return {
+                    id:user._id,
                     name: user.firstName + " " + user.secondName,
                     type: "user",
                     email: user.email,
