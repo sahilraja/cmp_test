@@ -57,7 +57,7 @@ async function insertDOC(body: any, userId: string) {
 //  Get Document Public List
 export async function getDocList() {
     try {
-        let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED });
+        let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ createdAt: -1 });
         if (!data) throw new Error("approved Docs Not There.")
         const docList = await Promise.all(data.map(async doc => {
             const user = { ...doc.toJSON() }
@@ -78,7 +78,7 @@ export async function getDocList() {
 export async function getDocListOfMe(userId: string) {
     try {
         if (!userId) throw new Error("Missing UserId.");
-        let docs = await documents.find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } })
+        let docs = await documents.find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } }).sort({ createdAt: -1 })
         const docList = await Promise.all(docs.map(async doc => {
             const user = { ...doc.toJSON() }
             user.tags = await getTags(user.tags)
@@ -200,8 +200,7 @@ export async function getDocDetails(docId: any) {
         let publishDocs: any = await documents.findById(docId)
         const docList = publishDocs.toJSON()
         docList.tags = await getTags(docList.tags)
-        let role: any = await userRoleAndScope(docList.ownerId)
-        docList.role = role.data.global[0]
+        docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0]
         return docList
     } catch (err) {
         console.log(err)
@@ -290,7 +289,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
 
 export async function approvalList() {
     try {
-        let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PUBLISHED });
+        let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PUBLISHED }).sort({ createdAt: -1 });
         let parentDocsIdsArray = docList.map((doc: any) => { return doc.parentId })
         let parentDocList = await documents.find({ _id: { $in: parentDocsIdsArray } })
         const List = await Promise.all(parentDocList.map(async doc => {
@@ -469,7 +468,7 @@ export async function viewerList(docId: string) {
 export async function sharedList(userId: string) {
     try {
         let docIds = await GetDocIdsForUser(userId)
-        return await documents.find({ _id: { $in: docIds } })
+        return await documents.find({ _id: { $in: docIds } }).sort({ createdAt: -1 })
     } catch (err) {
         throw err
     };
@@ -527,7 +526,7 @@ export async function invitePeopleList(docId: string) {
             var userData: any = await Users.find({ _id: { $in: userGroup.user } }, { firstName: 1, secondName: 1, email: 1 })
             userData = await Promise.all(userData.map(async (user: any) => {
                 return {
-                    id:user._id,
+                    id: user._id,
                     name: user.firstName + " " + user.secondName,
                     type: "user",
                     email: user.email,
@@ -538,12 +537,13 @@ export async function invitePeopleList(docId: string) {
         }
         if (userGroup.group) {
             var groupData: any = await groupsModel.find({ _id: { $in: userGroup.group } }, { name: 1 })
-            groupData = await Promise.all(groupData.map(async (user: any) => {
+            groupData = await Promise.all(groupData.map(async (group: any) => {
                 return {
+                    id: group._id,
                     name: name,
                     type: "group",
                     email: "N/A",
-                    role: ((await getRoleOfDoc(user.id, docId)) as any)[2]
+                    role: ((await getRoleOfDoc(group.id, docId)) as any)[2]
                 }
             }))
             total = (!total.length) ? [...groupData] : total.concat(groupData)
@@ -621,7 +621,7 @@ export async function replaceDoc(docId: string, replaceDoc: string, userId: stri
 
 export async function publishList(userId: string) {
     try {
-        return await documents.find({ ownerId: userId, status: STATUS.PUBLISHED })
+        return await documents.find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ createdAt: -1 })
     } catch (err) {
         throw err
     };

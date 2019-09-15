@@ -370,7 +370,7 @@ export async function editGroup(objBody: any, id: string) {
 //  Get group List
 export async function groupList() {
     try {
-        let group = await groupsModel.find({});
+        let group = await groupsModel.find({}).sort({ createdAt: -1 });
         const data = await Promise.all(group.map(async (key: any) => {
             return { ...key.toJSON(), users: ((await groupUserList(key._id)) as any).length }
         }))
