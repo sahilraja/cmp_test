@@ -18,6 +18,12 @@
         "scope": "global"
     },
     {
+        "capability": "publish-documents",
+        "description": "Publish Documents",
+        "role": "Communication Specialist",
+        "scope": "global"
+    },
+    {
         "capability": "project-view",
         "description": "Project View",
         "role": "Program Manager",
