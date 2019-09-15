@@ -1,11 +1,12 @@
 import * as request from "request-promise";
 import { Users } from "../users/model";
+import { RBAC_URL } from "../utils/urls";
 
 // Get Roles List
 export async function role_list() {
     try {
         let Options = {
-            uri: `${process.env.RBAC_URL}/capabilities/policy/list`,
+            uri: `${RBAC_URL}/capabilities/policy/list`,
             method: "GET",
             json: true
         }
@@ -31,7 +32,7 @@ export async function role_list() {
 export async function checkRoleScope(role: any, scope: any) {
     try {
         let Options = {
-            uri: `${process.env.RBAC_URL}/capabilities/policy/list`,
+            uri: `${RBAC_URL}/capabilities/policy/list`,
             method: "GET",
             json: true
         }
@@ -52,7 +53,7 @@ export async function checkRoleScope(role: any, scope: any) {
 export async function userRoleAndScope(userId: any) {
     try {
         let Options = {
-            uri: `${process.env.RBAC_URL}/role/list/${userId}`,
+            uri: `${RBAC_URL}/role/list/${userId}`,
             method: "GET",
             json: true
         }
@@ -81,7 +82,7 @@ export async function usersForRole(role: string) {
     try {
         if (!role) throw new Error("Missing Role.");
         let Options = {
-            uri: `${process.env.RBAC_URL}/role/user/list`,
+            uri: `${RBAC_URL}/role/user/list`,
             method: "GET",
             qs: {
                 role: role,

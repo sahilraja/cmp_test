@@ -2,10 +2,9 @@ import { Router, RequestHandler, NextFunction } from "express"
 import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove, docCapabilities, published, unPublished, replaceDoc, publishList } from "./module";
 import { get as httpGet } from "http";
 import { authenticate } from "../utils/utils";
+import { FILES_SERVER_BASE } from "../utils/urls";
 
 const router = Router()
-
-const FILES_SERVER_BASE = process.env.FILES_SERVER_BASE || "http://localhost:4040";
 
 const ensureCanViewDocument: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;

@@ -14,11 +14,14 @@
             ],
             // "sourceMaps": true
             "env": {
+                "USE_REMOTE_DB" : "false",
                 "NODE_ENV": "DEVELOPMENT",
                 "MONGO_URL": "mongodb://localhost/rbac",
                 "RBAC_URL": "http://localhost:8081",
                 "ANGULAR_URL": "http://localhost:4200",
-                "GROUPS_URL": "http://localhost:5051"
+                "GROUPS_URL": "http://localhost:5051",
+                "REMOTE_RBAC_URL": "https://cmp-dev.transerve.com/proxy-rbac",
+                "REMOTE_GROUPS_URL": "https://cmp-dev.transerve.com/proxy-groups"
             }
         },
         {
@@ -36,7 +39,7 @@
             // "sourceMaps": true
             "env": {
                 "NODE_ENV": "DEVELOPMENT",
-                "MONGO_URL": "mongodb://localhost/rbac",
+                "MONGO_URL": "mongodb://localhost/rbac"
             }
         }
     ]

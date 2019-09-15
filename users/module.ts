@@ -8,8 +8,7 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupsModel } from "./group-model";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
-
-const ANGULAR_URL = process.env.ANGULAR_URL || "http://localhost:4200"
+import { ANGULAR_URL } from "../utils/urls";
 
 //  Create User
 export async function inviteUser(objBody: any, user: any) {

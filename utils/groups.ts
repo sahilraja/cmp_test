@@ -1,5 +1,5 @@
 import * as request from "request-promise";
-import { addCollaborator } from "../documents/module";
+import { GROUPS_URL } from "./urls";
 
 enum roleHierarchy {
     owner = 0,
@@ -11,7 +11,7 @@ enum roleHierarchy {
 export async function groupsAddPolicy(userId: string, docId: string, role: string) {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/document/user/add`,
+            uri: `${GROUPS_URL}/document/user/add`,
             method: "POST",
             body: {
                 userId: userId,
@@ -31,7 +31,7 @@ export async function groupsAddPolicy(userId: string, docId: string, role: strin
 export async function groupsRemovePolicy(userId: string, docId: string, role: string) {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/document/user/remove`,
+            uri: `${GROUPS_URL}/document/user/remove`,
             method: "POST",
             body: {
                 userId: userId,
@@ -50,7 +50,7 @@ export async function groupsRemovePolicy(userId: string, docId: string, role: st
 export async function groupsPolicyFilter(userId: string, filter: number = 0, policy: string = "p") {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/policy/filter`,
+            uri: `${GROUPS_URL}/policy/filter`,
             method: "GET",
             qs: {
                 userId: userId,
@@ -152,7 +152,7 @@ export async function GetDocCapabilitiesForUser(userId: string, docId: string) {
 export async function userGroupsList(userId: string) {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/group/list/${userId}`,
+            uri: `${GROUPS_URL}/group/list/${userId}`,
             method: "GET",
             json: true
         }
@@ -166,7 +166,7 @@ export async function userGroupsList(userId: string) {
 export async function groupUserList(groupId: string) {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/group/user/list/${groupId}`,
+            uri: `${GROUPS_URL}/group/user/list/${groupId}`,
             method: "GET",
             json: true
         }
@@ -179,7 +179,7 @@ export async function groupUserList(groupId: string) {
 export async function addUserToGroup(userId: string, groupId: string) {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/group/user/add`,
+            uri: `${GROUPS_URL}/group/user/add`,
             method: "GET",
             body: {
                 userId: userId,
@@ -196,7 +196,7 @@ export async function addUserToGroup(userId: string, groupId: string) {
 export async function removeUserToGroup(userId: string, groupId: string) {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/group/user/remove`,
+            uri: `${GROUPS_URL}/group/user/remove`,
             method: "GET",
             body: {
                 userId: userId,
@@ -213,7 +213,7 @@ export async function removeUserToGroup(userId: string, groupId: string) {
 export async function checkCapability(user: string, scope: string, capability: string) {
     try {
         let Options = {
-            uri: `${process.env.GROUPS_URL}/policy/enforce`,
+            uri: `${GROUPS_URL}/policy/enforce`,
             method: "GET",
             qs: {
                 userId: user,

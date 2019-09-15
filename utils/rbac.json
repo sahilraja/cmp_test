@@ -20,12 +20,6 @@
     {
         "capability": "project-view",
         "description": "Project View",
-        "role": "Program Coordinator",
-        "scope": "global"
-    },
-    {
-        "capability": "project-view",
-        "description": "Project View",
         "role": "Program Manager",
         "scope": "global"
     }
