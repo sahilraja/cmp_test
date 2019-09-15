@@ -282,7 +282,7 @@ export async function forgotPassword(objBody: any) {
             subject: "CMP Reset password instructions",
             html: forgotPasswordForm({
                 username: (userDetails.firstName) ? userDetails.firstName : userDetails.secondName,
-                link: `${ANGULAR_URL}/user/reset-password/:${token}`
+                link: `${ANGULAR_URL}/user/reset-password/${token}`
             })
         })
         return { message: "successfully mail was sent." }
