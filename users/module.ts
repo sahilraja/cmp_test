@@ -276,7 +276,7 @@ export async function forgotPassword(objBody: any) {
         };
         let userDetails: any = await Users.findOne({ email: objBody.email });
         if (!userDetails) throw new Error("User Invalid.")
-        let token = jwt_for_url({ id: userDetails.id })
+        let token = await jwt_for_url({ id: userDetails.id })
         let success = await nodemail({
             email: userDetails.email,
             subject: "CMP Reset password instructions",
