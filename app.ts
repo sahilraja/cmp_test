@@ -22,7 +22,7 @@ const app: Application = express();
 app.use(cors())
 
 //  mongoose connection
-mongooseConnect(process.env.MONGO_URL as any, { useNewUrlParser: true });
+require('./utils/mongoose');
 
 //  swagger implementation
 const swaggerUi = require("swagger-ui-express");

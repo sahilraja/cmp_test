@@ -1,6 +1,5 @@
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
-import * as request from "request-promise"
 import { Users } from '../users/model';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
@@ -14,13 +13,19 @@ export async function authenticate(req: any, res: any, next: any) {
         let bearerToken = req.headers.authorization.substring(7, req.headers.authorization.length)
         let token: any = await jwt_Verify(bearerToken)
         if (!token) throw new Error("Invalid Token")
-        res.locals.user = await Users.findById(token.id)
-        if(!res.locals.user.is_active) throw new Error("User inactive By cmp admin.")
-        res.locals.user.role = token.role
+        const user : any = await Users.findById(token.id);
+        if (!user) {
+            throw (new Error("Invalid credentials. Please login again"));
+        }
+        if(!user.is_active) {
+            throw new Error("Credentials not valid anymore. Please contact your technology specialist to activate your account.");
+        }
+        user.role = token.role;
+        res.locals.user = user;
         return next();
     } catch (err) {
         console.log(err)
-        res.send({ success: false, error: err.message });
+        next(err);
     };
 };
 

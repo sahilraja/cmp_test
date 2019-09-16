@@ -18,9 +18,9 @@
         "scope": "global"
     },
     {
-        "capability": "project-view",
-        "description": "Project View",
-        "role": "Program Coordinator",
+        "capability": "publish-documents",
+        "description": "Publish Documents",
+        "role": "Communication Specialist",
         "scope": "global"
     },
     {

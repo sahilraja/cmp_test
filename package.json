@@ -1,5 +1,5 @@
 {
-  "name": "doctors-api",
+  "name": "cmp-api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,8 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/express": "^4.17.1",
-    "@types/mongoose": "^5.3.12",
     "aws-sdk": "^2.513.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
@@ -26,9 +24,13 @@
     "nodemailer": "^6.3.0",
     "nodemailer-smtp-transport": "^2.7.4",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4"
+    "request-promise": "^4.2.4",
+    "tunnel-ssh": "^4.1.4"
   },
   "devDependencies": {
+    "@types/express": "^4.17.1",
+    "@types/mongoose": "^5.3.12",
+    "@types/tunnel-ssh": "^4.1.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/cors": "^2.8.6",
     "@types/jsonwebtoken": "^8.3.3",

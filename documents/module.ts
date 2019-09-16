@@ -12,7 +12,11 @@ enum STATUS {
     DRAFT = 0,
     DONE = 1,
     PUBLISHED = 2,
-    UNPUBLISHED = 3
+    UNPUBLISHED = 3,
+    //Added FOR backward compatibility
+    APPROVED = -1,
+    REJECTED = -2,
+    PENDING = -3
 }
 
 //  Create Document
@@ -512,8 +516,10 @@ export async function invitePeopleList(docId: string) {
     try {
         if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
         let users = await GetUserIdsForDoc(docId)
+        if (!users.length) {
+            return [];
+        }
         let total: any = []
-        if (!users.length) return {}
         let userGroup: any = {}
         users.map((user: any) => {
             if (userGroup[user.split("/")[0]]) {
