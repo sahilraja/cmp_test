@@ -16,7 +16,12 @@ export async function init() {
     if (!removeCapabilities.status) {
         throw "Something Went wrong while removeing the capabilities.";
     }
-    let capabilitiesObject = JSON.parse(fs.readFileSync(join(__dirname, "rbac.json"), "utf8"))
+    let roles : Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "rbac.json"), "utf8"))
+    const capabilities = roles.reduce((capabilities, role) => {
+        return capabilities.concat(role.capabilities.map((capability : any) => {
+            return {...capability, role : role.role }
+        }));
+    }, []);
     let addOptions = {
         url: `${RBAC_URL}/capabilities/add/all`,
         method: "POST",
@@ -24,7 +29,7 @@ export async function init() {
             'Content-Type': 'application/json'
         },
         body: {
-            capabilities: capabilitiesObject
+            capabilities
         },
         json: true
     }

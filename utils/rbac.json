@@ -1,32 +1,42 @@
 [
     {
-        "capability": "create-user",
-        "description": "Create User",
-        "role": "Technology Lead",
-        "scope": "global"
+        "role" : "technology-lead",
+        "category" : "PMU Team",
+        "description": "Technology Lead",
+        "capabilities" : [{
+            "capability": "create-user",
+            "description": "Create User",
+            "scope": "global"
+        }]
     },
     {
-        "capability": "project-view",
-        "description": "Project View",
-        "role": "Program Coordinator",
-        "scope": "global"
+        "role" : "program-coordinator",
+        "category" : "PMU Team",
+        "description": "Program Coordinator",
+        "capabilities" : [
+            {
+                "capability": "project-view",
+                "description": "Project View",
+                "scope": "global"
+            }
+        ]
     },
     {
-        "capability": "project-view",
-        "description": "Project View",
-        "role": "Communication Specialist",
-        "scope": "global"
+        "role": "communication-specialist",
+        "description" : "Communication Specialist",
+        "capabilities" : [{
+            "capability": "publish-documents",
+            "description": "Publish Documents",
+            "scope": "global"
+        }]
     },
     {
-        "capability": "publish-documents",
-        "description": "Publish Documents",
-        "role": "Communication Specialist",
-        "scope": "global"
-    },
-    {
-        "capability": "project-view",
-        "description": "Project View",
-        "role": "Program Manager",
-        "scope": "global"
+        "role": "program-manager",
+        "description" : "Program Manager",
+        "capabilities" :[{
+            "capability": "project-view",
+            "description": "Project View",
+            "scope": "global"
+        }]
     }
 ]

@@ -1,31 +1,15 @@
 import * as request from "request-promise";
 import { Users } from "../users/model";
 import { RBAC_URL } from "../utils/urls";
+import * as fs from "fs";
+import { join } from "path";
 
 // Get Roles List
 export async function role_list() {
-    try {
-        let Options = {
-            uri: `${RBAC_URL}/capabilities/policy/list`,
-            method: "GET",
-            json: true
-        }
-        let data = await request(Options);
-        if (!data.status) throw new Error("Error to fetch Roles")
-        let role: any[] = ["technology lead"]
-        let roleList: any = []
-        await data.data.map((obj: any) => {
-            if (!role.includes(obj[0])) {
-                role.push(obj[0])
-                let scope = (obj[1].indexOf("/") == -1) ? obj[1] : obj[1].substring(0, obj[1].indexOf("/"))
-                roleList.push({ role: obj[0], scope: scope })
-            };
-        });
-        return { roles: roleList }
-    } catch (err) {
-        console.log(err);
-        throw err;
-    };
+    let roles : Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "rbac.json"), "utf8"));
+    return roles.map(role => {
+        return { role : role.role, description: role.description, category: role.category }
+    });
 };
 
 //  Check Role Scope
