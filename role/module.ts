@@ -12,7 +12,7 @@ export async function role_list() {
         }
         let data = await request(Options);
         if (!data.status) throw new Error("Error to fetch Roles")
-        let role: any[] = []
+        let role: any[] = ["technology lead"]
         let roleList: any = []
         await data.data.map((obj: any) => {
             if (!role.includes(obj[0])) {
