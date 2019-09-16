@@ -2,7 +2,7 @@ import { documents } from "./model"
 import * as http from "http";
 import { Types, STATES } from "mongoose";
 import { userRoleAndScope } from "../role/module";
-import { tags } from "../project/tag_model";
+import { tags as Tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
 import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc, GetDocCapabilitiesForUser, checkCapability } from "../utils/groups";
 import { Users } from "../users/model";
@@ -378,7 +378,7 @@ export async function getApprovalDoc(docId: string) {
 
 async function getTags(tagIds: any[]) {
     try {
-        return await tags.find({ _id: { $in: tagIds } }, { tag: 1 })
+        return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 })
     } catch (err) {
         console.log(err)
         throw err
@@ -648,26 +648,26 @@ export async function publishList(userId: string) {
 };
 
 export async function docFilter(search: string) {
+    search = search.trim();
     try {
-        if (search.includes("#")) {
-            let tag = await tags.find({ tag: new RegExp(search.substring(1), "i") })
-            if (!tag.length) return []
-            let tagIds = tag.map(tag => tag._id)
-            let doc: any = await documents.find({ tags: { $in: tagIds }, parentId: null }).sort({ updatedAt: -1 });
-            if (!doc.length) return []
-            let docs = await Promise.all(doc.map(async (doc: any) => {
-                return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId), role: ((await userRoleAndScope(doc.ownerId)) as any).data.global[0], tags: await getTags(doc.tags) }
-
-            }))
-            return docs
+        let docs : any= [];
+        if (search.startsWith("#")) {
+            let tags = await Tags.find({ tag: new RegExp(search.substring(1), "i") }).limit(0);
+            if (!tags.length) {
+                return [];
+            }
+            let tagId = tags.map(tag => tag._id).pop().toString();
+            docs = await documents.find({ tags: { $elemMatch: { $eq : tagId} }, parentId: null }).sort({ updatedAt: -1 }).limit(30);
+            
         } else {
-            let doc: any = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 })
-            if (!doc.length) return []
-            let docs = await Promise.all(doc.map(async (doc: any) => {
-                return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId), role: ((await userRoleAndScope(doc.ownerId)) as any).data.global[0], tags: await getTags(doc.tags) }
-            }))
-            return docs
+            docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 }).limit(30);
         }
+        if (!docs.length) {
+            return [];
+        }
+        return await Promise.all(docs.map(async (doc: any) => {
+            return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId, {"firstName" : 1, "secondName" : 1}), role: (((await userRoleAndScope(doc.ownerId)) as any).data.global || [""])[0], tags: await getTags(doc.tags) }
+        }))
     } catch (err) {
         throw err
     };
