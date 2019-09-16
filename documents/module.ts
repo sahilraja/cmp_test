@@ -485,7 +485,7 @@ export async function invitePeople(docId: string, users: object[], role: string)
         Promise.all([users.map(async (user: any) => {
             await shareDoc(user._id, user.type, docId, role)
         })])
-        return { message: "added successfully." }
+        return { message: "share successfully." }
     } catch (err) {
         throw err
     };
@@ -497,7 +497,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
         let userRole: any = await getRoleOfDoc(userId, docId);
         await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2])
         await await groupsAddPolicy(`${type}/${userId}`, docId, role)
-        return { message: "add successfully." }
+        return { message: "edit user successfully." }
     } catch (err) {
         throw err
     };
@@ -507,7 +507,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     try {
         if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
         await groupsRemovePolicy(`${type}/${userId}`, docId, role)
-        return { message: "Remove successfully." }
+        return { message: "Revoke share successfully." }
     } catch (err) {
         throw err
     };
