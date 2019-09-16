@@ -180,7 +180,7 @@ export async function addUserToGroup(userId: string, groupId: string) {
     try {
         let Options = {
             uri: `${GROUPS_URL}/group/user/add`,
-            method: "GET",
+            method: "POST",
             body: {
                 userId: userId,
                 groupId: groupId
@@ -197,7 +197,7 @@ export async function removeUserToGroup(userId: string, groupId: string) {
     try {
         let Options = {
             uri: `${GROUPS_URL}/group/user/remove`,
-            method: "GET",
+            method: "POST",
             body: {
                 userId: userId,
                 groupId: groupId
