@@ -482,7 +482,7 @@ export async function sharedList(userId: string) {
 };
 async function invite(user: any, docId: any, role: any, doc: any) {
     await shareDoc(user._id, user.type, docId, role)
-    let userData: any = await Users.findById(user.id)
+    let userData: any = await Users.findById(user._id)
     return nodemail({
         email: userData.email,
         subject: `Invitation for ${doc.name} document`,
@@ -497,7 +497,7 @@ export async function invitePeople(docId: string, users: object[], role: string)
     try {
         if (!docId || !users || !role) throw new Error("Missing fields.");
         let doc: any = await documents.findById(docId)
-        Promise.all(users.map(async (user: any) => invite(user, docId, role, doc)))
+        await Promise.all(users.map(async (user: any) => await invite(user, docId, role, doc)))
         return { message: "Share successfully." }
     } catch (err) {
         throw err

@@ -41,7 +41,7 @@ export function forgotPasswordForm(body: any) {
     }
 }
 
-export async function docInvitePeople(body: any) {
+export function docInvitePeople(body: any) {
     try {
         const text = `
         Dear  ${body.username},<br/></br>
