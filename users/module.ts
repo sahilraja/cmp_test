@@ -69,9 +69,6 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
         if (!name || !password || !phone || !aboutme) {
             throw new Error(MISSING);
         };
-        if (!/(?=.?[#?!@$%^&-]).{6,}/.test(password)) {
-            throw new Error("Password must contain one special character and six characters or longer.")
-        }
 
         if (isNaN(phone) || phone.length != 10) {
             throw new Error("Enter Valid Phone Number.")
@@ -116,9 +113,6 @@ export async function edit_user(id: any, objBody: any) {
             obj.secondName = objBody.secondName;
         };
         if (objBody.password) {
-            if (!/(?=.?[#?!@$%^&-]).{6,}/.test(objBody.password)) {
-                throw new Error("Password must contain one special character and six characters or longer.")
-            }
             let has_Password = hashPassword(objBody.password)
             obj.password = has_Password;
         };
@@ -214,7 +208,7 @@ export async function userInviteResend(id: any, role: any) {
         let token = await jwt_for_url({ user: id, role: role });
         let success = await nodemail({
             email: userData.email,
-            subject: "cmp invite user",
+            subject: "Invitation from CITIIS Management Platform",
             html: inviteUserForm({
                 username: userData.username,
                 role: role,

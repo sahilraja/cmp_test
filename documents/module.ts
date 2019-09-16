@@ -7,6 +7,8 @@ import { themes } from "../project/theme_model";
 import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc, GetDocCapabilitiesForUser, checkCapability } from "../utils/groups";
 import { Users } from "../users/model";
 import { groupsModel } from "../users/group-model";
+import { nodemail } from "../utils/email";
+import { docInvitePeople } from "../utils/email_template";
 
 enum STATUS {
     DRAFT = 0,
@@ -478,14 +480,25 @@ export async function sharedList(userId: string) {
         throw err
     };
 };
-
+async function invite(user: any, docId: any, role: any, doc: any) {
+    await shareDoc(user._id, user.type, docId, role)
+    let userData: any = await Users.findById(user.id)
+    return nodemail({
+        email: userData.email,
+        subject: `Invitation for ${doc.name} document`,
+        html: docInvitePeople({
+            username: userData.firstName + " " + userData.secondName,
+            documentName: doc.name,
+            documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`,
+        })
+    })
+}
 export async function invitePeople(docId: string, users: object[], role: string) {
     try {
         if (!docId || !users || !role) throw new Error("Missing fields.");
-        Promise.all([users.map(async (user: any) => {
-            await shareDoc(user._id, user.type, docId, role)
-        })])
-        return { message: "share successfully." }
+        let doc: any = await documents.findById(docId)
+        Promise.all(users.map(async (user: any) => invite(user, docId, role, doc)))
+        return { message: "Share successfully." }
     } catch (err) {
         throw err
     };
@@ -497,7 +510,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
         let userRole: any = await getRoleOfDoc(userId, docId);
         await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2])
         await await groupsAddPolicy(`${type}/${userId}`, docId, role)
-        return { message: "edit user successfully." }
+        return { message: "Edit user successfully." }
     } catch (err) {
         throw err
     };
@@ -637,11 +650,23 @@ export async function publishList(userId: string) {
 export async function docFilter(search: string) {
     try {
         if (search.includes("#")) {
-            let doc: any = await documents.find({ tags: { $contains: search.substring(1) }, parentId: null }).sort({ updatedAt: -1 });
-            return { ...doc.toJSON(), owner: await Users.findById(doc.ownerId), role: ((await userRoleAndScope(doc.ownerId)) as any).data.global[0], tags: await getTags(doc.tags) }
+            let tag = await tags.find({ tag: new RegExp(search.substring(1), "i") })
+            if (!tag.length) return []
+            let tagIds = tag.map(tag => tag._id)
+            let doc: any = await documents.find({ tags: { $in: tagIds }, parentId: null }).sort({ updatedAt: -1 });
+            if (!doc.length) return []
+            let docs = await Promise.all(doc.map(async (doc: any) => {
+                return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId), role: ((await userRoleAndScope(doc.ownerId)) as any).data.global[0], tags: await getTags(doc.tags) }
+
+            }))
+            return docs
         } else {
             let doc: any = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 })
-            return { ...doc.toJSON(), owner: await Users.findById(doc.ownerId), role: ((await userRoleAndScope(doc.ownerId)) as any).data.global[0], tags: await getTags(doc.tags) }
+            if (!doc.length) return []
+            let docs = await Promise.all(doc.map(async (doc: any) => {
+                return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId), role: ((await userRoleAndScope(doc.ownerId)) as any).data.global[0], tags: await getTags(doc.tags) }
+            }))
+            return docs
         }
     } catch (err) {
         throw err
