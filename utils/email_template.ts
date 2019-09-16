@@ -24,7 +24,6 @@ export function inviteUserForm(body: any) {
 export function forgotPasswordForm(body: any) {
     try {
         const text = `
-        <center>
         <p>Hi  ${body.username},</p><br/></br>
         <p> Someone, hopefully you, has requested to reset the password </P></br>
         <p> If you did not perform this request, you can safely ignore this email. </P></br>
@@ -34,7 +33,6 @@ export function forgotPasswordForm(body: any) {
         <br/>
         Best Regards,<br/>
         CMP Team.
-        </center>
         `
         return text
     } catch (err) {

@@ -1,5 +1,5 @@
 import { Router, RequestHandler, NextFunction } from "express"
-import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove, docCapabilities, published, unPublished, replaceDoc, publishList } from "./module";
+import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove, docCapabilities, published, unPublished, replaceDoc, publishList, docFilter } from "./module";
 import { get as httpGet } from "http";
 import { authenticate } from "../utils/utils";
 import { FILES_SERVER_BASE } from "../utils/urls";
@@ -363,6 +363,14 @@ router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: N
         next(err);
     };
 });
+
+router.get("/search", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        res.status(200).send(await docFilter(req.query.filter))
+    } catch (err) {
+        next(err);
+    }
+})
 
 
 export = router;

@@ -280,7 +280,7 @@ export async function forgotPassword(objBody: any) {
             email: userDetails.email,
             subject: "CMP Reset password instructions",
             html: forgotPasswordForm({
-                username: (userDetails.firstName) ? userDetails.firstName : userDetails.secondName,
+                username: userDetails.firstName + " " + userDetails.secondName,
                 link: `${ANGULAR_URL}/user/reset-password/${token}`
             })
         })
@@ -369,7 +369,7 @@ export async function editGroup(objBody: any, id: string) {
 //  Get group List
 export async function groupList() {
     try {
-        let group = await groupsModel.find({}).sort({ createdAt: -1 });
+        let group = await groupsModel.find({}).sort({ updatedAt: -1 });
         const data = await Promise.all(group.map(async (key: any) => {
             return { ...key.toJSON(), users: ((await groupUserList(key._id)) as any).length }
         }))

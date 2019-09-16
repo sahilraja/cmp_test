@@ -60,7 +60,7 @@ router.post("/tag/edit/:id", async (req: any, res: any, next: any) => {
 //  list of tag
 router.get("/tag/list", async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await tag_list())
+        res.status(200).send(await tag_list(req.query.search))
     } catch (err) {
         next(err);
     }
