@@ -109,6 +109,13 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
     };
 });
 
+router.get("/search", authenticate, async (req, res, next: NextFunction) => {
+    try {
+        res.status(200).send(await docFilter(req.query.filter))
+    } catch (err) {
+        next(err);
+    }
+})
 
 //  Create new Version
 // router.post("/:id/versions/:versionId/create", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
@@ -345,6 +352,8 @@ router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: N
     };
 });
 
+
+
 //  update exist doc
 router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
@@ -364,13 +373,6 @@ router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: N
     };
 });
 
-router.get("/search", authenticate, async (req, res, next: NextFunction) => {
-    try {
-        res.status(200).send(await docFilter(req.query.filter))
-    } catch (err) {
-        next(err);
-    }
-})
 
 
 export = router;

@@ -40,3 +40,23 @@ export function forgotPasswordForm(body: any) {
         throw err;
     }
 }
+
+export async function docInvitePeople(body: any) {
+    try {
+        const text = `
+        Dear  ${body.username},<br/></br>
+        <br/>
+        You are invited by an user of CMP to collaborate on the document <b>${body.documentName}</b><br/>
+        <br/>
+        You can click this <a href="${body.documentUrl}">link</a> to access it. <br/>
+        Please ignore if you think this is not intended for you. <br/>
+        <br/>
+        Best Regards,<br/>
+        CITIIS Management Platform Team
+        `
+        return text
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
