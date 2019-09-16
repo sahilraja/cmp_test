@@ -13,7 +13,7 @@ export async function role_list() {
 };
 
 //  Check Role Scope
-export async function checkRoleScope(role: any, scope: any) {
+export async function checkRoleScope(role: any, capabilities: any) {
     try {
         let Options = {
             uri: `${RBAC_URL}/capabilities/policy/list`,
@@ -23,7 +23,7 @@ export async function checkRoleScope(role: any, scope: any) {
         let data = await request(Options);
         if (!data.status) throw new Error("Error to fetch Roles")
         for (const policy of data.data) {
-            if (policy[0].includes(role) && policy[1].includes(scope)) {
+            if (policy[0].includes(role) && policy[2].includes(capabilities)) {
                 return true
             }
         }

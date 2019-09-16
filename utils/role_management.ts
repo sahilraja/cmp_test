@@ -54,7 +54,7 @@ export async function userInit() {
             "password": password,
             "phone": "7989238348"
         })
-        let grants = await addRole(user.id, "technology lead")
+        let grants = await addRole(user.id, "technology-lead")
         console.log("No existing users found. Technology specialist user created successfully");
     }
     else {
