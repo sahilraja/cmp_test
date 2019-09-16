@@ -1,6 +1,7 @@
 import { Router, RequestHandler, NextFunction } from "express"
 import { getDocList, getDocListOfMe, createFile, createDoc, submit, createNewVersion, ApproveDoc, RejectDoc, getDocDetails, getDocWithVersion, updateDoc, uploadToFileService, approvalList, getDocumentById, getDocumentVersionById, getVersions, getApprovalDoc, addCollaborator, removeCollaborator, addViewers, removeViewers, viewerList, collaboratorList, sharedList, invitePeople, invitePeopleList, invitePeopleEdit, invitePeopleRemove, docCapabilities, published, unPublished, replaceDoc, publishList, docFilter } from "./module";
 import { get as httpGet } from "http";
+import { get as httpsGet } from "https";
 import { authenticate } from "../utils/utils";
 import { FILES_SERVER_BASE } from "../utils/urls";
 
@@ -193,7 +194,10 @@ router.get("/:id/file", ensureCanViewDocument, async (request: any, response: an
         const { id } = request.params;
         const { fileId } = await getDocumentById(id);
         // const fileId = '5d66b64f7690505a261ab0fd';
-        const req = httpGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
+        const req = (FILES_SERVER_BASE as string).startsWith("https")? httpsGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
+            response.writeHead(200, res.headers);
+            res.pipe(response);
+        }):httpGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
             response.writeHead(200, res.headers);
             res.pipe(response);
         });
