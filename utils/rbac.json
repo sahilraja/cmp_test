@@ -180,18 +180,6 @@
         ]
     },
     {
-        "role": "spv-public-engagement-officer",
-        "category": "SPV",
-        "description": "SPV Public Engagement Officer",
-        "capabilities": [
-            {
-                "capability": "project-view",
-                "description": "Project View",
-                "scope": "global"
-            }
-        ]
-    },
-    {
         "role": "joint-secretary",
         "category": "MoHUA",
         "description": "Joint Secretary",
