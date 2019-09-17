@@ -32,7 +32,7 @@ export const RESPONSE = {
     SUCCESS_EMAIL: "Email send successfully.",
     ACTIVE: "active",
     INACTIVE: "inactive",
-    ADD_MEMBER: "Successfully Added Member."
+    ADD_MEMBER: "Successfully Added Member.",
     REMOVE_MEMBER: "Successfully Removed Member."
 }
 

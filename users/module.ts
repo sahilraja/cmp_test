@@ -154,18 +154,13 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         check[sort] = ascending ? 1 : -1;
         let { docs, pages, total }: PaginateResult<any> = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
         const data = await Promise.all(docs.map(async doc => {
-            return { ...doc.toJSON(), id: doc.id, role: userRole(doc.id) }
+            return { ...doc.toJSON(), id: doc.id, role: (((await userRoleAndScope(doc.id)) as any).data.global || [""])[0] }
         }));
         return { data, pages: pages, count: total };
     } catch (err) {
         throw err;
     };
 };
-
-async function userRole(userId: string) {
-    return (((await userRoleAndScope(userId)) as any).data.global || [""])[0]
-};
-
 
 // change User Status
 export async function user_status(id: string, userId: string) {
@@ -384,16 +379,12 @@ export async function groupList() {
     try {
         let groups = await groupsModel.find({ is_active: true }).sort({ updatedAt: -1 });
         return await Promise.all(groups.map(async (group: any) => {
-            return { ...group.toJSON(), users: ((groupUserIds(group._id)) as any).length }
+            return { ...group.toJSON(), users: ((await groupUserList(group._id)) as any).length }
         }));
     } catch (err) {
         throw err;
     };
 };
-
-async function groupUserIds(groupId: string) {
-    return await groupUserList(groupId)
-}
 
 //  Group detail of group
 export async function groupDetail(id: string) {
@@ -447,7 +438,7 @@ export async function userSuggestions(search: string) {
         // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
         let users: any = await Users.find({ $or: [{ firstName: new RegExp(search, "i") }, { secondName: new RegExp(search, "i") }] }, { firstName: 1, secondName: 1 });
-        users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: userRole(user._id) } }))
+        users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]
     } catch (err) {
