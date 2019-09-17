@@ -16,7 +16,7 @@ export async function inviteUser(objBody: any, user: any) {
         if (!objBody.email || !objBody.name || !objBody.role || !user) {
             throw new Error(MISSING);
         };
-        let admin_scope = await checkRoleScope(user.role, "global");
+        let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new Error("invalid user");
         let userData: any = await Users.create({
             firstName: objBody.name.split(' ').slice(0, -1).join(' '),
