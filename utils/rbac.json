@@ -32,14 +32,7 @@
                 "capability": "publish-documents",
                 "description": "Publish Documents",
                 "scope": "global"
-            }
-        ]
-    },
-    {
-        "role": "program-manager",
-        "category": "PMU Team",
-        "description": "Program Manager",
-        "capabilities": [
+            },
             {
                 "capability": "project-view",
                 "description": "Project View",
@@ -48,9 +41,9 @@
         ]
     },
     {
-        "role": "communication-specialist",
+        "role": "program-manager",
         "category": "PMU Team",
-        "description": "Communication Specialist",
+        "description": "Program Manager",
         "capabilities": [
             {
                 "capability": "project-view",
