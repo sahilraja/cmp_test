@@ -3,6 +3,7 @@ var smtpTransport = require('nodemailer-smtp-transport');
 
 const EMAIL = process.env.EMAIL || "cmp@niua.org";
 const PASSWORD = process.env.PASSWORD || "cmp123*"
+
 export async function nodemail(objBody: any) {
   try {
 
@@ -16,14 +17,6 @@ export async function nodemail(objBody: any) {
         }
       })
     );
-
-    // var transporter = nodemailer.createTransport({
-    //   service: 'gmail',
-    //   auth: {
-    //     user: 'jeevan.balla@transerve.com',
-    //     pass: '7989238348'
-    //   }
-    // });
 
     var mailOptions = {
       from: EMAIL,

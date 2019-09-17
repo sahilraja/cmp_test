@@ -21,6 +21,13 @@ export const USER_ROUTER = {
 
 };
 
+export const AUTHENTICATE_MSG = {
+    MISSING_TOKEN: "Missing token",
+    INVALID_TOKEN: "Invalid Token",
+    INVALID_LOGIN: "Invalid credentials. Please login again",
+    USER_INACTIVE: "Credentials not valid anymore. Please contact your technology specialist to activate your account."
+}
+
 
 export const MAIL_SUBJECT = {
     INVITE_USER: "Invitation from CITIIS Management Platform",

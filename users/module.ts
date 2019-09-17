@@ -163,11 +163,11 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
 };
 
 // change User Status
-export async function user_status(id: string, userId: string) {
+export async function user_status(id: string, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
 
-        let admin_scope = await checkRoleScope(userId, "create-user");
+        let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
 
         let userData: any = await Users.findById(id)

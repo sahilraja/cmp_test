@@ -58,7 +58,7 @@ router.get('/edit/:id', authenticate, async (req: Request, res: Response, next: 
 //  change status user
 router.put('/status/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await user_status(req.params.id, res.locals.user.id));
+        res.status(200).send(await user_status(req.params.id, res.locals.user));
     } catch (err) {
         next(err);
     };

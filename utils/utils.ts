@@ -1,6 +1,7 @@
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 import { Users } from '../users/model';
+import { AUTHENTICATE_MSG } from './error_msg';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
@@ -9,16 +10,16 @@ const SALTROUNDS = 10;
 // User Authentication 
 export async function authenticate(req: any, res: any, next: any) {
     try {
-        if (!req.headers.authorization) throw new Error("Missing token")
+        if (!req.headers.authorization) throw new Error(AUTHENTICATE_MSG.MISSING_TOKEN)
         let bearerToken = req.headers.authorization.substring(7, req.headers.authorization.length)
         let token: any = await jwt_Verify(bearerToken)
-        if (!token) throw new Error("Invalid Token")
-        const user : any = await Users.findById(token.id);
+        if (!token) throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN)
+        const user: any = await Users.findById(token.id);
         if (!user) {
-            throw (new Error("Invalid credentials. Please login again"));
+            throw (new Error(AUTHENTICATE_MSG.INVALID_LOGIN));
         }
-        if(!user.is_active) {
-            throw new Error("Credentials not valid anymore. Please contact your technology specialist to activate your account.");
+        if (!user.is_active) {
+            throw new Error(AUTHENTICATE_MSG.USER_INACTIVE);
         }
         user.role = token.role;
         res.locals.user = user;
