@@ -475,7 +475,10 @@ export async function viewerList(docId: string) {
 export async function sharedList(userId: string) {
     try {
         let docIds = await GetDocIdsForUser(userId)
-        return await documents.find({ _id: { $in: docIds } }).sort({ updatedAt: -1 })
+        let docs = await documents.find({ _id: { $in: docIds } }).sort({ updatedAt: -1 })
+        return await Promise.all(docs.map(async (doc: any) => {
+            return { ...doc.toJSON(), tags: await getTags(doc.tags), role: (((await userRoleAndScope(doc.ownerId)) as any).data.global || [""])[0] }
+        }))
     } catch (err) {
         throw err
     };
@@ -650,15 +653,15 @@ export async function publishList(userId: string) {
 export async function docFilter(search: string) {
     search = search.trim();
     try {
-        let docs : any= [];
+        let docs: any = [];
         if (search.startsWith("#")) {
             let tags = await Tags.find({ tag: new RegExp(search.substring(1), "i") }).limit(0);
             if (!tags.length) {
                 return [];
             }
             let tagId = tags.map(tag => tag._id).pop().toString();
-            docs = await documents.find({ tags: { $elemMatch: { $eq : tagId} }, parentId: null }).sort({ updatedAt: -1 }).limit(30);
-            
+            docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 }).limit(30);
+
         } else {
             docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 }).limit(30);
         }
@@ -666,7 +669,7 @@ export async function docFilter(search: string) {
             return [];
         }
         return await Promise.all(docs.map(async (doc: any) => {
-            return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId, {"firstName" : 1, "secondName" : 1}), role: (((await userRoleAndScope(doc.ownerId)) as any).data.global || [""])[0], tags: await getTags(doc.tags) }
+            return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId, { "firstName": 1, "secondName": 1 }), role: (((await userRoleAndScope(doc.ownerId)) as any).data.global || [""])[0], tags: await getTags(doc.tags) }
         }))
     } catch (err) {
         throw err
