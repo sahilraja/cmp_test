@@ -18,8 +18,14 @@ export const USER_ROUTER = {
     EMAIL_VERIFIED: "Email Already Verified",
     GROUP_NOT_FOUND: "Group not found.",
     USER_ARRAY: "Users must be an Array."
-
 };
+
+export const DOCUMENT_ROUTER = {
+    MANDATORY: "Required all mandatory fields.",
+    CREATE_ROLE_FAIL: "Fail to create role.",
+
+
+}
 
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",

@@ -9,6 +9,7 @@ import { Users } from "../users/model";
 import { groupsModel } from "../users/group-model";
 import { nodemail } from "../utils/email";
 import { docInvitePeople } from "../utils/email_template";
+import { DOCUMENT_ROUTER } from "../utils/error_msg";
 
 enum STATUS {
     DRAFT = 0,
@@ -24,20 +25,17 @@ enum STATUS {
 //  Create Document
 export async function createDoc(body: any, userId: string) {
     try {
-        if (!body.name) {
-            throw new Error("name should be mandatory");
-        }
+        if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
         let doc = await insertDOC(body, userId);
         body.parentId = doc.id;
         let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner")
         if (!role.user) {
             await documents.findByIdAndRemove(doc.id)
-            throw new Error("fail to add role")
+            throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL)
         }
         let response: any = await insertDOC(body, userId);
         return { doc_id: doc.id };
     } catch (error) {
-        console.log(error);
         throw error;
     };
 };
@@ -47,7 +45,7 @@ async function insertDOC(body: any, userId: string) {
     try {
         return await documents.create({
             name: body.name,
-            description: body.description,
+            description: body.description || null,
             tags: body.tags,
             versionNum: "1",
             status: STATUS.DRAFT,
@@ -64,14 +62,8 @@ async function insertDOC(body: any, userId: string) {
 export async function getDocList() {
     try {
         let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
-        if (!data) throw new Error("approved Docs Not There.")
         const docList = await Promise.all(data.map(async doc => {
-            const user = { ...doc.toJSON() }
-            user.tags = await getTags(user.tags)
-            let role: any = await userRoleAndScope(user.ownerId)
-            if (!role.data.global) throw new Error(`${user.ownerId} don't Have Role.`)
-            user.role = role.data.global[0]
-            return user
+            return await docData(doc)
         }));
         return { docs: docList }
     } catch (error) {
@@ -80,15 +72,20 @@ export async function getDocList() {
     };
 };
 
+async function docData(docData: any) {
+    try {
+        return { ...docData.toJSON(), tags: await getTags(docData.tags), role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0], owner: await Users.findById(docData.ownerId, { "firstName": 1, "secondName": 1 }) }
+    } catch (err) {
+        throw err
+    }
+}
+
 //  Get My Documents
 export async function getDocListOfMe(userId: string) {
     try {
-        if (!userId) throw new Error("Missing UserId.");
         let docs = await documents.find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } }).sort({ updatedAt: -1 })
         const docList = await Promise.all(docs.map(async doc => {
-            const user = { ...doc.toJSON() }
-            user.tags = await getTags(user.tags)
-            return user
+            return await docData(doc)
         }))
         return { docs: docList }
     } catch (error) {
@@ -100,6 +97,7 @@ export async function getDocListOfMe(userId: string) {
 //  Create File
 export async function createFile(docId: string, file: any) {
     try {
+
         const { id, name } = JSON.parse(file)
         if (!id || !name) throw new Error("Missing File Id")
         let [child, parent]: any = await Promise.all([
@@ -300,9 +298,7 @@ export async function approvalList() {
         let parentDocsIdsArray = docList.map((doc: any) => { return doc.parentId })
         let parentDocList = await documents.find({ _id: { $in: parentDocsIdsArray } })
         const List = await Promise.all(parentDocList.map(async doc => {
-            const user = { ...doc.toJSON() }
-            user.tags = await getTags(user.tags)
-            return user
+            return await docData(doc)
         }))
         return List
     } catch (err) {
@@ -477,12 +473,13 @@ export async function sharedList(userId: string) {
         let docIds = await GetDocIdsForUser(userId)
         let docs = await documents.find({ _id: { $in: docIds } }).sort({ updatedAt: -1 })
         return await Promise.all(docs.map(async (doc: any) => {
-            return { ...doc.toJSON(), tags: await getTags(doc.tags), role: (((await userRoleAndScope(doc.ownerId)) as any).data.global || [""])[0] }
+            return await docData(doc)
         }))
     } catch (err) {
         throw err
     };
 };
+
 async function invite(user: any, docId: any, role: any, doc: any) {
     await shareDoc(user._id, user.type, docId, role)
     let userData: any = await Users.findById(user._id)
@@ -546,7 +543,7 @@ export async function invitePeopleList(docId: string) {
             }
         })
         if (userGroup.user) {
-            var userData: any = await Users.find({ _id: { $in: userGroup.user } }, { firstName: 1, secondName: 1, email: 1 })
+            var userData: any = await Users.find({ _id: { $in: userGroup.user }, is_active: true }, { firstName: 1, secondName: 1, email: 1 })
             userData = await Promise.all(userData.map(async (user: any) => {
                 return {
                     id: user._id,
@@ -559,7 +556,7 @@ export async function invitePeopleList(docId: string) {
             total = [...userData]
         }
         if (userGroup.group) {
-            var groupData: any = await groupsModel.find({ _id: { $in: userGroup.group } }, { name: 1 })
+            var groupData: any = await groupsModel.find({ _id: { $in: userGroup.group }, is_active: true }, { name: 1 })
             groupData = await Promise.all(groupData.map(async (group: any) => {
                 return {
                     id: group._id,
@@ -644,32 +641,32 @@ export async function replaceDoc(docId: string, replaceDoc: string, userId: stri
 
 export async function publishList(userId: string) {
     try {
-        return await documents.find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 })
+        let docs = await documents.find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 })
+        return await Promise.all(docs.map(async (doc: any) => {
+            return await docData(doc)
+        }))
     } catch (err) {
         throw err
     };
 };
 
-export async function docFilter(search: string) {
+export async function docFilter(search: string, userId: string) {
     search = search.trim();
     try {
-        let docs: any = [];
+        let docs: any = [], shared: any = []
         if (search.startsWith("#")) {
-            let tags = await Tags.find({ tag: new RegExp(search.substring(1), "i") }).limit(0);
-            if (!tags.length) {
-                return [];
-            }
+            let tags = await Tags.find({ tag: new RegExp(search.substring(1), "i") });
+            if (!tags.length) return [];
             let tagId = tags.map(tag => tag._id).pop().toString();
-            docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 }).limit(30);
-
+            docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, $and: [{ status: { $ne: STATUS.DRAFT } }, { status: { $ne: STATUS.UNPUBLISHED } }] }).sort({ updatedAt: -1 }).limit(30);
+            shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 })
         } else {
-            docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 }).limit(30);
+            docs = await documents.find({ name: new RegExp(search, "i"), parentId: null, $and: [{ status: { $ne: STATUS.DRAFT } }, { status: { $ne: STATUS.UNPUBLISHED } }] }).sort({ updatedAt: -1 }).limit(30);
+            shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 })
         }
-        if (!docs.length) {
-            return [];
-        }
+        docs = [...(docs.filter((doc: any) => doc.ownerId == userId || doc.status == STATUS.PUBLISHED)) , ...shared]
         return await Promise.all(docs.map(async (doc: any) => {
-            return { ...(doc.toJSON()), owner: await Users.findById(doc.ownerId, { "firstName": 1, "secondName": 1 }), role: (((await userRoleAndScope(doc.ownerId)) as any).data.global || [""])[0], tags: await getTags(doc.tags) }
+            return await docData(doc)
         }))
     } catch (err) {
         throw err

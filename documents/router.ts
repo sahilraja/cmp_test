@@ -112,7 +112,7 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
 
 router.get("/search", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await docFilter(req.query.filter))
+        res.status(200).send(await docFilter(req.query.filter, res.locals.user.id))
     } catch (err) {
         next(err);
     }
@@ -194,10 +194,10 @@ router.get("/:id/file", ensureCanViewDocument, async (request: any, response: an
         const { id } = request.params;
         const { fileId } = await getDocumentById(id);
         // const fileId = '5d66b64f7690505a261ab0fd';
-        const req = (FILES_SERVER_BASE as string).startsWith("https")? httpsGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
+        const req = (FILES_SERVER_BASE as string).startsWith("https") ? httpsGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
             response.writeHead(200, res.headers);
             res.pipe(response);
-        }):httpGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
+        }) : httpGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
             response.writeHead(200, res.headers);
             res.pipe(response);
         });
