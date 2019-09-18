@@ -66,7 +66,7 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
         }
         const { name, password, phone, aboutme } = objBody
 
-        if (!name || !password || !phone || !aboutme) {
+        if (!name || !password || !phone ) {
             throw new Error(MISSING);
         };
 
