@@ -1,4 +1,4 @@
-import { MISSING } from "../utils/error_msg";
+import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE } from "../utils/error_msg";
 import { Users } from "./model";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm } from "../utils/email_template";
@@ -14,20 +14,23 @@ import { ANGULAR_URL } from "../utils/urls";
 export async function inviteUser(objBody: any, user: any) {
     try {
         if (!objBody.email || !objBody.name || !objBody.role || !user) {
-            throw new Error(MISSING);
+            throw new Error(USER_ROUTER.MANDATORY);
         };
+        //  Check User Capability
         let admin_scope = await checkRoleScope(user.role, "create-user");
-        if (!admin_scope) throw new Error("invalid user");
+        if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
         let userData: any = await Users.create({
             firstName: objBody.name.split(' ').slice(0, -1).join(' '),
             secondName: objBody.name.split(' ').slice(-1).join(' '),
             email: objBody.email,
         });
+        //  Add Role to User
         let RoleStatus = await addRole(userData.id, objBody.role)
         if (!RoleStatus.status) {
             await Users.findByIdAndRemove(userData.id)
-            throw new Error("Fail to create role");
+            throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
         }
+        //  Create 24hr Token
         let token = await jwt_for_url({
             id: userData.id,
             firstName: userData.firstName,
@@ -35,9 +38,10 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
+        //  Sent Mail to User
         let mailStatus = await nodemail({
             email: userData.email,
-            subject: "Invitation from CITIIS Management Platform",
+            subject: MAIL_SUBJECT.INVITE_USER,
             html: inviteUserForm({
                 username: objBody.name,
                 role: objBody.role,
@@ -46,34 +50,38 @@ export async function inviteUser(objBody: any, user: any) {
         })
         return { userId: userData.id };
     } catch (err) {
-        console.log(err)
         throw err;
     };
 };
 
 //  Register User
-export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: any) {
+export async function RegisterUser(objBody: any, verifyToken: string, uploadPhoto: any) {
     try {
         if (!verifyToken) {
-            throw new Error(MISSING)
+            throw new Error(USER_ROUTER.TOKEN_MISSING)
         }
+        //  Verify Token
         let token: any = await jwt_Verify(verifyToken)
-        if (!token) throw new Error("Invalid Token.")
+        if (!token) throw new Error(USER_ROUTER.TOKEN_INVALID)
 
         let user: any = await Users.findById(token.id)
         if (user.emailVerified) {
-            throw new Error("Already User Register.")
+            throw new Error(USER_ROUTER.ALREADY_REGISTER)
         }
         const { name, password, phone, aboutme } = objBody
 
-        if (!name || !password || !phone ) {
-            throw new Error(MISSING);
+        if (!name || !password || !phone) {
+            throw new Error(USER_ROUTER.MANDATORY);
         };
-
-        if (isNaN(phone) || phone.length != 10) {
-            throw new Error("Enter Valid Phone Number.")
+        if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(password)) {
+            throw new Error(USER_ROUTER.VALID_PASSWORD)
         }
 
+        if (isNaN(phone) || phone.length != 10) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO)
+        }
+
+        //  hash the password
         let has_Password = await hashPassword(password)
 
         let success: any = await Users.findByIdAndUpdate(token.id, {
@@ -81,22 +89,24 @@ export async function RegisterUser(objBody: any, verifyToken: any, uploadPhoto: 
             secondName: name.split(' ').slice(-1).join(' '),
             password: has_Password,
             phone: phone,
-            aboutme: aboutme,
+            aboutme: aboutme || null,
             emailVerified: true
         }, { new: true });
-
-        let newToken = await jwt_create({ id: success.id, role: token.role });
-        if (!newToken) throw new Error("fail to create token")
-        return { token: newToken }
+        //  create life time token
+        return { token: await jwt_create({ id: success.id, role: token.role }) }
     } catch (err) {
-        console.log(err);
         throw err;
     };
 };
 
 //  Edit user
-export async function edit_user(id: any, objBody: any) {
+export async function edit_user(id: string, objBody: any, user: any) {
     try {
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        if (id != user.id) {
+            let admin_scope = await checkRoleScope(user.role, "create-user");
+            if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
+        }
         let obj: any = {}
         if (objBody.email) {
             obj.email = objBody.email
@@ -113,12 +123,15 @@ export async function edit_user(id: any, objBody: any) {
             obj.secondName = objBody.secondName;
         };
         if (objBody.password) {
+            if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
+                throw new Error(USER_ROUTER.VALID_PASSWORD)
+            }
             let has_Password = hashPassword(objBody.password)
             obj.password = has_Password;
         };
         if (objBody.phone) {
             if (isNaN(objBody.phone) || objBody.phone.length != 10) {
-                throw new Error("Enter Valid Phone Number.")
+                throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
             obj.phone = objBody.phone;
             obj.phoneVerified = false;
@@ -126,98 +139,97 @@ export async function edit_user(id: any, objBody: any) {
         if (objBody.aboutme) {
             obj.aboutme = objBody.aboutme;
         };
-
-        let data: any = await Users.findByIdAndUpdate(id, obj, { new: true });
-        return { data: data }
+        // update user with edited fields
+        return await Users.findByIdAndUpdate(id, obj, { new: true });
     } catch (err) {
-        console.log(err);
         throw err;
-    }
+    };
 };
 
 // Get User List
-export async function user_list(query: any, userId: any, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
+export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let check: any = {};
         check[sort] = ascending ? 1 : -1;
         let { docs, pages, total }: PaginateResult<any> = await Users.paginate(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort: check });
         const data = await Promise.all(docs.map(async doc => {
-            const user = { ...doc.toJSON(), id: doc.id }
-
-            let userCapabilities: any = await userRoleAndScope(user.id)
-            console.log("user is ", user.id)
-            console.log("user capabilities", userCapabilities.data)
-            user.role = userCapabilities.data.global[0]
-            return user
+            return { ...doc.toJSON(), id: doc.id, role: (((await userRoleAndScope(doc.id)) as any).data.global || [""])[0] }
         }));
-        return { data, pages: pages, count: total }
+        return { data, pages: pages, count: total };
     } catch (err) {
-        console.log(err);
         throw err;
-    }
+    };
 };
 
-//  User Status
-export async function user_status(id: any) {
+// change User Status
+export async function user_status(id: string, user: any) {
     try {
-        let user_data: any = await Users.findById(id)
-        if (!user_data) throw new Error("User Not exist");
-        let active = user_data.is_active == true ? false : true
-        let data = await Users.findByIdAndUpdate(id, { is_active: active }, { new: true })
-        return { message: active ? "avtive" : "inactive" }
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+
+        let admin_scope = await checkRoleScope(user.role, "create-user");
+        if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
+
+        let userData: any = await Users.findById(id)
+        if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
+
+        let data: any = await Users.findByIdAndUpdate(id, { is_active: userData.is_active ? false : false }, { new: true })
+        return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
-        console.log(err)
         throw err;
-    }
+    };
 };
 
 //  User Login
 export async function user_login(objBody: any) {
     try {
         if (!objBody.email || !objBody.password) {
-            throw Error("Missing fields.");
+            throw Error(USER_ROUTER.MANDATORY);
         }
         if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
-            throw Error("Invalid fields.");
+            throw Error(USER_ROUTER.INVALID_FIELDS);
         }
+        //  find User
         let userData: any = await Users.findOne({ email: objBody.email });
-        if (!userData) throw new Error("Invalid User");
-        if (!userData.emailVerified) throw new Error("User not registered")
+        if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
+        if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
+        //  compare with hash password
         let result: any = await comparePassword(objBody.password, userData.password)
         if (!result) {
-            throw Error("Invalid login details.");
+            throw Error(USER_ROUTER.INVALID_LOGIN_DETAILS);
         }
-        if (!userData.is_active) throw new Error("Account Deactivated By Admin.")
+        if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
+        //  Get User Role
         let Role = await getRoles(userData.id)
-        if (!Role.status) throw new Error("Fail to get Roles.")
+        if (!Role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
         let token = await jwt_create({ id: userData.id, role: Role.data[0].role })
         return { token: token };
     } catch (err) {
-        console.log(err);
         throw err;
     };
 };
 
 //  Resend invite link
-export async function userInviteResend(id: any, role: any) {
+export async function userInviteResend(id: string, role: any) {
     try {
-        if (!id) throw new Error(MISSING)
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+
         let userData: any = await Users.findById(id)
-        if (!userData.emailVerified) throw new Error("Email Already Verified")
+        if (!userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
+        //  create token for 24hrs
         let token = await jwt_for_url({ user: id, role: role });
+        //  mail sent user
         let success = await nodemail({
             email: userData.email,
-            subject: "Invitation from CITIIS Management Platform",
+            subject: MAIL_SUBJECT.INVITE_USER,
             html: inviteUserForm({
                 username: userData.username,
                 role: role,
                 link: `${ANGULAR_URL}/user/register/${token}`
             })
         })
-        return { status: true, data: "email send successfully" }
+        return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
-        console.log(err);
         throw err;
     };
 };
@@ -225,12 +237,9 @@ export async function userInviteResend(id: any, role: any) {
 //  Get User Details
 export async function userDetails(id: any) {
     try {
-        if (!id) {
-            throw new Error(MISSING);
-        };
-        return await Users.findById(id)
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        return await Users.findById(id).select({ password: -1 })
     } catch (err) {
-        console.log(err);
         throw err;
     };
 };
@@ -238,11 +247,12 @@ export async function userDetails(id: any) {
 //  Get User Roles
 export async function userRoles(id: any) {
     try {
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        //  Get User Roles
         let role = await getRoles(id)
-        if (!role.status) throw new Error("fail to get Roles");
+        if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
         return { roles: role.data[0].role }
     } catch (err) {
-        console.log(err)
         throw err
     };
 };
@@ -250,13 +260,15 @@ export async function userRoles(id: any) {
 //  Get user Capabilities
 export async function userCapabilities(id: any) {
     try {
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        //  Get Role of User
         let roles = await getRoles(id)
-        if (roles.data.length == 0) throw new Error("role not found")
+        if (roles.data.length) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
+        //  Get Capabilities of User
         let success = await roleCapabilitylist(roles.data[0].role)
-        if (!success.status) throw new Error("fail to get Roles");
+        if (!success.status) throw new Error(USER_ROUTER.CAPABILITIES_NOT_FOUND);
         return { roles: success.data }
     } catch (err) {
-        console.log(err);
         throw err;
     };
 };
@@ -265,20 +277,23 @@ export async function userCapabilities(id: any) {
 export async function forgotPassword(objBody: any) {
     try {
         if (!objBody.email) {
-            throw new Error(MISSING);
+            throw new Error(USER_ROUTER.MANDATORY);
         };
+        //  Find User
         let userDetails: any = await Users.findOne({ email: objBody.email });
-        if (!userDetails) throw new Error("User Invalid.")
+        if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
+        if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
+        //  Create Token
         let token = await jwt_for_url({ id: userDetails.id })
         let success = await nodemail({
             email: userDetails.email,
-            subject: "CMP Reset password instructions",
+            subject: MAIL_SUBJECT.FORGOT_PASSWORD,
             html: forgotPasswordForm({
                 username: userDetails.firstName + " " + userDetails.secondName,
                 link: `${ANGULAR_URL}/user/reset-password/${token}`
             })
         })
-        return { message: "successfully mail was sent." }
+        return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
         console.log(err);
         throw err;
@@ -289,22 +304,22 @@ export async function forgotPassword(objBody: any) {
 export async function setNewPassword(objBody: any, token: any) {
     try {
         if (!objBody.password || !token) {
-            throw new Error(MISSING)
+            throw new Error(USER_ROUTER.MANDATORY)
         };
-
+        //  verified the token
         let verifyToken: any = await jwt_Verify(token);
-        if (!verifyToken) throw new Error("Invalid Token.");
-
-        if (!/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/.test(objBody.password)) {
-            throw new Error("password must contain at least 1 lowercase, 1 uppercase, 1 numeric, one special character and  eight characters or longer.")
+        if (!verifyToken) throw new Error(USER_ROUTER.TOKEN_INVALID);
+        if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
+            throw new Error(USER_ROUTER.VALID_PASSWORD)
         }
+        //  hash password
         let has_Password = hashPassword(objBody.password)
-
+        // update password
         let userDetails: any = await Users.findByIdAndUpdate(verifyToken.id, { password: has_Password }, { new: true });
         let role = await getRoles(userDetails.id)
-        if (!role.status) throw new Error("Fail to get Roles.")
-
-        let newToken = await jwt_create({ id: userDetails.id, role: role.data })
+        if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
+        //  create life Time Token
+        let newToken = await jwt_create({ id: userDetails.id, role: role.data[0].role })
         return { token: token }
     } catch (err) {
         console.log(err);
@@ -317,12 +332,11 @@ export async function setNewPassword(objBody: any, token: any) {
 export async function createGroup(objBody: any) {
     try {
         const { name, description } = objBody
-        if (!name || !description) throw new Error("Missing Field.");
-        let data = await groupsModel.create({
+        if (!name || !description) throw new Error(USER_ROUTER.MANDATORY);
+        return await groupsModel.create({
             name: name,
             description: description
         });
-        return data
     } catch (err) {
         throw err;
     };
@@ -331,11 +345,11 @@ export async function createGroup(objBody: any) {
 //  change Group status
 export async function groupStatus(id: any) {
     try {
-        if (!id) throw new Error("Missing Id.")
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupsModel.findById(id);
-        if (!group) throw new Error("City Not Found");
-        let data: any = await groupsModel.findByIdAndUpdate(id, { is_active: group.is_active == true ? false : true }, { new: true });
-        return { message: data.is_active ? "Active" : "Inactive" };
+        if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
+        let data: any = await groupsModel.findByIdAndUpdate(id, { is_active: group.is_active ? false : true }, { new: true });
+        return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
         console.log(err);
         throw err;
@@ -345,6 +359,7 @@ export async function groupStatus(id: any) {
 //  Edit Group
 export async function editGroup(objBody: any, id: string) {
     try {
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         const { name, description } = objBody
         let obj: any = {}
         if (name) {
@@ -353,8 +368,7 @@ export async function editGroup(objBody: any, id: string) {
         if (description) {
             obj.description = description;
         };
-        let data = await groupsModel.findByIdAndUpdate(id, obj, { new: true });
-        return data
+        return await groupsModel.findByIdAndUpdate(id, obj, { new: true });
     } catch (err) {
         throw err;
     };
@@ -363,69 +377,68 @@ export async function editGroup(objBody: any, id: string) {
 //  Get group List
 export async function groupList() {
     try {
-        let group = await groupsModel.find({is_active: true}).sort({ updatedAt: -1 });
-        const data = await Promise.all(group.map(async (key: any) => {
-            return { ...key.toJSON(), users: ((await groupUserList(key._id)) as any).length }
-        }))
-        return data;
+        let groups = await groupsModel.find({ is_active: true }).sort({ updatedAt: -1 });
+        return await Promise.all(groups.map(async (group: any) => {
+            return { ...group.toJSON(), users: ((await groupUserList(group._id)) as any).length }
+        }));
     } catch (err) {
         throw err;
     };
 };
 
-//  Group detail
+//  Group detail of group
 export async function groupDetail(id: string) {
     try {
-        if (!id) throw new Error("Missing Id");
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let data: any = await groupsModel.findById(id)
-        if (!data) throw new Error("Group Not Found.")
-        const group = data.toJSON()
-        let userIds = await groupUserList(data._id)
-        group.users = await Users.find({ _id: { $in: userIds } }, { firstName: 1, secondName: 1, email: 1 });
-        return group;
+        if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND)
+        return { ...data.toJSON(), users: await Users.find({ _id: { $in: await groupUserList(data._id) } }, { firstName: 1, secondName: 1, email: 1 }) }
     } catch (err) {
         throw err;
     };
 };
 
-//  Add Member
+//  Add Member to Group
 export async function addMember(id: string, users: any[]) {
     try {
-        if (!id || !users) throw new Error("Missing Fields.");
-        if (!Array.isArray(users)) throw new Error("Users must be an Array.")
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
+        if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupsModel.findById(id)
-        if (!data) throw new Error("Group Not Found.");
-        await Promise.all([users.map(async (user: any) => {
+        if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
+        await Promise.all(users.map(async (user: any) => {
             await addUserToGroup(user, id)
-        })])
-        return { message: "added successfully" }
+        }))
+        return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
     };
 };
 
-//  Remove Member
+//  Remove Member From Group
 export async function removeMembers(id: string, users: any[]) {
     try {
-        if (!id || !users) throw new Error("Missing Fields.");
-        if (!Array.isArray(users)) throw new Error("Users must be an Array.")
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
+        if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupsModel.findById(id)
-        if (!data) throw new Error("Group Not Found.");
-        await Promise.all([users.map(async (user: any) => {
+        if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
+        await Promise.all(users.map(async (user: any) => {
             await removeUserToGroup(user, id)
-        })])
-        return { message: "added successfully" }
+        }))
+        return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
         throw err
     };
 };
 
+//  user and group suggestion
 export async function userSuggestions(search: string) {
     try {
         // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
         let users: any = await Users.find({ $or: [{ firstName: new RegExp(search, "i") }, { secondName: new RegExp(search, "i") }] }, { firstName: 1, secondName: 1 });
-        users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: ((await userRoleAndScope(user._id)) as any).data.global[0] } }))
+        users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]
     } catch (err) {

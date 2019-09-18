@@ -1,5 +1,5 @@
 
-
+//  Invite User Email Template
 export function inviteUserForm(body: any) {
     try {
         const text = `
@@ -14,13 +14,14 @@ export function inviteUserForm(body: any) {
         Best Regards,<br/>
         CITIIS Management Platform Team
         `
-        return text
+        return text;
     } catch (err) {
         console.log(err);
         throw err;
-    }
-}
+    };
+};
 
+//  Forgot Password Email Template
 export function forgotPasswordForm(body: any) {
     try {
         const text = `
@@ -34,13 +35,14 @@ export function forgotPasswordForm(body: any) {
         Best Regards,<br/>
         CMP Team.
         `
-        return text
+        return text;
     } catch (err) {
         console.log(err);
         throw err;
-    }
-}
+    };
+};
 
+//  Document Invite Email Template
 export function docInvitePeople(body: any) {
     try {
         const text = `
@@ -54,9 +56,9 @@ export function docInvitePeople(body: any) {
         Best Regards,<br/>
         CITIIS Management Platform Team
         `
-        return text
+        return text;
     } catch (err) {
         console.log(err);
         throw err;
-    }
-}
+    };
+};
