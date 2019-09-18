@@ -238,7 +238,7 @@ export async function userInviteResend(id: string, role: any) {
 export async function userDetails(id: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        return await Users.findById(id).select({ password: -1 })
+        return await Users.findById(id).select({ password: 0 })
     } catch (err) {
         throw err;
     };
@@ -263,7 +263,7 @@ export async function userCapabilities(id: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         //  Get Role of User
         let roles = await getRoles(id)
-        if (roles.data.length) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
+        if (!roles.data.length) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
         //  Get Capabilities of User
         let success = await roleCapabilitylist(roles.data[0].role)
         if (!success.status) throw new Error(USER_ROUTER.CAPABILITIES_NOT_FOUND);
