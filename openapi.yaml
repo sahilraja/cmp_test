@@ -2587,6 +2587,34 @@ paths:
                   $ref: "#/components/schemas/Document"
         "400":
           $ref: "#/components/responses/BadRequest" 
+
+  "/docs/search":
+    get:
+      security:
+        - token: []
+      summary: Publish doc list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            type: string
+          required: true
+          description: "#tagName or documentName"
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest" 
     
   # add group
   "/user/group/create":
