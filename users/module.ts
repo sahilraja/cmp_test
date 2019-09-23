@@ -5,10 +5,9 @@ import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword } fr
 import { checkRoleScope, userRoleAndScope } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
-import { groupsModel } from "./group-model";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup } from "../utils/users";
 
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
@@ -299,7 +298,7 @@ export async function createGroup(objBody: any) {
     try {
         const { name, description } = objBody
         if (!name || !description) throw new Error(USER_ROUTER.MANDATORY);
-        return await groupsModel.create({
+        return await groupCreate({
             name: name,
             description: description
         });
@@ -312,9 +311,9 @@ export async function createGroup(objBody: any) {
 export async function groupStatus(id: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let group: any = await groupsModel.findById(id);
+        let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        let data: any = await groupsModel.findByIdAndUpdate(id, { is_active: group.is_active ? false : true }, { new: true });
+        let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
         console.log(err);
@@ -334,7 +333,7 @@ export async function editGroup(objBody: any, id: string) {
         if (description) {
             obj.description = description;
         };
-        return await groupsModel.findByIdAndUpdate(id, obj, { new: true });
+        return await groupEdit(id, obj);
     } catch (err) {
         throw err;
     };
@@ -343,7 +342,7 @@ export async function editGroup(objBody: any, id: string) {
 //  Get group List
 export async function groupList() {
     try {
-        let groups = await groupsModel.find({ is_active: true }).sort({ updatedAt: -1 });
+        let groups = await listGroup({ is_active: true }, undefined, "updatedAt")
         return await Promise.all(groups.map(async (group: any) => {
             return { ...group.toJSON(), users: ((await groupUserList(group._id)) as any).length }
         }));
@@ -356,7 +355,7 @@ export async function groupList() {
 export async function groupDetail(id: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let data: any = await groupsModel.findById(id)
+        let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND)
         return { ...data.toJSON(), users: await userList({ _id: { $in: await groupUserList(data._id) } }, { firstName: 1, secondName: 1, email: 1 }) }
     } catch (err) {
@@ -370,7 +369,7 @@ export async function addMember(id: string, users: any[]) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
-        let data: any = await groupsModel.findById(id)
+        let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => { await addUserToGroup(user, id) }))
         return { message: RESPONSE.ADD_MEMBER }
@@ -385,7 +384,7 @@ export async function removeMembers(id: string, users: any[]) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
-        let data: any = await groupsModel.findById(id)
+        let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => { await removeUserToGroup(user, id) }))
         return { message: RESPONSE.REMOVE_MEMBER }

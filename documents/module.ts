@@ -5,11 +5,10 @@ import { userRoleAndScope } from "../role/module";
 import { tags as Tags } from "../project/tag_model";
 import { themes } from "../project/theme_model";
 import { groupsAddPolicy, groupsRemovePolicy, GetUserIdsForDocWithRole, GetDocIdsForUser, shareDoc, getRoleOfDoc, GetUserIdsForDoc, GetDocCapabilitiesForUser, checkCapability } from "../utils/groups";
-import { groupsModel } from "../users/group-model";
 import { nodemail } from "../utils/email";
 import { docInvitePeople } from "../utils/email_template";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup } from "../utils/users";
 
 enum STATUS {
     DRAFT = 0,
@@ -74,7 +73,7 @@ export async function getDocList() {
 
 async function docData(docData: any) {
     try {
-        return { ...docData.toJSON(), tags: await getTags(docData.tags), role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0], owner: await Users.findById(docData.ownerId, { "firstName": 1, "secondName": 1 }) }
+        return { ...docData.toJSON(), tags: await getTags(docData.tags), role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0], owner: await userFindOne("id", docData.ownerId, { "firstName": 1, "secondName": 1 }) }
     } catch (err) {
         throw err
     }
@@ -203,7 +202,7 @@ export async function getDocDetails(docId: any) {
         const docList = publishDocs.toJSON()
         docList.tags = await getTags(docList.tags)
         docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0]
-        docList.owner = await Users.findById(docList.ownerId).select({ firstName: 1, secondName: 1, email: 1 })
+        docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, secondName: 1, email: 1 })
         return docList
     } catch (err) {
         console.log(err)
@@ -442,7 +441,7 @@ export async function removeViewers(docId: string, viewers: string[]) {
 export async function collaboratorList(docId: string) {
     try {
         let users = await GetUserIdsForDocWithRole(docId, "collaborator")
-        return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
+        return await userList({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
     } catch (err) {
         throw err
     };
@@ -451,7 +450,7 @@ export async function collaboratorList(docId: string) {
 export async function viewerList(docId: string) {
     try {
         let users = await GetUserIdsForDocWithRole(docId, "viewer")
-        return await Users.find({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
+        return await userList({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
     } catch (err) {
         throw err
     };
@@ -545,7 +544,7 @@ export async function invitePeopleList(docId: string) {
             total = [...userData]
         }
         if (userGroup.group) {
-            var groupData: any = await groupsModel.find({ _id: { $in: userGroup.group }, is_active: true }, { name: 1 })
+            var groupData: any = await listGroup({ _id: { $in: userGroup.group }, is_active: true }, { name: 1 })
             groupData = await Promise.all(groupData.map(async (group: any) => {
                 return {
                     id: group._id,

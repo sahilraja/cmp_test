@@ -169,7 +169,7 @@ export async function groupCreate(payload: any) {
     };
 };
 
-export async function groupList(searchQuery: object, selectFields?: object, sort?: string) {
+export async function listGroup(searchQuery: object, selectFields?: object, sort?: string) {
     try {
         let Options = {
             uri: `${USERS_URL}/group/list`,
@@ -197,7 +197,7 @@ export async function groupFindOne(key: string, value: string, selectFields?: ob
     };
 };
 
-export async function groupEdit(groupId: string, payload: string) {
+export async function groupEdit(groupId: string, payload: object) {
     try {
         let Options = {
             uri: `${USERS_URL}/group/${groupId}/detail`,
