@@ -1,8 +1,8 @@
 import * as request from "request-promise";
-import { Users } from "../users/model";
 import { RBAC_URL } from "../utils/urls";
 import * as fs from "fs";
 import { join } from "path";
+import { userList } from "../utils/users";
 
 // Get Roles List
 export async function role_list() {
@@ -75,7 +75,7 @@ export async function usersForRole(role: string) {
         }
         let success = await request(Options);
         if (!success) throw new Error("Fail to get users.")
-        let users = await Users.find({ _id: { $in: success.users } }, { firstName: 1, secondName: 1 })
+        let users = await userList({ _id: { $in: success.users } }, { firstName: 1, secondName: 1 })
         return { role: role, users: users }
     } catch (err) {
         console.log(err);

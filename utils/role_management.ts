@@ -1,10 +1,10 @@
 import * as fs from "fs";
 import { join } from "path";
 import * as request from "request-promise"
-import { Users } from "../users/model";
 import { hashPassword } from "./utils";
 import { addRole } from "./rbac";
 import { RBAC_URL } from "./urls";
+import { userList, createUser } from "./users";
 
 export async function init() {
     let removeOptions = {
@@ -41,17 +41,16 @@ export async function init() {
 }
 
 export async function userInit() {
-    let existingUserCount = await Users.find({}).count();
-    if (existingUserCount == 0) {
-        let password = await hashPassword("Citiis@123")
-        let user = await Users.create({
+    let existingUserCount = await userList({});
+    if (existingUserCount.length) {
+        let user = await createUser({
             "emailVerified": true,
             "phoneVerified": false,
             "firstName": "pranay",
             "secondName": "bhardwaj",
             "email": "pranay@citiis.com",
             "aboutme": "Technology lead for CITIIS Project",
-            "password": password,
+            "password": "Citiis@123",
             "phone": "7989238348"
         })
         let grants = await addRole(user.id, "technology-lead")
