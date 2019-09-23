@@ -169,11 +169,12 @@ export async function groupCreate(payload: any) {
     };
 };
 
-export async function groupList() {
+export async function groupList(searchQuery: object, selectFields?: object, sort?: string) {
     try {
         let Options = {
             uri: `${USERS_URL}/group/list`,
-            method: "GET",
+            method: "POST",
+            body: { searchQuery, selectFields: selectFields || null, sort: sort || null },
             json: true
         }
         return await request(Options);
@@ -182,11 +183,12 @@ export async function groupList() {
     };
 };
 
-export async function groupDetail(groupId: string) {
+export async function groupFindOne(key: string, value: string, selectFields?: object) {
     try {
         let Options = {
-            uri: `${USERS_URL}/group/${groupId}/detail`,
-            method: "GET",
+            uri: `${USERS_URL}/group/findOne`,
+            method: "POST",
+            body: { key, value, selectFields: selectFields || null },
             json: true
         }
         return await request(Options);
@@ -199,7 +201,7 @@ export async function groupEdit(groupId: string, payload: string) {
     try {
         let Options = {
             uri: `${USERS_URL}/group/${groupId}/detail`,
-            method: "GET",
+            method: "PUT",
             body: payload,
             json: true
         }
