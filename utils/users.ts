@@ -38,7 +38,7 @@ export async function userFindOne(key: string, value: string, selectFields?: any
         let Options = {
             uri: `${USERS_URL}/user/findOne`,
             method: "POST",
-            body: { key, value, selectFields: selectFields || null },
+            body: { key, value, selectFields: selectFields || {} },
             json: true
         }
         return await request(Options);
@@ -56,7 +56,7 @@ export async function userFindMany(key: string, value: any[], selectFields?: any
             body: {
                 key,
                 value,
-                selectFields: selectFields || null
+                selectFields: selectFields || {}
             },
             json: true
         }
@@ -74,7 +74,7 @@ export async function userList(searchQuery: any, selectFields?: any) {
             method: "POST",
             body: {
                 searchQuery: searchQuery,
-                selectFields: selectFields || null
+                selectFields: selectFields || {}
             },
             json: true
         }
@@ -174,7 +174,7 @@ export async function listGroup(searchQuery: object, selectFields?: object, sort
         let Options = {
             uri: `${USERS_URL}/group/list`,
             method: "POST",
-            body: { searchQuery, selectFields: selectFields || null, sort: sort || null },
+            body: { searchQuery, selectFields: selectFields || {}, sort: sort || undefined },
             json: true
         }
         return await request(Options);
@@ -188,7 +188,7 @@ export async function groupFindOne(key: string, value: string, selectFields?: ob
         let Options = {
             uri: `${USERS_URL}/group/findOne`,
             method: "POST",
-            body: { key, value, selectFields: selectFields || null },
+            body: { key, value, selectFields: selectFields || undefined },
             json: true
         }
         return await request(Options);

@@ -42,7 +42,7 @@ export async function init() {
 
 export async function userInit() {
     let existingUserCount = await userList({});
-    if (existingUserCount.length) {
+    if (!existingUserCount.length) {
         let user = await createUser({
             "emailVerified": true,
             "phoneVerified": false,
@@ -57,6 +57,6 @@ export async function userInit() {
         console.log("No existing users found. Technology specialist user created successfully");
     }
     else {
-        console.log(`${existingUserCount} existing users found in DB`);
+        console.log(`${existingUserCount.length} existing users found in DB`);
     }
 }
