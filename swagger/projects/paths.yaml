@@ -1,0 +1,358 @@
+  # create project code
+  createProjectCode:
+  # "/project/city/code/add":
+    post:
+      security:
+        - token: []
+      summary: add city code
+      tags:
+        - PROJECT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - citycode
+                - cityname
+              properties:
+                citycode:
+                  type: string
+                  example: CITIIS-OR-BBR
+                cityname:
+                  type: string
+                  example: vizag
+                description:
+                  type: string
+                  example: project for develop schools
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schools
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # edit project code
+  editProjectCode:
+  # "/project/city/code/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit city code
+      tags:
+        - PROJECT
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - citycode
+                - cityname
+              properties:
+                citycode:
+                  type: string
+                  example: CITIIS-OR-BBR
+                cityname:
+                  type: string
+                  example: vizag
+                description:
+                  type: string
+                  example: project for develop schools
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schoolss
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # project inactive
+  activeInactiveCityCode:
+  "/project/city/code/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: active or inactive city code
+      tags:
+        - PROJECT
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # project list
+  projectCodeList:
+  "/project/city/code/list":
+    get:
+      security:
+        - token: []
+      summary: city code list
+      tags:
+        - PROJECT
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: 
+                          type: string
+                          example: project_id
+                        referece: 
+                          type: string
+                          example: VIZAG-CODE
+                          description: city codes
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # project List
+  projectList:
+  # "/project/list":
+    get:
+      security:
+        - token: []
+      summary: get project list
+      tags:
+        - PROJECT
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: 
+                          type: string
+                          example: project_id
+                        name: 
+                          type: string
+                          example: howrah
+                        city:
+                          type: string
+                          example: agarthala
+                        maturationEndDate:
+                          type: string
+                          example: 22-1-2001
+                        theme: 
+                          type: string
+                          example: theme1
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # get project  
+  getProjectDetail:
+  # "/project/{id}":
+      get:
+        security:
+          - token: []
+        summary: get project list
+        tags:
+          - PROJECT
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            $ref: "./schema/#responses/project"                        
+          "400":
+            $ref: "#/definitions/ErrorResponse/BadRequest"
+  # get task list         
+  getProjectTaskList:
+  # "/project/{id}/task/list":
+      get:
+        security:
+          - token: []
+        summary: get project list
+        tags:
+          - PROJECT
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            description: success
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    list: 
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name: 
+                            type: string
+                            example:  Taskname
+                          startDate: 
+                            type: string
+                            example: 22-1-2001
+                          endDate:
+                            type: string
+                            example: 23-2-2019
+                          access:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: owner
+                                role:
+                                  type: string
+                                  example: mentor
+                                status:
+                                  type: string
+                                  example: PENDING
+          "400":
+            $ref: "#/definitions/ErrorResponse/BadRequest"
+  # edit project code
+  addTaskToProject:
+  "/project/{id}/task/add":
+    post:
+      security:
+        - token: []
+      summary: task add
+      tags:
+        - PROJECT
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: 
+                  type: string
+                  example:  Taskname
+                startDate: 
+                  type: string
+                  example: 22-1-2001
+                endDate:
+                  type: string
+                  example: 23-2-2019
+                access:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: owner
+                      role:
+                        type: string
+                        example: mentor
+                      status:
+                        type: string
+                        example: PENDING
+                
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schoolss
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

@@ -1,0 +1,44 @@
+responses:
+  userME:
+    description: user schema
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/userSchema"
+  schemas:
+    $ref: ../error.yaml
+      # user schema
+    userSchema:
+      type: object
+      properties:
+        firstName: 
+          type: string
+          example: sai jeevan
+        secondName:
+          type: string
+          example: balla
+        email:
+          type: string
+          example: jeevan.balla@transerve.com
+        emailVerified:
+          type: boolean
+          example: false
+        password: 
+          type: string
+          example: adhdbfverhf92nfn
+          description: hashpassword
+        phone:
+          type: number
+          example: 7989238348
+        phoneVerified:
+          type: boolean
+          example: false
+        aboutme: 
+          type: string
+          example: i am a project manager
+        uploadPhoto:
+          type: string
+          example: https://amazonS3.com/user/profilepic
+        is_active: 
+          type: boolean
+          example: true

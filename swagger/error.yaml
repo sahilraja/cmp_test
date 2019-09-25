@@ -1,0 +1,15 @@
+# error schema
+ErrorResponse:
+  BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/ErrorResponse/Error"
+  Error:
+    type: object
+    properties:
+      error:
+        type: string
+    required:
+      - error

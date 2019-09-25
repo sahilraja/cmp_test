@@ -19,3 +19,8 @@ import * as usersRouter from "./users/router";
 app.use('/users', usersRouter);
 
 ```
+# Compile Swagger
+```typescript
+npm i multi-file-swagger
+
+multi-file-swagger -o yaml swagger.yaml > compiled-swagger.yaml

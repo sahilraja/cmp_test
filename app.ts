@@ -27,7 +27,7 @@ require('./utils/mongoose');
 //  swagger implementation
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
-const swaggerDocument = YAML.load("./openapi.yaml");
+const swaggerDocument = YAML.load("./compiled-swagger.yaml");
 
 // body paser
 app.use(bodyParser.urlencoded({ extended: false }))
