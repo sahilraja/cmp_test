@@ -141,3 +141,16 @@ paths:
 definitions:
   # Error
   $ref: ./swagger/error.yaml
+
+components:
+  schemas:
+    Error:
+      $ref: ./swagger/error.yaml/#/ErrorResponse/Error
+    userME:
+      $ref: ./swagger/users/schema.yaml/#/responses/schemas/userSchema
+    project:
+      $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
+    userSchema:
+      $ref: ./swagger/users/schema.yaml/#/responses/schemas/userSchema
+    projectSchema:
+      $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
