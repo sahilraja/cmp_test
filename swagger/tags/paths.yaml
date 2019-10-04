@@ -125,6 +125,12 @@
       summary: get tags list
       tags:
         - TAG
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+      
       responses:
         "200":
           description: success
@@ -139,4 +145,4 @@
                   data:
                     type: object
         "400":
-          $ref: "#/definitions/responses/BadRequest"
+          $ref: "#/definitions/ErrorResponse/BadRequest"

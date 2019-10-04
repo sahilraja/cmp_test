@@ -89,7 +89,7 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        if (id != user.id) {
+        if (id != user._id) {
             let admin_scope = await checkRoleScope(user.role, "create-user");
             if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
         }

@@ -2,6 +2,9 @@ openapi: 3.0.0
 info:
   version: 1.0.0
   title: CMP-API
+servers:
+  - url: 'https://cmp-dev.transerve.com/api'
+  - url: ' http://localhost:3000'
 host: 'localhost:4000'
 basePath: /
 schemes:
@@ -368,7 +371,7 @@ paths:
                           example: sai jeevan balla
                         role:
                           type: string
-                          example: project managet
+                          example: program-coordinator
                         cities:
                           type: array
                           items:
@@ -774,9 +777,12 @@ paths:
                               id:
                                 type: string
                                 example: userid212
-                              name:
+                              firsrName:
                                 type: string
-                                example: james bond
+                                example: james
+                              secondName:
+                                type: string
+                                example: bond
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/tag/add:
@@ -894,6 +900,11 @@ paths:
       summary: get tags list
       tags:
         - TAG
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
       responses:
         '200':
           description: success
@@ -908,7 +919,31 @@ paths:
                   data:
                     type: object
         '400':
-          $ref: '#/definitions/responses/BadRequest'
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /user/countryCodes:
+    get:
+      security:
+        - token: []
+      summary: get list roles
+      tags:
+        - USERS
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: object
+                    example:
+                      countryName: India
+                      code: 91
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/theme/add:
     post:
       security:
@@ -1984,6 +2019,11 @@ definitions:
               - error
     Error: *ref_0
 components:
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Error:
       type: object
@@ -1995,12 +2035,9 @@ components:
     userME: &ref_1
       type: object
       properties:
-        firstName:
+        name:
           type: string
-          example: sai jeevan
-        secondName:
-          type: string
-          example: balla
+          example: sai jeevan balla
         email:
           type: string
           example: jeevan.balla@transerve.com
@@ -2215,6 +2252,4 @@ components:
           example: true
     userSchema: *ref_1
     projectSchema: *ref_2
-    trackable:
-      $ref: './swagger/resources/schema.yaml/#/responses/schemas/Trackable'
 
