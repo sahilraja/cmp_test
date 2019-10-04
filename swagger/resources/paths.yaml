@@ -1,0 +1,1016 @@
+  # Doc Create   
+  createDoc:
+  # "/docs/create":
+    post:
+      security:
+        - token: []
+      summary: Create New Document
+      tags:
+        - RESOURCES
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Annula Report
+                description:
+                  type: string
+                  example: Dam for vizag
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345    
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  # submit for approval 
+  submitDocForApproval:     
+  # "/docs/{id}/submit":
+    put:
+      security:
+        - token: []
+      summary: Submit Document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  doc_id:
+                    type: string
+                    example: 343544
+                  file_name:
+                    type: string
+                    example: filename.pdf
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  # doc List
+  docsList:
+  # "/docs/list":
+    get:
+      security:
+        - token: []
+      summary: list of documents
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        uploadBy:
+                          type: string
+                          example: jeevan
+                        role: 
+                          type: string
+                          example: project manager
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  # My list of Docs    
+  myDocs:  
+  # "/docs/me":
+    get:
+      security:
+        - token: []
+      summary: my list of documents
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  # My list of Docs    
+  docsSharedWithMe:  
+  # "/docs/shared/me":
+    get:
+      security:
+        - token: []
+      summary: document list shared with me
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  # download latest version
+  downloadFile:
+  # "/docs/{id}/file":
+    get:
+      security:
+        - token: []
+      summary: download latest version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: file downloading
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+    post:
+      security:
+        - token: []
+      summary: Change or create a New file for this version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  upfile:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+                      file_name:
+                        type: string
+                        example: filename.pdf
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # get Doc details     
+  docDetail:
+  # "/docs/{id}":
+    get:
+      security:
+        - token: []
+      summary: get Doc details
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      fileName:
+                        type: string
+                        example: filename1
+                      description:
+                        type: string
+                        example: this document for dams
+                      themes:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - theme1
+                          - theme1
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - tag 1
+                          - tag 2
+                      versionId:
+                        type: string
+                        example: v3
+                      docId:
+                        type: string
+                        example: doc123455
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+    post:
+      security:
+        - token: []
+      summary: update document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Annula Report
+                description:
+                  type: string
+                  example: Dam for vizag
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+                
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Annula Report
+                  description:
+                    type: string
+                    example: Dam for vizag
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                      - 12346
+                      - 12345 
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+      
+ 
+  # Add collaborators to document    
+  addCollaboratorToDoc:
+  # "/docs/{id}/collaborator/add":
+    post:
+      security:
+        - token: []
+      summary: Add collaborators to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added collaborators successfully
+                  
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  # remove collaborators to document  
+  removeCollaboratorForDoc:   
+  # "/docs/{id}/collaborator/remove":
+    put:
+      security:
+        - token: []
+      summary: Remove collaborators to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: remove collaborators successfully
+                  
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  # Add viewers to document    
+  addViewerToDoc:
+  # "/docs/{id}/viewer/add":
+    post:
+      security:
+        - token: []
+      summary: Add viewers to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                viewers:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added viewers successfully
+                  
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  # remove viewers to document     
+  removeViewerToDoc:
+  # "/docs/{id}/viewer/remove":
+    put:
+      security:
+        - token: []
+      summary: Remove viewer to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: remove viewers successfully
+                  
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  # remove collaborators to document  
+  getCollaboratorsForDoc:   
+  # "/docs/{id}/collaborator/list":
+    get:
+      security:
+        - token: []
+      summary: Collaborators list for document 
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collaboratores:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: 
+                          type: string
+                        email: 
+                          type: string
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  # remove viewers to document 
+  viewersListForDoc:    
+  # "/docs/{id}/viewer/list":
+    get:
+      security:
+        - token: []
+      summary: viewers list for document 
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  viewers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: 
+                          type: string
+                        email: 
+                          type: string
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  shareDocWithUsers:   
+  # "/docs/{id}/share":
+    post:
+      security:
+        - token: []
+      summary: doc share to users
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: collaborator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items: 
+                    type: object
+                    $ref: "./schema/#/responses/schemas/DocPermissions"
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  sharedUsersListOfDoc:          
+  # "/docs/{id}/share/list":
+    get:
+      security:
+        - token: []
+      summary: shared users list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  $ref: "./schema/#/responses/schemas/DocPermissions"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  editUserPermissionToDoc:
+  # "/docs/{id}/share/{type}/{userId}/edit":
+    put:
+      security:
+        - token: []
+      summary: edit user permission
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: user Id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: owner
+        - in: path
+          name: type
+          schema:
+            type: string
+          required: true
+          description: group
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+                    
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  deleteUserPermission:
+  # "/docs/{id}/share/{type}/{userId}/remove":
+    delete:
+      security:
+        - token: []
+      summary: edit user permission
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: user Id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: owner
+        - in: path
+          name: type
+          schema:
+            type: string
+          required: true
+          description: user
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  userSuggestion:
+  # "/user/suggestion":
+    get:
+      security:
+        - token: []
+      summary: shared users list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: true
+          description: sarch name
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  $ref: "./schema/#/responses/schemas/DocPermissions"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  docCapabilitiesForUser:
+  # "/docs/{id}/capabilities":
+    get:
+      security:
+        - token: []
+      summary: get Doc Capabilities for user
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - capabilitiy 1
+                      - capability 2
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  publishDocument:
+  # "/docs/{id}/publish":
+    post:
+      security:
+        - token: []
+      summary: publish a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "./schema/#/responses/schemas/Document"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+          
+  unpublishDocument:
+  # "/docs/{id}/unpublish":
+    put:
+      security:
+        - token: []
+      summary: unPublish a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "./schema/#/responses/schemas/Document"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  replaceDocument:
+  # "/docs/{id}/replace/{replaceDocId}":
+    post:
+      security:
+        - token: []
+      summary: Replace a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: replaceDocId
+          schema:
+            type: string
+          required: true
+          description: replace doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "./schema/#/responses/schemas/Document"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  getPushlishedDocs:
+  # "/docs/publish/list":
+    get:
+      security:
+        - token: []
+      summary: Publish doc list
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: "./schema/#/responses/schemas/Document"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest" 
+
+  searchDocs:
+  # "/docs/search":
+    get:
+      security:
+        - token: []
+      summary: Publish doc list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            type: string
+          required: true
+          description: "#tagName or documentName"
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: "./schema/#/responses/schemas/Document"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest" 

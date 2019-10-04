@@ -1,0 +1,121 @@
+# roles
+  #roles list
+  getRoles:
+  # "/role/list":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        scope: 
+                          type: string
+                          example: global
+                        role: 
+                          type: string
+                          example: project lead
+                        
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  #roles scope list    
+  getRolesScopeList:
+  # "/role/scope/list/{userid}":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      parameters:
+        - in: path
+          name: userid
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        scope: 
+                          type: string
+                          example: global
+                        role: 
+                          type: string
+                          example: project lead
+                        
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest" 
+  # user list
+  getUserListByRole:
+  # "/role/user/list/":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: role for get users list
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        role: 
+                          type: string
+                          example: project lead
+                        users:
+                          type: array
+                          items: 
+                            type: object
+                            properties:
+                              id: 
+                                type: string
+                                example: userid212
+                              firsrName: 
+                                type: string
+                                example: james
+                              secondName:
+                                type: string
+                                example: bond                   
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

@@ -1,0 +1,142 @@
+  # theme add
+  addThemeToProject:
+  # "/project/theme/add":
+    post:
+      security:
+        - token: []
+      summary: add theme
+      tags:
+        - THEME
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - theme
+              properties:
+                theme:
+                  type: string
+                  example: dams
+                description:
+                  type: string
+                  example: dam for vizag
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # theme Edit
+  editProjectTheme:
+  # "/project/theme/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit theme
+      tags:
+        - THEME
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: theme _id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                theme:
+                  type: string
+                  example: Dam
+                description:
+                  type: string
+                  example: Dam for vizag
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Theme Status
+  activeOrInactiveTheme:
+  # "/project/theme/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: active or inactive theme
+      tags:
+        - THEME
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: theme _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Theme List
+  getThemeList:
+  # "/project/theme/list":
+    get:
+      security:
+        - token: []
+      summary: get theme list
+      tags:
+        - THEME
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

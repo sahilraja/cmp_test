@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: CMP-API
+# during dev, should point to your local machine
+host: localhost:4000
+# basePath prefixes all resource paths 
+basePath: /
+# 
+schemes:
+  # tip: remove http to make production-grade
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+paths:
+# User APIs
+  /user/create:
+    $ref: ./swagger/users/paths.yaml/#/createUser
+  /user/grants/add/{id}:
+    $ref: ./swagger/users/paths.yaml/#/addGrant
+  /user/register/{token}:
+    $ref: ./swagger/users/paths.yaml/#/userRegister
+  /user/email/login:
+    $ref: ./swagger/users/paths.yaml/#/userLogin
+  /user/me/role:
+    $ref: ./swagger/users/paths.yaml/#/userRole
+  /user/me/capabilities:
+    $ref: ./swagger/users/paths.yaml/#/userCapabilities
+  /user/me:
+    $ref: ./swagger/users/paths.yaml/#/userDetails
+  /user/resend/invite/{id}:
+    $ref: ./swagger/users/paths.yaml/#/resendInvite
+  /user/forgot:
+    $ref: ./swagger/users/paths.yaml/#/forgotPassword
+  /user/forgot/password/{token}:
+    $ref: ./swagger/users/paths.yaml/#/setPassword
+  /user/list/:
+    $ref: ./swagger/users/paths.yaml/#/userList
+  /user/edit/{id}:
+    $ref: ./swagger/users/paths.yaml/#/editUser
+  /user/status/{id}:
+    $ref: ./swagger/users/paths.yaml/#/editUserStatus
+# Project APIs
+  /project/city/code/add:
+    $ref: ./swagger/projects/paths.yaml/#/createProjectCode
+  /project/city/code/edit/{id}:
+    $ref: ./swagger/projects/paths.yaml/#/editProjectCode
+  /project/city/code/status/{id}:
+    $ref: ./swagger/projects/paths.yaml/#/activeInactiveCityCode
+  /project/city/code/list:
+    $ref: ./swagger/projects/paths.yaml/#/projectCodeList
+  /project/list:
+    $ref: ./swagger/projects/paths.yaml/#/projectList
+  /project/{id}:
+    $ref: ./swagger/projects/paths.yaml/#/getProjectDetail
+  /project/{id}/task/list:
+    $ref: ./swagger/projects/paths.yaml/#/getProjectTaskList
+  /project/{id}/task/add:
+    $ref: ./swagger/projects/paths.yaml/#/addTaskToProject
+# Roles
+  /role/list:
+    $ref: ./swagger/roles/paths.yaml/#/getRoles
+  /role/scope/list/{userid}:
+    $ref: ./swagger/roles/paths.yaml/#/getRolesScopeList
+  /role/user/list/:
+    $ref: ./swagger/roles/paths.yaml/#/getUserListByRole
+# Tags
+  /project/tag/add:
+    $ref: ./swagger/tags/paths.yaml/#/addTagToProject
+  /project/tag/edit/{id}:
+    $ref: ./swagger/tags/paths.yaml/#/editTagOfProject
+  /project/tag/status/{id}:
+    $ref: ./swagger/tags/paths.yaml/#/activeOrInactiveTagStatus
+  /project/tag/list:
+    $ref: ./swagger/tags/paths.yaml/#/getTagsList
+# Themes
+  /project/theme/add:
+    $ref: ./swagger/themes/paths.yaml/#/addThemeToProject
+  /project/theme/edit/{id}:
+    $ref: ./swagger/themes/paths.yaml/#/editProjectTheme
+  /project/theme/status/{id}:
+    $ref: ./swagger/themes/paths.yaml/#/activeOrInactiveTheme
+  /project/theme/list:
+    $ref: ./swagger/themes/paths.yaml/#/getThemeList
+  /docs/create:
+    $ref: ./swagger/resources/paths.yaml/#/createDoc
+  /docs/{id}/submit:
+    $ref: ./swagger/resources/paths.yaml/#/submitDocForApproval
+  /docs/list:
+    $ref: ./swagger/resources/paths.yaml/#/docsList
+  /docs/me:
+    $ref: ./swagger/resources/paths.yaml/#/myDocs
+  /docs/shared/me:
+    $ref: ./swagger/resources/paths.yaml/#/docsSharedWithMe
+  /docs/{id}/file:
+    $ref: ./swagger/resources/paths.yaml/#/downloadFile
+  /docs/{id}:
+    $ref: ./swagger/resources/paths.yaml/#/docDetail
+
+  /docs/{id}/collaborator/add:
+    $ref: ./swagger/resources/paths.yaml/#/addCollaboratorToDoc
+  /docs/{id}/collaborator/remove:
+    $ref: ./swagger/resources/paths.yaml/#/removeCollaboratorForDoc
+  /docs/{id}/viewer/add:
+    $ref: ./swagger/resources/paths.yaml/#/addViewerToDoc
+  /docs/{id}/viewer/remove:
+    $ref: ./swagger/resources/paths.yaml/#/removeViewerToDoc
+  /docs/{id}/collaborator/list:
+    $ref: ./swagger/resources/paths.yaml/#/getCollaboratorsForDoc
+  /docs/{id}/viewer/list:
+    $ref: ./swagger/resources/paths.yaml/#/viewersListForDoc    
+  /docs/{id}/share:
+    $ref: ./swagger/resources/paths.yaml/#/shareDocWithUsers   
+  /docs/{id}/share/list:
+    $ref: ./swagger/resources/paths.yaml/#/sharedUsersListOfDoc          
+  /docs/{id}/share/{type}/{userId}/edit:
+    $ref: ./swagger/resources/paths.yaml/#/editUserPermissionToDoc
+  /docs/{id}/share/{type}/{userId}/remove:
+    $ref: ./swagger/resources/paths.yaml/#/deleteUserPermission
+  /user/suggestion:
+    $ref: ./swagger/resources/paths.yaml/#/userSuggestion
+  /docs/{id}/capabilities:
+    $ref: ./swagger/resources/paths.yaml/#/docCapabilitiesForUser
+  /docs/{id}/publish:
+    $ref: ./swagger/resources/paths.yaml/#/publishDocument
+  /docs/{id}/unpublish:
+    $ref: ./swagger/resources/paths.yaml/#/unpublishDocument
+  /docs/{id}/replace/{replaceDocId}:
+    $ref: ./swagger/resources/paths.yaml/#/replaceDocument
+  /docs/publish/list:
+    $ref: ./swagger/resources/paths.yaml/#/getPushlishedDocs
+  /docs/search:
+    $ref: ./swagger/resources/paths.yaml/#/searchDocs
+
+
+definitions:
+  # Error
+  $ref: ./swagger/error.yaml
+
+components:
+  schemas:
+    Error:
+      $ref: ./swagger/error.yaml/#/ErrorResponse/Error
+    userME:
+      $ref: ./swagger/users/schema.yaml/#/responses/schemas/userSchema
+    project:
+      $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
+    userSchema:
+      $ref: ./swagger/users/schema.yaml/#/responses/schemas/userSchema
+    projectSchema:
+      $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema

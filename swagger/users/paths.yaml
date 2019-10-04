@@ -1,0 +1,483 @@
+# user apis
+  # Invite User
+  createUser:
+    post:
+      security:
+        - token: []
+      summary: Invite users
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+                - role
+              properties:
+                name:
+                  type: string
+                  example: jeevan balla
+                email:
+                  type: string
+                  example: Jeevan.balla@transerve.com
+                role:
+                  type: string
+                  example: project manager
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId: 
+                    type: string
+                    example: 123456789
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Add Grants        
+  addGrant:
+  # "/user/grants/add/{id}":
+    post:
+      security:
+        - token: []
+      summary: Add Grants to User
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - projects
+              properties:
+                role:
+                  type: string
+                  example: project lead
+                project:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - project id 1
+                    - project id 2
+                    - project id 3
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: Roles added successfully
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # User Register
+  userRegister:
+  # "/user/register/{token}":
+    post:
+      summary: register user with that role
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: token
+            schema:
+              type: string
+            required: true
+            description: Token with user Details
+      requestBody:
+        required: true
+        content:
+          multipart/form-data::
+            schema:
+              type: object
+              required:
+                - name
+                - phone
+                - uploadPhoto
+                - aboutme
+                - password
+              properties:
+                name:
+                  type: string
+                  example: sai jeevan balla
+                phone:
+                  type: number
+                  example: 7989238348
+                uploadPhoto:
+                  type: string
+                  format: binary
+                aboutme:
+                  type: string
+                  example: "project manager for transerve"
+                password:
+                  type: string
+                  example: password
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "token":
+                    type: boolean
+                    example: kjabsdfviadvhoidjvodjv352kjtrenorg25t1
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user Login
+  userLogin:
+  # "/user/email/login":
+    post:
+      summary: login for user
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: pranay@citiis.com
+                password:
+                  type: string
+                  example: Citiis@123
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "token":
+                    type: string
+                    example: ebiudhvifjvp9WEI0923ONVJKehv9
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user Roles 
+  userRole:
+  # "/user/me/role":
+    get:
+      security:
+        - token: []
+      summary: get list roles
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - role 1
+                      - role 2
+                      - role 3
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user capabilities
+  userCapabilities:
+  # "/user/me/capabilities":
+    get:
+      security:
+        - token: []
+      summary: get user capapbilities
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - capability 1
+                      - capability 2
+                      - capability 3
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user details
+  userDetails:
+  # "/user/me/":
+    get:
+      security:
+        - token: []
+      summary: get user details
+      tags:
+        - USERS
+      responses:
+        "200":
+          $ref: "./schema/#responses/userME"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user capabilities
+  resendInvite:
+  # "/user/resend/invite/{id}":
+    get:
+      security:
+        - token: []
+      summary: register user with that role
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: successfully mail was sent 
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # forgot password
+  forgotPassword:
+  # "/user/forgot":
+    post:
+      summary: user forgot password
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: jeevan.balla@transerve.com
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: string
+                    example: successfully mail was sent
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user set password
+  setPassword:
+  # "/user/forgot/password/{token}":
+    post:
+      summary: user set password
+      tags:
+        - USERS
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+          description: token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  example: password
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "token":
+                    type: string
+                    example: urgre8t598gwvorjf8hfq439jfao
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user list
+  userList:
+  # "/user/list/":
+    get:
+      security:
+        - token: []
+      summary: get user details list
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "list":
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        name: 
+                          type: string
+                          example: sai jeevan balla
+                        role:
+                          type: string
+                          example: program-coordinator
+                        cities: 
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - VIZAG-CODE
+                            - HYD-CODE
+                            - AMR-CODE
+                        is_active: 
+                          type: boolean
+                          example: true
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  #user edit
+  editUser:
+  # "/user/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit user
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+              properties:
+                name:
+                  type: string
+                  example: jeevan balla
+                email:
+                  type: string
+                  example: Jeevan.balla@transerve.com
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: jeevan balla
+                      email:
+                        type: string
+                        example: Jeevan.balla@transerve.com
+                  
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  #user edit status
+  editUserStatus:
+  # "/user/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: change user status
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

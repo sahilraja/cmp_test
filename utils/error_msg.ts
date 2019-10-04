@@ -23,8 +23,10 @@ export const USER_ROUTER = {
 export const DOCUMENT_ROUTER = {
     MANDATORY: "Required all mandatory fields.",
     CREATE_ROLE_FAIL: "Fail to create role.",
-
-
+    CHILD_NOT_FOUND: "Child Document Not Found",
+    DOCID_NOT_VALID: "Given document_id is not Valid.",
+    FILE_NOT_FOUND: "Document is mandatory.",
+    INVALID_ADMIN: "User don't have capability to perform this action."
 }
 
 export const AUTHENTICATE_MSG = {
@@ -33,7 +35,6 @@ export const AUTHENTICATE_MSG = {
     INVALID_LOGIN: "Invalid credentials. Please login again",
     USER_INACTIVE: "Credentials not valid anymore. Please contact your technology specialist to activate your account."
 }
-
 
 export const MAIL_SUBJECT = {
     INVITE_USER: "Invitation from CITIIS Management Platform",

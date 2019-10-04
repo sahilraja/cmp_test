@@ -1,7 +1,7 @@
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
-import { Users } from '../users/model';
 import { AUTHENTICATE_MSG } from './error_msg';
+import { userFindOne } from './users';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
@@ -14,7 +14,7 @@ export async function authenticate(req: any, res: any, next: any) {
         let bearerToken = req.headers.authorization.substring(7, req.headers.authorization.length)
         let token: any = await jwt_Verify(bearerToken)
         if (!token) throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN)
-        const user: any = await Users.findById(token.id);
+        const user: any = await userFindOne("id", token.id);
         if (!user) {
             throw (new Error(AUTHENTICATE_MSG.INVALID_LOGIN));
         }

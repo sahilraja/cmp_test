@@ -22,7 +22,8 @@
                 "GROUPS_URL": "http://localhost:5051",
                 "REMOTE_RBAC_URL": "https://cmp-dev.transerve.com/proxy-rbac",
                 "REMOTE_FILE_SERVER_URL" : "https://cmp-dev.transerve.com/proxy-files",
-                "REMOTE_GROUPS_URL": "https://cmp-dev.transerve.com/proxy-groups"
+                "REMOTE_GROUPS_URL": "https://cmp-dev.transerve.com/proxy-groups",
+                "TASK_HOST":"http://localhost:5052"
             }
         },
         {
