@@ -116,6 +116,6 @@
                                 example: james
                               secondName:
                                 type: string
-                                example: bond                   
+                                example: bond                  
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"

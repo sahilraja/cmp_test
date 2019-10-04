@@ -2,7 +2,9 @@ import { Router, Request, Response, Handler } from "express";
 import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
-var multer = require('multer')
+var multer = require('multer');
+import { readFileSync } from "fs";
+import { join } from "path";
 var upload = multer()
 const router = Router();
 
@@ -40,7 +42,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
     try {
         req.query.page = req.query.page || 1;
         req.query.limit = 50;
-        res.status(200).send(await user_list(req.query, res.locals.user.id, req.query.page, req.query.limit));
+        res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.page, req.query.limit));
     } catch (err) {
         next(err);
     };
@@ -76,7 +78,7 @@ router.post('/email/login', async (req: Request, res: Response, next: NextFuncti
 // Get user Details
 router.get("/me", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await userDetails(res.locals.user.id));
+        res.status(200).send(await userDetails(res.locals.user._id));
     } catch (err) {
         next(err)
     };
@@ -85,7 +87,7 @@ router.get("/me", authenticate, async (req: Request, res: Response, next: NextFu
 // Get user roles
 router.get("/me/role", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await userRoles(res.locals.user.id));
+        res.status(200).send(await userRoles(res.locals.user._id));
     } catch (err) {
         next(err);
     };
@@ -94,7 +96,7 @@ router.get("/me/role", authenticate, async (req: Request, res: Response, next: N
 // Get user capabilities
 router.get("/me/capabilities", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await userCapabilities(res.locals.user.id));
+        res.status(200).send(await userCapabilities(res.locals.user._id));
     } catch (err) {
         next(err);
     };
@@ -189,5 +191,12 @@ router.get("/group/:id", authenticate, async (req: Request, res: Response, next:
         next(err);
     };
 });
+router.get("/countryCodes", async (req, res, next) => {
+    try {
+        res.status(200).send(JSON.parse(readFileSync(join(__dirname,"..","utils","country_codes.json"), "utf8")))
+    } catch (error) {
+        next(error)
+    }
+})
 
 export = router;

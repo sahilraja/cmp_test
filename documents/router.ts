@@ -20,7 +20,7 @@ const ensureCanViewVersion: RequestHandler = (req, res, next) => {
 
 const ensureCanEditDocument: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;
-    const userId = res.locals.user.id;
+    const userId = res.locals.user._id;
     //if (userId not allowed to documentId)
     // return next(new Error("Not authorized to perform actions on this document"));
     //else
@@ -29,7 +29,7 @@ const ensureCanEditDocument: RequestHandler = (req, res, next) => {
 
 const ensureCanPublishDocument: RequestHandler = (req, res, next) => {
     const documentId = req.params.id;
-    const userId = res.locals.user.id;
+    const userId = res.locals.user._id;
     //if (userId not allowed to publish documentId)
     // return next(new Error())
     //else
@@ -50,7 +50,7 @@ router.param('id', async (req, res, next, value) => {
 //  Create Document
 router.post("/create", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await createDoc(req.body, res.locals.user.id));
+        res.status(200).send(await createDoc(req.body, res.locals.user._id));
     } catch (err) {
         next(err);
     };
@@ -68,7 +68,7 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
 // Get My shared list
 router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await sharedList(res.locals.user.id))
+        res.status(200).send(await sharedList(res.locals.user._id))
     } catch (err) {
         next(err);
     };
@@ -77,7 +77,7 @@ router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
 // Get My shared list
 router.get("/publish/list", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await publishList(res.locals.user.id))
+        res.status(200).send(await publishList(res.locals.user._id))
     } catch (err) {
         next(err);
     };
@@ -86,7 +86,7 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
 // Get My list
 router.get("/me", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await getDocListOfMe(res.locals.user.id))
+        res.status(200).send(await getDocListOfMe(res.locals.user._id))
     } catch (err) {
         next(err);
     };
@@ -112,7 +112,7 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
 
 router.get("/search", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await docFilter(req.query.filter, res.locals.user.id))
+        res.status(200).send(await docFilter(req.query.filter, res.locals.user._id))
     } catch (err) {
         next(err);
     }
@@ -122,7 +122,7 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 // router.post("/:id/versions/:versionId/create", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
 //     try {
 //         const { id, versionId } = req.params
-//         res.status(200).send(await createNewVersion(id, versionId, res.locals.user.id, req.body));
+//         res.status(200).send(await createNewVersion(id, versionId, res.locals.user._id, req.body));
 //     } catch (err) {
 //         next(err);
 //     };
@@ -323,7 +323,7 @@ router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, 
 //  update exist doc
 router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await docCapabilities(req.params.id, res.locals.user.id));
+        res.status(200).send(await docCapabilities(req.params.id, res.locals.user._id));
     } catch (err) {
         next(err);
     };
@@ -332,7 +332,7 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 //  update exist doc
 router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await published(req.params.id, res.locals.user.id));
+        res.status(200).send(await published(req.params.id, res.locals.user._id));
     } catch (err) {
         next(err);
     };
@@ -350,7 +350,7 @@ router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) 
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user.id));
+        res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user._id));
     } catch (err) {
         next(err);
     };
@@ -361,7 +361,7 @@ router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: N
 //  update exist doc
 router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
     try {
-        res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user.id));
+        res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id));
     } catch (err) {
         next(err);
     };

@@ -538,7 +538,7 @@ export async function invitePeopleList(docId: string) {
                     name: user.name,
                     type: "user",
                     email: user.email,
-                    role: (((await getRoleOfDoc(user.id, docId)) as any) || Array(2))[2]
+                    role: (((await getRoleOfDoc(user._id, docId)) as any) || Array(2))[2]
                 }
             }))
             total = [...userData]

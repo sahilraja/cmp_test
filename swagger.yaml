@@ -2,6 +2,10 @@ openapi: 3.0.0
 info:
   version: 1.0.0
   title: CMP-API
+servers:
+  - url: "https://cmp-dev.transerve.com/api"
+  - url: " http://localhost:3000"
+
 # during dev, should point to your local machine
 host: localhost:4000
 # basePath prefixes all resource paths 
@@ -78,6 +82,8 @@ paths:
     $ref: ./swagger/tags/paths.yaml/#/activeOrInactiveTagStatus
   /project/tag/list:
     $ref: ./swagger/tags/paths.yaml/#/getTagsList
+  /user/countryCodes:
+    $ref: ./swagger/users/paths.yaml/#/countryCodes
 # Themes
   /project/theme/add:
     $ref: ./swagger/themes/paths.yaml/#/addThemeToProject
@@ -143,6 +149,12 @@ definitions:
   $ref: ./swagger/error.yaml
 
 components:
+  securitySchemes:
+    token:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
   schemas:
     Error:
       $ref: ./swagger/error.yaml/#/ErrorResponse/Error

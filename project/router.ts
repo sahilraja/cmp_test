@@ -114,7 +114,7 @@ router.put("/theme/status/:id", async (req: any, res: any, next: any) => {
 // get projects list
 router.get("/list", async (req, res, next) => {
     try {
-        res.status(200).send(await getProjectsList(res.locals.user.id))
+        res.status(200).send(await getProjectsList(res.locals.user._id))
     } catch (error) {
         next(error)
     }
@@ -148,5 +148,4 @@ router.get("/:id", async (req, res, next) => {
         next(error)
     }
 })
-
 export = router;
