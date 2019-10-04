@@ -2,6 +2,7 @@ import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 import { AUTHENTICATE_MSG } from './error_msg';
 import { userFindOne } from './users';
+import { userRoleAndScope } from '../role/module';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
@@ -21,7 +22,7 @@ export async function authenticate(req: any, res: any, next: any) {
         if (!user.is_active) {
             throw new Error(AUTHENTICATE_MSG.USER_INACTIVE);
         }
-        user.role = token.role;
+        user.role = ((((await userRoleAndScope(token.id))) as any).data.global || [""])[0];
         res.locals.user = user;
         return next();
     } catch (err) {

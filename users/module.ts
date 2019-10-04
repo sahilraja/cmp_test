@@ -8,7 +8,7 @@ import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup } from "../utils/users";
-
+import * as phoneNo from "phone";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -20,14 +20,14 @@ export async function inviteUser(objBody: any, user: any) {
         if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
         let userData: any = await createUser({ name: objBody.name, email: objBody.email })
         //  Add Role to User
-        let RoleStatus = await addRole(userData.id, objBody.role)
+        let RoleStatus = await addRole(userData._id, objBody.role)
         if (!RoleStatus.status) {
             await userDelete(userData.id)
             throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
         }
         //  Create 24hr Token
         let token = await jwt_for_url({
-            id: userData.id,
+            id: userData._id,
             name: userData.name,
             email: userData.email,
             role: objBody.role
@@ -42,7 +42,7 @@ export async function inviteUser(objBody: any, user: any) {
                 link: `${ANGULAR_URL}/user/register/${token}`
             })
         })
-        return { userId: userData.id };
+        return { userId: userData._id };
     } catch (err) {
         throw err;
     };
@@ -69,7 +69,7 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
         if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(password)) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         };
-        if (isNaN(phone) || phone.length != 10) {
+        if (!phoneNo(phone).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         };
         //  hash the password
@@ -108,7 +108,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
             obj.password = objBody.password
         };
         if (objBody.phone) {
-            if (isNaN(objBody.phone) || objBody.phone.length != 10) {
+            if (phoneNo(objBody.phone).length == 0) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
             obj.phone = objBody.phone;
