@@ -363,12 +363,9 @@ paths:
                     items:
                       type: object
                       properties:
-                        firstName:
+                        name:
                           type: string
-                          example: sai jeevan
-                        secondName:
-                          type: string
-                          example: balla
+                          example: sai jeevan balla
                         role:
                           type: string
                           example: project managet
@@ -777,12 +774,9 @@ paths:
                               id:
                                 type: string
                                 example: userid212
-                              firsrName:
+                              name:
                                 type: string
-                                example: james
-                              secondName:
-                                type: string
-                                example: bond
+                                example: james bond
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/tag/add:
@@ -1598,9 +1592,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        firstName:
-                          type: string
-                        secondName:
+                        name:
                           type: string
                         email:
                           type: string
@@ -1633,9 +1625,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        firstName:
-                          type: string
-                        secondName:
+                        name:
                           type: string
                         email:
                           type: string

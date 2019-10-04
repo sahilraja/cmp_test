@@ -377,12 +377,9 @@ paths:
                     items: 
                       type: object
                       properties:
-                        firstName: 
+                        name: 
                           type: string
-                          example: sai jeevan
-                        secondName:
-                          type: string
-                          example: balla
+                          example: sai jeevan balla
                         role:
                           type: string
                           example: project managet
@@ -2215,9 +2212,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        firstName: 
-                          type: string
-                        secondName: 
+                        name: 
                           type: string
                         email: 
                           type: string
@@ -2252,9 +2247,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        firstName: 
-                          type: string
-                        secondName: 
+                        name: 
                           type: string
                         email: 
                           type: string
@@ -2809,12 +2802,9 @@ paths:
                       items: 
                         type: object
                         properties:
-                          firstName: 
+                          name: 
                             type: string
-                            example: sai jeevan
-                          secondName:
-                            type: string
-                            example: balla
+                            example: sai jeevan balla
                           email:
                             type: string
                             example: jeevan.balla@transerve.com
@@ -3006,12 +2996,9 @@ components:
     userSchema:
       type: object
       properties:
-        firstName: 
+        name: 
           type: string
-          example: sai jeevan
-        secondName:
-          type: string
-          example: balla
+          example: sai jeevan balla
         email:
           type: string
           example: jeevan.balla@transerve.com

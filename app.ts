@@ -10,6 +10,7 @@ import * as usersRouter from "./users/router";
 import * as roleRouter from "./role/router";
 import * as projectRouter from "./project/router";
 import * as documentRouter from "./documents/router";
+import * as taskRouter from "./task/router";
 
 // implement multer
 import * as multer from "multer";
@@ -44,6 +45,7 @@ app.use('/user', usersRouter);
 app.use("/role", authenticate, roleRouter);
 app.use("/project", authenticate, projectRouter)
 app.use("/docs", documentRouter)
+app.use("/task", taskRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

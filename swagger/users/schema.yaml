@@ -11,12 +11,9 @@ responses:
     userSchema:
       type: object
       properties:
-        firstName: 
+        name: 
           type: string
-          example: sai jeevan
-        secondName:
-          type: string
-          example: balla
+          example: sai jeevan balla
         email:
           type: string
           example: jeevan.balla@transerve.com

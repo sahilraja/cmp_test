@@ -377,15 +377,12 @@
                     items: 
                       type: object
                       properties:
-                        firstName: 
+                        name: 
                           type: string
-                          example: sai jeevan
-                        secondName:
-                          type: string
-                          example: balla
+                          example: sai jeevan balla
                         role:
                           type: string
-                          example: project managet
+                          example: program-coordinator
                         cities: 
                           type: array
                           items:

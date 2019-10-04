@@ -73,7 +73,7 @@ export async function getDocList() {
 
 async function docData(docData: any) {
     try {
-        return { ...docData.toJSON(), tags: await getTags(docData.tags), role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0], owner: await userFindOne("id", docData.ownerId, { "firstName": 1, "secondName": 1 }) }
+        return { ...docData.toJSON(), tags: await getTags(docData.tags), role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0], owner: await userFindOne("id", docData.ownerId, { name: 1 }) }
     } catch (err) {
         throw err
     }
@@ -202,7 +202,7 @@ export async function getDocDetails(docId: any) {
         const docList = publishDocs.toJSON()
         docList.tags = await getTags(docList.tags)
         docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0]
-        docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, secondName: 1, email: 1 })
+        docList.owner = await userFindOne("id", docList.ownerId, { name: 1, email: 1 })
         return docList
     } catch (err) {
         console.log(err)
@@ -441,7 +441,7 @@ export async function removeViewers(docId: string, viewers: string[]) {
 export async function collaboratorList(docId: string) {
     try {
         let users = await GetUserIdsForDocWithRole(docId, "collaborator")
-        return await userList({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
+        return await userList({ _id: { $in: users } }, { name: 1, email: 1 })
     } catch (err) {
         throw err
     };
@@ -450,7 +450,7 @@ export async function collaboratorList(docId: string) {
 export async function viewerList(docId: string) {
     try {
         let users = await GetUserIdsForDocWithRole(docId, "viewer")
-        return await userList({ _id: { $in: users } }, { firstName: 1, secondName: 1, email: 1 })
+        return await userList({ _id: { $in: users } }, { name: 1, email: 1 })
     } catch (err) {
         throw err
     };
@@ -475,7 +475,7 @@ async function invite(user: any, docId: any, role: any, doc: any) {
         email: userData.email,
         subject: `Invitation for ${doc.name} document`,
         html: docInvitePeople({
-            username: userData.firstName + " " + userData.secondName,
+            username: userData.name,
             documentName: doc.name,
             documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`,
         })
@@ -497,7 +497,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
         if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
         let userRole: any = await getRoleOfDoc(userId, docId);
         await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2])
-        await await groupsAddPolicy(`${type}/${userId}`, docId, role)
+        await groupsAddPolicy(`${type}/${userId}`, docId, role)
         return { message: "Edit user successfully." }
     } catch (err) {
         throw err
@@ -531,11 +531,11 @@ export async function invitePeopleList(docId: string) {
             }
         })
         if (userGroup.user) {
-            var userData: any = await userList({ _id: { $in: userGroup.user }, is_active: true }, { firstName: 1, secondName: 1, email: 1 })
+            var userData: any = await userList({ _id: { $in: userGroup.user }, is_active: true }, { name: 1, email: 1 })
             userData = await Promise.all(userData.map(async (user: any) => {
                 return {
                     id: user._id,
-                    name: user.firstName + " " + user.secondName,
+                    name: user.name,
                     type: "user",
                     email: user.email,
                     role: (((await getRoleOfDoc(user.id, docId)) as any) || Array(2))[2]

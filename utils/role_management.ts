@@ -46,8 +46,7 @@ export async function userInit() {
         let user = await createUser({
             "emailVerified": true,
             "phoneVerified": false,
-            "firstName": "pranay",
-            "secondName": "bhardwaj",
+            "name": "pranay bhardwaj",
             "email": "pranay@citiis.com",
             "aboutme": "Technology lead for CITIIS Project",
             "password": "Citiis@123",

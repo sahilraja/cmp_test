@@ -28,8 +28,7 @@ export async function inviteUser(objBody: any, user: any) {
         //  Create 24hr Token
         let token = await jwt_for_url({
             id: userData.id,
-            firstName: userData.firstName,
-            secondName: userData.secondName,
+            name: userData.name,
             email: userData.email,
             role: objBody.role
         });
@@ -129,7 +128,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
-        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { select: { firstName: 1, secondName: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort, ascending });
+        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { select: { name: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort, ascending });
         const data = await Promise.all(docs.map(async doc => {
             return { ...doc.toJSON(), id: doc.id, role: (((await userRoleAndScope(doc.id)) as any).data.global || [""])[0] }
         }));
@@ -257,7 +256,7 @@ export async function forgotPassword(objBody: any) {
             email: userDetails.email,
             subject: MAIL_SUBJECT.FORGOT_PASSWORD,
             html: forgotPasswordForm({
-                username: userDetails.firstName + " " + userDetails.secondName,
+                username: userDetails.name,
                 link: `${ANGULAR_URL}/user/reset-password/${token}`
             })
         })
@@ -357,7 +356,7 @@ export async function groupDetail(id: string) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND)
-        return { ...data.toJSON(), users: await userList({ _id: { $in: await groupUserList(data._id) } }, { firstName: 1, secondName: 1, email: 1 }) }
+        return { ...data.toJSON(), users: await userList({ _id: { $in: await groupUserList(data._id) } }, { name: 1, email: 1 }) }
     } catch (err) {
         throw err;
     };
@@ -398,7 +397,7 @@ export async function userSuggestions(search: string) {
     try {
         // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
-        let users: any = await userList({ $or: [{ firstName: new RegExp(search, "i") }, { secondName: new RegExp(search, "i") }], is_active: true }, { firstName: 1, secondName: 1 });
+        let users: any = await userList({ name: new RegExp(search, "i"), is_active: true }, { name: 1 });
         users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]

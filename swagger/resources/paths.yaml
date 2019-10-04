@@ -608,9 +608,7 @@
                     items:
                       type: object
                       properties:
-                        firstName: 
-                          type: string
-                        secondName: 
+                        name: 
                           type: string
                         email: 
                           type: string
@@ -646,9 +644,7 @@
                     items:
                       type: object
                       properties:
-                        firstName: 
-                          type: string
-                        secondName: 
+                        name: 
                           type: string
                         email: 
                           type: string

@@ -75,7 +75,7 @@ export async function usersForRole(role: string) {
         }
         let success = await request(Options);
         if (!success) throw new Error("Fail to get users.")
-        let users = await userList({ _id: { $in: success.users } }, { firstName: 1, secondName: 1 })
+        let users = await userList({ _id: { $in: success.users } }, { name: 1 })
         return { role: role, users: users }
     } catch (err) {
         console.log(err);
