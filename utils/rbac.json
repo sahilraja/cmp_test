@@ -8,6 +8,16 @@
                 "capability": "create-user",
                 "description": "Create User",
                 "scope": "global"
+            },
+            {
+                "capability": "create-task",
+                "description": "Ability to create a task",
+                "scope": "global"
+            },
+            {
+                "capability": "attach-documents",
+                "description": "Ability to attach documents to a task",
+                "scope": "global"
             }
         ]
     },
@@ -19,6 +29,16 @@
             {
                 "capability": "project-view",
                 "description": "Project View",
+                "scope": "global"
+            },
+            {
+                "capability":"create-task",
+                "description": "Ability to create a task",
+                "scope":"global"
+            },
+            {
+                "capability": "attach-documents",
+                "description": "Ability to attach documents to a task",
                 "scope": "global"
             }
         ]
