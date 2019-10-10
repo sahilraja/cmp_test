@@ -130,7 +130,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { select: { name: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort, ascending });
         const data = await Promise.all(docs.map(async doc => {
-            return { ...doc.toJSON(), id: doc.id, role: (((await userRoleAndScope(doc.id)) as any).data.global || [""])[0] }
+            return { ...doc, id: doc.id, role: (((await userRoleAndScope(doc.id)) as any).data.global || [""])[0] }
         }));
         return { data, pages: pages, count: total };
     } catch (err) {
@@ -343,7 +343,7 @@ export async function groupList() {
     try {
         let groups = await listGroup({ is_active: true }, undefined, "updatedAt")
         return await Promise.all(groups.map(async (group: any) => {
-            return { ...group.toJSON(), users: ((await groupUserList(group._id)) as any).length }
+            return { ...group, users: ((await groupUserList(group._id)) as any).length }
         }));
     } catch (err) {
         throw err;
@@ -356,7 +356,7 @@ export async function groupDetail(id: string) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND)
-        return { ...data.toJSON(), users: await userList({ _id: { $in: await groupUserList(data._id) } }, { name: 1, email: 1 }) }
+        return { ...data, users: await userList({ _id: { $in: await groupUserList(data._id) } }, { name: 1, email: 1 }) }
     } catch (err) {
         throw err;
     };
@@ -397,8 +397,9 @@ export async function userSuggestions(search: string) {
     try {
         // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
-        let users: any = await userList({ name: new RegExp(search, "i"), is_active: true }, { name: 1 });
-        users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
+        const searchQuery = search ? { name: new RegExp(search, "i")} : {}
+        let users: any = await userList({ ...searchQuery, is_active: true}, { name: 1 });
+        users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]
     } catch (err) {
