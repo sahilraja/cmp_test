@@ -19,11 +19,11 @@ export async function inviteUser(objBody: any, user: any) {
         //  Check User Capability
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
-        let userData: any = await createUser({ 
-            email: objBody.email, 
-            firstName:objBody.firstName, 
-            lastName:objBody.lastName, 
-            middleName:objBody.middleName
+        let userData: any = await createUser({
+            email: objBody.email,
+            firstName: objBody.firstName,
+            lastName: objBody.lastName,
+            middleName: objBody.middleName
         })
         //  Add Role to User
         let RoleStatus = await addRole(userData._id, objBody.role)
@@ -65,7 +65,7 @@ export async function RegisterUser(objBody: any, verifyToken: string, photoUrl: 
         let user: any = await userFindOne("id", token.id)
         if (!user) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
-        const { firstName, lastName,middleName ,password, phone, aboutme , countryCode, profilePic } = objBody
+        const { firstName, lastName, middleName, password, phone, aboutme, countryCode, profilePic } = objBody
 
         if (!firstName || !lastName || !password || !phone) {
             throw new Error(USER_ROUTER.MANDATORY);
@@ -79,8 +79,8 @@ export async function RegisterUser(objBody: any, verifyToken: string, photoUrl: 
         //  hash the password
         let success = await userEdit(token.id, {
             firstName, lastName, password, phone,
-            profilePic : photoUrl || null,
-            middleName : middleName || null,
+            profilePic: photoUrl || null,
+            middleName: middleName || null,
             countryCode: countryCode || null,
             aboutme: aboutme || null,
             emailVerified: true
@@ -120,7 +120,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }
             obj.password = objBody.password
         };
-        if(objBody.countryCode){
+        if (objBody.countryCode) {
             obj.countryCode = objBody.countryCode;
         }
         if (objBody.phone) {
@@ -155,7 +155,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
 };
 export async function getUserDetail(userId: string) {
     try {
-        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone:1, countryCode:1, aboutme:1 });
+        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1 });
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data.global || [""])[0] }
     } catch (err) {
         throw err;
@@ -182,7 +182,7 @@ export async function user_status(id: string, user: any) {
 
 //  User Login
 export async function user_login(objBody: any) {
-    try{
+    try {
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
         }
@@ -311,7 +311,7 @@ export async function setNewPassword(objBody: any) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         }
         // update password
-        let tokenData:any = await jwt_Verify(objBody.id);
+        let tokenData: any = await jwt_Verify(objBody.id);
         if (!tokenData) {
             throw new Error(USER_ROUTER.TOKEN_INVALID);
         }
@@ -437,8 +437,8 @@ export async function userSuggestions(search: string) {
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
         const searchQuery = search ? { name: new RegExp(search, "i") } : {}
         let users: any = search ?
-            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName:1, email: 1 }) :
-            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName:1, email: 1 });
+            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
+            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
         users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]
@@ -452,7 +452,7 @@ export async function otpVerification(objBody: any) {
             throw new Error("Required otp field")
         };
         let userInfo: any = await userFindOne("email", objBody.email);
-        let token:any = await jwtOtpVerify(userInfo.otp_token)
+        let token: any = await jwtOtpVerify(userInfo.otp_token)
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if ((objBody.otp) == Number(token.otp)) {
@@ -471,11 +471,11 @@ export async function userInformation(id: any) {
         let userInfo = await userFindOne("id", id);
         return userInfo;
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
-export async function changeEmailInfo(objBody: any,id: string) {
+export async function changeEmailInfo(objBody: any, id: string) {
     try {
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
@@ -484,9 +484,9 @@ export async function changeEmailInfo(objBody: any,id: string) {
             throw Error(USER_ROUTER.INVALID_FIELDS);
         }
         //  find User
-        let userData  = await changeEmailRoute(id,objBody);
+        let userData = await changeEmailRoute(id, objBody);
         return userData;
-        
+
     }
     catch (err) {
         throw err

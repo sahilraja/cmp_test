@@ -48,7 +48,7 @@ export async function userFindOne(key: string, value: string, selectFields?: any
         throw err
     };
 };
-export async function changeEmailRoute(userId:string,objBody:object){
+export async function changeEmailRoute(userId: string, objBody: object) {
     try {
         let Options = {
             uri: `${USERS_URL}/user/changeEmail/${userId}`,
@@ -227,7 +227,7 @@ export async function uploadPhoto(request: any) {
     });
 }
 
-export async function changePasswordInfo(payload:object,userId:string){
+export async function changePasswordInfo(payload: object, userId: string) {
     try {
         let Options = {
             uri: `${USERS_URL}/user/changePassword/${userId}`,
