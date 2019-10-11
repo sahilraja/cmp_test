@@ -69,9 +69,9 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
         if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(password)) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         };
-        if (!phoneNo(phone).length) {
-            throw new Error(USER_ROUTER.VALID_PHONE_NO)
-        };
+        // if (!phoneNo(phone).length) {
+        //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
+        // };
         //  hash the password
         let success = await userEdit(token.id, {
             name, password, phone,
@@ -108,9 +108,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             obj.password = objBody.password
         };
         if (objBody.phone) {
-            if (phoneNo(objBody.phone).length == 0) {
-                throw new Error(USER_ROUTER.VALID_PHONE_NO)
-            }
+            // if (phoneNo(objBody.phone).length == 0) {
+            //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
+            // }
             obj.phone = objBody.phone;
             obj.phoneVerified = false;
         };
