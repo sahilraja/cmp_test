@@ -69,9 +69,9 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
         if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(password)) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         };
-        if (!phoneNo(phone).length) {
-            throw new Error(USER_ROUTER.VALID_PHONE_NO)
-        };
+        // if (!phoneNo(phone).length) {
+        //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
+        // };
         //  hash the password
         let success = await userEdit(token.id, {
             name, password, phone,
@@ -94,6 +94,12 @@ export async function edit_user(id: string, objBody: any, user: any) {
             if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
         }
         let obj: any = {}
+        if(objBody.firstName){
+            obj.firstName = objBody.firstName
+        }
+        if (objBody.secondName) {
+            obj.secondName = objBody.secondName
+        }
         if (objBody.email) {
             obj.email = objBody.email
             obj.emailVerified = false
@@ -108,9 +114,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             obj.password = objBody.password
         };
         if (objBody.phone) {
-            if (phoneNo(objBody.phone).length == 0) {
-                throw new Error(USER_ROUTER.VALID_PHONE_NO)
-            }
+            // if (phoneNo(objBody.phone).length == 0) {
+            //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
+            // }
             obj.phone = objBody.phone;
             obj.phoneVerified = false;
         };
@@ -118,7 +124,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
             obj.aboutme = objBody.aboutme;
         };
         // update user with edited fields
-        return await userEdit(id, obj);
+        return await userEdit(id, objBody);
     } catch (err) {
         throw err;
     };
@@ -128,9 +134,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
-        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { select: { name: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort, ascending });
+        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, {firstName:1, secondName:1, name: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
         const data = await Promise.all(docs.map(async doc => {
-            return { ...doc.toJSON(), id: doc.id, role: (((await userRoleAndScope(doc.id)) as any).data.global || [""])[0] }
+            return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
         }));
         return { data, pages: pages, count: total };
     } catch (err) {
@@ -343,7 +349,7 @@ export async function groupList() {
     try {
         let groups = await listGroup({ is_active: true }, undefined, "updatedAt")
         return await Promise.all(groups.map(async (group: any) => {
-            return { ...group.toJSON(), users: ((await groupUserList(group._id)) as any).length }
+            return { ...group, users: ((await groupUserList(group._id)) as any).length }
         }));
     } catch (err) {
         throw err;
@@ -356,7 +362,7 @@ export async function groupDetail(id: string) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND)
-        return { ...data.toJSON(), users: await userList({ _id: { $in: await groupUserList(data._id) } }, { name: 1, email: 1 }) }
+        return { ...data, users: await userList({ _id: { $in: await groupUserList(data._id) } }, { name: 1, email: 1 }) }
     } catch (err) {
         throw err;
     };
@@ -397,8 +403,9 @@ export async function userSuggestions(search: string) {
     try {
         // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
-        let users: any = await userList({ name: new RegExp(search, "i"), is_active: true }, { name: 1 });
-        users = await Promise.all(users.map(async (user: any) => { return { ...user.toJSON(), type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
+        const searchQuery = search ? { name: new RegExp(search, "i")} : {}
+        let users: any = await userList({ ...searchQuery, is_active: true}, { name: 1, firstName:1, secondName:1, email:1 });
+        users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]
     } catch (err) {

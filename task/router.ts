@@ -11,6 +11,7 @@ router.use('/', authenticate, proxy(TASK_HOST, {
     proxyReqOptDecorator: async function (proxyReqOpts: any, srcReq: any) {
         // you can update headers
         proxyReqOpts.headers['Content-Type'] = 'application/json';
+        proxyReqOpts.headers['Authorization'] = srcReq.headers.authorization;
         proxyReqOpts.headers['Accept'] = 'application/json';
         return proxyReqOpts;
     }

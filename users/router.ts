@@ -49,7 +49,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
 });
 
 //  Edit User
-router.get('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).send(await edit_user(req.params.id, req.body, res.locals.user));
     } catch (err) {

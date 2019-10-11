@@ -422,11 +422,23 @@
               type: object
               required:
                 - email
-                - name
+                - firstName
+                - lastName
+                - phone
+                - aboutme
               properties:
-                name:
+                firstName:
                   type: string
-                  example: jeevan balla
+                  example: jeevan
+                lastName:
+                  type: string
+                  example: jeevan
+                phone:
+                  type: string
+                  example: 7894313858
+                aboutme:
+                    type: string
+                    example: this is sample about me
                 email:
                   type: string
                   example: Jeevan.balla@transerve.com
