@@ -314,6 +314,12 @@
                   "success":
                     type: string
                     example: successfully mail was sent
+                  email:
+                    type: string
+                    example: email address
+                  id:
+                    type: string
+                    example: userId
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # user set password
@@ -323,13 +329,7 @@
       summary: user set password
       tags:
         - USERS
-      parameters:
-        - in: path
-          name: token
-          schema:
-            type: string
-          required: true
-          description: token
+      
       requestBody:
         required: true
         content:
@@ -342,6 +342,7 @@
                 password:
                   type: string
                   example: password
+          
       responses:
         "200":
           description: success
@@ -350,9 +351,9 @@
               schema:
                 type: object
                 properties:
-                  "token":
+                  userData:
                     type: string
-                    example: urgre8t598gwvorjf8hfq439jfao
+                    example: {}
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # user list
@@ -506,3 +507,146 @@
 
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  changeEmail:
+    post:
+      summary: change user email
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - id
+              properties:
+                email:
+                  type: string
+                  example: jeevan.balla@transerve.com
+                password:
+                  type: string
+                  example: jeevan.balla@transerve.com
+                id:
+                  type: string
+                  example: userId
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: string
+                    example: successfully mail was sent
+                  id:
+                    type: string
+                    example: userId
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  verifyEmail:
+    post:
+      summary: verify user email
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                otp:
+                  type: string
+                  example: 3536
+                id:
+                  type: string
+                  example: userId
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: string
+                    example: successfully mail verified
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  changePassword:
+    post:
+      summary: change user password
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - old_password
+                - new_password
+              properties:
+                password:
+                  type: string
+                  example: password
+              
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: string
+                    example: successfully updated user password 
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  otpVerify:
+  # "/user/forgot/password/{token}":
+    post:
+      summary: otp verification
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                email:
+                  type: string
+                  example: eswar@transerve.com
+                otp:
+                  type: string
+                  example: 2452
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userData:
+                    type: object
+                    example: {}
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # user list

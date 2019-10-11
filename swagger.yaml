@@ -10,6 +10,7 @@ servers:
 host: localhost:4000
 # basePath prefixes all resource paths 
 #
+basePath: /
 
 schemes:
   # tip: remove http to make production-grade
@@ -41,7 +42,9 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/resendInvite
   /user/forgot:
     $ref: ./swagger/users/paths.yaml/#/forgotPassword
-  /user/forgot/password/{token}:
+  /user/forgot/verify:
+    $ref: ./swagger/users/paths.yaml/#/otpVerify
+  /user/forgot/setPassword:
     $ref: ./swagger/users/paths.yaml/#/setPassword
   /user/list/:
     $ref: ./swagger/users/paths.yaml/#/userList
@@ -49,6 +52,12 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/editUser
   /user/status/{id}:
     $ref: ./swagger/users/paths.yaml/#/editUserStatus
+  /user/changeEmail:
+    $ref: ./swagger/users/paths.yaml/#/changeEmail
+  /user/verifyEmail:
+    $ref: ./swagger/users/paths.yaml/#/verifyEmail
+  /user/changePassword:
+    $ref: ./swagger/users/paths.yaml/#/changePassword
 # Project APIs
   /project/city/code/add:
     $ref: ./swagger/projects/paths.yaml/#/createProjectCode
@@ -80,7 +89,7 @@ paths:
     $ref: ./swagger/tags/paths.yaml/#/editTagOfProject
   /project/tag/status/{id}:
     $ref: ./swagger/tags/paths.yaml/#/activeOrInactiveTagStatus
-  /project/tag/list:
+  /tag/list:
     $ref: ./swagger/tags/paths.yaml/#/getTagsList
   /user/countryCodes:
     $ref: ./swagger/users/paths.yaml/#/countryCodes
