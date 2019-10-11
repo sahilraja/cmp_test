@@ -1,13 +1,13 @@
-import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE } from "../utils/error_msg";
+import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm } from "../utils/email_template";
-import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword } from "../utils/utils";
+import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify } from "../utils/users";
 import * as phoneNo from "phone";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
@@ -257,16 +257,19 @@ export async function forgotPassword(objBody: any) {
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         //  Create Token
-        let token = await jwt_for_url({ id: userDetails.id })
+        let authOtp = { "otp": generateOtp(4) }
+        let token = await jwtOtpToken(authOtp);
+        await userUpdate({otp_token:token,id:userDetails._id});
         let success = await nodemail({
             email: userDetails.email,
             subject: MAIL_SUBJECT.FORGOT_PASSWORD,
             html: forgotPasswordForm({
                 username: userDetails.name,
-                link: `${ANGULAR_URL}/user/reset-password/${token}`
+                otp:authOtp.otp
             })
         })
-        return { message: RESPONSE.SUCCESS_EMAIL }
+        
+        return { message: RESPONSE.SUCCESS_EMAIL,email:userDetails.email,id:userDetails._id }
     } catch (err) {
         console.log(err);
         throw err;
@@ -274,23 +277,23 @@ export async function forgotPassword(objBody: any) {
 };
 
 //  set new Password
-export async function setNewPassword(objBody: any, token: any) {
+export async function setNewPassword(objBody: object) {
     try {
-        if (!objBody.password || !token) {
-            throw new Error(USER_ROUTER.MANDATORY)
+        if (!objBody.password) {
+            throw new Error("required password field")
         };
         //  verified the token
-        let verifyToken: any = await jwt_Verify(token);
-        if (!verifyToken) throw new Error(USER_ROUTER.TOKEN_INVALID);
         if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         }
         // update password
-        let userDetails: any = await userEdit(verifyToken.id, { password: objBody.password });
-        let role = await getRoles(userDetails.id)
-        if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
+        let userData: any = await userEdit(objBody.id,{ password: objBody.password });
+        //let role = await getRoles(userData._id)
+        //if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
         //  create life Time Token
-        return { token: await createJWT({ id: userDetails.id, role: role.data[0].role }) }
+        //return { token: await createJWT({ id: userDetails.id, role: role.data[0].role }) }
+        return userData
+
     } catch (err) {
         console.log(err);
         throw err;
@@ -412,3 +415,21 @@ export async function userSuggestions(search: string) {
         throw err
     };
 };
+export async function otpVerification(objBody:any){
+    try{
+        if (!objBody.otp) {
+            throw new Error("Required otp field")
+        };
+        let userInfo: any = await userFindOne("email", objBody.email);
+        let token = await jwtOtpVerify(userInfo.otp_token)
+        if ((objBody.otp) == Number(token.otp)) {
+            let userData =await otpVerify(userInfo._id);
+            return userData
+        } else {
+            throw new Error(INCORRECT_OTP);
+        }
+    }
+    catch(err){
+        throw err
+    }
+}

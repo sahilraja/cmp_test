@@ -333,7 +333,7 @@ paths:
                   type: string
                   example: eswar@transerve.com
                 otp:
-                  type: string
+                  type: number
                   example: 2452
       responses:
         '200':
@@ -365,6 +365,9 @@ paths:
                 password:
                   type: string
                   example: password
+                id:
+                  type: string
+                  example: userId
       responses:
         '200':
           description: success
@@ -527,10 +530,7 @@ paths:
                   example: jeevan.balla@transerve.com
                 password:
                   type: string
-                  example: jeevan.balla@transerve.com
-                id:
-                  type: string
-                  example: userId
+                  example: '*************'
       responses:
         '200':
           description: success
