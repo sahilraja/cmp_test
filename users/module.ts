@@ -128,7 +128,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
-        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { select: { name: 1, email: 1, is_active: 1 }, page: page, limit: parseInt(limit), sort, ascending });
+        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, {firstName:1, secondName:1, name: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
         const data = await Promise.all(docs.map(async doc => {
             return { ...doc, id: doc.id, role: (((await userRoleAndScope(doc.id)) as any).data.global || [""])[0] }
         }));
