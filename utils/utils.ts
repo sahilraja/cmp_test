@@ -7,6 +7,7 @@ const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
 const SALTROUNDS = 10;
+const ACCESS_TOKEN_FOR_OTP = 30 * 60;
 
 // User Authentication 
 export async function authenticate(req: any, res: any, next: any) {
@@ -66,4 +67,22 @@ export async function jwt_Verify(id: any) {
     return await jwtVerify(id, SECRET);
 };
 
+export function generateOtp(limit) {
+    var characters = '0123456789';
+    var charactersLength = characters.length;
+    var result = "";
 
+    for (var i = 0; i < limit; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+export async function jwtOtpToken(otp) {
+    return await jwtSign(otp, SECRET, { expiresIn: ACCESS_TOKEN_FOR_OTP })
+}
+
+// verify token for otp
+export async function jwtOtpVerify(otp) {
+    return await jwtVerify(otp, SECRET)
+}

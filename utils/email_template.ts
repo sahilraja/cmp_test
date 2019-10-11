@@ -1,3 +1,4 @@
+import bodyParser = require("body-parser");
 
 //  Invite User Email Template
 export function inviteUserForm(body: any) {
@@ -24,17 +25,15 @@ export function inviteUserForm(body: any) {
 //  Forgot Password Email Template
 export function forgotPasswordForm(body: any) {
     try {
-        const text = `
-        <p>Hi  ${body.username},</p><br/></br>
-        <p> Someone, hopefully you, has requested to reset the password </P></br>
-        <p> If you did not perform this request, you can safely ignore this email. </P></br>
-        <P> Otherwise, click the link below to complete the process. </p></br>
-        <a href=${body.link}>click here</a>
-        <br/>
-        <br/>
-        Best Regards,<br/>
-        CMP Team.
-        `
+        const text = 
+            `Hello <b>${body.username}</b>,<br><br>
+            <u>${body.otp}</u> is the One Time Password (OTP) to activate your CMP account.
+            The OTP is valid for 30 minutes.
+            <br/>
+            <br/>
+            Best Regards,<br/>
+            CMP Support.`
+
         return text;
     } catch (err) {
         console.log(err);

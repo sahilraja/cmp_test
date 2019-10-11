@@ -47,6 +47,20 @@ export async function userFindOne(key: string, value: string, selectFields?: any
     };
 };
 
+export async function userUpdate(objBody:any) {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/update`,
+            method: "POST",
+            body: objBody,
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
+
 // user Login
 export async function userFindMany(key: string, value: any[], selectFields?: any) {
     try {
@@ -211,4 +225,17 @@ export async function groupEdit(groupId: string, payload: object) {
     };
 };
 
+export async function otpVerify(id: string) {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/otpVerify`,
+            method: "POST",
+            body: {userId:id},
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
 
