@@ -94,6 +94,12 @@ export async function edit_user(id: string, objBody: any, user: any) {
             if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
         }
         let obj: any = {}
+        if(objBody.firstName){
+            obj.firstName = objBody.firstName
+        }
+        if (objBody.secondName) {
+            obj.secondName = objBody.secondName
+        }
         if (objBody.email) {
             obj.email = objBody.email
             obj.emailVerified = false
