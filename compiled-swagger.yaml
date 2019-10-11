@@ -583,7 +583,10 @@ paths:
                 - old_password
                 - new_password
               properties:
-                password:
+                old_password:
+                  type: string
+                  example: password
+                new_password:
                   type: string
                   example: password
       responses:
