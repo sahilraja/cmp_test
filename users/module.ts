@@ -124,7 +124,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
             obj.aboutme = objBody.aboutme;
         };
         // update user with edited fields
-        return await userEdit(id, obj);
+        return await userEdit(id, objBody);
     } catch (err) {
         throw err;
     };
