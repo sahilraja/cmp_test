@@ -45,7 +45,7 @@ app.use('/user', usersRouter);
 app.use("/role", authenticate, roleRouter);
 app.use("/project", authenticate, projectRouter)
 app.use("/docs", documentRouter)
-app.use("/task", taskRouter)
+app.use("/tasks", taskRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })
