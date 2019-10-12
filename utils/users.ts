@@ -47,7 +47,7 @@ export async function userFindOne(key: string, value: string, selectFields?: any
     };
 };
 
-export async function userUpdate(objBody:any) {
+export async function userUpdate(objBody: any) {
     try {
         let Options = {
             uri: `${USERS_URL}/user/update`,
@@ -225,12 +225,12 @@ export async function groupEdit(groupId: string, payload: object) {
     };
 };
 
-export async function otpVerify(id: string) {
+export async function otpVerify(objBody: string) {
     try {
         let Options = {
             uri: `${USERS_URL}/user/otpVerify`,
             method: "POST",
-            body: {userId:id},
+            body: objBody,
             json: true
         }
         return await request(Options);

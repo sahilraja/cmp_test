@@ -4,7 +4,7 @@ import bodyParser = require("body-parser");
 export function inviteUserForm(body: any) {
     try {
         const text = `
-        Dear  ${body.username},<br/></br>
+        Hi,<br/></br>
         <br/>
         You are invited by an Administrator of CMP platform to join for the role of <b>${body.role}.</b><br/>
         <br/>
@@ -61,3 +61,12 @@ export function docInvitePeople(body: any) {
         throw err;
     };
 };
+export function userLoginForm(body: any){
+    try {
+        const text = `Welcome to <h>CMP<h>`
+        return text;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+}

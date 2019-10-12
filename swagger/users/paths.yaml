@@ -15,12 +15,8 @@
               type: object
               required:
                 - email
-                - name
                 - role
               properties:
-                name:
-                  type: string
-                  example: jeevan balla
                 email:
                   type: string
                   example: Jeevan.balla@transerve.com
@@ -113,19 +109,24 @@
             schema:
               type: object
               required:
-                - name
+                - firstName
+                - lastName
                 - phone
-                - uploadPhoto
-                - aboutme
                 - password
               properties:
-                name:
+                firstName:
                   type: string
-                  example: sai jeevan balla
+                  example: sai
+                middleName:
+                  type: string
+                  example: jeevan
+                lastName:
+                  type: string
+                  example: balla
                 phone:
                   type: number
                   example: 7989238348
-                uploadPhoto:
+                profilePic:
                   type: string
                   format: binary
                 aboutme:
@@ -381,7 +382,7 @@
                     items: 
                       type: object
                       properties:
-                        name: 
+                        firstName:
                           type: string
                           example: sai jeevan balla
                         role:
@@ -450,15 +451,9 @@
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data::
             schema:
               type: object
-              required:
-                - email
-                - firstName
-                - lastName
-                - phone
-                - aboutme
               properties:
                 firstName:
                   type: string
@@ -466,6 +461,12 @@
                 lastName:
                   type: string
                   example: jeevan
+                middleName:
+                  type: string
+                  example:
+                profilePic:
+                  type: string
+                  format: binary
                 phone:
                   type: string
                   example: 7894313858
@@ -696,3 +697,34 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # user list
+  userInfo:
+  # "/user/list/":
+    get:
+      security:
+        - token: []
+      summary: get user details list
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    example: eswar@webileapps.com
+                  id:
+                    type: string
+                    example: userId
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
