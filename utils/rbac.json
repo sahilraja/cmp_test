@@ -18,6 +18,16 @@
                 "capability": "attach-documents",
                 "description": "Ability to attach documents to a task",
                 "scope": "global"
+            },
+            {
+                "capability": "create-message",
+                "description": "Ability to create a message",
+                "scope": "global"
+            },
+            {
+                "capability": "view-all-cmp-messages",
+                "description": "Ability to view all cmp message",
+                "scope": "global"
             }
         ]
     },
@@ -39,6 +49,11 @@
             {
                 "capability": "attach-documents",
                 "description": "Ability to attach documents to a task",
+                "scope": "global"
+            },
+            {
+                "capability": "create-message",
+                "description": "Ability to create a message",
                 "scope": "global"
             }
         ]
