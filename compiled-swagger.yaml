@@ -425,7 +425,7 @@ paths:
     get:
       security:
         - token: []
-      summary: edit user
+      summary: get User Detail
       tags:
         - USERS
       parameters:
