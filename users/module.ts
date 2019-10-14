@@ -145,7 +145,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
 };
 export async function getUserDetail(userId: string) {
     try {
-        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
+        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1 });
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data.global || [""])[0] }
     } catch (err) {
         throw err;
