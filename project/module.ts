@@ -138,6 +138,10 @@ export async function tag_list(search: string) {
   }
 }
 
+export async function getTagByIds(ids:string[]) {
+  return await tags.find({_id:{$in:ids}}).exec()
+}
+
 //  edit status of tag
 export async function tag_status(id: any) {
   try {
