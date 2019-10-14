@@ -48,6 +48,8 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/setPassword
   /user/list/:
     $ref: ./swagger/users/paths.yaml/#/userList
+  /user/detail/{id}:
+    $ref: ./swagger/users/paths.yaml/#/getUserDetail
   /user/edit/{id}:
     $ref: ./swagger/users/paths.yaml/#/editUser
   /user/status/{id}:

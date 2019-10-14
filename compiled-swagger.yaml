@@ -420,6 +420,72 @@ paths:
                           example: true
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/detail/{id}':
+    get:
+      security:
+        - token: []
+      summary: edit user
+      tags:
+        - USERS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - &ref_1
+                    type: object
+                    properties:
+                      firstName:
+                        type: string
+                        example: sai
+                      middleName:
+                        type: string
+                        example: jeevan
+                      lastName:
+                        type: string
+                        example: balla
+                      email:
+                        type: string
+                        example: jeevan.balla@transerve.com
+                      emailVerified:
+                        type: boolean
+                        example: false
+                      password:
+                        type: string
+                        example: adhdbfverhf92nfn
+                        description: hashpassword
+                      phone:
+                        type: number
+                        example: 7989238348
+                      phoneVerified:
+                        type: boolean
+                        example: false
+                      aboutme:
+                        type: string
+                        example: i am a project manager
+                      uploadPhoto:
+                        type: string
+                        example: 'https://amazonS3.com/user/profilepic'
+                      is_active:
+                        type: boolean
+                        example: true
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/edit/{id}':
     post:
       security:
@@ -2184,37 +2250,7 @@ components:
           type: string
       required:
         - error
-    userME: &ref_1
-      type: object
-      properties:
-        name:
-          type: string
-          example: sai jeevan balla
-        email:
-          type: string
-          example: jeevan.balla@transerve.com
-        emailVerified:
-          type: boolean
-          example: false
-        password:
-          type: string
-          example: adhdbfverhf92nfn
-          description: hashpassword
-        phone:
-          type: number
-          example: 7989238348
-        phoneVerified:
-          type: boolean
-          example: false
-        aboutme:
-          type: string
-          example: i am a project manager
-        uploadPhoto:
-          type: string
-          example: 'https://amazonS3.com/user/profilepic'
-        is_active:
-          type: boolean
-          example: true
+    userME: *ref_1
     project: &ref_2
       type: object
       properties:

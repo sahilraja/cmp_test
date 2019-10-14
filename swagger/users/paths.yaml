@@ -402,6 +402,36 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   #user edit
+  getUserDetail:
+    get:
+      security:
+        - token: []
+      summary: get User Detail
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/userSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
   editUser:
   # "/user/edit/{id}":
     post:

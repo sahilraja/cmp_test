@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, getUserDetail } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
 var multer = require('multer');
@@ -48,6 +48,13 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
     };
 });
 
+router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).send(await getUserDetail(req.params.id));
+    } catch (err) {
+        next(err);
+    };
+});
 //  Edit User
 router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
