@@ -207,7 +207,7 @@ router.get("/group/:id", authenticate, async (req: Request, res: Response, next:
         next(err);
     };
 });
-router.get("/countryCodes", authenticate, async (req, res, next) => {
+router.get("/countryCodes", async (req, res, next) => {
     try {
         res.status(200).send(JSON.parse(readFileSync(join(__dirname, "..", "utils", "country_codes.json"), "utf8")))
     } catch (error) {
