@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 
-const schema = new Schema({
+const schema = new Schema(
+  {
     name: { type: String, trim: true },
     description: { type: String, trim: true },
     tags: { type: Array },
@@ -13,8 +14,10 @@ const schema = new Schema({
     fileName: { type: String },
     collaborator: { type: Array },
     viewer: { type: Array },
-    is_active: { type: Boolean, default: true }
-}, { timestamps: true });
+    is_active: { type: Boolean, default: true },
+    sourceId: { type: String }
+  },
+  { timestamps: true }
+);
 
 export const documents = model("documents", schema);
-
