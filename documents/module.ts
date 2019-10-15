@@ -357,7 +357,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       tags: parent.tags,
       versionNum: Number(child[0].versionNum) + 1,
       status: parent.status,
-      ownerId: parent.userId,
+      ownerId: userId,
       parentId: parent.id,
       fileId: parent.fileId,
       fileName: parent.fileName
@@ -731,7 +731,6 @@ export async function published(body: any, docId: string, userId: string) {
       versionNum: 1,
       status: STATUS.PUBLISHED,
       ownerId: userId,
-      parentId: body.parentId || doc.parentId,
       fileName: body.fileName || doc.fileName,
       fileId: body.fileId || doc.fileId
     });
