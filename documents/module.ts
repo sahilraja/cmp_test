@@ -719,20 +719,21 @@ export async function docCapabilities(docId: string, userId: string) {
   }
 }
 
-export async function published(docId: string, userId: string) {
+export async function published(body: any, docId: string, userId: string) {
   try {
     let doc: any = await documents.findById(docId);
     return await documents.create({
-      name: doc.name,
-      description: doc.description,
-      themes: doc.themes,
-      tags: doc.tags,
+      sourceId: docId,
+      name: body.name,
+      description: body.description,
+      themes: body.themes || null,
+      tags: body.tags || null,
       versionNum: 1,
       status: STATUS.PUBLISHED,
       ownerId: userId,
-      parentId: doc.parentId,
-      fileName: doc.fileName,
-      fileId: doc.fileId
+      parentId: body.parentId || doc.parentId,
+      fileName: body.fileName || doc.fileName,
+      fileId: body.fileId || doc.fileId
     });
   } catch (err) {
     throw err;
@@ -763,6 +764,7 @@ export async function replaceDoc(
         .findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true })
         .exec()
     ]);
+
     return await documents.create({
       name: doc.name,
       description: doc.description,
