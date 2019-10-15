@@ -53,7 +53,7 @@ export async function inviteUser(objBody: any, user: any) {
 };
 
 //  Register User
-export async function RegisterUser(objBody: any, verifyToken: string, photoUrl: any) {
+export async function RegisterUser(objBody: any, verifyToken: string) {
     try {
         if (!verifyToken) {
             throw new Error(USER_ROUTER.TOKEN_MISSING)
@@ -79,7 +79,7 @@ export async function RegisterUser(objBody: any, verifyToken: string, photoUrl: 
         //  hash the password
         let success = await userEdit(token.id, {
             firstName, lastName, password, phone,
-            profilePic: photoUrl || null,
+            profilePic,
             middleName: middleName || null,
             countryCode: countryCode || null,
             aboutme: aboutme || null,
@@ -155,7 +155,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
 };
 export async function getUserDetail(userId: string) {
     try {
-        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1 });
+        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data.global || [""])[0] }
     } catch (err) {
         throw err;
