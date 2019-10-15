@@ -7,8 +7,9 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute } from "../utils/users";
 import * as phoneNo from "phone";
+import { createECDH } from "crypto";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -52,7 +53,7 @@ export async function inviteUser(objBody: any, user: any) {
 };
 
 //  Register User
-export async function RegisterUser(objBody: any, verifyToken: string, uploadPhoto: any) {
+export async function RegisterUser(objBody: any, verifyToken: string, photoUrl: any) {
     try {
         if (!verifyToken) {
             throw new Error(USER_ROUTER.TOKEN_MISSING)
@@ -64,7 +65,7 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
         let user: any = await userFindOne("id", token.id)
         if (!user) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
-        const { firstName, lastName, middleName, password, phone, aboutme, profilePic } = objBody
+        const { firstName, lastName,middleName ,password, phone, aboutme , countryCode, profilePic } = objBody
 
         if (!firstName || !lastName || !password || !phone) {
             throw new Error(USER_ROUTER.MANDATORY);
@@ -78,8 +79,9 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
         //  hash the password
         let success = await userEdit(token.id, {
             firstName, lastName, password, phone,
-            profilePic: profilePic || null,
-            middleName: middleName || null,
+            profilePic : photoUrl || null,
+            middleName : middleName || null,
+            countryCode: countryCode || null,
             aboutme: aboutme || null,
             emailVerified: true
         })
@@ -118,6 +120,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }
             obj.password = objBody.password
         };
+        if(objBody.countryCode){
+            obj.countryCode = objBody.countryCode;
+        }
         if (objBody.phone) {
             // if (phoneNo(objBody.phone).length == 0) {
             //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
@@ -177,7 +182,7 @@ export async function user_status(id: string, user: any) {
 
 //  User Login
 export async function user_login(objBody: any) {
-    try {
+    try{
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
         }
@@ -283,7 +288,7 @@ export async function forgotPassword(objBody: any) {
             email: userDetails.email,
             subject: MAIL_SUBJECT.FORGOT_PASSWORD,
             html: forgotPasswordForm({
-                username: userDetails.name,
+                firstName: userDetails.firstName,
                 otp: authOtp.otp
             })
         })
@@ -464,7 +469,24 @@ export async function otpVerification(objBody: any) {
 export async function userInformation(id: any) {
     try {
         let userInfo = await userFindOne("id", id);
-        return { email: userInfo.email, id: userInfo._id };
+        return userInfo;
+    }
+    catch(err){
+        throw err
+    }
+}
+export async function changeEmailInfo(objBody: any,id: string) {
+    try {
+        if (!objBody.email || !objBody.password) {
+            throw Error(USER_ROUTER.MANDATORY);
+        }
+        if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
+            throw Error(USER_ROUTER.INVALID_FIELDS);
+        }
+        //  find User
+        let userData  = await changeEmailRoute(id,objBody);
+        return userData;
+        
     }
     catch (err) {
         throw err

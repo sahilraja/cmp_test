@@ -1,10 +1,11 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, getUserDetail } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
 var multer = require('multer');
 import { readFileSync } from "fs";
 import { join } from "path";
+import { changePasswordInfo, uploadPhoto } from "../utils/users";
 var upload = multer()
 const router = Router();
 
@@ -18,9 +19,11 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
 });
 
 // Register User
-router.post("/register/:token", upload.single('profilePic'), async (req: Request, res: Response, next: NextFunction) => {
+router.post("/register/:token", async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await RegisterUser(req.body, req.params.token, req.file))
+        let userBody:any = await uploadPhoto(req);
+        let user = JSON.parse(userBody);
+        res.status(200).send(await RegisterUser(user.body, req.params.token, user.location))
     } catch (err) {
         next(err);
     };
@@ -220,6 +223,21 @@ router.get("/userInfo/:id", authenticate, async (req, res, next) => {
         res.status(200).send(await userInformation(req.params.id));
     } catch (error) {
         next(error)
+    }
+})
+router.post("/changePassword",authenticate, async (req, res, next) => {
+    try {
+        res.status(200).send(await changePasswordInfo(req.body,res.locals.user._id));
+    } catch (error) {
+        next(error)
+    }
+})
+router.post('/changeEmail',authenticate,async (req,res,next)=>{
+    try{
+        res.status(200).send(await changeEmailInfo(req.body,res.locals.user._id));
+    }
+    catch(err){
+        next(err);
     }
 })
 export = router;

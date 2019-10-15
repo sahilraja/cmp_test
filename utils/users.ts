@@ -1,6 +1,8 @@
 import * as request from "request-promise";
+import * as http from "http";
 
 const USERS_URL = process.env.USERS_URL || "http://localhost:4000";
+const FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || "http://localhost:4040";
 
 // create user
 export async function createUser(body: any) {
@@ -46,6 +48,20 @@ export async function userFindOne(key: string, value: string, selectFields?: any
         throw err
     };
 };
+export async function changeEmailRoute(userId:string,objBody:object){
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/changeEmail/${userId}`,
+            method: "POST",
+            body: objBody,
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+
+}
 
 export async function userUpdate(objBody: any) {
     try {
@@ -184,6 +200,47 @@ export async function userDelete(userId: string) {
         throw err
     };
 };
+export async function uploadPhoto(request: any) {
+    const options: any = {
+        hostname: 'localhost',
+        port: 4040,
+        path: '/photo',
+        method: 'POST',
+        headers: request.headers
+    };
+    return new Promise((resolve, reject) => {
+        const req = http.request(options, res => {
+            // response.writeHead(200, res.headers);
+            res.setEncoding('utf8');
+            let content = '';
+            res.on('data', (chunk) => {
+                content += chunk;
+            });
+            res.on('end', () => {
+                resolve(content);
+            });
+        });
+        req.on('error', (e) => {
+            console.error(e);
+        });
+        request.pipe(req);
+    });
+}
+
+export async function changePasswordInfo(payload:object,userId:string){
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/changePassword/${userId}`,
+            method: "POST",
+            body: payload,
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+
+}
 
 //  group apis-----------------
 

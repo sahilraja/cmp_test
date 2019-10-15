@@ -26,7 +26,7 @@ export function inviteUserForm(body: any) {
 export function forgotPasswordForm(body: any) {
     try {
         const text = 
-            `Hello <b>${body.username}</b>,<br><br>
+            `Hello <b>${body.firstName}</b>,<br><br>
             <u>${body.otp}</u> is the One Time Password (OTP) to activate your CMP account.
             The OTP is valid for 30 minutes.
             <br/>
@@ -45,7 +45,7 @@ export function forgotPasswordForm(body: any) {
 export function docInvitePeople(body: any) {
     try {
         const text = `
-        Dear  ${body.username},<br/></br>
+        Hi,<br/></br>
         <br/>
         You are invited by an user of CMP to collaborate on the document <b>${body.documentName}</b><br/>
         <br/>
