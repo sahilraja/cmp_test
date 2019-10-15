@@ -7,7 +7,7 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch } from "../utils/users";
 import * as phoneNo from "phone";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
@@ -431,7 +431,9 @@ export async function userSuggestions(search: string) {
         // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
         const searchQuery = search ? { name: new RegExp(search, "i") } : {}
-        let users: any = await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, secondName: 1, email: 1 });
+        let users: any = search ?
+            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName:1, email: 1 }) :
+            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName:1, email: 1 });
         users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]

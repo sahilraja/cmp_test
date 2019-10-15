@@ -80,6 +80,24 @@ export async function userFindMany(key: string, value: any[], selectFields?: any
     };
 };
 
+export async function getNamePatternMatch(queryString: string, selectFields: object) {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/patternMatch`,
+            method: "POST",
+            body: {
+                searchKeys: ['name', 'firstName', 'lastName', 'middleName', 'secondName'],
+                searchQuery: queryString,
+                selectFields: selectFields || {}
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+}
+
 // user List
 export async function userList(searchQuery: any, selectFields?: any) {
     try {
