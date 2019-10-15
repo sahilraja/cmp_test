@@ -18,7 +18,12 @@ export async function inviteUser(objBody: any, user: any) {
         //  Check User Capability
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
-        let userData: any = await createUser({ email: objBody.email })
+        let userData: any = await createUser({ 
+            email: objBody.email, 
+            firstName:objBody.firstName, 
+            lastName:objBody.lastName, 
+            middleName:objBody.middleName
+        })
         //  Add Role to User
         let RoleStatus = await addRole(userData._id, objBody.role)
         if (!RoleStatus.status) {
@@ -291,7 +296,7 @@ export async function forgotPassword(objBody: any) {
 };
 
 //  set new Password
-export async function setNewPassword(objBody: object) {
+export async function setNewPassword(objBody: any) {
     try {
         if (!objBody.password) {
             throw new Error("required password field")
@@ -301,7 +306,7 @@ export async function setNewPassword(objBody: object) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         }
         // update password
-        let tokenData = await jwt_Verify(objBody.id);
+        let tokenData:any = await jwt_Verify(objBody.id);
         if (!tokenData) {
             throw new Error(USER_ROUTER.TOKEN_INVALID);
         }
@@ -440,7 +445,7 @@ export async function otpVerification(objBody: any) {
             throw new Error("Required otp field")
         };
         let userInfo: any = await userFindOne("email", objBody.email);
-        let token = await jwtOtpVerify(userInfo.otp_token)
+        let token:any = await jwtOtpVerify(userInfo.otp_token)
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if ((objBody.otp) == Number(token.otp)) {
