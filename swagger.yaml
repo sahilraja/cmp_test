@@ -48,6 +48,8 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/setPassword
   /user/list/:
     $ref: ./swagger/users/paths.yaml/#/userList
+  /user/detail/{id}:
+    $ref: ./swagger/users/paths.yaml/#/getUserDetail
   /user/edit/{id}:
     $ref: ./swagger/users/paths.yaml/#/editUser
   /user/status/{id}:
@@ -58,6 +60,9 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/verifyEmail
   /user/changePassword:
     $ref: ./swagger/users/paths.yaml/#/changePassword
+  /user/userInfo/{id}:
+    $ref: ./swagger/users/paths.yaml/#/userInfo
+
 # Project APIs
   /project/city/code/add:
     $ref: ./swagger/projects/paths.yaml/#/createProjectCode

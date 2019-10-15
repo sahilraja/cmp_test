@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, getUserDetail } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
 var multer = require('multer');
@@ -18,7 +18,7 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
 });
 
 // Register User
-router.post("/register/:token", upload.single('uploadPhoto'), async (req: Request, res: Response, next: NextFunction) => {
+router.post("/register/:token", upload.single('profilePic'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).send(await RegisterUser(req.body, req.params.token, req.file))
     } catch (err) {
@@ -48,8 +48,15 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
     };
 });
 
+router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).send(await getUserDetail(req.params.id));
+    } catch (err) {
+        next(err);
+    };
+});
 //  Edit User
-router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/edit/:id', authenticate, upload.single('profilePic'), async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).send(await edit_user(req.params.id, req.body, res.locals.user));
     } catch (err) {
@@ -111,11 +118,11 @@ router.post("/forgot", async (req: Request, res: Response, next: NextFunction) =
     };
 });
 
-router.post("/forgot/verify", async (req: Request,res:Response,next:NextFunction)=>{
-    try{
+router.post("/forgot/verify", async (req: Request, res: Response, next: NextFunction) => {
+    try {
         res.status(200).send(await otpVerification(req.body));
     }
-    catch(err){
+    catch (err) {
         next(err)
     }
 });
@@ -202,10 +209,17 @@ router.get("/group/:id", authenticate, async (req: Request, res: Response, next:
 });
 router.get("/countryCodes", async (req, res, next) => {
     try {
-        res.status(200).send(JSON.parse(readFileSync(join(__dirname,"..","utils","country_codes.json"), "utf8")))
+        res.status(200).send(JSON.parse(readFileSync(join(__dirname, "..", "utils", "country_codes.json"), "utf8")))
     } catch (error) {
         next(error)
     }
 })
 
+router.get("/userInfo/:id", authenticate, async (req, res, next) => {
+    try {
+        res.status(200).send(await userInformation(req.params.id));
+    } catch (error) {
+        next(error)
+    }
+})
 export = router;
