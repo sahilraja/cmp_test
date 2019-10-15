@@ -17,6 +17,15 @@
                 - email
                 - role
               properties:
+                firstName:
+                  type: string
+                  example: Sai
+                middleName:
+                  type: string
+                  example: Kumarr
+                lastName:
+                  type: string
+                  example: Bandaru
                 email:
                   type: string
                   example: Jeevan.balla@transerve.com
