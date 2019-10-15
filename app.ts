@@ -12,6 +12,7 @@ import * as projectRouter from "./project/router";
 import * as documentRouter from "./documents/router";
 import * as taskRouter from "./task/router";
 import * as tagRouter from "./tags/router";
+import * as templateRouter from "./templates/router"
 
 // implement multer
 import * as multer from "multer";
@@ -48,6 +49,7 @@ app.use("/project", authenticate, projectRouter);
 app.use("/docs", documentRouter)
 app.use("/task", taskRouter)
 app.use("/tag", tagRouter);
+app.use("/template", authenticate, templateRouter);
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

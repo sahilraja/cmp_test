@@ -156,7 +156,15 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/getPushlishedDocs
   /docs/search:
     $ref: ./swagger/resources/paths.yaml/#/searchDocs
-
+#Templates
+  /template/create:
+    $ref: ./swagger/templates/paths.yaml/#/templateCreate
+  /template/edit/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateEdit
+  /template/delete/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateDelete
+  /template/getTemplate/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateGet
 
 definitions:
   # Error
@@ -180,3 +188,6 @@ components:
       $ref: ./swagger/users/schema.yaml/#/responses/schemas/userSchema
     projectSchema:
       $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
+    templateSchema:
+      $ref: ./swagger/template/schema.yaml/#/responses/schemas/templateSchema
+  
