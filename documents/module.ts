@@ -2,7 +2,7 @@ import { documents } from "./model";
 import * as http from "http";
 import { Types, STATES } from "mongoose";
 import { userRoleAndScope } from "../role/module";
-import { tags as Tags } from "../project/tag_model";
+import { tags as Tags } from "../tags/tag_model";
 import { themes } from "../project/theme_model";
 import {
   groupsAddPolicy,
