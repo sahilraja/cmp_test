@@ -381,6 +381,12 @@
       summary: get user details list
       tags:
         - USERS
+      parameters:
+          - in: query
+            name: page
+            schema:
+              type: string
+            description: page Number
       responses:
         "200":
           description: success
