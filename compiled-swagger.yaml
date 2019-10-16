@@ -141,8 +141,11 @@ paths:
                 lastName:
                   type: string
                   example: balla
+                countryCode:
+                  type: string
+                  example: '+91'
                 phone:
-                  type: number
+                  type: string
                   example: 7989238348
                 profilePic:
                   type: string
@@ -529,9 +532,12 @@ paths:
                 profilePic:
                   type: string
                   format: binary
+                countryCode:
+                  type: string
+                  example: '+91'
                 phone:
                   type: string
-                  example: 7894313858
+                  example: 7989238348
                 aboutme:
                   type: string
                   example: this is sample about me
@@ -588,6 +594,8 @@ paths:
   /user/changeEmail:
     post:
       summary: change user email
+      security:
+        - token: []
       tags:
         - USERS
       requestBody:
@@ -659,6 +667,8 @@ paths:
   /user/changePassword:
     post:
       summary: change user password
+      security:
+        - token: []
       tags:
         - USERS
       requestBody:

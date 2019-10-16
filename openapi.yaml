@@ -7,6 +7,8 @@ servers:
   - url: "https://cmp-dev.transerve.com/api"
   - url: " http://localhost:3000"
 
+basePath: /
+
 paths:
 # user apis
   # Invite User

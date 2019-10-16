@@ -1,11 +1,15 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, getUserDetail } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
 var multer = require('multer');
 import { readFileSync } from "fs";
 import { join } from "path";
-var upload = multer()
+import { changePasswordInfo, uploadPhoto } from "../utils/users";
+import { uploadToFileService } from "../documents/module";
+import { get as httpGet } from "http";
+import { get as httpsGet } from "https";
+import { FILES_SERVER_BASE } from "../utils/urls";
 const router = Router();
 
 //  Invite User
@@ -18,9 +22,13 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
 });
 
 // Register User
-router.post("/register/:token", upload.single('profilePic'), async (req: Request, res: Response, next: NextFunction) => {
+router.post("/register/:token", async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await RegisterUser(req.body, req.params.token, req.file))
+        if(req.body.upfile){
+            const imageObj: any = await uploadToFileService(req)
+            req.body.profilePic = JSON.parse(imageObj).id
+        }
+        res.status(200).send(await RegisterUser(req.body, req.params.token))
     } catch (err) {
         next(err);
     };
@@ -56,8 +64,12 @@ router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next
     };
 });
 //  Edit User
-router.post('/edit/:id', authenticate, upload.single('profilePic'), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
+        if(req.body.upfile){
+            const imageObj: any = await uploadToFileService(req)
+            req.body.profilePic = JSON.parse(imageObj).id
+        }
         res.status(200).send(await edit_user(req.params.id, req.body, res.locals.user));
     } catch (err) {
         next(err);
@@ -82,6 +94,27 @@ router.post('/email/login', async (req: Request, res: Response, next: NextFuncti
     };
 });
 
+router.get(`/getImage/:userId`, async (request, response, next) => {
+    try {
+        const userDetail = await getUserDetail(request.params.userId)
+        const req = (FILES_SERVER_BASE as string).startsWith("https") ? 
+        httpsGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
+            response.setHeader('Content-disposition', 'inline');            
+            response.setHeader('Content-type',res.headers['content-type'])
+            res.pipe(response);
+        }) : httpGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
+            response.setHeader('Content-disposition', 'inline');            
+            response.setHeader('Content-type',res.headers['content-type'])
+            res.pipe(response);
+        });
+        req.on('error', (e: Error) => {
+            next(e);
+        });
+        req.end();
+    } catch (err) {
+        next(err);
+    };
+});
 // Get user Details
 router.get("/me", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -220,6 +253,21 @@ router.get("/userInfo/:id", authenticate, async (req, res, next) => {
         res.status(200).send(await userInformation(req.params.id));
     } catch (error) {
         next(error)
+    }
+})
+router.post("/changePassword",authenticate, async (req, res, next) => {
+    try {
+        res.status(200).send(await changePasswordInfo(req.body,res.locals.user._id));
+    } catch (error) {
+        next(error)
+    }
+})
+router.post('/changeEmail',authenticate,async (req,res,next)=>{
+    try{
+        res.status(200).send(await changeEmailInfo(req.body,res.locals.user._id));
+    }
+    catch(err){
+        next(err);
     }
 })
 export = router;

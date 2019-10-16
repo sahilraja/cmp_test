@@ -4,7 +4,7 @@ import { authenticate } from "../utils/utils";
 const router = Router();
 const TASK_HOST = process.env.TASK_URL || "http://localhost:5052";
 
-router.use('/', authenticate, proxy(TASK_HOST, {
+router.use('/', proxy(TASK_HOST, {
     proxyReqPathResolver: ((req: any) => {
         return req.url;
     }),

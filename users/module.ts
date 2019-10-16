@@ -7,8 +7,9 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute } from "../utils/users";
 import * as phoneNo from "phone";
+import { createECDH } from "crypto";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -18,11 +19,11 @@ export async function inviteUser(objBody: any, user: any) {
         //  Check User Capability
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
-        let userData: any = await createUser({ 
-            email: objBody.email, 
-            firstName:objBody.firstName, 
-            lastName:objBody.lastName, 
-            middleName:objBody.middleName
+        let userData: any = await createUser({
+            email: objBody.email,
+            firstName: objBody.firstName,
+            lastName: objBody.lastName,
+            middleName: objBody.middleName
         })
         //  Add Role to User
         let RoleStatus = await addRole(userData._id, objBody.role)
@@ -52,7 +53,7 @@ export async function inviteUser(objBody: any, user: any) {
 };
 
 //  Register User
-export async function RegisterUser(objBody: any, verifyToken: string, uploadPhoto: any) {
+export async function RegisterUser(objBody: any, verifyToken: string) {
     try {
         if (!verifyToken) {
             throw new Error(USER_ROUTER.TOKEN_MISSING)
@@ -64,7 +65,7 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
         let user: any = await userFindOne("id", token.id)
         if (!user) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
-        const { firstName, lastName, middleName, password, phone, aboutme, profilePic } = objBody
+        const { firstName, lastName, middleName, password, phone, aboutme, countryCode, profilePic } = objBody
 
         if (!firstName || !lastName || !password || !phone) {
             throw new Error(USER_ROUTER.MANDATORY);
@@ -78,8 +79,9 @@ export async function RegisterUser(objBody: any, verifyToken: string, uploadPhot
         //  hash the password
         let success = await userEdit(token.id, {
             firstName, lastName, password, phone,
-            profilePic: profilePic || null,
+            profilePic,
             middleName: middleName || null,
+            countryCode: countryCode || null,
             aboutme: aboutme || null,
             emailVerified: true
         })
@@ -118,6 +120,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }
             obj.password = objBody.password
         };
+        if (objBody.countryCode) {
+            obj.countryCode = objBody.countryCode;
+        }
         if (objBody.phone) {
             // if (phoneNo(objBody.phone).length == 0) {
             //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
@@ -139,7 +144,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
-        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middlename: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
+        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
         const data = await Promise.all(docs.map(async doc => {
             return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
         }));
@@ -150,7 +155,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
 };
 export async function getUserDetail(userId: string) {
     try {
-        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone:1, countryCode:1, aboutme:1 });
+        let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data.global || [""])[0] }
     } catch (err) {
         throw err;
@@ -283,7 +288,7 @@ export async function forgotPassword(objBody: any) {
             email: userDetails.email,
             subject: MAIL_SUBJECT.FORGOT_PASSWORD,
             html: forgotPasswordForm({
-                username: userDetails.name,
+                firstName: userDetails.firstName,
                 otp: authOtp.otp
             })
         })
@@ -306,7 +311,7 @@ export async function setNewPassword(objBody: any) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         }
         // update password
-        let tokenData:any = await jwt_Verify(objBody.id);
+        let tokenData: any = await jwt_Verify(objBody.id);
         if (!tokenData) {
             throw new Error(USER_ROUTER.TOKEN_INVALID);
         }
@@ -432,8 +437,8 @@ export async function userSuggestions(search: string) {
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
         const searchQuery = search ? { name: new RegExp(search, "i") } : {}
         let users: any = search ?
-            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName:1, email: 1 }) :
-            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName:1, email: 1 });
+            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
+            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
         users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
         //  groups removed in removed
         return [...users]
@@ -447,7 +452,7 @@ export async function otpVerification(objBody: any) {
             throw new Error("Required otp field")
         };
         let userInfo: any = await userFindOne("email", objBody.email);
-        let token:any = await jwtOtpVerify(userInfo.otp_token)
+        let token: any = await jwtOtpVerify(userInfo.otp_token)
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if ((objBody.otp) == Number(token.otp)) {
@@ -464,7 +469,24 @@ export async function otpVerification(objBody: any) {
 export async function userInformation(id: any) {
     try {
         let userInfo = await userFindOne("id", id);
-        return { email: userInfo.email, id: userInfo._id };
+        return userInfo;
+    }
+    catch (err) {
+        throw err
+    }
+}
+export async function changeEmailInfo(objBody: any, id: string) {
+    try {
+        if (!objBody.email || !objBody.password) {
+            throw Error(USER_ROUTER.MANDATORY);
+        }
+        if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
+            throw Error(USER_ROUTER.INVALID_FIELDS);
+        }
+        //  find User
+        let userData = await changeEmailRoute(id, objBody);
+        return userData;
+
     }
     catch (err) {
         throw err
