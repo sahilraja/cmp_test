@@ -15,6 +15,11 @@
         "scope": "global"
       },
       {
+        "capability": "create-subtask",
+        "description": "Ability to create a task",
+        "scope": "global"
+      },
+      {
         "capability": "attach-documents-to-task",
         "description": "Ability to attach documents to a task",
         "scope": "global"
@@ -64,6 +69,11 @@
       {
         "capability": "attach-documents",
         "description": "Ability to attach documents to a task",
+        "scope": "global"
+      },
+      {
+        "capability": "add-tag-to-task",
+        "description": "Ability to add tag to a task",
         "scope": "global"
       },
       {
