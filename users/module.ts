@@ -1,6 +1,6 @@
 import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
-import { inviteUserForm, forgotPasswordForm, userLoginForm } from "../utils/email_template";
+import { inviteUserForm, forgotPasswordForm, userLoginForm, userState } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
@@ -25,6 +25,8 @@ export async function inviteUser(objBody: any, user: any) {
             lastName: objBody.lastName,
             middleName: objBody.middleName
         })
+        let {firstName , lastName , middleName} = userData;
+        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
         //  Add Role to User
         let RoleStatus = await addRole(userData._id, objBody.role)
         if (!RoleStatus.status) {
@@ -42,6 +44,7 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             subject: MAIL_SUBJECT.INVITE_USER,
             html: inviteUserForm({
+                fullName,
                 role: objBody.role,
                 link: `${ANGULAR_URL}/user/register/${token}`
             })
@@ -148,7 +151,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         const data = await Promise.all(docs.map(async doc => {
             return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
         }));
-        return { data, pages: pages, count: total };
+        return { data, page:+page,pages: pages, count: total };
     } catch (err) {
         throw err;
     };
@@ -173,8 +176,17 @@ export async function user_status(id: string, user: any) {
         let userData: any = await userFindOne("id", id);
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
 
-        let data: any = await userEdit(id, { is_active: userData.is_active ? false : false })
-        return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
+        let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
+        let state = data.is_active ? "Activated": "Inactivated"
+
+        await nodemail({
+            email: userData.email,
+            subject: `Your account has been ${state} | CMP`,
+            html: userState({
+                state
+            })
+        })
+        return { message : data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
         throw err;
     };
@@ -196,7 +208,7 @@ export async function user_login(objBody: any) {
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         await nodemail({
             email: userData.email,
-            subject: MAIL_SUBJECT.INVITE_USER,
+            subject: MAIL_SUBJECT.LOGIN_SUBJECT,
             html: userLoginForm({
                 username: userData.firstName
             })
@@ -278,8 +290,10 @@ export async function forgotPassword(objBody: any) {
         };
         //  Find User
         let userDetails: any = await userFindOne("email", objBody.email);
+        let {firstName , lastName , middleName} = userDetails;
+        let fullName = (firstName ? firstName + " " :"")+(middleName ? middleName+" " :"")+(lastName ? lastName:"");
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
-        if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
+        if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER) 
         //  Create Token
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
@@ -288,7 +302,7 @@ export async function forgotPassword(objBody: any) {
             email: userDetails.email,
             subject: MAIL_SUBJECT.FORGOT_PASSWORD,
             html: forgotPasswordForm({
-                firstName: userDetails.firstName,
+                fullName,
                 otp: authOtp.otp
             })
         })

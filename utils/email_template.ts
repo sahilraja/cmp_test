@@ -62,8 +62,16 @@ export function docInvitePeople(body: any) {
 };
 export function userLoginForm(body: any){
     try {
-        const subject = `Login into CMP`
         const text = `Welcome to <h>CMP<h>`
+        return text;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+}
+export function userState(body: any){
+    try {
+        const text = `Your account has been ${body.state} | CMP`
         return text;
     } catch (err) {
         console.log(err);
