@@ -1,0 +1,167 @@
+# template create
+  templateCreate:
+    post:
+      security:
+        - token: []
+      summary: create template
+      tags:
+        - Templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - templateName
+                - content
+              properties:
+                content:
+                  type: string
+                  example: subject
+                templateName:
+                  type: string
+                  example: information
+                subject:
+                  type: string
+                  example: subject
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  templateList:
+    get:
+      tags:
+        - Templates
+      security:
+        - token: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
+
+  # Add Grants        
+  templateEdit:
+    post:
+      security:
+        - token: []
+      summary: edit template
+      tags:
+        - Templates
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: template id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - templateName
+              properties:
+                content: 
+                  type: string
+                  example: subject
+                templateName:
+                  type: string
+                  example: information
+                subject:
+                  type: string
+                  example: subject
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  templateGet:
+    get:
+      security:
+        - token: []
+      summary: Invite users
+      tags:
+        - Templates
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: template id
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  templateDelete:
+    get:
+      security:
+        - token: []
+      summary: Invite users
+      tags:
+        - Templates
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: template id
+      
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully deleted template
+          description: Success
+  
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
