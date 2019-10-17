@@ -559,7 +559,7 @@ export async function removeViewers(docId: string, viewers: string[]) {
 export async function collaboratorList(docId: string) {
   try {
     let users = await GetUserIdsForDocWithRole(docId, "collaborator");
-    return await userList({ _id: { $in: users } }, { name: 1, email: 1 });
+    return await userList({ _id: { $in: users } }, { firstName: 1,middleName:1,lastName:1, email: 1 });
   } catch (err) {
     throw err;
   }
@@ -568,7 +568,7 @@ export async function collaboratorList(docId: string) {
 export async function viewerList(docId: string) {
   try {
     let users = await GetUserIdsForDocWithRole(docId, "viewer");
-    return await userList({ _id: { $in: users } }, { name: 1, email: 1 });
+    return await userList({ _id: { $in: users } }, { firstName: 1,middleName:1,lastName:1, email: 1 });
   } catch (err) {
     throw err;
   }
@@ -593,6 +593,7 @@ export async function sharedList(userId: string) {
 async function invite(user: any, docId: any, role: any, doc: any) {
   await shareDoc(user._id, user.type, docId, role);
   let userData: any = await userFindOne("id", user._id);
+  let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
   return nodemail({
     email: userData.email,
     subject: `Invitation for ${doc.name} document`,
@@ -677,7 +678,9 @@ export async function invitePeopleList(docId: string) {
         userData.map(async (user: any) => {
           return {
             id: user._id,
-            name: user.name,
+            firstName: user.firstName,
+            middleName: user.middleName,
+            lastName: user.lastName,
             type: "user",
             email: user.email,
             role: (((await getRoleOfDoc(user._id, docId)) as any) ||
