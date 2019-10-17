@@ -1,13 +1,13 @@
 import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
-import { inviteUserForm, forgotPasswordForm, userLoginForm, userState } from "../utils/email_template";
+import { inviteUserForm, forgotPasswordForm, userLoginForm, userState ,profileOtp} from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT } from "../utils/users";
 import * as phoneNo from "phone";
 import { createECDH } from "crypto";
 //  Create User
@@ -489,7 +489,7 @@ export async function userInformation(id: any) {
         throw err
     }
 }
-export async function changeEmailInfo(objBody: any, id: string) {
+export async function changeEmailInfo(objBody: any, user: any) {
     try {
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
@@ -498,11 +498,37 @@ export async function changeEmailInfo(objBody: any, id: string) {
             throw Error(USER_ROUTER.INVALID_FIELDS);
         }
         //  find User
-        let userData = await changeEmailRoute(id, objBody);
-        return userData;
-
+        let emailExist = await userFindOne("email", objBody.email);
+        if(emailExist) throw new Error("Already email exist.")
+        let validUser = await userLogin({email: user.email, password: objBody.password})
+        if(!validUser.token) throw new Error("Enter valid credentials.");
+        let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
+        let token = await jwtOtpToken(authOtp);
+        await userUpdate({ otp_token: token, id: user._id });
+        let success = await nodemail({
+            email: user.email,
+            subject: MAIL_SUBJECT.OTP_SUBJECT,
+            html: profileOtp({
+                firstName: user.firstName,
+                otp: authOtp.otp
+            })
+        });
+        return {message: RESPONSE.SUCCESS_EMAIL};
     }
     catch (err) {
+        throw err
+    };
+};
+
+export async function profileOtpVerify(objBody: any, user: any){
+    try{
+        if(!objBody.otp) throw new Error("Otp is Missing.");
+        let token = await verifyJWT(user.otp_token)
+        if(!isNaN(objBody.otp) || objBody.obj != token.otp){
+            throw new Error("Enter Valid Otp.");
+        };
+        return await userEdit(user._id, {email: token.newEmail})
+    }catch(err){
         throw err
     }
 }

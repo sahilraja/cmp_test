@@ -25,13 +25,32 @@ export function inviteUserForm(body: any) {
 //  Forgot Password Email Template
 export function forgotPasswordForm(body: any) {
     try {
-        const text = 
+        const text =
             `Hello <b>${body.firstName}</b>,<br><br>
             <u>${body.otp}</u> is the One Time Password (OTP) to activate your CMP account.
             <br/>
             <br/>
             Best Regards,<br/>
             CMP Support.`
+
+        return text;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    };
+};
+
+export function profileOtp(body: any) {
+    try {
+        const text =
+            `Hello <b>${body.firstName}</b>,<br><br>
+            <u>${body.otp}</u> is the One Time Password (OTP) to update your CMP account.
+            <br/>
+            <br/>
+            Please ignore if you think this is not intended for you. <br/>
+            <br/>
+            Best Regards,<br/>
+            CITIIS Management Platform Team`
 
         return text;
     } catch (err) {
@@ -60,7 +79,7 @@ export function docInvitePeople(body: any) {
         throw err;
     };
 };
-export function userLoginForm(body: any){
+export function userLoginForm(body: any) {
     try {
         const text = `Welcome to <h>CMP<h>`
         return text;

@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
 var multer = require('multer');
@@ -265,10 +265,19 @@ router.post("/changePassword",authenticate, async (req, res, next) => {
 })
 router.post('/changeEmail',authenticate,async (req,res,next)=>{
     try{
-        res.status(200).send(await changeEmailInfo(req.body,res.locals.user._id));
+        res.status(200).send(await changeEmailInfo(req.body,res.locals.user));
     }
     catch(err){
         next(new APIError(err.message));;
     }
 })
+
+router.post('/profile/otp/verification',authenticate,async (req,res,next)=>{
+    try{
+        res.status(200).send(await profileOtpVerify(req.body,res.locals.user));
+    }
+    catch(err){
+        next(new APIError(err.message));;
+    }
+}
 export = router;
