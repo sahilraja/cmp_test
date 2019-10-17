@@ -10,6 +10,7 @@ import { uploadToFileService } from "../documents/module";
 import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { FILES_SERVER_BASE } from "../utils/urls";
+import { APIError } from "../utils/custom-error";
 const router = Router();
 
 //  Invite User
@@ -17,7 +18,7 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
     try {
         res.status(200).send(await inviteUser(req.body, res.locals.user));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -30,7 +31,7 @@ router.post("/register/:token", async (req: Request, res: Response, next: NextFu
         }
         res.status(200).send(await RegisterUser(req.body, req.params.token))
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -41,7 +42,7 @@ router.get('/invite/resend/:role/:id', authenticate, async (req: Request, res: R
         const { role, id } = req.params
         res.status(200).send(await userInviteResend(id, role));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -52,7 +53,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
         req.query.limit = 50;
         res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.page, req.query.limit));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -60,7 +61,7 @@ router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next
     try {
         res.status(200).send(await getUserDetail(req.params.id));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 //  Edit User
@@ -72,7 +73,7 @@ router.post('/edit/:id', authenticate, async (req: Request, res: Response, next:
         }
         res.status(200).send(await edit_user(req.params.id, req.body, res.locals.user));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -81,7 +82,7 @@ router.put('/status/:id', authenticate, async (req: Request, res: Response, next
     try {
         res.status(200).send(await user_status(req.params.id, res.locals.user));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -90,7 +91,7 @@ router.post('/email/login', async (req: Request, res: Response, next: NextFuncti
     try {
         res.status(200).send(await user_login(req.body));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -112,7 +113,7 @@ router.get(`/getImage/:userId`, async (request, response, next) => {
         });
         req.end();
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 // Get user Details
@@ -120,7 +121,7 @@ router.get("/me", authenticate, async (req: Request, res: Response, next: NextFu
     try {
         res.status(200).send(await userDetails(res.locals.user._id));
     } catch (err) {
-        next(err)
+        next(new APIError(err.message));
     };
 });
 
@@ -129,7 +130,7 @@ router.get("/me/role", authenticate, async (req: Request, res: Response, next: N
     try {
         res.status(200).send(await userRoles(res.locals.user._id));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -138,7 +139,7 @@ router.get("/me/capabilities", authenticate, async (req: Request, res: Response,
     try {
         res.status(200).send(await userCapabilities(res.locals.user._id));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));
     };
 });
 
@@ -147,7 +148,7 @@ router.post("/forgot", async (req: Request, res: Response, next: NextFunction) =
     try {
         res.status(200).send(await forgotPassword(req.body));
     } catch (err) {
-        next(err)
+        next(new APIError(err.message));
     };
 });
 
@@ -156,7 +157,7 @@ router.post("/forgot/verify", async (req: Request, res: Response, next: NextFunc
         res.status(200).send(await otpVerification(req.body));
     }
     catch (err) {
-        next(err)
+        next(new APIError(err.message));
     }
 });
 
@@ -165,7 +166,7 @@ router.post("/forgot/setPassword", async (req: Request, res: Response, next: Nex
     try {
         res.status(200).send(await setNewPassword(req.body));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -174,7 +175,7 @@ router.post("/group/create", authenticate, async (req: Request, res: Response, n
     try {
         res.status(200).send(await createGroup(req.body))
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -183,7 +184,7 @@ router.get("/group/list", authenticate, async (req: Request, res: Response, next
     try {
         res.status(200).send(await groupList())
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -192,7 +193,7 @@ router.put("/group/:id/edit", authenticate, async (req: Request, res: Response, 
     try {
         res.status(200).send(await editGroup(req.body, req.params.id))
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -201,7 +202,7 @@ router.put("/group/:id/status", authenticate, async (req: Request, res: Response
     try {
         res.status(200).send(await groupStatus(req.params.id))
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -210,7 +211,7 @@ router.post("/group/:id/member/add", authenticate, async (req: Request, res: Res
     try {
         res.status(200).send(await addMember(req.params.id, req.body.users));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -219,7 +220,7 @@ router.post("/group/:id/member/remove", authenticate, async (req: Request, res: 
     try {
         res.status(200).send(await removeMembers(req.params.id, req.body.users));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -228,7 +229,7 @@ router.get("/suggestion", authenticate, async (req: Request, res: Response, next
     try {
         res.status(200).send(await userSuggestions(req.query.search));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 
@@ -237,29 +238,29 @@ router.get("/group/:id", authenticate, async (req: Request, res: Response, next:
     try {
         res.status(200).send(await groupDetail(req.params.id));
     } catch (err) {
-        next(err);
+        next(new APIError(err.message));;
     };
 });
 router.get("/countryCodes", async (req, res, next) => {
     try {
         res.status(200).send(JSON.parse(readFileSync(join(__dirname, "..", "utils", "country_codes.json"), "utf8")))
-    } catch (error) {
-        next(error)
+    } catch (err) {
+        next(new APIError(err.message));
     }
 })
 
 router.get("/userInfo/:id", authenticate, async (req, res, next) => {
     try {
         res.status(200).send(await userInformation(req.params.id));
-    } catch (error) {
-        next(error)
+    } catch (err) {
+        next(new APIError(err.message));
     }
 })
 router.post("/changePassword",authenticate, async (req, res, next) => {
     try {
         res.status(200).send(await changePasswordInfo(req.body,res.locals.user._id));
-    } catch (error) {
-        next(error)
+    } catch (err) {
+        next(new APIError(err.message));
     }
 })
 router.post('/changeEmail',authenticate,async (req,res,next)=>{
@@ -267,7 +268,7 @@ router.post('/changeEmail',authenticate,async (req,res,next)=>{
         res.status(200).send(await changeEmailInfo(req.body,res.locals.user._id));
     }
     catch(err){
-        next(err);
+        next(new APIError(err.message));;
     }
 })
 export = router;

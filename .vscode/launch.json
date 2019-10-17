@@ -19,6 +19,7 @@
                 "MONGO_URL": "mongodb://localhost/rbac",
                 "RBAC_URL": "http://localhost:8081",
                 "ANGULAR_URL": "http://localhost:4200",
+                "FILES_SERVER_BASE":"http://localhost:4040",
                 "GROUPS_URL": "http://localhost:5051",
                 "REMOTE_RBAC_URL": "https://cmp-dev.transerve.com/proxy-rbac",
                 "REMOTE_FILE_SERVER_URL" : "https://cmp-dev.transerve.com/proxy-files",

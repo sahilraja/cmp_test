@@ -39,6 +39,7 @@ import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { authenticate } from "../utils/utils";
 import { FILES_SERVER_BASE } from "../utils/urls";
+import { APIError } from "../utils/custom-error";
 
 const router = Router();
 
@@ -77,7 +78,7 @@ router.param("id", async (req, res, next, value) => {
     const doc = await getDocumentById(documentId);
     next();
   } catch (err) {
-    return next(err);
+    next(new APIError(err.message));
   }
 });
 
@@ -86,7 +87,7 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await createDoc(req.body, res.locals.user._id));
   } catch (err) {
-    next(err);
+    next(new APIError(err.message));
   }
 });
 
@@ -95,7 +96,7 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getDocList());
   } catch (err) {
-    next(err);
+    next(new APIError(err.message));;
   }
 });
 
@@ -104,7 +105,7 @@ router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await sharedList(res.locals.user._id));
   } catch (err) {
-    next(err);
+    next(new APIError(err.message));;
   }
 });
 
@@ -116,7 +117,7 @@ router.get(
     try {
       res.status(200).send(await publishList(res.locals.user._id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -126,7 +127,7 @@ router.get("/me", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getDocListOfMe(res.locals.user._id));
   } catch (err) {
-    next(err);
+    next(new APIError(err.message));;
   }
 });
 
@@ -135,7 +136,7 @@ router.get("/approvals", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await approvalList());
   } catch (err) {
-    next(err);
+    next(new APIError(err.message));;
   }
 });
 
@@ -147,7 +148,7 @@ router.get(
     try {
       res.status(200).send(await getApprovalDoc(req.params.id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -158,7 +159,7 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
       .status(200)
       .send(await docFilter(req.query.filter, res.locals.user._id));
   } catch (err) {
-    next(err);
+    next(new APIError(err.message));;
   }
 });
 
@@ -168,7 +169,7 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 //         const { id, versionId } = req.params
 //         res.status(200).send(await createNewVersion(id, versionId, res.locals.user._id, req.body));
 //     } catch (err) {
-//         next(err);
+//         next(new APIError(err.message));;
 //     };
 // });
 
@@ -182,7 +183,7 @@ router.get(
       const { id } = req.params;
       res.status(200).send(await getVersions(id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -193,7 +194,7 @@ router.get(
 //         const { id, versionId } = req.params
 //         res.status(200).send(await ApproveDoc(id, versionId))
 //     } catch (err) {
-//         next(err);
+//         next(new APIError(err.message));;
 //     };
 // });
 
@@ -203,7 +204,7 @@ router.get(
 //         const { id, versionId } = req.params
 //         res.status(200).send(await RejectDoc(id, versionId))
 //     } catch (err) {
-//         next(err);
+//         next(new APIError(err.message));;
 //     };
 // });
 
@@ -219,7 +220,7 @@ router.post(
       let response = await createFile(id, fileObj);
       res.status(200).send(response);
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -238,7 +239,7 @@ router.post(
 //         });
 //         req.end();
 //     } catch (err) {
-//         next(err);
+//         next(new APIError(err.message));;
 //     };
 // });
 
@@ -265,7 +266,7 @@ router.get(
       });
       req.end();
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -279,7 +280,7 @@ router.put(
     try {
       res.status(200).send(await submit(req.params.id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -289,7 +290,7 @@ router.put(
 //     try {
 //         res.status(200).send(await getDocWithVersion(req.params.id, req.params.versionId));
 //     } catch (err) {
-//         next(err);
+//         next(new APIError(err.message));;
 //     };
 // });
 
@@ -303,7 +304,7 @@ router.post(
         .status(200)
         .send(await addCollaborator(req.params.id, req.body.collaborators));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -318,7 +319,7 @@ router.put(
         .status(200)
         .send(await removeCollaborator(req.params.id, req.body.collaborators));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -331,7 +332,7 @@ router.post(
     try {
       res.status(200).send(await addViewers(req.params.id, req.body.viewers));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -346,7 +347,7 @@ router.put(
         .status(200)
         .send(await removeViewers(req.params.id, req.body.viewers));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -359,7 +360,7 @@ router.get(
     try {
       res.status(200).send(await viewerList(req.params.id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -372,7 +373,7 @@ router.get(
     try {
       res.status(200).send(await collaboratorList(req.params.id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -389,7 +390,7 @@ router.post(
           await invitePeople(req.params.id, req.body.users, req.query.role)
         );
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -402,7 +403,7 @@ router.get(
     try {
       res.status(200).send(await invitePeopleList(req.params.id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -418,7 +419,7 @@ router.put(
         .status(200)
         .send(await invitePeopleEdit(id, userId, type, req.query.role));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -434,7 +435,7 @@ router.delete(
         .status(200)
         .send(await invitePeopleRemove(id, userId, type, req.query.role));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -449,7 +450,7 @@ router.get(
         .status(200)
         .send(await docCapabilities(req.params.id, res.locals.user._id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -464,7 +465,7 @@ router.post(
         .status(200)
         .send(await published(req.body, req.params.id, res.locals.user._id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -477,7 +478,7 @@ router.put(
     try {
       res.status(200).send(await unPublished(req.params.id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -498,7 +499,7 @@ router.post(
           )
         );
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -514,7 +515,7 @@ router.post(
         .status(200)
         .send(await updateDoc(req.body, req.params.id, res.locals.user._id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );
@@ -528,7 +529,7 @@ router.get(
     try {
       res.status(200).send(await getDocDetails(req.params.id));
     } catch (err) {
-      next(err);
+      next(new APIError(err.message));;
     }
   }
 );

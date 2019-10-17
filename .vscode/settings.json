@@ -1,7 +1,11 @@
 {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
     "files.exclude": {
-        "**/**.js": { "when": "$(basename).ts"},
-        "**/**.js.map" : true
+        "**/*.js": {
+            "when": "$(basename).ts"
+        },
+        "**/*.js.map": true
     },
     "cSpell.words": [
         "docid",
