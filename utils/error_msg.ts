@@ -26,7 +26,9 @@ export const DOCUMENT_ROUTER = {
     CHILD_NOT_FOUND: "Child Document Not Found",
     DOCID_NOT_VALID: "Given document_id is not Valid.",
     FILE_NOT_FOUND: "Document is mandatory.",
-    INVALID_ADMIN: "User don't have capability to perform this action."
+    INVALID_ADMIN: "User don't have capability to perform this action.",
+    NO_PERMISSION: "Unauthorised to create document ",
+    LIMIT_EXCEEDED: "should be in specified limit"
 }
 
 export const AUTHENTICATE_MSG = {
