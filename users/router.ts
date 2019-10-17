@@ -279,5 +279,6 @@ router.post('/profile/otp/verification',authenticate,async (req,res,next)=>{
     catch(err){
         next(new APIError(err.message));;
     }
-}
+})
+
 export = router;
