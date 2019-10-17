@@ -15,6 +15,11 @@
         "scope": "global"
       },
       {
+        "capability": "create-subtask",
+        "description": "Ability to create a task",
+        "scope": "global"
+      },
+      {
         "capability": "attach-documents-to-task",
         "description": "Ability to attach documents to a task",
         "scope": "global"
@@ -37,6 +42,11 @@
       {
         "capability": "view-all-cmp-messages",
         "description": "Ability to view all cmp message",
+        "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
         "scope": "global"
       }
     ]
@@ -62,8 +72,18 @@
         "scope": "global"
       },
       {
+        "capability": "add-tag-to-task",
+        "description": "Ability to add tag to a task",
+        "scope": "global"
+      },
+      {
         "capability": "create-message",
         "description": "Ability to create a message",
+        "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
         "scope": "global"
       }
     ]
@@ -82,6 +102,11 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
+        "scope": "global"
       }
     ]
   },
@@ -93,6 +118,11 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
         "scope": "global"
       }
     ]
