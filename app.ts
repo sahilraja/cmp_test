@@ -12,7 +12,7 @@ import * as projectRouter from "./project/router";
 import * as documentRouter from "./documents/router";
 import * as taskRouter from "./task/router";
 import * as tagRouter from "./tags/router";
-import * as templateRouter from "./templates/router"
+import * as templateRouter from "./email-templates/router"
 
 // implement multer
 import * as multer from "multer";

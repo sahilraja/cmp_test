@@ -2331,6 +2331,19 @@ paths:
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
           description: Success
+  /template/list:
+    get:
+      tags:
+        - Templates
+      security:
+        - token: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_0
   '/template/edit/{id}':
     post:
       '400':

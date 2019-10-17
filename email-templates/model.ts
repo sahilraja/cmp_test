@@ -4,7 +4,8 @@ import * as mongoosePaginate from "mongoose-paginate";
 const schema = new Schema({
     content: { type: String },
     templateName: { type: String, unique: true},
-    subject: { type: String }
+    subject: { type: String },
+    form:{type: String, default: 'html'}
     },{ timestamps: true }
 );
 schema.plugin(mongoosePaginate);

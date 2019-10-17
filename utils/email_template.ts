@@ -28,7 +28,6 @@ export function forgotPasswordForm(body: any) {
         const text = 
             `Hello <b>${body.firstName}</b>,<br><br>
             <u>${body.otp}</u> is the One Time Password (OTP) to activate your CMP account.
-            The OTP is valid for 30 minutes.
             <br/>
             <br/>
             Best Regards,<br/>
@@ -63,6 +62,7 @@ export function docInvitePeople(body: any) {
 };
 export function userLoginForm(body: any){
     try {
+        const subject = `Login into CMP`
         const text = `Welcome to <h>CMP<h>`
         return text;
     } catch (err) {

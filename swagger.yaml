@@ -159,6 +159,8 @@ paths:
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
+  /template/list:
+    $ref: ./swagger/templates/paths.yaml/#/templateList
   /template/edit/{id}:
     $ref: ./swagger/templates/paths.yaml/#/templateEdit
   /template/delete/{id}:
