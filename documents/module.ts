@@ -20,6 +20,7 @@ import { docInvitePeople } from "../utils/email_template";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { userFindOne, userFindMany, userList, listGroup } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
+import { configLimit } from '../utils/systemconfig'
 
 enum STATUS {
   DRAFT = 0,
@@ -40,9 +41,15 @@ export async function createDoc(body: any, userId: string) {
     let userRole = userRoles.data.global[0];
     const isEligible = await checkRoleScope(userRole, "create-doc");
     if (!isEligible) {
-      throw new Error("Unauthorised to create document ");
+      throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    if(body.name.length > configLimit.name) {
+      throw new Error("Name "+ DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    }
+    if(body.description.length > configLimit.description) {
+      throw new Error("Description "+ DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    }
     let doc = await insertDOC(body, userId);
     body.parentId = doc.id;
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
