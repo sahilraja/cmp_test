@@ -39,6 +39,7 @@ import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { authenticate } from "../utils/utils";
 import { FILES_SERVER_BASE } from "../utils/urls";
+import { APIError } from "../utils/custom-error";
 
 const router = Router();
 
@@ -86,7 +87,7 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await createDoc(req.body, res.locals.user._id));
   } catch (err) {
-    next(err);
+    next(new APIError(err));
   }
 });
 
