@@ -17,6 +17,9 @@ router.post("/create", authenticate, async (req: Request, res: Response, next: N
     try {
         res.status(OK).send(await templateCreate(req.body));
     } catch (err) {
+        if(err.code == 11000){
+            err.message = `Template already exists`
+        }
         next(new APIError(err.message));
     };
 })
@@ -33,6 +36,9 @@ router.post("/edit/:id", authenticate, async (req: Request, res: Response, next:
     try {
         res.status(OK).send(await templateEdit(req.body, req.params.id));
     } catch (err) {
+        if(err.code == 11000){
+            err.message = `Template already exists`
+        }
         next(new APIError(err.message));
     };
 })

@@ -46,6 +46,9 @@ router.post("/tag/add", async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await add_tag(req.body))
     } catch (err) {
+        if(err.code == 11000){
+            err.message = `Tag already exists`
+        }
         next(new APIError(err.message));;
     }
 });
@@ -55,6 +58,9 @@ router.post("/tag/edit/:id", async (req: any, res: any, next: any) => {
     try {
         res.status(200).send(await edit_tag(req.params.id, req.body))
     } catch (err) {
+        if(err.code == 11000){
+            err.message = `Tag already exists`
+        }
         next(new APIError(err.message));;
     }
 });
