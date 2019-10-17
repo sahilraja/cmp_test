@@ -87,6 +87,11 @@ paths:
     $ref: ./swagger/roles/paths.yaml/#/getRolesScopeList
   /role/user/list/:
     $ref: ./swagger/roles/paths.yaml/#/getUserListByRole
+  /role/capabilities/list:
+    $ref: ./swagger/roles/paths.yaml/#/listCapabilities
+  /role/all/capabilities/list:
+    $ref: ./swagger/roles/paths.yaml/#/getCapabilitiesofAllRole
+  
 # Tags
   /project/tag/add:
     $ref: ./swagger/tags/paths.yaml/#/addTagToProject

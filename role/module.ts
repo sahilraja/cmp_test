@@ -6,9 +6,9 @@ import { userList } from "../utils/users";
 
 // Get Roles List
 export async function role_list() {
-    let roles : Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "rbac.json"), "utf8"));
+    let roles: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "rbac.json"), "utf8"));
     return roles.map(role => {
-        return { role : role.role, description: role.description, category: role.category }
+        return { role: role.role, description: role.description, category: role.category }
     });
 };
 
@@ -82,3 +82,35 @@ export async function usersForRole(role: string) {
         throw err;
     };
 };
+
+export async function capabilities() {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/capabilities/list`,
+            method: "GET",
+            json: true
+        }
+        let data = await request(Options);
+        if (!data.status) throw new Error("Error to fetch Roles")
+        return data
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}
+
+export async function allrolecapabilities() {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/role/all/capabilities/list`,
+            method: "GET",
+            json: true
+        }
+        let data = await request(Options);
+        if (!data.status) throw new Error("Error to fetch Roles")
+        return data
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}

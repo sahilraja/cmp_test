@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { role_list, userRoleAndScope, usersForRole } from "./module";
+import { role_list, userRoleAndScope, usersForRole, capabilities, allrolecapabilities } from "./module";
 const router = Router();
 
 //  list roles
@@ -27,6 +27,22 @@ router.get("/user/list", async (req: Request, res: Response, next: Handler) => {
         res.status(400).send({ error: err.message })
     }
 })
+
+router.get('/capabilities/list', async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await capabilities());
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+});
+
+router.get('/all/capabilities/list', async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await allrolecapabilities());
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+});
 
 
 export = router;
