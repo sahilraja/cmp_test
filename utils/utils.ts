@@ -3,6 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { AUTHENTICATE_MSG } from './error_msg';
 import { userFindOne } from './users';
 import { userRoleAndScope } from '../role/module';
+import { APIError } from './custom-error';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
@@ -27,8 +28,7 @@ export async function authenticate(req: any, res: any, next: any) {
         res.locals.user = user;
         return next();
     } catch (err) {
-        console.log(err)
-        next(err);
+        return next(new APIError('Unauthorized'));
     };
 };
 
