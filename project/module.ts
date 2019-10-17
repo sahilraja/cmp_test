@@ -1,7 +1,7 @@
 import { MISSING } from "../utils/error_msg";
 import { project } from "./project_model";
 import { Types } from "mongoose";
-import { tags } from "./tag_model";
+import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
 import { userRoleAndScope } from "../role/module";
 import { taskModel } from "./task_model";
@@ -127,16 +127,7 @@ export async function edit_tag(id: any, reqObject: any) {
   }
 }
 
-//  get list of tags
-export async function tag_list(search: string) {
-  try {
-    let success = await tags.find({ tag: new RegExp(search, "i"), is_active: true });
-    return { status: true, data: success }
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-}
+
 
 export async function getTagByIds(ids:string[]) {
   return await tags.find({_id:{$in:ids}}).exec()

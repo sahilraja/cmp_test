@@ -62,19 +62,19 @@ export async function userInit() {
   let existingUserCount = await userList({});
   if (!existingUserCount.length) {
     let user = await createUser({
-      emailVerified: true,
-      phoneVerified: false,
-      name: "pranay bhardwaj",
-      email: "pranay@citiis.com",
-      aboutme: "Technology lead for CITIIS Project",
-      password: "Citiis@123",
-      phone: "7989238348"
-    });
-    let grants = await addRole(user._id, "technology-lead");
-    console.log(
-      "No existing users found. Technology specialist user created successfully"
-    );
-  } else {
+      "emailVerified": true,
+      "phoneVerified": false,
+      "firstName": "pranay",
+      "lastName": `bhardwaj`,
+      "email": "pranay@citiis.com",
+      "aboutme": "Technology lead for CITIIS Project",
+      "password": "Citiis@123",
+      "phone": "7989238348"
+    })
+    let grants = await addRole(user._id, "technology-lead")
+    console.log("No existing users found. Technology specialist user created successfully");
+  }
+  else {
     console.log(`${existingUserCount.length} existing users found in DB`);
   }
 }
