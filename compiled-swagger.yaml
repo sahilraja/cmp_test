@@ -459,7 +459,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_2
+                  - &ref_0
                     type: object
                     properties:
                       firstName:
@@ -635,6 +635,41 @@ paths:
                   id:
                     type: string
                     example: userId
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /user/profile/otp/verification:
+    post:
+      summary: change user email
+      security:
+        - token: []
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp:
+                  type: Number
+                  example: 1234"
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_0
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /user/verifyEmail:
@@ -2368,7 +2403,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_0
+                  - &ref_1
                     type: object
                     properties:
                       content:
@@ -2399,7 +2434,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_0
+                items: *ref_1
   '/template/edit/{id}':
     post:
       '400':
@@ -2440,7 +2475,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_0
+                  - *ref_1
                   - type: object
                     properties:
                       id:
@@ -2497,7 +2532,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_0
+                  - *ref_1
                   - type: object
                     properties:
                       id:
@@ -2511,14 +2546,14 @@ definitions:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_1
+          schema: &ref_2
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_1
+    Error: *ref_2
 components:
   securitySchemes:
     token:
@@ -2533,7 +2568,7 @@ components:
           type: string
       required:
         - error
-    userME: *ref_2
+    userME: *ref_0
     project: &ref_3
       type: object
       properties:
@@ -2721,7 +2756,7 @@ components:
         is_active:
           type: boolean
           example: true
-    userSchema: *ref_2
+    userSchema: *ref_0
     projectSchema: *ref_3
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'

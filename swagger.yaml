@@ -56,6 +56,8 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/editUserStatus
   /user/changeEmail:
     $ref: ./swagger/users/paths.yaml/#/changeEmail
+  /user/profile/otp/verification:
+    $ref: ./swagger/users/paths.yaml/#/profileOtp
   /user/verifyEmail:
     $ref: ./swagger/users/paths.yaml/#/verifyEmail
   /user/changePassword:

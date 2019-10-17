@@ -41,7 +41,8 @@ export const AUTHENTICATE_MSG = {
 export const MAIL_SUBJECT = {
     INVITE_USER: "Invitation from CITIIS Management Platform",
     FORGOT_PASSWORD: "CMP Reset password instructions",
-    LOGIN_SUBJECT: "Login into CMP"
+    LOGIN_SUBJECT: "Login into CMP",
+    OTP_SUBJECT: "CMP One Time Password"
 };
 
 export const RESPONSE = {

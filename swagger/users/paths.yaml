@@ -648,6 +648,43 @@
                     example: successfully mail verified
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  profileOtp:
+    post:
+      summary: change user email
+      security:
+        - token: []
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp:
+                  type: Number
+                  example: 1234
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/userSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
   changePassword:
     post:
       summary: change user password
