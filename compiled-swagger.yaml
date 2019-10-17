@@ -1059,6 +1059,62 @@ paths:
                                 example: bond
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /role/capabilities/list:
+    get:
+      summary: Get capabilities list
+      tags:
+        - ROLE
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    example:
+                      - capability 1
+                      - capability 2
+                      - capability 3
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /role/all/capabilities/list:
+    get:
+      summary: Get All Capabilities of all Roles
+      tags:
+        - ROLE
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        role:
+                          type: string
+                        example: technology-lead
+                        capabilities:
+                          type: array
+                          example:
+                            - capability 1
+                            - capability 2
+                            - capability 3
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/tag/add:
     post:
       security:

@@ -67,7 +67,7 @@ export async function jwt_Verify(id: any) {
     return await jwtVerify(id, SECRET);
 };
 
-export function generateOtp(limit:number) {
+export function generateOtp(limit: number) {
     var characters = '0123456789';
     var charactersLength = characters.length;
     var result = "";
@@ -78,11 +78,11 @@ export function generateOtp(limit:number) {
     return result;
 }
 
-export async function jwtOtpToken(otp:any) {
+export async function jwtOtpToken(otp: any) {
     return await jwtSign(otp, SECRET, { expiresIn: ACCESS_TOKEN_FOR_OTP })
 }
 
 // verify token for otp
-export async function jwtOtpVerify(otp:any) {
+export async function jwtOtpVerify(otp: any) {
     return await jwtVerify(otp, SECRET)
 }
