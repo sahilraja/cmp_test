@@ -19,6 +19,7 @@ import { nodemail } from "../utils/email";
 import { docInvitePeople } from "../utils/email_template";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { userFindOne, userFindMany, userList, listGroup } from "../utils/users";
+import { checkRoleScope } from '../utils/role_management'
 
 enum STATUS {
   DRAFT = 0,
@@ -34,6 +35,13 @@ enum STATUS {
 //  Create Document
 export async function createDoc(body: any, userId: string) {
   try {
+    let userRoles = await userRoleAndScope(userId);
+
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "create-doc");
+    if (!isEligible) {
+      throw new Error("Unauthorised to create document ");
+    }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let doc = await insertDOC(body, userId);
     body.parentId = doc.id;
@@ -672,7 +680,7 @@ export async function invitePeopleList(docId: string) {
     if (userGroup.user) {
       var userData: any = await userList(
         { _id: { $in: userGroup.user }, is_active: true },
-        { name: 1, email: 1 }
+        { firstName: 1, middleName:1,lastName:1, email: 1 }
       );
       userData = await Promise.all(
         userData.map(async (user: any) => {
