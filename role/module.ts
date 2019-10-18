@@ -171,25 +171,21 @@ export async function removeCapability(role: string, scope: string, capability: 
     };
 };
 export async function updaterole(role: string, description: string) {
-    try {
-        
+    try {        
         let data = await roles_list()
         if (!data.roles.length) throw new Error("Error to fetch Roles")
         let updated_roles = data.roles.map((eachRole)=>{
             if(eachRole.role== role){
                 eachRole.description = description;
                 console.log(eachRole);
-                
-            } 
+            }  return eachRole;
+
         })
-        fs.writeFile('roles.json', JSON.stringify(updated_roles), (err) => {
+        fs.writeFile(join(__dirname, "..", "utils", "roles.json"), JSON.stringify(updated_roles), (err) => {
             console.log(err || 'complete');
-            if(err){
-                return err;
-            }else{
-                return {sucess:true}
-            }
+           
          });
+         return updated_roles;
         
     } catch (err) {
         console.log(err);
