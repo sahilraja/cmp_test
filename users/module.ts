@@ -2,7 +2,7 @@ import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState ,profileOtp} from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
-import { checkRoleScope, userRoleAndScope } from "../role/module";
+import { checkRoleScope, userRoleAndScope, roles_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
@@ -146,6 +146,17 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         const data = await Promise.all(docs.map(async doc => {
             return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
         }));
+        let rolesBody:any =  await roles_list();
+        data.map((user)=>{
+            rolesBody.roles.forEach((roleInfo:any) => {
+                if(roleInfo.role == user.role)
+                {
+                    user.role = roleInfo.description;
+                    return false;
+                }
+            });
+            return user
+        })
         return { data, page:+page,pages: pages, count: total };
     } catch (err) {
         throw err;
