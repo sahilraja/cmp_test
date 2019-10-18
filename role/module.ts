@@ -170,15 +170,3 @@ export async function removeCapability(role: string, scope: string, capability: 
         throw err;
     };
 };
-export async function updaterole(role: string, description: string) {
-    try {
-        
-        let data = await roles_list()
-        if (!data) throw new Error("Error to fetch Roles")
-
-        return data
-    } catch (err) {
-        console.log(err);
-        throw err
-    }
-}
