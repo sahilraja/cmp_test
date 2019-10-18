@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { role_list, userRoleAndScope, usersForRole, capabilities, allrolecapabilities } from "./module";
+import { role_list, userRoleAndScope, usersForRole, capabilities, allrolecapabilities, addCapability,removeCapability } from "./module";
 const router = Router();
 
 //  list roles
@@ -44,5 +44,22 @@ router.get('/all/capabilities/list', async (req: Request, res: Response, next: H
     };
 });
 
+router.post('/capability/add', async (req: Request, res: Response, next: Handler) => {
+    try {
+        let scope = 'global'
+        res.status(200).send(await addCapability(req.body.role,scope,req.body.capability));
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+});
+
+router.put('/capability/remove', async (req: Request, res: Response, next: Handler) => {
+    try {
+        let scope = 'global'
+        res.status(200).send(await removeCapability(req.body.role,scope,req.body.capability));
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+});
 
 export = router;

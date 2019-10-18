@@ -121,6 +121,8 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   getCapabilitiesofAllRole:
     get:
+      security:
+        - token: []
       summary: Get All Capabilities of all Roles
       tags:
         - ROLE
@@ -155,6 +157,8 @@
   listCapabilities:
   # "/capabilities/list":
     get:
+      security:
+        - token: []
       summary: Get capabilities list
       tags:
         - ROLE
@@ -177,4 +181,109 @@
                       - capability 3
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
-
+  # Add Capability
+  addCapability:
+  # "role/capability/add":
+    post:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      summary: Add capability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - scope
+                - capability
+              properties:
+                role:
+                  type: string
+                  example: Project manager
+                  description: user roles
+                scope:
+                  type: string
+                  example: Project
+                  description: Must be project or global scope
+                capability:
+                  type: string
+                  example: document
+                  description: capability for that scope
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - role
+                      - scope
+                      - capability
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Remove Capability
+  removeCapability:
+  # "role/capability/remove":
+    put:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      summary: Remove capability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - scope
+                - capability
+              properties:
+                role:
+                  type: string
+                  example: Project manager
+                  description: user roles
+                scope:
+                  type: string
+                  example: Project
+                  description: Must be project or global scope
+                capability:
+                  type: string
+                  example: document
+                  description: capability for that scope
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - role
+                      - scope
+                      - capability
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
