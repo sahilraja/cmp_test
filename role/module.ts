@@ -114,3 +114,39 @@ export async function allrolecapabilities() {
         throw err
     }
 }
+
+export async function addCapability(role: string, scope: string, capability: string) {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/capabilities/add`,
+            method: "POST",
+            body: {
+                "role": role,
+                "scope": scope,
+                "capability": capability
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
+
+export async function removeCapability(role: string, scope: string, capability: string) {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/capabilities/remove`,
+            method: "PUT",
+            body: {
+                "role": role,
+                "scope": scope,
+                "capability": capability
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
