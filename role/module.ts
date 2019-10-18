@@ -29,7 +29,7 @@ export async function capabilities_list() {
     });
     return {
         status: true,
-        roles:listcapabilities
+        capabilities: listcapabilities
     }
 };
 //  Check Role Scope
@@ -170,3 +170,29 @@ export async function removeCapability(role: string, scope: string, capability: 
         throw err;
     };
 };
+export async function updaterole(role: string, description: string) {
+    try {
+        
+        let data = await roles_list()
+        if (!data.roles.length) throw new Error("Error to fetch Roles")
+        let updated_roles = data.roles.map((eachRole)=>{
+            if(eachRole.role== role){
+                eachRole.description = description;
+                console.log(eachRole);
+                
+            } 
+        })
+        fs.writeFile('roles.json', JSON.stringify(updated_roles), (err) => {
+            console.log(err || 'complete');
+            if(err){
+                return err;
+            }else{
+                return {sucess:true}
+            }
+         });
+        
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}
