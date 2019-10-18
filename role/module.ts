@@ -3,8 +3,6 @@ import { RBAC_URL } from "../utils/urls";
 import * as fs from "fs";
 import { join } from "path";
 import { userList } from "../utils/users";
-var jsonfile = require('jsonfile');
-
 
 // Get Roles List
 export async function role_list() {
@@ -16,16 +14,23 @@ export async function role_list() {
 
 export async function roles_list() {
     let roles: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "roles.json"), "utf8"));
-    return roles.map(role => {
+    let listOfRoles = roles.map(role => {
         return { role: role.role, description: role.description, category: role.category }
     });
+    return {
+        status: true,
+        roles:listOfRoles
+    }
 };
-
 export async function capabilities_list() {
-    let roles: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
-    return roles.map(capability => {
+    let capabilities: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
+    let listcapabilities= capabilities.map(capability => {
         return { capability: capability.capability, description: capability.description, scope: capability.scope }
     });
+    return {
+        status: true,
+        roles:listcapabilities
+    }
 };
 //  Check Role Scope
 export async function checkRoleScope(role: any, capabilities: any) {
@@ -165,3 +170,15 @@ export async function removeCapability(role: string, scope: string, capability: 
         throw err;
     };
 };
+export async function updaterole(role: string, description: string) {
+    try {
+        
+        let data = await roles_list()
+        if (!data) throw new Error("Error to fetch Roles")
+
+        return data
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}
