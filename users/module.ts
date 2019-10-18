@@ -113,10 +113,6 @@ export async function edit_user(id: string, objBody: any, user: any) {
         if (objBody.middleName) {
             obj.middleName = objBody.middleName
         }
-        if (objBody.email) {
-            obj.email = objBody.email
-            obj.emailVerified = false
-        };
         if (objBody.password) {
             if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
                 throw new Error(USER_ROUTER.VALID_PASSWORD)
@@ -131,7 +127,6 @@ export async function edit_user(id: string, objBody: any, user: any) {
             //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
             // }
             obj.phone = objBody.phone;
-            obj.phoneVerified = false;
         };
         if (objBody.aboutme) {
             obj.aboutme = objBody.aboutme;
