@@ -12,6 +12,26 @@ export async function role_list() {
     });
 };
 
+export async function roles_list() {
+    let roles: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "roles.json"), "utf8"));
+    let listOfRoles = roles.map(role => {
+        return { role: role.role, description: role.description, category: role.category }
+    });
+    return {
+        status: true,
+        roles:listOfRoles
+    }
+};
+export async function capabilities_list() {
+    let capabilities: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
+    let listcapabilities= capabilities.map(capability => {
+        return { capability: capability.capability, description: capability.description, scope: capability.scope }
+    });
+    return {
+        status: true,
+        capabilities: listcapabilities
+    }
+};
 //  Check Role Scope
 export async function checkRoleScope(role: any, capabilities: any) {
     try {
@@ -109,6 +129,64 @@ export async function allrolecapabilities() {
         let data = await request(Options);
         if (!data.status) throw new Error("Error to fetch Roles")
         return data
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}
+
+export async function addCapability(role: string, scope: string, capability: string) {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/capabilities/add`,
+            method: "POST",
+            body: {
+                "role": role,
+                "scope": scope,
+                "capability": capability
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
+
+export async function removeCapability(role: string, scope: string, capability: string) {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/capabilities/remove`,
+            method: "PUT",
+            body: {
+                "role": role,
+                "scope": scope,
+                "capability": capability
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
+export async function updaterole(role: string, description: string) {
+    try {        
+        let data = await roles_list()
+        if (!data.roles.length) throw new Error("Error to fetch Roles")
+        let updated_roles = data.roles.map((eachRole)=>{
+            if(eachRole.role== role){
+                eachRole.description = description;
+                console.log(eachRole);
+            }  return eachRole;
+
+        })
+        fs.writeFile(join(__dirname, "..", "utils", "roles.json"), JSON.stringify(updated_roles), (err) => {
+            console.log(err || 'complete');
+           
+         });
+         return updated_roles;
+        
     } catch (err) {
         console.log(err);
         throw err
