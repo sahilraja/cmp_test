@@ -511,12 +511,14 @@ export async function changeEmailInfo(objBody: any, user: any) {
         if(!validUser.token) throw new Error("Enter valid credentials.");
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
-        await userUpdate({ otp_token: token, id: user._id });
+        let userInfo = await userUpdate({ otp_token: token, id: user._id });
+        let {firstName , lastName , middleName} = userInfo;
+        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
         let success = await nodemail({
             email: user.email,
             subject: MAIL_SUBJECT.OTP_SUBJECT,
             html: profileOtp({
-                firstName: user.firstName,
+                fullName,
                 otp: authOtp.otp
             })
         });
