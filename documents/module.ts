@@ -428,6 +428,7 @@ export async function uploadToFileService(request: any) {
     });
     req.on("error", e => {
       console.error(e);
+      reject(e)
     });
     request.pipe(req);
   });
