@@ -11,6 +11,7 @@ import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { FILES_SERVER_BASE } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
+import { OK } from "http-status-codes";
 const router = Router();
 
 //  Invite User
@@ -25,11 +26,9 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
 // Register User
 router.post("/register/:token", async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if(req.body.upfile){
-            const imageObj: any = await uploadToFileService(req)
-            req.body.profilePic = JSON.parse(imageObj).id
-        }
-        res.status(200).send(await RegisterUser(req.body, req.params.token))
+            const payload: any = await uploadToFileService(req)
+            // req.body.profilePic = JSON.parse(imageObj).id
+        res.status(200).send(await RegisterUser(JSON.parse(payload), req.params.token))
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -67,11 +66,9 @@ router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next
 //  Edit User
 router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if(req.body.upfile){
-            const imageObj: any = await uploadToFileService(req)
-            req.body.profilePic = JSON.parse(imageObj).id
-        }
-        res.status(200).send(await edit_user(req.params.id, req.body, res.locals.user));
+        const payload: any = await uploadToFileService(req)
+        // req.body.profilePic = JSON.parse(imageObj).id
+        res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user));
     } catch (err) {
         next(new APIError(err.message));;
     };
