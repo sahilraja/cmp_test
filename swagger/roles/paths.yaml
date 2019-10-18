@@ -149,8 +149,6 @@
                               - capability 1
                               - capability 2
                               - capability 3
-
-
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # Get List Of capabilities
