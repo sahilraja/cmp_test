@@ -3,6 +3,8 @@ import { RBAC_URL } from "../utils/urls";
 import * as fs from "fs";
 import { join } from "path";
 import { userList } from "../utils/users";
+var jsonfile = require('jsonfile');
+
 
 // Get Roles List
 export async function role_list() {
@@ -12,6 +14,19 @@ export async function role_list() {
     });
 };
 
+export async function roles_list() {
+    let roles: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "roles.json"), "utf8"));
+    return roles.map(role => {
+        return { role: role.role, description: role.description, category: role.category }
+    });
+};
+
+export async function capabilities_list() {
+    let roles: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
+    return roles.map(capability => {
+        return { capability: capability.capability, description: capability.description, scope: capability.scope }
+    });
+};
 //  Check Role Scope
 export async function checkRoleScope(role: any, capabilities: any) {
     try {
