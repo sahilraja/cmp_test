@@ -1176,10 +1176,6 @@ paths:
                   type: string
                   example: Project manager
                   description: user roles
-                scope:
-                  type: string
-                  example: Project
-                  description: Must be project or global scope
                 capability:
                   type: string
                   example: document
@@ -1227,10 +1223,6 @@ paths:
                   type: string
                   example: Project manager
                   description: user roles
-                scope:
-                  type: string
-                  example: Project
-                  description: Must be project or global scope
                 capability:
                   type: string
                   example: document
