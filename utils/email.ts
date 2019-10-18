@@ -1,21 +1,31 @@
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 
-const EMAIL = process.env.EMAIL || "cmp@niua.org";
-const PASSWORD = process.env.PASSWORD || "cmp123*"
+// const EMAIL = process.env.EMAIL || "cmp@niua.org";
+// const PASSWORD = process.env.PASSWORD || "cmp123*"
+
+const EMAIL = process.env.EMAIL || 'jeevan.balla@transerve.com';
+const PASSWORD = process.env.PASSWORD || '7989238348';
 
 export async function nodemail(objBody: any) {
   try {
 
     let transporter = nodemailer.createTransport(
-      smtpTransport({
-        host: 'smtp.rediffmailpro.com',
-        port: '587',
+      // smtpTransport({
+      //   host: 'smtp.rediffmailpro.com',
+      //   port: '587',
+      //   auth: {
+      //     user: EMAIL,
+      //     pass: PASSWORD
+      //   }
+      // })
+      {
+        service: 'gmail',
         auth: {
           user: EMAIL,
           pass: PASSWORD
         }
-      })
+      }
     );
 
     var mailOptions = {
