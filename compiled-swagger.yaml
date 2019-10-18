@@ -655,7 +655,7 @@ paths:
               properties:
                 otp:
                   type: Number
-                  example: 1234"
+                  example: 1234
       responses:
         '200':
           content:
