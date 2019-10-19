@@ -387,7 +387,7 @@ router.post(
       res
         .status(200)
         .send(
-          await invitePeople(req.params.id, req.body.users, req.query.role)
+          await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id)
         );
     } catch (err) {
       next(new APIError(err.message));;
