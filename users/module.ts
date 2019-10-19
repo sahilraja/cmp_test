@@ -533,7 +533,7 @@ export async function profileOtpVerify(objBody: any, user: any){
     try{
         if(!objBody.otp) throw new Error("Otp is Missing.");
         let token :any = await jwt_Verify(user.otp_token)
-        if(objBody.otp == "1111" || objBody.otp == token.otp){
+        if(objBody.otp == token.otp){
             return await userEdit(user._id, {email: token.newEmail})
         }
         else{
