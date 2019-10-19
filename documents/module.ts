@@ -762,7 +762,7 @@ export async function unPublished(docId: string) {
   try {
     return await documents.findByIdAndUpdate(
       docId,
-      { status: STATES.UNPUBLISHED },
+      { status: STATUS.UNPUBLISHED },
       { new: true }
     );
   } catch (err) {
