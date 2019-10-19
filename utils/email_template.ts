@@ -26,7 +26,7 @@ export function inviteUserForm(body: any) {
 export function forgotPasswordForm(body: any) {
     try {
         const text =
-            `Hello <b>${body.firstName}</b>,<br><br>
+            `Hello <b>${body.fullName}</b>,<br><br>
             <u>${body.otp}</u> is the One Time Password (OTP) to activate your CMP account.
             <br/>
             <br/>
@@ -43,7 +43,7 @@ export function forgotPasswordForm(body: any) {
 export function profileOtp(body: any) {
     try {
         const text =
-            `Hello <b>${body.firstName}</b>,<br><br>
+            `Hello <b>${body.fullName}</b>,<br><br>
             <u>${body.otp}</u> is the One Time Password (OTP) to update your CMP account.
             <br/>
             <br/>

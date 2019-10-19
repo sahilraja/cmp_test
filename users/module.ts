@@ -511,12 +511,14 @@ export async function changeEmailInfo(objBody: any, user: any) {
         if(!validUser.token) throw new Error("Enter valid credentials.");
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
-        await userUpdate({ otp_token: token, id: user._id });
+        let userInfo = await userUpdate({ otp_token: token, id: user._id });
+        let {firstName , lastName , middleName} = userInfo;
+        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
         let success = await nodemail({
             email: user.email,
             subject: MAIL_SUBJECT.OTP_SUBJECT,
             html: profileOtp({
-                firstName: user.firstName,
+                fullName,
                 otp: authOtp.otp
             })
         });
@@ -531,7 +533,7 @@ export async function profileOtpVerify(objBody: any, user: any){
     try{
         if(!objBody.otp) throw new Error("Otp is Missing.");
         let token :any = await jwt_Verify(user.otp_token)
-        if(objBody.otp == "1111" || objBody.otp == token.otp){
+        if(objBody.otp == token.otp){
             return await userEdit(user._id, {email: token.newEmail})
         }
         else{
