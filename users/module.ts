@@ -456,7 +456,7 @@ export async function userSuggestions(search: string) {
     try {
         // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
         // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
-        const searchQuery = search ? { name: new RegExp(search, "i") } : {}
+        const searchQuery = search ? { name: new RegExp(search, "i"), emailVerified: true } : {is_active: true, emailVerified: true}
         let users: any = search ?
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
