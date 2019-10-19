@@ -461,6 +461,17 @@ export async function userSuggestions(search: string) {
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
         users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
+        let rolesBody:any =  await roles_list();
+        users.map((user:any)=>{
+            rolesBody.roles.forEach((roleInfo:any) => {
+                if(roleInfo.role == user.role)
+                {
+                    user.role = roleInfo.description;
+                    return false;
+                }
+            });
+            return user
+        })
         //  groups removed in removed
         return [...users]
     } catch (err) {
