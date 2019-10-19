@@ -408,8 +408,8 @@ export async function approvalList() {
 
 export async function uploadToFileService(request: any) {
   const options: any = {
-    hostname: "localhost",
-    port: 4040,
+    hostname: process.env.FILE_SERVICE_HOST,
+    port: process.env.FILE_SERVICE_PORT,
     path: "/files",
     method: "POST",
     headers: request.headers
