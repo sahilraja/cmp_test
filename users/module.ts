@@ -84,6 +84,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             firstName, lastName, password, phone,
             profilePic,
             middleName: middleName || null,
+            is_active: true,
             countryCode: countryCode || null,
             aboutme: aboutme || null,
             emailVerified: true
