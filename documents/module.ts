@@ -44,11 +44,11 @@ export async function createDoc(body: any, userId: string) {
       throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if(body.name.length > configLimit.name) {
-      throw new Error("Name "+ DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.name.length > configLimit.name) {
+      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if(body.description.length > configLimit.description) {
-      throw new Error("Description "+ DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.description.length > configLimit.description) {
+      throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let doc = await insertDOC(body, userId);
     body.parentId = doc.id;
@@ -575,7 +575,7 @@ export async function removeViewers(docId: string, viewers: string[]) {
 export async function collaboratorList(docId: string) {
   try {
     let users = await GetUserIdsForDocWithRole(docId, "collaborator");
-    return await userList({ _id: { $in: users } }, { firstName: 1,middleName:1,lastName:1, email: 1 });
+    return await userList({ _id: { $in: users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1 });
   } catch (err) {
     throw err;
   }
@@ -584,7 +584,7 @@ export async function collaboratorList(docId: string) {
 export async function viewerList(docId: string) {
   try {
     let users = await GetUserIdsForDocWithRole(docId, "viewer");
-    return await userList({ _id: { $in: users } }, { firstName: 1,middleName:1,lastName:1, email: 1 });
+    return await userList({ _id: { $in: users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1 });
   } catch (err) {
     throw err;
   }
@@ -614,7 +614,7 @@ async function invite(user: any, docId: any, role: any, doc: any) {
     email: userData.email,
     subject: `Invitation for ${doc.name} document`,
     html: docInvitePeople({
-      username: userData.name,
+      username: userName,
       documentName: doc.name,
       documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
     })
@@ -623,13 +623,17 @@ async function invite(user: any, docId: any, role: any, doc: any) {
 export async function invitePeople(
   docId: string,
   users: object[],
-  role: string
+  role: string,
+  userId: string
 ) {
   try {
-    if (!docId || !users || !role) throw new Error("Missing fields.");
+
+    if (!docId || !users.length || !role) throw new Error("Missing fields.");
     let doc: any = await documents.findById(docId);
     await Promise.all(
-      users.map(async (user: any) => await invite(user, docId, role, doc))
+      users.map(async (user: any) => {
+        if (userId != user._id) return await invite(user, docId, role, doc)
+      })
     );
     return { message: "Share successfully." };
   } catch (err) {
@@ -688,7 +692,7 @@ export async function invitePeopleList(docId: string) {
     if (userGroup.user) {
       var userData: any = await userList(
         { _id: { $in: userGroup.user }, is_active: true },
-        { firstName: 1, middleName:1,lastName:1, email: 1 }
+        { firstName: 1, middleName: 1, lastName: 1, email: 1 }
       );
       userData = await Promise.all(
         userData.map(async (user: any) => {
