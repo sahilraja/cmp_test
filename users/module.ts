@@ -266,9 +266,13 @@ export async function userRoles(id: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         //  Get User Roles
-        let role = await getRoles(id)
+        let [role, formattedRolesData] = await Promise.all([
+            getRoles(id),
+            roles_list()
+        ]) 
         if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
-        return { roles: role.data[0].role }
+        const formattedRole = formattedRolesData.roles.find((roleObj:any) => roleObj.role == role.data[0].role)
+        return { roles: formattedRole ? formattedRole.description : role.data[0].role }
     } catch (err) {
         throw err
     };
