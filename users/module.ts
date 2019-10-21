@@ -302,6 +302,9 @@ export async function forgotPassword(objBody: any) {
         };
         //  Find User
         let userDetails: any = await userFindOne("email", objBody.email);
+        if(!userDetails){
+            throw new Error('Email ID is not registered')
+        }
         let {firstName , lastName , middleName} = userDetails;
         let fullName = (firstName ? firstName + " " :"")+(middleName ? middleName+" " :"")+(lastName ? lastName:"");
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
