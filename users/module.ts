@@ -214,6 +214,8 @@ export async function user_login(objBody: any) {
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
+        // await loginSchema.create({ip,createdBy:userData._id});
+        const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         await nodemail({
             email: userData.email,
             subject: MAIL_SUBJECT.LOGIN_SUBJECT,
@@ -221,7 +223,7 @@ export async function user_login(objBody: any) {
                 username: userData.firstName
             })
         })
-        return await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
+        return response
     } catch (err) {
         throw err;
     };
