@@ -14,6 +14,8 @@
             ],
             // "sourceMaps": true
             "env": {
+                "FILE_SERVICE_HOST":"localhost",
+                "FILE_SERVICE_PORT":4040,
                 "USE_REMOTE_DB" : "false",
                 "NODE_ENV": "DEVELOPMENT",
                 "MONGO_URL": "mongodb://localhost/rbac",

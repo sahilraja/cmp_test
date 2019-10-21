@@ -358,7 +358,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
     if (objBody.tags) {
       obj.tags = objBody.tags;
     }
-    let child: any = documents.find({ parentId: docId }).sort({ createdAt: -1 }).exec()
+    let child: any = await documents.find({ parentId: docId }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     obj.versionNum = Number(child[0].versionNum) + 1
     let parent: any = await documents.findByIdAndUpdate(docId, obj, { new: true }).exec()
@@ -741,23 +741,37 @@ export async function docCapabilities(docId: string, userId: string) {
 
 export async function published(body: any, docId: string, userId: string) {
   try {
+    if (!Types.ObjectId.isValid(docId)) throw new Error("Given Id is Not Valid")
     let doc: any = await documents.findById(docId);
+    if (!doc) throw new Error("Doc Not Found")
+    let publishedDoc = await publishedDocCreate({...body, status: STATUS.PUBLISHED}, userId, doc, docId)
+    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id ,status: STATUS.DONE }, userId, doc)
+    return publishedDoc
+  } catch (err) {
+    throw err;
+  };
+};
+
+async function publishedDocCreate(body: any, userId: string, doc: any, docId?: string) {
+  try {
     return await documents.create({
-      sourceId: docId,
+      sourceId: docId || null,
       name: body.name,
       description: body.description,
       themes: body.themes || null,
       tags: body.tags || null,
       versionNum: 1,
-      status: STATUS.PUBLISHED,
+      status: body.status,
       ownerId: userId,
+      parentId: body.parentId ? body.parentId : null,
       fileName: body.fileName || doc.fileName,
       fileId: body.fileId || doc.fileId
     });
   } catch (err) {
-    throw err;
+    throw err
   }
 }
+
 
 export async function unPublished(docId: string) {
   try {
