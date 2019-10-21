@@ -110,16 +110,13 @@ router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
 });
 
 // Get My shared list
-router.get(
-  "/publish/list",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      res.status(200).send(await publishList(res.locals.user._id));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.get("/publish/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await publishList(res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
+}
 );
 
 // Get My list
@@ -141,23 +138,18 @@ router.get("/approvals", authenticate, async (req, res, next: NextFunction) => {
 });
 
 // get pending and Approval parent Docs
-router.get(
-  "/approvals/:id",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      res.status(200).send(await getApprovalDoc(req.params.id));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getApprovalDoc(req.params.id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
+}
 );
 
 router.get("/search", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res
-      .status(200)
-      .send(await docFilter(req.query.filter, res.locals.user._id));
+    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -174,18 +166,14 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 // });
 
 // get versions
-router.get(
-  "/:id/versions",
-  authenticate,
-  ensureCanPublishDocument,
-  async (req, res, next: NextFunction) => {
-    try {
-      const { id } = req.params;
-      res.status(200).send(await getVersions(id));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.get("/:id/versions", authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    res.status(200).send(await getVersions(id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
+}
 );
 
 // Publish a specific version to public.
@@ -209,20 +197,16 @@ router.get(
 // });
 
 // Upload File for a version.
-router.post(
-  "/:id/file",
-  authenticate,
-  ensureCanEditDocument,
-  async (req, res, next: NextFunction) => {
-    try {
-      const { id } = req.params;
-      const fileObj = await uploadToFileService(req);
-      let response = await createFile(id, fileObj);
-      res.status(200).send(response);
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.post("/:id/file", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const fileObj = await uploadToFileService(req);
+    let response = await createFile(id, fileObj);
+    res.status(200).send(response);
+  } catch (err) {
+    next(new APIError(err.message));;
   }
+}
 );
 
 //Download a file for a given version.
@@ -254,13 +238,13 @@ router.get(
       // const fileId = '5d66b64f7690505a261ab0fd';
       const req = (FILES_SERVER_BASE as string).startsWith("https")
         ? httpsGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
-            response.writeHead(200, res.headers);
-            res.pipe(response);
-          })
+          response.writeHead(200, res.headers);
+          res.pipe(response);
+        })
         : httpGet(`${FILES_SERVER_BASE}/files/${fileId}`, (res: any) => {
-            response.writeHead(200, res.headers);
-            res.pipe(response);
-          });
+          response.writeHead(200, res.headers);
+          res.pipe(response);
+        });
       req.on("error", (e: Error) => {
         next(e);
       });
@@ -505,33 +489,21 @@ router.post(
 );
 
 //  update exist doc
-router.post(
-  "/:id",
-  authenticate,
-  ensureCanEditDocument,
-  async (req, res, next: NextFunction) => {
-    try {
-      res
-        .status(200)
-        .send(await updateDoc(req.body, req.params.id, res.locals.user._id));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
-);
+});
 
 //  Get Document Details
-router.get(
-  "/:id",
-  authenticate,
-  ensureCanViewDocument,
-  async (req, res, next: NextFunction) => {
-    try {
-      res.status(200).send(await getDocDetails(req.params.id));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getDocDetails(req.params.id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
-);
+});
 
 export = router;

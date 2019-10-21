@@ -358,14 +358,10 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
     if (objBody.tags) {
       obj.tags = objBody.tags;
     }
-    let [parent, child]: any = await Promise.all([
-      documents.findByIdAndUpdate(docId, obj, { new: true }).exec(),
-      documents
-        .find({ parentId: docId })
-        .sort({ createdAt: -1 })
-        .exec()
-    ]);
+    let child: any = documents.find({ parentId: docId }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    obj.versionNum = Number(child[0].versionNum) + 1
+    let parent: any = await documents.findByIdAndUpdate(docId, obj, { new: true }).exec()
     await documents.create({
       name: parent.name,
       description: parent.description,
@@ -377,7 +373,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       fileId: parent.fileId,
       fileName: parent.fileName
     });
-    return parent;
+    return parent ;
   } catch (err) {
     console.log(err);
     throw err;
@@ -635,7 +631,7 @@ export async function invitePeople(
         if (doc.ownerId != user._id) return await invite(user, docId, role, doc)
       })
     );
-    return { message: "Share successfully." };
+    return { message: "Shared successfully." };
   } catch (err) {
     throw err;
   }
