@@ -1248,6 +1248,105 @@ paths:
                       - capability
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /comment/add:
+    post:
+      security:
+        - token: []
+      tags:
+        - COMMENTS
+      summary: Add comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - doc_id
+                - comment
+              properties:
+                type:
+                  type: string
+                  example: document
+                  description: Type of comment
+                doc_id:
+                  type: string
+                  example: 5da5730ce6fb331ba0fdcc54
+                  description: Must be id of document
+                comment:
+                  type: string
+                  example: Hello
+                  description: Comment message
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - _id
+                      - doc_id
+                      - comment
+                      - user_id
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /comments/list:
+    get:
+      security:
+        - token: []
+      summary: get comments list
+      tags:
+        - COMMENTS
+      parameters:
+        - in: path
+          name: doc_id
+          schema:
+            type: string
+          required: true
+          description: document_id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  comments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        comment:
+                          type: string
+                          example: Hello
+                        user:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: Apoorva
+                            role:
+                              type: string
+                              example: project lead
+                            email:
+                              type: string
+                              example: apoorva.s@webileapps.com
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/tag/add:
     post:
       security:
@@ -2465,6 +2564,127 @@ paths:
                 items:
                   type: object
                   $ref: './schema/#/responses/schemas/Document'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /docs/folder/create:
+    post:
+      security:
+        - token: []
+      summary: Create New Folder
+      tags:
+        - RESOURCES
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Annula Report Folder
+                description:
+                  type: string
+                  example: Dam for vizag
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  folder_id:
+                    type: string
+                    example: 343544
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /docs/folder/list:
+    get:
+      security:
+        - token: []
+      summary: list of folders
+      tags:
+        - RESOURCES
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  folders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        folderId:
+                          type: string
+                          example: folder12345
+                        name:
+                          type: string
+                          example: folderName
+                        date:
+                          type: string
+                          example: '2019-08-26T15:17:29.912Z'
+                        description:
+                          type: string
+                          example: folderDescription
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/docs/folder/{id}/list':
+    get:
+      security:
+        - token: []
+      summary: list of documents in a folder
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: folder_id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  folder:
+                    type: string
+                    example: folderName
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        uploadBy:
+                          type: string
+                          example: jeevan
+                        role:
+                          type: string
+                          example: project manager
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - tagId1234
+                            - tagId5432
+                        date:
+                          type: string
+                          example: '2019-08-26T15:17:29.912Z'
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /template/create:
