@@ -1,5 +1,6 @@
 import * as request from "request-promise";
 import { GROUPS_URL } from "./urls";
+import { promises } from "fs";
 
 enum roleHierarchy {
     owner = 0,
@@ -94,10 +95,12 @@ export async function GetDocIdsForUser(userId: string) {
     };
 };
 
-export async function getRoleOfDoc(userId: string, docId: string) {
+// get Role of Doc in return Array[2] 
+export async function getRoleOfDoc(userId: string, docId: string, type?:string ) :Promise<string> {
     try {
-        let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
-        if (!policies.data) throw new Error("policies not found for this User.");
+        let userType = type || "user"
+        let policies = await groupsPolicyFilter(`${userType}/${userId}`, 0, "p")
+        if (!policies.data.length) throw new Error("policies not found for this User.");
         let data = policies.data.filter((key: string[]) => {
             if (key[1].includes(docId) && ["owner", "collaborator", "viewer"].includes(key[2]))
                 return key
@@ -110,8 +113,8 @@ export async function getRoleOfDoc(userId: string, docId: string) {
 
 export async function shareDoc(userId: string, type: string, docId: string, role: any) {
     try {
-        let userRole: any = await getRoleOfDoc(`${type}/${userId}`, docId)
-        if (Array.isArray(userId) && roleHierarchy[userRole[2]] > roleHierarchy[role]) {
+        let userRole: any = await getRoleOfDoc(userId, docId, type)
+        if (userId && roleHierarchy[userRole[2]] > roleHierarchy[role]) {
             await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2])
             return await groupsAddPolicy(`${type}/${userId}`, docId, role)
         }
