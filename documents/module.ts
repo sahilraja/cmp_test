@@ -699,7 +699,8 @@ export async function invitePeopleList(docId: string) {
             lastName: user.lastName,
             type: "user",
             email: user.email,
-            role: (((await getRoleOfDoc(user._id, docId)) as any) ||
+            role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0],      
+            docRole: (((await getRoleOfDoc(user._id, docId)) as any) ||
               Array(2))[2]
           };
         })
