@@ -97,7 +97,11 @@ paths:
     $ref: ./swagger/roles/paths.yaml/#/addCapability  
   /role/capability/remove:
     $ref: ./swagger/roles/paths.yaml/#/removeCapability      
-  
+# Comments
+  /comment/add:
+    $ref: ./swagger/comments/paths.yaml/#/addComment  
+  /comments/list:
+    $ref: ./swagger/comments/paths.yaml/#/getCommets 
 # Tags
   /project/tag/add:
     $ref: ./swagger/tags/paths.yaml/#/addTagToProject
@@ -167,6 +171,12 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/getPushlishedDocs
   /docs/search:
     $ref: ./swagger/resources/paths.yaml/#/searchDocs
+  /docs/folder/create:
+    $ref: ./swagger/resources/paths.yaml/#/createFolder
+  /docs/folder/list:
+    $ref: ./swagger/resources/paths.yaml/#/listFolders  
+  /docs/folder/{id}/list:
+    $ref: ./swagger/resources/paths.yaml/#/foldersdocList 
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
@@ -203,4 +213,4 @@ components:
       $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
     templateSchema:
       $ref: ./swagger/template/schema.yaml/#/responses/schemas/templateSchema
-  
+

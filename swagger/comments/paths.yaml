@@ -1,0 +1,107 @@
+# Comment
+  #comments list
+  getCommets:
+  # "/comments/list":
+    get:
+      security:
+        - token: []
+      summary: get comments list
+      tags:
+        - COMMENTS
+      parameters:
+        - in: path
+          name: doc_id
+          schema:
+            type: string
+          required: true
+          description: document_id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status":
+                    type: boolean
+                    example: true
+                  comments:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        comment: 
+                          type: string
+                          example: Hello
+                        user: 
+                          type: object
+                          properties:
+                            name: 
+                              type: string
+                              example: Apoorva
+                            role: 
+                              type: string
+                              example: project lead
+                            email: 
+                              type: string
+                              example: apoorva.s@webileapps.com  
+                        
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+ 
+  # Add Comment
+  addComment:
+  # "comment/add":
+    post:
+      security:
+        - token: []
+      tags:
+        - COMMENTS
+      summary: Add comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - doc_id
+                - comment
+              properties:
+                type:
+                  type: string
+                  example: document
+                  description: Type of comment
+                doc_id:
+                  type: string
+                  example: 5da5730ce6fb331ba0fdcc54
+                  description: Must be id of document
+                comment:
+                  type: string
+                  example: Hello
+                  description: Comment message
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - _id
+                      - doc_id
+                      - comment
+                      - user_id
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
