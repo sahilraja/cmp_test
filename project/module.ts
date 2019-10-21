@@ -1,5 +1,5 @@
 import { MISSING } from "../utils/error_msg";
-import { project } from "./project_model";
+import { project as ProjectSchema } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
@@ -9,7 +9,7 @@ import { workflowModel } from "./workflow_model";
 import { checkCapability } from "../utils/rbac";
 
 //  Add city Code
-export async function create_city_code(reqObject: any, user: any) {
+export async function createProject(reqObject: any, user: any) {
   try {
     if (!reqObject.citycode || !reqObject.cityname) {
       throw new Error(MISSING);
@@ -22,10 +22,12 @@ export async function create_city_code(reqObject: any, user: any) {
     });
     if (!capability.status) throw new Error("Invalid User");
 
-    return await project.create({
+    return await ProjectSchema.create({
       reference: reqObject.citycode,
       city: reqObject.cityname,
-      summary: reqObject.description || "N/A"
+      summary: reqObject.description || "N/A",
+      maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
+      maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
     });
   } catch (err) {
     console.log(err);
@@ -34,7 +36,7 @@ export async function create_city_code(reqObject: any, user: any) {
 }
 
 //  Edit city Code
-export async function edit_city_code(id: any, reqObject: any, user: any) {
+export async function editProject(id: any, reqObject: any, user: any) {
   try {
     if (!id || !user) throw new Error(MISSING);
     let obj: any = {};
@@ -56,20 +58,24 @@ export async function edit_city_code(id: any, reqObject: any, user: any) {
     if (reqObject.description) {
       obj.summary = reqObject.description;
     }
-    return await project.findByIdAndUpdate(id, obj, { new: true });
+    if(reqObject.maturationStartDate){
+      obj.maturationStartDate = { date: reqObject.maturationStartDate, modifiedBy: user._id }
+    }
+    return await ProjectSchema.findByIdAndUpdate(id, { $set:obj }, { new: true }).exec();
   } catch (err) {
     console.log(err);
     throw err;
   }
 }
 
+export async function manageProjectMembers(id: string, members:string[]) {
+  return await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+}
+
 //  Get List of city Codes
-export async function city_code_list() {
+export async function projectList() {
   try {
-    return await project.find(
-      { is_active: true },
-      { reference: 1, city: 1 }
-    );
+    return await ProjectSchema.find({ is_active: true }).exec();
   } catch (err) {
     console.log(err);
     throw err;
@@ -80,14 +86,14 @@ export async function city_code_list() {
 export async function city_code_status(id: any) {
   try {
     if (!id) throw new Error(MISSING);
-    let projectData: any = await project.findById(id);
+    let projectData: any = await ProjectSchema.findById(id).exec();
     if (!projectData) {
       throw new Error("project not there");
     }
-    return await project.findByIdAndUpdate(
+    return await ProjectSchema.findByIdAndUpdate(
       { id },
-      { is_active: projectData.is_active ? false : true }
-    );
+      { is_active: projectData.is_active ? false : true },{new: true}
+    ).exec();
   } catch (err) {
     console.log(err);
     throw err;
@@ -217,9 +223,9 @@ export async function getProjectsList(userId: any) {
     if (!userProjects) throw new Error("user have no projects");
     let list;
     if (userProjects.data.global) {
-      list = await project.find({ is_active: true });
+      list = await ProjectSchema.find({ is_active: true });
     } else {
-      list = await project.find({
+      list = await ProjectSchema.find({
         _id: { $in: userProjects.data[0].scope },
         is_active: true
       });
@@ -234,7 +240,7 @@ export async function getProjectsList(userId: any) {
 // get project details
 export async function getProjectDetail(projectId: string) {
   try {
-    return await project.findById(projectId)
+    return await ProjectSchema.findById(projectId).exec()
   } catch (error) {
     console.log(error)
     throw error

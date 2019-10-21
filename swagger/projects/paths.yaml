@@ -1,3 +1,31 @@
+  # Manage Project Members
+  manageProjectMembers:
+    post:
+      security:
+        - token: []
+      tags:
+        - PROJECT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - 55758886889e97e98r78788775
+                    - 55758886889e97e98r78788776
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/projectSchema
   # create project code
   createProjectCode:
   # "/project/city/code/add":

@@ -66,18 +66,20 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/userInfo
 
 # Project APIs
-  /project/city/code/add:
+  /project/create:
     $ref: ./swagger/projects/paths.yaml/#/createProjectCode
-  /project/city/code/edit/{id}:
+  /project/list:
+    $ref: ./swagger/projects/paths.yaml/#/projectList
+  /project/{id}/detail:
+    $ref: ./swagger/projects/paths.yaml/#/getProjectDetail
+  /project/{id}/edit:
     $ref: ./swagger/projects/paths.yaml/#/editProjectCode
+  /project/{id}/manage-members:
+    $ref: ./swagger/projects/paths.yaml/#/manageProjectMembers
   /project/city/code/status/{id}:
     $ref: ./swagger/projects/paths.yaml/#/activeInactiveCityCode
   /project/city/code/list:
     $ref: ./swagger/projects/paths.yaml/#/projectCodeList
-  /project/list:
-    $ref: ./swagger/projects/paths.yaml/#/projectList
-  /project/{id}:
-    $ref: ./swagger/projects/paths.yaml/#/getProjectDetail
   /project/{id}/task/list:
     $ref: ./swagger/projects/paths.yaml/#/getProjectTaskList
   /project/{id}/task/add:
@@ -197,6 +199,25 @@ paths:
     $ref: ./swagger/templates/paths.yaml/#/templateDelete
   /template/getTemplate/{id}:
     $ref: ./swagger/templates/paths.yaml/#/templateGet
+
+# Pillars
+  /pillars/create:
+    $ref: ./swagger/pillars/paths.yaml/#/createPillar
+  /pillars/list:
+    $ref: ./swagger/pillars/paths.yaml/#/listPillars
+  /pillars/{id}/detail:
+    $ref: ./swagger/pillars/paths.yaml/#/getPillarDetail
+  /pillars/{id}/edit:
+    $ref: ./swagger/pillars/paths.yaml/#/createPillar
+
+  /steps/create:
+    $ref: ./swagger/steps/paths.yaml/#/createStep
+  /steps/list:
+    $ref: ./swagger/steps/paths.yaml/#/listSteps
+  /steps/{id}/detail:
+    $ref: ./swagger/steps/paths.yaml/#/getStepDetail
+  /steps/{id}/edit:
+    $ref: ./swagger/steps/paths.yaml/#/createStep
 
 definitions:
   # Error

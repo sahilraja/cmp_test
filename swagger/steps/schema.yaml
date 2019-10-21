@@ -1,0 +1,6 @@
+responses:
+  schemas:
+    stepSchema:
+      type: object
+      properties:
+        name: string
