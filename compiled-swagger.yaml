@@ -3242,7 +3242,8 @@ paths:
             schema: &ref_2
               type: object
               properties:
-                name: string
+                name:
+                  type: string
   /pillars/list:
     get:
       security:
@@ -3258,6 +3259,11 @@ paths:
                 items:
                   allOf:
                     - *ref_2
+                    - type: object
+                    - properties:
+                        id:
+                          type: string
+                          example: 5968574635575c547q74
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/pillars/{id}/detail':
@@ -3270,7 +3276,14 @@ paths:
         '200':
           content:
             application/json:
-              schema: *ref_2
+              schema:
+                allOf:
+                  - *ref_2
+                  - type: object
+                  - properties:
+                      id:
+                        type: string
+                        example: 5968574635575c547q74
           description: Success
   '/pillars/{id}/edit': *ref_3
   /steps/create: &ref_5
@@ -3286,7 +3299,8 @@ paths:
             schema: &ref_4
               type: object
               properties:
-                name: string
+                name:
+                  type: string
   /steps/list:
     get:
       security:
@@ -3302,6 +3316,11 @@ paths:
                 items:
                   allOf:
                     - *ref_4
+                    - type: object
+                    - properties:
+                        id:
+                          type: string
+                          example: 5968574635575c547q74
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/steps/{id}/detail':
@@ -3314,7 +3333,14 @@ paths:
         '200':
           content:
             application/json:
-              schema: *ref_4
+              schema:
+                allOf:
+                  - *ref_4
+                  - type: object
+                  - properties:
+                      id:
+                        type: string
+                        example: 5968574635575c547q74
           description: Success
   '/steps/{id}/edit': *ref_5
 definitions:

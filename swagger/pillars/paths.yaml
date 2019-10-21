@@ -24,7 +24,12 @@ listPillars:
               type: array
               items:
                 allOf:
-                 - $ref: "./schema.yaml/#/responses/schemas/pillarSchema" 
+                  - $ref: "./schema.yaml/#/responses/schemas/pillarSchema" 
+                  - type: object
+                  - properties:
+                      id:
+                        type: string
+                        example: 5968574635575c547q74
       "400":
         $ref: "#/definitions/ErrorResponse/BadRequest"
 getPillarDetail:
@@ -38,7 +43,13 @@ getPillarDetail:
         content:
           application/json:
             schema:
-              $ref: "./schema.yaml/#/responses/schemas/pillarSchema" 
+              allOf:
+                - $ref: "./schema.yaml/#/responses/schemas/pillarSchema"
+                - type: object
+                - properties:
+                    id:
+                      type: string
+                      example: 5968574635575c547q74
         description: Success
 editPillar:
   post:

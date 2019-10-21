@@ -24,7 +24,12 @@ listSteps:
               type: array
               items:
                 allOf:
-                 - $ref: "./schema.yaml/#/responses/schemas/stepSchema" 
+                - $ref: "./schema.yaml/#/responses/schemas/stepSchema" 
+                - type: object
+                - properties:
+                    id:
+                      type: string
+                      example: 5968574635575c547q74
       "400":
         $ref: "#/definitions/ErrorResponse/BadRequest"
 getStepDetail:
@@ -38,7 +43,13 @@ getStepDetail:
         content:
           application/json:
             schema:
-              $ref: "./schema.yaml/#/responses/schemas/stepSchema" 
+              allOf:
+               - $ref: "./schema.yaml/#/responses/schemas/stepSchema" 
+               - type: object
+               - properties:
+                  id:
+                    type: string
+                    example: 5968574635575c547q74
         description: Success
 editStep:
   post:

@@ -3,4 +3,5 @@ responses:
     stepSchema:
       type: object
       properties:
-        name: string
+        name:
+          type: string
