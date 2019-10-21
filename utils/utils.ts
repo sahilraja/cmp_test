@@ -19,10 +19,10 @@ export async function authenticate(req: any, res: any, next: any) {
         if (!token) throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN)
         const user: any = await userFindOne("id", token.id);
         if (!user) {
-            throw (new Error(AUTHENTICATE_MSG.INVALID_LOGIN));
+            next(new APIError(AUTHENTICATE_MSG.INVALID_LOGIN, 401));
         }
         if (!user.is_active) {
-            throw new Error(AUTHENTICATE_MSG.USER_INACTIVE);
+            next(new APIError(AUTHENTICATE_MSG.USER_INACTIVE, 401));
         }
         user.role = ((((await userRoleAndScope(token.id))) as any).data.global || [""])[0];
         res.locals.user = user;
