@@ -632,7 +632,7 @@ export async function invitePeople(
     let doc: any = await documents.findById(docId);
     await Promise.all(
       users.map(async (user: any) => {
-        if (userId != user._id) return await invite(user, docId, role, doc)
+        if (doc.ownerId != user._id) return await invite(user, docId, role, doc)
       })
     );
     return { message: "Share successfully." };
