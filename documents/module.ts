@@ -373,7 +373,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       fileId: parent.fileId,
       fileName: parent.fileName
     });
-    return parent ;
+    return parent;
   } catch (err) {
     console.log(err);
     throw err;
@@ -718,7 +718,7 @@ export async function invitePeopleList(docId: string) {
             name: name,
             type: "group",
             email: "N/A",
-            role: ((await getRoleOfDoc(group.id, docId)) as any)[2]
+            role: (((await getRoleOfDoc(group._id, docId)) as any) || Array(2))[2]
           };
         })
       );
