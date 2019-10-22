@@ -1144,7 +1144,7 @@ paths:
                     example: true
   '/project/city/code/status/{id}': null
   /project/city/code/list: null
-  '/project/{id}/task/list':
+  '/project/{id}/task-list':
     get:
       security:
         - token: []
@@ -1196,7 +1196,46 @@ paths:
                                 example: PENDING
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/task/add': null
+  '/project/{id}/create-task': null
+  '/project/{id}/task/{task-id}/edit-date':
+    post:
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: Project Id
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: Task Id
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate:
+                  type: string
+                endDate:
+                  type: string
+                progressPercentage:
+                  type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /role/list:
     get:
       security:
@@ -3377,4 +3416,6 @@ components:
     projectSchema: *ref_7
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'
+    pillarSchema: *ref_2
+    stepSchema: *ref_4
 

@@ -1,4 +1,4 @@
-import { MISSING } from "../utils/error_msg";
+import { MISSING, PROJECT_ROUTER } from "../utils/error_msg";
 import { project as ProjectSchema } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
@@ -7,6 +7,8 @@ import { userRoleAndScope } from "../role/module";
 import { taskModel } from "./task_model";
 import { workflowModel } from "./workflow_model";
 import { checkCapability } from "../utils/rbac";
+import { httpRequest } from "../utils/role_management";
+import { TASKS_URL } from "../utils/urls";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -247,46 +249,39 @@ export async function getProjectDetail(projectId: string) {
   };
 };
 
-//  add task
-export async function createTask(objBody: any, projectId: string) {
-  try {
-    const { name, startDate, endDate, access } = objBody
-    if (!name || !startDate || !endDate || !access) throw new Error(MISSING)
-    let taskCreate = await taskModel.create({
-      name: name,
-      startDate: startDate,
-      endDate: endDate,
-      projectId: projectId
-
-    })
-    let userIds = await Promise.all(access.map(async (obj: any) => {
-      let data = await workflowModel.create({
-        type: obj.type,
-        role: obj.role,
-        user: obj.user,
-        status: "PENDING",
-        taskId: taskCreate.id
-      })
-      return data.id
-    }))
-    let task = await taskModel.findByIdAndUpdate(taskCreate.id, { access: userIds })
-    return task
-  } catch (err) {
-    console.log(err)
-    throw err
-  };
-};
-
-export async function taskList(projectId: any) {
-  try {
-    let taskList = await taskModel.find({ projectId: projectId, is_active: true })
-    for (const task of taskList) {
-      let workflow = await workflowModel.find({ _id: { $in: task.access } })
-      task.access = workflow
-    }
-    return taskList
-  } catch (err) {
-    console.log(err)
-    throw err
+export async function createTask(payload:any, projectId: string, userToken: string){
+  const options = {
+    url: `${TASKS_URL}/create`,
+    body: {...payload, projectId},
+    headers: {'Authorization':`Bearer ${userToken}`},
+    json: true
   }
+  return await httpRequest(options)
+}
+
+export async function getProjectTasks(projectId: string, userToken: string) {
+  const options = {
+    url: `${TASKS_URL}/getTasksByProject`,
+    body: {projectId},
+    headers: {'Authorization':`Bearer ${userToken}`},
+    json: true
+  }
+  return await httpRequest(options)
+}
+
+export async function editTask(projectId: string, taskId: string, userId: string, userToken: string, payload: any) {
+  const projectDetail = await ProjectSchema.findById(projectId).exec()
+  if(!projectDetail){
+    throw new Error(PROJECT_ROUTER.PROJECT_NOT_EXISTS)
+  }
+  if(!((projectDetail as any).members || []).includes(userId)){
+    throw new Error(PROJECT_ROUTER.NOT_MEMBER_OF_PROJECT)
+  }
+  const options = {
+    url: `${TASKS_URL}/${taskId}/soft-edit`,
+    body: payload,
+    headers: {'Authorization':`Bearer ${userToken}`},
+    json: true
+  }
+  return await httpRequest(options)
 }

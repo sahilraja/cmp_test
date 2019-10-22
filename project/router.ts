@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, createTask, taskList, getTagByIds, manageProjectMembers } from "./module";
+import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
+    add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError } from "../utils/custom-error";
@@ -140,20 +142,28 @@ router.put("/theme/status/:id", async (req: any, res: any, next: any) => {
 });
 
 // add task
-router.post("/:id/task/add", async (req, res, next) => {
+router.post("/:id/create-task", async (req, res, next) => {
     try {
-        res.status(OK).send(await createTask(req.body, req.params.id))
+        res.status(OK).send(await createTask(req.body, req.params.id, (req as any).token))
     } catch (err) {
         next(new APIError(err.message));
     }
 })
 
 // add task
-router.get("/:id/task/list", async (req, res, next) => {
+router.get("/:id/task-list", async (req, res, next) => {
     try {
-        res.status(OK).send(await taskList(req.params.id))
+        res.status(OK).send(await getProjectTasks(req.params.id, (req as any).token))
     } catch (err) {
         next(new APIError(err.message));
+    }
+})
+
+router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await editTask(req.params.id, req.params.task_id, (req as any).user._id, (req as any).token, req.body))
+    } catch (error) {
+        next(new APIError(error.message))
     }
 })
 
