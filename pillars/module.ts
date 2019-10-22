@@ -8,10 +8,10 @@ export async function list() {
     return await PillarSchema.find({}).exec()
 }
 
-export async function stepDetail(id: string) {
+export async function pillarDetail(id: string) {
     return await PillarSchema.findById(id).exec()
 }
 
-export async function updateStep(id: string, updates: any) {
+export async function updatePillar(id: string, updates: any) {
     return await PillarSchema.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec()
 }
