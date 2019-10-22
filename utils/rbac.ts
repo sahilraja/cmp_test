@@ -19,13 +19,13 @@ export async function addRole(userId: string, role: any, scope: any = "global") 
     };
 };
 
-export async function updateRole(userId: string, role: string, deleteRole: string, scope: any = "global") {
+export async function updateRole(userId: string, updateRole: string, deleteRole: string, scope: any = "global") {
     try {
         let Options = {
             uri: `${RBAC_URL}/role/update/${userId}`,
             method: "POST",
             body: {
-                "role": role,
+                "updateRole": updateRole,
                 "scope": scope,
                 "deleteRole" :deleteRole
             },

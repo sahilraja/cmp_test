@@ -131,7 +131,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
             obj.phone = objBody.phone;
         };
         if(id != user._id && objBody.role){
-            //await updateRole(id,objBody.role,deleteRole);
+            await updateRole(id,objBody.updateRole,objBody.role);
         }
         if (objBody.aboutme) {
             obj.aboutme = objBody.aboutme;
@@ -218,7 +218,7 @@ export async function user_login(objBody: any,ip: string) {
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
-        //await loginSchema.create({ip,userId:userData._id});
+       // await loginSchema.create({ip,userId:userData._id});
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         await nodemail({
             email: userData.email,
