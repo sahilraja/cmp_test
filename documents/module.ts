@@ -33,6 +33,40 @@ enum STATUS {
   PENDING = -3
 }
 
+export async function createNewDoc(body: any, userId: any) {
+  try {
+    if (!body) throw new Error("Unable to create file or file missing")
+    const { id: fileId, name: fileName } = body
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "create-doc");
+    if (!isEligible) {
+      throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
+    }
+
+    if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    if (body.name.length > configLimit.name) {
+      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    }
+    if (body.description.length > configLimit.description) {
+      throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    }
+    body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
+    let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+    let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
+    if (!role.user) {
+      await documents.findByIdAndRemove(doc.id);
+      throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
+    }
+    body.parentId = doc.id;
+    let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+    return { doc_id: doc.id };
+  } catch (err) {
+    throw err
+  };
+};
+
+
 //  Create Document
 export async function createDoc(body: any, userId: string) {
   try {
@@ -65,16 +99,18 @@ export async function createDoc(body: any, userId: string) {
 }
 
 //  create Document module
-async function insertDOC(body: any, userId: string) {
+async function insertDOC(body: any, userId: string, fileObj?: any) {
   try {
     return await documents.create({
       name: body.name,
       description: body.description || null,
       tags: body.tags,
       versionNum: "1",
-      status: STATUS.DRAFT,
+      status: fileObj ? STATUS.DONE : STATUS.DRAFT,
       ownerId: userId,
-      parentId: body.parentId ? body.parentId : null
+      parentId: body.parentId ? body.parentId : null,
+      fileId: fileObj ? fileObj.fileId : null,
+      fileName: fileObj ? fileObj.fileName : null
     });
   } catch (error) {
     console.log(error);
@@ -341,9 +377,15 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       throw new Error(DOCUMENT_ROUTER.INVALID_ADMIN);
     let obj: any = {};
     if (objBody.name) {
+      if (objBody.name.length > configLimit.name) {
+        throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      }
       obj.name = objBody.name;
     }
     if (objBody.description) {
+      if (objBody.description.length > configLimit.description) {
+        throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      }
       obj.description = objBody.description;
     }
     if (objBody.tags) {
