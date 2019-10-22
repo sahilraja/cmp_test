@@ -130,14 +130,18 @@ export async function edit_user(id: string, objBody: any, user: any) {
             // }
             obj.phone = objBody.phone;
         };
+        let userRole;
         if(id != user._id && objBody.role){
-            await updateRole(id,objBody.updateRole,objBody.role);
+            userRole = await updateRole(id,objBody.updateRole,objBody.role);
         }
         if (objBody.aboutme) {
             obj.aboutme = objBody.aboutme;
         };
         // update user with edited fields
-        return await userEdit(id, objBody);
+        let userInfo = await userEdit(id, objBody);
+        userInfo.role= userRole;
+        return userInfo
+
     } catch (err) {
         throw err;
     };
