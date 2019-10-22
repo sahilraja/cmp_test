@@ -220,7 +220,7 @@ export async function theme_status(id: any) {
 }
 
 //get projects list
-export async function getProjectsList(userId: any) {
+export async function getProjectsList(userId: any, userToken: string) {
   try {
     let userProjects: any = await userRoleAndScope(userId);
     if (!userProjects) throw new Error("user have no projects");
@@ -233,7 +233,17 @@ export async function getProjectsList(userId: any) {
         is_active: true
       });
     }
-    return list
+    const projectIds = (list || []).map((_list) => _list.id)
+    const projectRelatedTasks = await httpRequest({
+      url: `${TASKS_URL}/getTasksByProjectIds`,
+      payload:{projectIds},
+      json: true,
+      headers: {'Authorization': `Bearer ${userToken}`}
+    })
+    return (list || []).map((_list) => { 
+      const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id)
+      return ({ ..._list.toJSON(), progressPercentage: tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0)/tasksForTheProject.length })
+    })
   } catch (error) {
     console.log(error);
     throw error;
