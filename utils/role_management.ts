@@ -69,7 +69,8 @@ export async function userInit() {
       "email": "pranay@citiis.com",
       "aboutme": "Technology lead for CITIIS Project",
       "password": "Citiis@123",
-      "phone": "7989238348"
+      "phone": "7989238348",
+      "is_active":true
     })
     let grants = await addRole(user._id, "technology-lead")
     console.log("No existing users found. Technology specialist user created successfully");

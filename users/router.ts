@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
 var multer = require('multer');
@@ -67,7 +67,12 @@ router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next
 //  Edit User
 router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const payload: any = await uploadToFileService(req)
+        let payload: any 
+        if(req.file){
+            payload = await uploadToFileService(req)
+        } else {
+            payload = JSON.stringify(req.body)
+        }
         // req.body.profilePic = JSON.parse(imageObj).id
         res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user));
     } catch (err) {
@@ -87,7 +92,7 @@ router.put('/status/:id', authenticate, async (req: Request, res: Response, next
 //  login user
 router.post('/email/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await user_login(req.body));
+        res.status(200).send(await user_login(req.body,(req as any).headers.ip));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -284,6 +289,13 @@ router.get(`/getFormattedRoles`, async (req, res, next) => {
         res.status(OK).send(await roles_list())
     } catch (error) {
         next(new APIError(error.message))
+    }
+})
+router.get("/login/history/:id", authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await loginHistory(req.params.id));
+    } catch (error) {
+        next(new APIError(error.message));
     }
 })
 

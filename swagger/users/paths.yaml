@@ -760,7 +760,6 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # user list
   userInfo:
-  # "/user/list/":
     get:
       security:
         - token: []
@@ -790,3 +789,38 @@
                     example: userId
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  loginHistory:
+    get:
+      security:
+        - token: []
+      summary: get user details list
+      tags:
+        - USERS
+      parameters:
+          - in: header
+            name: ip
+            schema:
+              type: string
+            required: true
+            description: ip address
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: userId
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    example: [{}]
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+

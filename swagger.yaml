@@ -113,6 +113,9 @@ paths:
     $ref: ./swagger/tags/paths.yaml/#/getTagsList
   /user/countryCodes:
     $ref: ./swagger/users/paths.yaml/#/countryCodes
+  /user/login/history/{id}:
+    $ref: ./swagger/users/paths.yaml/#/loginHistory
+
 # Themes
   /project/theme/add:
     $ref: ./swagger/themes/paths.yaml/#/addThemeToProject

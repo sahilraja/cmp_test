@@ -4,6 +4,7 @@ import { AUTHENTICATE_MSG } from './error_msg';
 import { userFindOne } from './users';
 import { userRoleAndScope } from '../role/module';
 import { APIError } from './custom-error';
+import { loginSchema } from '../users/login-model';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
