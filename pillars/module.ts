@@ -14,10 +14,12 @@ export async function list(userToken: string) {
         headers:{'Authorization': `Bearer ${userToken}`}
     })
     const pillars = await PillarSchema.find({ disabled: false }).exec()
-    return pillars.map((pillar: any) => 
-    ({...pillar.toJSON(), 
-        progressPercentage: (tasks as any).filter((task: any) => task.pillarId == pillar.id).reduce((p:number,c:any) => p + (c.progressPercentage || 0) )
-    }))
+    return pillars.map((pillar: any) => {
+        const filteredTasks = (tasks as any).filter((task: any) => task.pillarId == pillar.id)
+        return ({...pillar.toJSON(), 
+            progressPercentage: filteredTasks.reduce((p:number,c:any) => p + (c.progressPercentage || 0) )/filteredTasks.length
+        })
+    })
 }
 
 export async function pillarDetail(id: string) {

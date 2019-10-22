@@ -25,6 +25,7 @@ export async function createProject(reqObject: any, user: any) {
     if (!capability.status) throw new Error("Invalid User");
 
     return await ProjectSchema.create({
+      name:reqObject.name,
       reference: reqObject.citycode,
       city: reqObject.cityname,
       summary: reqObject.description || "N/A",
