@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { OK } from "http-status-codes";
-import { create, list, stepDetail, updateStep } from "./module";
+import { create, list, stepDetail, updateStep, getStepsByIds } from "./module";
 const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
@@ -14,6 +14,14 @@ router.post(`/create`, async (req, res, next) => {
 router.get(`/list`, async (req, res, next) => {
     try {
         res.status(OK).send(await list())
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.get(`/getStepsByIds`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getStepsByIds(req.body.stepIds))
     } catch (error) {
         next(error)
     }

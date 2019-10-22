@@ -33,3 +33,7 @@ export async function updatePillar(id: string, updates: any) {
 export async function getPillars() {
     return await PillarSchema.find({ disabled: false }).exec()
 }
+
+export async function getPillarsbyIds(pillarIds: string[]){
+    return await PillarSchema.find({_id:{$in:pillarIds}}).exec()
+}

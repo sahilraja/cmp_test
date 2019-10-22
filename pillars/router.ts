@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { OK } from "http-status-codes";
-import { create, list, pillarDetail, updatePillar, getPillars } from "./module";
+import { create, list, pillarDetail, updatePillar, getPillars, getPillarsbyIds } from "./module";
 const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
@@ -38,6 +38,14 @@ router.post(`/:id/edit`, async (req, res, next) => {
 router.get(`/getPillars`, async (req, res, next) => {
     try {
         res.status(OK).send(await getPillars())
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.post(`/getPillarByIds`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getPillarsbyIds(req.body.pillarIds))
     } catch (error) {
         next(error)
     }

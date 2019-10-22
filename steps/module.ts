@@ -15,3 +15,7 @@ export async function stepDetail(id: string) {
 export async function updateStep(id: string, updates: any) {
     return await StepsSchema.findByIdAndUpdate(id, {$set:updates}, {new: true}).exec()
 }
+
+export async function getStepsByIds(ids:string[]) {
+    return await StepsSchema.find({_id:{$in:ids}}).exec()
+}
