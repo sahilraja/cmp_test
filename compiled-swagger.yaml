@@ -1506,6 +1506,40 @@ paths:
                       code: 91
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/login/history/{id}':
+    get:
+      security:
+        - token: []
+      summary: get user details list
+      tags:
+        - USERS
+      parameters:
+        - in: header
+          name: ip
+          schema:
+            type: string
+          required: true
+          description: ip address
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: userId
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    example:
+                      - {}
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/theme/add:
     post:
       security:

@@ -4,12 +4,13 @@ import { inviteUserForm, forgotPasswordForm, userLoginForm, userState ,profileOt
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
-import { addRole, getRoles, roleCapabilitylist } from "../utils/rbac";
+import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT } from "../utils/users";
 //import * as phoneNo from "phone";
 import { createECDH } from "crypto";
+import { loginSchema } from "./login-model";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -129,11 +130,18 @@ export async function edit_user(id: string, objBody: any, user: any) {
             // }
             obj.phone = objBody.phone;
         };
+        let userRole;
+        if(id != user._id && objBody.role){
+            userRole = await updateRole(id,objBody.updateRole,objBody.role);
+        }
         if (objBody.aboutme) {
             obj.aboutme = objBody.aboutme;
         };
         // update user with edited fields
-        return await userEdit(id, objBody);
+        let userInfo = await userEdit(id, objBody);
+        userInfo.role= userRole;
+        return userInfo
+
     } catch (err) {
         throw err;
     };
@@ -214,7 +222,7 @@ export async function user_login(objBody: any) {
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
-        // await loginSchema.create({ip,createdBy:userData._id});
+        await loginSchema.create({ip:objBody.ip,userId:userData._id});
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         await nodemail({
             email: userData.email,
@@ -561,6 +569,16 @@ export async function profileOtpVerify(objBody: any, user: any){
             throw new Error("Enter Valid Otp.");
         }
     }catch(err){
+        throw err
+    }
+}
+export async function loginHistory(id:string){
+    try{
+        //return await loginSchema.paginate({},{select:{createdBy:id,createdAt:1,ip:1},sort:{createdAt:1}});
+        let history = await loginSchema.find({userId:id}).sort({createdAt:1}).exec();
+        return {history:history}
+    }
+    catch(err){
         throw err
     }
 }

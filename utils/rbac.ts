@@ -2,7 +2,7 @@ import * as request from "request-promise";
 import { RBAC_URL } from "./urls";
 
 //  Add Roles In Rbac
-export async function addRole(userId: string, role: string, scope: any = "global") {
+export async function addRole(userId: string, role: any, scope: any = "global") {
     try {
         let Options = {
             uri: `${RBAC_URL}/role/add/${userId}`,
@@ -10,6 +10,24 @@ export async function addRole(userId: string, role: string, scope: any = "global
             body: {
                 "role": role,
                 "scope": scope
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
+
+export async function updateRole(userId: string, updateRole: string, deleteRole: string, scope: any = "global") {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/role/update/${userId}`,
+            method: "POST",
+            body: {
+                "updateRole": updateRole,
+                "scope": scope,
+                "deleteRole" :deleteRole
             },
             json: true
         }
