@@ -141,20 +141,11 @@ export async function createFile(docId: string, file: any) {
     const { id, name } = JSON.parse(file);
     if (!id || !name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let [child, parent]: any = await Promise.all([
-      documents
-        .find({ parentId: docId })
-        .sort({ createdAt: -1 })
-        .exec(),
-      documents
-        .findByIdAndUpdate(docId, { fileId: id, fileName: name }, { new: true })
-        .exec()
+      documents.find({ parentId: docId }).sort({ createdAt: -1 }).exec(),
+      documents.findByIdAndUpdate(docId, { fileId: id, fileName: name }, { new: true }).exec()
     ]);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
-    await documents.findByIdAndUpdate(
-      child[0].id,
-      { fileId: id, fileName: name },
-      { new: true }
-    );
+    await documents.findByIdAndUpdate(child[0].id, { fileId: id, fileName: name }, { new: true });
     return { doc_id: docId };
   } catch (error) {
     console.log(error);
@@ -699,7 +690,7 @@ export async function invitePeopleList(docId: string) {
             lastName: user.lastName,
             type: "user",
             email: user.email,
-            role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0],      
+            role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0],
             docRole: (((await getRoleOfDoc(user._id, docId)) as any) ||
               Array(2))[2]
           };
@@ -744,8 +735,8 @@ export async function published(body: any, docId: string, userId: string) {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Given Id is Not Valid")
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
-    let publishedDoc = await publishedDocCreate({...body, status: STATUS.PUBLISHED}, userId, doc, docId)
-    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id ,status: STATUS.DONE }, userId, doc)
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userId, doc, docId)
+    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userId, doc)
     return publishedDoc
   } catch (err) {
     throw err;
@@ -830,54 +821,34 @@ export async function publishList(userId: string) {
   }
 }
 
-export async function docFilter(search: string, userId: string) {
+// Get Filterd Documents
+export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30): Promise<object[]> {
   search = search.trim();
   try {
     let docs: any = [],
       shared: any = [];
+    //  Search With Tags
     if (search.startsWith("#")) {
-      let tags = await Tags.find({ tag: new RegExp(search.substring(1), "i") });
+      let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
       if (!tags.length) return [];
-      let tagId = tags
-        .map(tag => tag._id)
-        .pop()
-        .toString();
-      docs = await documents
-        .find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null })
-        .sort({ updatedAt: -1 })
-        .limit(30);
-      shared = await documents
-        .find({
-          _id: { $in: await GetDocIdsForUser(userId) },
-          tags: { $elemMatch: { $eq: tagId } }
-        })
-        .sort({ updatedAt: -1 });
+      let tagId = tags.map(tag => tag._id).pop().toString();
+      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
-      docs = await documents
-        .find({ name: new RegExp(search, "i"), parentId: null })
-        .sort({ updatedAt: -1 })
-        .limit(30);
-      shared = await documents
-        .find({
-          _id: { $in: await GetDocIdsForUser(userId) },
-          name: new RegExp(search, "i")
-        })
-        .sort({ updatedAt: -1 });
+      //  Search With Tag Names
+      docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 });
     }
-    docs = [
-      ...docs.filter(
-        (doc: any) =>
-          (doc.ownerId == userId && doc.status == STATUS.DONE) ||
-          doc.status == STATUS.PUBLISHED
-      ),
-      ...shared
-    ];
-    return await Promise.all(
-      docs.map(async (doc: any) => {
-        return await docData(doc);
-      })
-    );
+    docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
+    let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc)));
+    return filterOrdersByPageAndLimit(page, limit, filteredDocs)
   } catch (err) {
     throw err;
-  }
-}
+  };
+};
+
+//  Manual Pagination for Doc Filter
+function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): Promise<object[]> {
+  let skip = ((page - 1) * limit);
+  return orders.slice(skip, skip + limit);
+};

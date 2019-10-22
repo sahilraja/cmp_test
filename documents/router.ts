@@ -91,6 +91,16 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
   }
 });
 
+//  Create Document new Api
+router.post("/create/new", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await createDoc(req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+
 //  Get Public List
 router.get("/list", authenticate, async (req, res, next: NextFunction) => {
   try {
@@ -149,7 +159,7 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
 
 router.get("/search", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id));
+    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id, req.query.page, req.query.limit));
   } catch (err) {
     next(new APIError(err.message));;
   }
