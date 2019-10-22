@@ -141,20 +141,11 @@ export async function createFile(docId: string, file: any) {
     const { id, name } = JSON.parse(file);
     if (!id || !name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let [child, parent]: any = await Promise.all([
-      documents
-        .find({ parentId: docId })
-        .sort({ createdAt: -1 })
-        .exec(),
-      documents
-        .findByIdAndUpdate(docId, { fileId: id, fileName: name }, { new: true })
-        .exec()
+      documents.find({ parentId: docId }).sort({ createdAt: -1 }).exec(),
+      documents.findByIdAndUpdate(docId, { fileId: id, fileName: name }, { new: true }).exec()
     ]);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
-    await documents.findByIdAndUpdate(
-      child[0].id,
-      { fileId: id, fileName: name },
-      { new: true }
-    );
+    await documents.findByIdAndUpdate(child[0].id, { fileId: id, fileName: name }, { new: true });
     return { doc_id: docId };
   } catch (error) {
     console.log(error);
@@ -831,7 +822,7 @@ export async function publishList(userId: string) {
 }
 
 // Get Filterd Documents
-export async function docFilter(search: string, userId: string, page: number = 1, limit:number = 30  ): Promise<object[]> {
+export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30): Promise<object[]> {
   search = search.trim();
   try {
     let docs: any = [],
@@ -842,15 +833,15 @@ export async function docFilter(search: string, userId: string, page: number = 1
       if (!tags.length) return [];
       let tagId = tags.map(tag => tag._id).pop().toString();
       docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 });
-      shared = await documents.find({_id: { $in: await GetDocIdsForUser(userId) },tags: { $elemMatch: { $eq: tagId } }}).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
       //  Search With Tag Names
       docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 });
       shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 });
     }
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
-    let filteredDocs = await Promise.all(docs.map((doc :any) => docData(doc)));
-    return filterOrdersByPageAndLimit(page, limit, filteredDocs )
+    let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc)));
+    return filterOrdersByPageAndLimit(page, limit, filteredDocs)
   } catch (err) {
     throw err;
   };

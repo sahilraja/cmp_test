@@ -91,6 +91,16 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
   }
 });
 
+//  Create Document new Api
+router.post("/create/new", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await createDoc(req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+
 //  Get Public List
 router.get("/list", authenticate, async (req, res, next: NextFunction) => {
   try {
