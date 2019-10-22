@@ -149,7 +149,7 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
 
 router.get("/search", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id));
+    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id, req.query.page, req.query.limit));
   } catch (err) {
     next(new APIError(err.message));;
   }

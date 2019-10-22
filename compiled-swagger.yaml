@@ -2554,6 +2554,18 @@ paths:
             type: string
           required: true
           description: '#tagName or documentName'
+        - in: query
+          name: page
+          schema:
+            type: number
+            example: '1'
+          description: Default Page = 1
+        - in: query
+          name: limit
+          schema:
+            type: number
+            example: '30'
+          description: Default Limit = 30
       responses:
         '200':
           description: success
