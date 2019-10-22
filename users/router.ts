@@ -92,7 +92,7 @@ router.put('/status/:id', authenticate, async (req: Request, res: Response, next
 //  login user
 router.post('/email/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await user_login(req.body,(req as any).headers.ip));
+        res.status(200).send(await user_login(req.body));
     } catch (err) {
         next(new APIError(err.message));
     };

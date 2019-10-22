@@ -209,7 +209,7 @@ export async function user_status(id: string, user: any) {
 };
 
 //  User Login
-export async function user_login(objBody: any,ip: string) {
+export async function user_login(objBody: any) {
     try {
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
@@ -222,7 +222,7 @@ export async function user_login(objBody: any,ip: string) {
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
-       // await loginSchema.create({ip,userId:userData._id});
+        await loginSchema.create({ip:objBody.ip,userId:userData._id});
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         await nodemail({
             email: userData.email,
