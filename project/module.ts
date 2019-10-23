@@ -223,32 +223,28 @@ export async function theme_status(id: any) {
 //get projects list
 export async function getProjectsList(userId: any, userToken: string) {
   try {
-    let userProjects: any = await userRoleAndScope(userId);
-    if (!userProjects) throw new Error("user have no projects");
-    let list;
-    if (userProjects.data.global) {
-      list = await ProjectSchema.find({ is_active: true });
-    } else {
-      list = await ProjectSchema.find({
-        _id: { $in: userProjects.data[0].scope },
-        is_active: true
-      });
-    }
+    // let userProjects: any = await userRoleAndScope(userId);
+    // if (!userProjects) throw new Error("user have no projects");
+    const {docs:list, page, pages} = await ProjectSchema.paginate({$or:[{createdBy: userId}, {members:{$in:[userId]}}]})
     const projectIds = (list || []).map((_list) => _list.id)
-    const projectRelatedTasks = await httpRequest({
-      url: `${TASKS_URL}/getTasksByProjectIds`,
-      payload:{projectIds},
-      json: true,
-      headers: {'Authorization': `Bearer ${userToken}`}
-    })
-    return (list || []).map((_list) => { 
-      const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id)
-      return ({ ..._list.toJSON(), progressPercentage: tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0)/tasksForTheProject.length })
-    })
+    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages }
   } catch (error) {
     console.log(error);
     throw error;
   }
+}
+
+async function mapProgressPercentageForProjects(projectIds: string[], userToken: string, list: any[]) {
+  const projectRelatedTasks = await httpRequest({
+    url: `${TASKS_URL}/getTasksByProjectIds`,
+    payload:{projectIds},
+    json: true,
+    headers: {'Authorization': `Bearer ${userToken}`}
+  })
+  return (list || []).map((_list) => { 
+    const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id)
+    return ({ ..._list.toJSON(), progressPercentage: tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0)/tasksForTheProject.length })
+  })
 }
 
 // get project details

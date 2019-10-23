@@ -834,26 +834,200 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
+                  page:
+                    type: number
+                  pages:
+                    type: number
+                  docs:
                     type: array
-                    items:
+                    items: &ref_1
                       type: object
                       properties:
-                        id:
-                          type: string
-                          example: project_id
                         name:
                           type: string
-                          example: howrah
+                          example: vizag schools develop
                         city:
                           type: string
-                          example: agarthala
+                          example: vizag
+                        summary:
+                          type: string
+                          example: this project for de develop schools
+                        reference:
+                          type: string
+                          example: VIZAG-CODE
+                        bannerImage:
+                          type: string
+                          example: 'https://amazonS3.com/project/banner'
+                        maturationStartDate:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: string
+                                example: 22-1-2019
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        thirdParyAggrementDate:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: string
+                                example: 22-1-2019
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        thirdParyAggrementDocument:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: string
+                                example: >-
+                                  https://Amazons3.com/thirdPary/Aggrement/Document
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
                         maturationEndDate:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: string
+                                example: 22-1-2019
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        projectCost:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: number
+                                example: 1000
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        ciitiisGrants:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: number
+                                example: 1000
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        fundsReleased:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: number
+                                example: 1000
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        fundsUtilised:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: number
+                                example: 1000
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        fundsUtilisedDocuments:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              date:
+                                type: string
+                                example: 'https://Amazons3.com/fundsUtilised/Documents'
+                              created_at:
+                                type: string
+                                example: 10-1-2019
+                              modified_at:
+                                type: string
+                                example: 15-1-2019
+                              modified_by:
+                                type: string
+                                example: 12343567890
+                                description: user id
+                        themes:
                           type: string
-                          example: 22-1-2001
-                        theme:
-                          type: string
-                          example: theme1
+                          example: 12343567890
+                          description: theme id
+                        is_active:
+                          type: boolean
+                          example: true
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/detail':
@@ -955,193 +1129,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: &ref_7
-                type: object
-                properties:
-                  name:
-                    type: string
-                    example: vizag schools develop
-                  city:
-                    type: string
-                    example: vizag
-                  summary:
-                    type: string
-                    example: this project for de develop schools
-                  reference:
-                    type: string
-                    example: VIZAG-CODE
-                  bannerImage:
-                    type: string
-                    example: 'https://amazonS3.com/project/banner'
-                  maturationStartDate:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          example: 22-1-2019
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  thirdParyAggrementDate:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          example: 22-1-2019
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  thirdParyAggrementDocument:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          example: 'https://Amazons3.com/thirdPary/Aggrement/Document'
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  maturationEndDate:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          example: 22-1-2019
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  projectCost:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: number
-                          example: 1000
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  ciitiisGrants:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: number
-                          example: 1000
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  fundsReleased:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: number
-                          example: 1000
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  fundsUtilised:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: number
-                          example: 1000
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  fundsUtilisedDocuments:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                          example: 'https://Amazons3.com/fundsUtilised/Documents'
-                        created_at:
-                          type: string
-                          example: 10-1-2019
-                        modified_at:
-                          type: string
-                          example: 15-1-2019
-                        modified_by:
-                          type: string
-                          example: 12343567890
-                          description: user id
-                  themes:
-                    type: string
-                    example: 12343567890
-                    description: theme id
-                  is_active:
-                    type: boolean
-                    example: true
+              schema: *ref_1
   '/project/city/code/status/{id}': null
   /project/city/code/list: null
   '/project/{id}/task-list':
@@ -3162,7 +3150,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_1
+                  - &ref_2
                     type: object
                     properties:
                       content:
@@ -3193,7 +3181,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_1
+                items: *ref_2
   '/template/edit/{id}':
     post:
       '400':
@@ -3234,7 +3222,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_1
+                  - *ref_2
                   - type: object
                     properties:
                       id:
@@ -3291,7 +3279,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_1
+                  - *ref_2
                   - type: object
                     properties:
                       id:
@@ -3299,7 +3287,7 @@ paths:
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
           description: Success
-  /pillars/create: &ref_3
+  /pillars/create: &ref_4
     post:
       security:
         - token: []
@@ -3309,7 +3297,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_2
+            schema: &ref_3
               type: object
               properties:
                 name:
@@ -3328,7 +3316,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_2
+                    - *ref_3
                     - type: object
                     - properties:
                         id:
@@ -3348,15 +3336,15 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_2
+                  - *ref_3
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/pillars/{id}/edit': *ref_3
-  /steps/create: &ref_5
+  '/pillars/{id}/edit': *ref_4
+  /steps/create: &ref_6
     post:
       security:
         - token: []
@@ -3366,7 +3354,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_4
+            schema: &ref_5
               type: object
               properties:
                 name:
@@ -3385,7 +3373,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_4
+                    - *ref_5
                     - type: object
                     - properties:
                         id:
@@ -3405,28 +3393,28 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_4
+                  - *ref_5
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/steps/{id}/edit': *ref_5
+  '/steps/{id}/edit': *ref_6
 definitions:
   ErrorResponse:
     BadRequest:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_6
+          schema: &ref_7
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_6
+    Error: *ref_7
 components:
   securitySchemes:
     token:
@@ -3442,11 +3430,11 @@ components:
       required:
         - error
     userME: *ref_0
-    project: *ref_7
+    project: *ref_1
     userSchema: *ref_0
-    projectSchema: *ref_7
+    projectSchema: *ref_1
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'
-    pillarSchema: *ref_2
-    stepSchema: *ref_4
+    pillarSchema: *ref_3
+    stepSchema: *ref_5
 

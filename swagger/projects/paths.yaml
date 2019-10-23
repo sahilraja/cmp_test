@@ -215,27 +215,14 @@
               schema:
                 type: object
                 properties:
-                  success: 
+                  page:
+                    type: number
+                  pages:
+                    type: number
+                  docs:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id: 
-                          type: string
-                          example: project_id
-                        name: 
-                          type: string
-                          example: howrah
-                        city:
-                          type: string
-                          example: agarthala
-                        maturationEndDate:
-                          type: string
-                          example: 22-1-2001
-                        theme: 
-                          type: string
-                          example: theme1
-                      
+                      $ref: ./schema.yaml/#/responses/schemas/projectSchema                      
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # get project  
