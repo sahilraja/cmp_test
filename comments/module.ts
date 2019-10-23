@@ -2,7 +2,7 @@ import * as request from "request-promise";
 import { RBAC_URL } from "../utils/urls";
 import * as fs from "fs";
 import { join } from "path";
-import { userList } from "../utils/users";
+import { userFindOne,userList } from "../utils/users";
 import { userRoleAndScope } from "../role/module";
 import { checkRoleScope } from '../utils/role_management'
 import { COMMENT_ROUTER } from "../utils/error_msg";
@@ -22,6 +22,43 @@ export async function addComment(body: any, userId: string) {
     }
   }
 
- export async function commentsList(doc_id: String){
+//  export async function commentsList(doc_id: String){
 
- }
+
+
+//  }
+
+ export async function commentsList(doc_id: String) {
+    try {
+      let data = await comments
+        .find({ entity_id: doc_id})
+        .sort({ updatedAt: -1 });
+        console.log(data);
+        
+      const commentsList = await Promise.all(
+        data.map(async comment=> {
+          return await commentData(comment);
+        })
+      );
+      return { comments: commentsList };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+  
+  async function commentData(commentData: any) {
+    try {
+      return {
+        comment:commentData.comment, 
+        // ...commentData.toJSON(),
+        role: (((await userRoleAndScope(commentData.user_id)) as any).data.global || [
+          ""
+        ])[0],
+        user: await userFindOne("id", commentData.user_id, { firstName: 1,middleName:1,lastName:1,email:1 })
+      };
+    } catch (err) {
+      throw err;
+    }
+  }
+  

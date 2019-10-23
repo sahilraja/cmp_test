@@ -9,7 +9,7 @@ import { APIError } from "../utils/custom-error";
 const router = Router();
 
 //  list roles
-router.get('/list', async (req: Request, res: Response, next: Handler) => {
+router.get('/list/:doc_id', async (req: Request, res: Response, next: Handler) => {
     try {
         res.status(200).send(await commentsList(req.params.doc_id));
     } catch (err) {

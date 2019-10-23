@@ -5,7 +5,7 @@ const schema = new Schema(
     type: { type: String, trim: true },
     comment: { type: String, trim: true },
     entity_id: { type: String },
-    user_id: { type: Schema.Types.ObjectId, ref: 'users' }
+    user_id: { type: String }
   },
   { timestamps: true }
 );

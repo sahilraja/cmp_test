@@ -100,7 +100,7 @@ paths:
 # Comments
   /comments/add:
     $ref: ./swagger/comments/paths.yaml/#/addComment  
-  /comments/list:
+  /comments/list/{doc_id}:
     $ref: ./swagger/comments/paths.yaml/#/getCommets 
 # Tags
   /project/tag/add:
