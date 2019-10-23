@@ -34,8 +34,11 @@ import {
   replaceDoc,
   publishList,
   docFilter,
-  createNewDoc
+  createNewDoc,
+  createFolder,
+  moveToFolder
 } from "./module";
+
 import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { authenticate } from "../utils/utils";
@@ -515,6 +518,23 @@ router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: N
     res.status(200).send(await getDocDetails(req.params.id));
   } catch (err) {
     next(new APIError(err.message));;
+  }
+});
+
+//  Create Folder
+router.post("/folder/create", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await createFolder(req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.put("/moveTo/folder/:id", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await moveToFolder(req.params.id,req.body.docId,res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
   }
 });
 
