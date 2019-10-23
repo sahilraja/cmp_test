@@ -27,6 +27,7 @@ export async function authenticate(req: any, res: any, next: any) {
         }
         user.role = ((((await userRoleAndScope(token.id))) as any).data.global || [""])[0];
         res.locals.user = user;
+        req.token = bearerToken
         return next();
     } catch (err) {
         return next(new APIError('Unauthorized'));

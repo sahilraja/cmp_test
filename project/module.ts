@@ -236,9 +236,10 @@ export async function getProjectsList(userId: any, userToken: string) {
 
 async function mapProgressPercentageForProjects(projectIds: string[], userToken: string, list: any[]) {
   const projectRelatedTasks = await httpRequest({
-    url: `${TASKS_URL}/getTasksByProjectIds`,
+    url: `${TASKS_URL}/task/getTasksByProjectIds`,
     payload:{projectIds},
     json: true,
+    method:'POST',
     headers: {'Authorization': `Bearer ${userToken}`}
   })
   return (list || []).map((_list) => { 
@@ -259,8 +260,9 @@ export async function getProjectDetail(projectId: string) {
 
 export async function createTask(payload:any, projectId: string, userToken: string){
   const options = {
-    url: `${TASKS_URL}/create`,
+    url: `${TASKS_URL}/task/create`,
     body: {...payload, projectId},
+    method:'POST',
     headers: {'Authorization':`Bearer ${userToken}`},
     json: true
   }
@@ -269,9 +271,10 @@ export async function createTask(payload:any, projectId: string, userToken: stri
 
 export async function getProjectTasks(projectId: string, userToken: string) {
   const options = {
-    url: `${TASKS_URL}/getTasksByProject`,
+    url: `${TASKS_URL}/task/getTasksByProject`,
     body: {projectId},
     headers: {'Authorization':`Bearer ${userToken}`},
+    method:'POST',
     json: true
   }
   return await httpRequest(options)
@@ -286,8 +289,9 @@ export async function editTask(projectId: string, taskId: string, userId: string
     throw new Error(PROJECT_ROUTER.NOT_MEMBER_OF_PROJECT)
   }
   const options = {
-    url: `${TASKS_URL}/${taskId}/soft-edit`,
+    url: `${TASKS_URL}/task/${taskId}/soft-edit`,
     body: payload,
+    method:'POST',
     headers: {'Authorization':`Bearer ${userToken}`},
     json: true
   }
@@ -299,8 +303,9 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
     throw new Error(PROJECT_ROUTER.TASK_REQUIRED_FOR_LINKING)
   }
   const options = {
-    url: `${TASKS_URL}/${taskId}/soft-edit`,
+    url: `${TASKS_URL}/task/${taskId}/soft-edit`,
     body: {projectId},
+    method:'POST',
     headers: {'Authorization':`Bearer ${userToken}`},
     json: true
   }

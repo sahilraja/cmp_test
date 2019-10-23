@@ -8,8 +8,9 @@ export async function create(userId: string, payload: any) {
 
 export async function list(userToken: string) {
     const tasks = await httpRequest({
-        url:`${TASKS_URL}/getPillarRelatedTasks`,
+        url:`${TASKS_URL}/task/getPillarRelatedTasks`,
         json: true,
+        method:'POST',
         body: { status: { $nin: [8] } },
         headers:{'Authorization': `Bearer ${userToken}`}
     })
@@ -17,7 +18,7 @@ export async function list(userToken: string) {
     return pillars.map((pillar: any) => {
         const filteredTasks = (tasks as any).filter((task: any) => task.pillarId == pillar.id)
         return ({...pillar.toJSON(), 
-            progressPercentage: filteredTasks.reduce((p:number,c:any) => p + (c.progressPercentage || 0) )/filteredTasks.length
+            progressPercentage: filteredTasks.reduce((p:number,c:any) => p + (c.progressPercentage || 0) ,0)/filteredTasks.length
         })
     })
 }
