@@ -127,6 +127,8 @@ paths:
     $ref: ./swagger/themes/paths.yaml/#/getThemeList
   /docs/create:
     $ref: ./swagger/resources/paths.yaml/#/createDoc
+  /docs/create/new:
+    $ref: ./swagger/resources/paths.yaml/#/createDocNew
   /docs/{id}/submit:
     $ref: ./swagger/resources/paths.yaml/#/submitDocForApproval
   /docs/list:
