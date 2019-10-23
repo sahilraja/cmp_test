@@ -14,6 +14,8 @@ import * as taskRouter from "./task/router";
 import * as tagRouter from "./tags/router";
 import * as templateRouter from "./email-templates/router"
 import * as commentRouter from "./comments/router"
+import * as pillarRouter from "./pillars/router";
+import * as stepRouter from "./steps/router";
 
 // implement multer
 import * as multer from "multer";
@@ -52,6 +54,8 @@ app.use("/task", taskRouter)
 app.use("/tag", tagRouter);
 app.use("/template", authenticate, templateRouter);
 app.use("/comments", authenticate, commentRouter);
+app.use(`/pillars`, authenticate, pillarRouter)
+app.use(`/steps`, authenticate, stepRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

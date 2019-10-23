@@ -66,22 +66,28 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/userInfo
 
 # Project APIs
-  /project/city/code/add:
+  /project/create:
     $ref: ./swagger/projects/paths.yaml/#/createProjectCode
-  /project/city/code/edit/{id}:
+  /project/list:
+    $ref: ./swagger/projects/paths.yaml/#/projectList
+  /project/{id}/detail:
+    $ref: ./swagger/projects/paths.yaml/#/getProjectDetail
+  /project/{id}/edit:
     $ref: ./swagger/projects/paths.yaml/#/editProjectCode
+  /project/{id}/manage-members:
+    $ref: ./swagger/projects/paths.yaml/#/manageProjectMembers
   /project/city/code/status/{id}:
     $ref: ./swagger/projects/paths.yaml/#/activeInactiveCityCode
   /project/city/code/list:
     $ref: ./swagger/projects/paths.yaml/#/projectCodeList
-  /project/list:
-    $ref: ./swagger/projects/paths.yaml/#/projectList
-  /project/{id}:
-    $ref: ./swagger/projects/paths.yaml/#/getProjectDetail
-  /project/{id}/task/list:
+  /project/{id}/task-list:
     $ref: ./swagger/projects/paths.yaml/#/getProjectTaskList
-  /project/{id}/task/add:
+  /project/{id}/create-task:
     $ref: ./swagger/projects/paths.yaml/#/addTaskToProject
+  /project/{id}/link-task:
+    $ref: ./swagger/projects/paths.yaml/#/linkTask
+  /project/{id}/task/{task-id}/edit-date:
+    $ref: ./swagger/projects/paths.yaml/#/editTaskDate
 # Roles
   /role/list:
     $ref: ./swagger/roles/paths.yaml/#/getRoles
@@ -198,6 +204,25 @@ paths:
   /template/getTemplate/{id}:
     $ref: ./swagger/templates/paths.yaml/#/templateGet
 
+# Pillars
+  /pillars/create:
+    $ref: ./swagger/pillars/paths.yaml/#/createPillar
+  /pillars/list:
+    $ref: ./swagger/pillars/paths.yaml/#/listPillars
+  /pillars/{id}/detail:
+    $ref: ./swagger/pillars/paths.yaml/#/getPillarDetail
+  /pillars/{id}/edit:
+    $ref: ./swagger/pillars/paths.yaml/#/createPillar
+
+  /steps/create:
+    $ref: ./swagger/steps/paths.yaml/#/createStep
+  /steps/list:
+    $ref: ./swagger/steps/paths.yaml/#/listSteps
+  /steps/{id}/detail:
+    $ref: ./swagger/steps/paths.yaml/#/getStepDetail
+  /steps/{id}/edit:
+    $ref: ./swagger/steps/paths.yaml/#/createStep
+
 definitions:
   # Error
   $ref: ./swagger/error.yaml
@@ -222,4 +247,8 @@ components:
       $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
     templateSchema:
       $ref: ./swagger/template/schema.yaml/#/responses/schemas/templateSchema
+    pillarSchema:
+      $ref: ./swagger/pillars/schema.yaml/#/responses/schemas/pillarSchema
+    stepSchema:
+      $ref: ./swagger/steps/schema.yaml/#/responses/schemas/stepSchema
 

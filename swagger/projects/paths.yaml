@@ -1,3 +1,31 @@
+  # Manage Project Members
+  manageProjectMembers:
+    post:
+      security:
+        - token: []
+      tags:
+        - PROJECT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - 55758886889e97e98r78788775
+                    - 55758886889e97e98r78788776
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/projectSchema
   # create project code
   createProjectCode:
   # "/project/city/code/add":
@@ -187,27 +215,14 @@
               schema:
                 type: object
                 properties:
-                  success: 
+                  page:
+                    type: number
+                  pages:
+                    type: number
+                  docs:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id: 
-                          type: string
-                          example: project_id
-                        name: 
-                          type: string
-                          example: howrah
-                        city:
-                          type: string
-                          example: agarthala
-                        maturationEndDate:
-                          type: string
-                          example: 22-1-2001
-                        theme: 
-                          type: string
-                          example: theme1
-                      
+                      $ref: ./schema.yaml/#/responses/schemas/projectSchema                      
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # get project  
@@ -354,5 +369,75 @@
                       summary:
                         type: string
                         example: project for develop schoolss
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  editTaskDate:
+    post:
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: Project Id
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: Task Id
+          schema:
+            type: string
+            required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate:
+                  type: string
+                endDate:
+                  type: string
+                progressPercentage:
+                  type: number
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  linkTask:
+    post:
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: Project Id
+          schema:
+            type: string
+            required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taskId: 
+                  type: string
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"

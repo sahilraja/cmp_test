@@ -1,0 +1,77 @@
+createStep:
+  post:
+    security:
+      - token: []
+    tags:
+      - STEPS
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "./schema.yaml/#/responses/schemas/stepSchema"
+listSteps:
+  get:
+    security:
+      - token: []
+    tags:
+      - STEPS
+    responses:
+      "200":
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                allOf:
+                - $ref: "./schema.yaml/#/responses/schemas/stepSchema" 
+                - type: object
+                - properties:
+                    id:
+                      type: string
+                      example: 5968574635575c547q74
+      "400":
+        $ref: "#/definitions/ErrorResponse/BadRequest"
+getStepDetail:
+  get:
+    security:
+      - token: []
+    tags:
+      - STEPS
+    responses:
+      "200":
+        content:
+          application/json:
+            schema:
+              allOf:
+               - $ref: "./schema.yaml/#/responses/schemas/stepSchema" 
+               - type: object
+               - properties:
+                  id:
+                    type: string
+                    example: 5968574635575c547q74
+        description: Success
+editStep:
+  post:
+    security:
+      - token: []
+    tags:
+      - STEPS
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+        description: Pillar ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                required: true
+                example: pillar1
