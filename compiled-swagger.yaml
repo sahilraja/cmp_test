@@ -1248,7 +1248,7 @@ paths:
                       - capability
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  /comment/add:
+  /comments/add:
     post:
       security:
         - token: []
@@ -1263,14 +1263,14 @@ paths:
               type: object
               required:
                 - type
-                - doc_id
+                - entity_id
                 - comment
               properties:
                 type:
                   type: string
                   example: document
                   description: Type of comment
-                doc_id:
+                entity_id:
                   type: string
                   example: 5da5730ce6fb331ba0fdcc54
                   description: Must be id of document
@@ -1300,7 +1300,7 @@ paths:
                       - user_id
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  /comments/list:
+  '/comments/list/{doc_id}':
     get:
       security:
         - token: []
@@ -1333,15 +1333,21 @@ paths:
                         comment:
                           type: string
                           example: Hello
+                        role:
+                          type: string
+                          example: project lead
                         user:
                           type: object
                           properties:
-                            name:
+                            firstName:
                               type: string
-                              example: Apoorva
-                            role:
+                              example: 'Apoorva,'
+                            middleName:
                               type: string
-                              example: project lead
+                              example: 'Rao,'
+                            lastName:
+                              type: string
+                              example: Sowda
                             email:
                               type: string
                               example: apoorva.s@webileapps.com

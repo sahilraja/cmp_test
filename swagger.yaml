@@ -98,9 +98,9 @@ paths:
   /role/capability/remove:
     $ref: ./swagger/roles/paths.yaml/#/removeCapability      
 # Comments
-  /comment/add:
+  /comments/add:
     $ref: ./swagger/comments/paths.yaml/#/addComment  
-  /comments/list:
+  /comments/list/{doc_id}:
     $ref: ./swagger/comments/paths.yaml/#/getCommets 
 # Tags
   /project/tag/add:
