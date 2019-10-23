@@ -923,3 +923,23 @@ export async function moveToFolder(folderId: string,docId: any, userId: string) 
     throw error;
   }
 }
+
+export async function listFolders(userId: String) {
+  try {
+    let data = await folders
+      .find({ ownerId: userId})
+      .sort({ updatedAt: -1 });
+      console.log(data);
+    let folderList = data.map((folder: any)=>{
+      return{
+        folderId:folder._id,
+        name:folder.name,
+        date: folder.createdAt
+      }
+    })
+    return { folders: folderList };
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
