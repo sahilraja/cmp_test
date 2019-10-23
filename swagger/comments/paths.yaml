@@ -1,7 +1,7 @@
 # Comment
   #comments list
   getCommets:
-  # "/comments/list":
+  # "/comments/list/{doc_ids}":
     get:
       security:
         - token: []
@@ -53,7 +53,7 @@
  
   # Add Comment
   addComment:
-  # "comment/add":
+  # "comments/add":
     post:
       security:
         - token: []
@@ -68,14 +68,14 @@
               type: object
               required:
                 - type
-                - doc_id
+                - entity_id
                 - comment
               properties:
                 type:
                   type: string
                   example: document
                   description: Type of comment
-                doc_id:
+                entity_id:
                   type: string
                   example: 5da5730ce6fb331ba0fdcc54
                   description: Must be id of document

@@ -31,6 +31,9 @@ export const DOCUMENT_ROUTER = {
     LIMIT_EXCEEDED: "should be in specified limit"
 }
 
+export const COMMENT_ROUTER = {
+    MANDATORY: "Required all mandatory fields.",
+}
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",
     INVALID_TOKEN: "Invalid Token",
