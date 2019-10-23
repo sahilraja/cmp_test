@@ -67,6 +67,7 @@ export const ROLE_NOT_EXIST = "Role not Exist"
 export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 
 export const PROJECT_ROUTER = {
+    TASK_REQUIRED_FOR_LINKING: `Task ID is required to link task to a project`,
     NOT_MEMBER_OF_PROJECT: `User is not a member of this project`,
     PROJECT_NOT_EXISTS: `No such project exists`
 }

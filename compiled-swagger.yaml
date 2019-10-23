@@ -1197,6 +1197,37 @@ paths:
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/create-task': null
+  '/project/{id}/link-task':
+    post:
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: Project Id
+          schema:
+            type: string
+            required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taskId:
+                  type: string
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/task/{task-id}/edit-date':
     post:
       tags:

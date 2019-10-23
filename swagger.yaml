@@ -84,6 +84,8 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/getProjectTaskList
   /project/{id}/create-task:
     $ref: ./swagger/projects/paths.yaml/#/addTaskToProject
+  /project/{id}/link-task:
+    $ref: ./swagger/projects/paths.yaml/#/linkTask
   /project/{id}/task/{task-id}/edit-date:
     $ref: ./swagger/projects/paths.yaml/#/editTaskDate
 # Roles

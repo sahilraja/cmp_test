@@ -25,6 +25,7 @@ export async function createProject(reqObject: any, user: any) {
     if (!capability.status) throw new Error("Invalid User");
 
     return await ProjectSchema.create({
+      createdBy: user._id,
       name:reqObject.name,
       reference: reqObject.citycode,
       city: reqObject.cityname,
@@ -295,4 +296,17 @@ export async function editTask(projectId: string, taskId: string, userId: string
     json: true
   }
   return await httpRequest(options)
+}
+
+export async function linkTask(projectId: string, taskId: string, userToken: string) {
+  if(!taskId){
+    throw new Error(PROJECT_ROUTER.TASK_REQUIRED_FOR_LINKING)
+  }
+  const options = {
+    url: `${TASKS_URL}/${taskId}/soft-edit`,
+    body: {projectId},
+    headers: {'Authorization':`Bearer ${userToken}`},
+    json: true
+  }
+  return await httpRequest(options)  
 }

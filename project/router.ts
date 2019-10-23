@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError } from "../utils/custom-error";
@@ -162,6 +162,14 @@ router.get("/:id/task-list", async (req, res, next) => {
 router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
     try {
         res.status(OK).send(await editTask(req.params.id, req.params.task_id, (req as any).user._id, (req as any).token, req.body))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.post(`/:id/link-task`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await linkTask(req.params.id, req.body.taskId, (req as any).token))
     } catch (error) {
         next(new APIError(error.message))
     }
