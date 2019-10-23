@@ -15,7 +15,8 @@ const schema = new Schema(
     collaborator: { type: Array },
     viewer: { type: Array },
     is_active: { type: Boolean, default: true },
-    sourceId: { type: String }
+    sourceId: { type: String },
+    isInFolder:{ type: Boolean, default: false }
   },
   { timestamps: true }
 );

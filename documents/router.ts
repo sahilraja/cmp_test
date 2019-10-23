@@ -36,7 +36,8 @@ import {
   docFilter,
   createNewDoc,
   createFolder,
-  moveToFolder
+  moveToFolder,
+  listFolders
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -530,9 +531,19 @@ router.post("/folder/create", authenticate, async (req, res, next: NextFunction)
   }
 });
 
+//Move file to a folder
 router.put("/moveTo/folder/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await moveToFolder(req.params.id,req.body.docId,res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+//list of folders
+router.get("/folder/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await listFolders(res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
