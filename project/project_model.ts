@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import * as mongoosePaginate from "mongoose-paginate";
 
 const schema = new Schema({
     createdBy:{type: String},
@@ -63,4 +64,5 @@ const schema = new Schema({
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 
+schema.plugin(mongoosePaginate)
 export const project = model("project", schema);
