@@ -1,4 +1,5 @@
 import { documents } from "./model";
+import { folders } from "./folder-model";
 import * as http from "http";
 import { Types, STATES } from "mongoose";
 import { userRoleAndScope } from "../role/module";
@@ -894,3 +895,31 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
   let skip = ((page - 1) * limit);
   return orders.slice(skip, skip + limit);
 };
+
+export async function createFolder(body: any, userId: string) {
+  try {
+    let folder= await folders.create({
+      name: body.name,
+      parentId: body.entity_id || null,
+      ownerId: userId
+    });
+    return {folder_id: folder._id}
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function moveToFolder(folderId: string,docId: any, userId: string) {
+  try {
+    let data =  await folders.update({_id:folderId},{
+      $push: { doc_id: docId } 
+    });
+    return{
+      sucess: true
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}

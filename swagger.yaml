@@ -181,7 +181,9 @@ paths:
   /docs/folder/list:
     $ref: ./swagger/resources/paths.yaml/#/listFolders  
   /docs/folder/{id}/list:
-    $ref: ./swagger/resources/paths.yaml/#/foldersdocList 
+    $ref: ./swagger/resources/paths.yaml/#/foldersdocList
+  /docs/moveTo/folder/{id}:
+    $ref: ./swagger/resources/paths.yaml/#/moveToFolder  
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
