@@ -69,7 +69,16 @@ paths:
     $ref: ./swagger/groups/paths.yaml/#/createGroup
   /user/group/{id}/edit:
     $ref: ./swagger/groups/paths.yaml/#/editGroup
-
+  /user/group/{id}/status:
+    $ref: ./swagger/groups/paths.yaml/#/groupStatus
+  /user/group/{id}/member/add:
+    $ref: ./swagger/groups/paths.yaml/#/addMember
+  /user/group/{id}/member/remove:
+    $ref: ./swagger/groups/paths.yaml/#/removeMember
+  /user/group/{id}:
+    $ref: ./swagger/groups/paths.yaml/#/groupDetails
+  
+    
 # Project APIs
   /project/city/code/add:
     $ref: ./swagger/projects/paths.yaml/#/createProjectCode
@@ -101,7 +110,7 @@ paths:
   /role/capability/add:
     $ref: ./swagger/roles/paths.yaml/#/addCapability  
   /role/capability/remove:
-    $ref: ./swagger/roles/paths.yaml/#/removeCapability      
+    $ref: ./swagger/roles/paths.yaml/#/removeCapability
 # Comments
   /comment/add:
     $ref: ./swagger/comments/paths.yaml/#/addComment  

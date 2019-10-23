@@ -831,6 +831,92 @@ paths:
           $ref: './schema/#responses/project'
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}/status':
+    put:
+      security:
+        - token: []
+      summary: group status
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}/member/add':
+    post:
+      security:
+        - token: []
+      summary: add member to group
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+      responses:
+        '200':
+          $ref: './schema/#responses/project'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}/member/remove':
+    post:
+      security:
+        - token: []
+      summary: remove member from group
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+      responses:
+        '200':
+          $ref: './schema/#responses/project'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/city/code/add:
     post:
       security:

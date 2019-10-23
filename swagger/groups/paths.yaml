@@ -24,9 +24,9 @@
                   example: project description
       responses:
         "200":
-            $ref: "./schema/#responses/project"  
+            $ref: "./schema/#responses/project"
         "400":
-          $ref: "#/definitions/ErrorResponse/BadRequest"
+            $ref: "#/definitions/ErrorResponse/BadRequest"
   # edit project code
   editGroup:
   # "/project/city/code/edit/{id}":
@@ -65,14 +65,13 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # project inactive
-  activeInactiveCityCode:
-  "/project/city/code/status/{id}":
+  groupStatus:
     put:
       security:
         - token: []
-      summary: active or inactive city code
+      summary: group status
       tags:
-        - PROJECT
+        - GROUPS
 
       parameters:
         - in: path
@@ -80,7 +79,7 @@
           schema:
             type: string
           required: true
-          description: project id
+          description: group id
       responses:
         "200":
           description: success
@@ -95,7 +94,96 @@
                     description: inactive or active
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
-  # project list
+  addMember:
+    post:
+      security:
+        - token: []
+      summary: add member to group
+      tags:
+        - GROUPS
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+                
+      responses:
+        "200":
+           $ref: "./schema/#responses/project"
+        "400":
+           $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  removeMember:
+    post:
+      security:
+        - token: []
+      summary: remove member from group
+      tags:
+        - GROUPS
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+                
+      responses:
+        "200":
+           $ref: "./schema/#responses/project"
+        "400":
+           $ref: "#/definitions/ErrorResponse/BadRequest"
+  groupDetails:
+    get:
+        security:
+          - token: []
+        summary: group Details
+        tags:
+          - GROUPS
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {}
+          "400":
+            $ref: "#/definitions/ErrorResponse/BadRequest"
+
   projectCodeList:
   # "/project/city/code/list":
     get:
