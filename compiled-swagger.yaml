@@ -1710,6 +1710,49 @@ paths:
                     example: 343544
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /docs/create/new:
+    post:
+      security:
+        - token: []
+      summary: Create New Document
+      tags:
+        - RESOURCES
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                upfile:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+                  example: Annula Report
+                description:
+                  type: string
+                  example: Dam for vizag
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - 12346
+                    - 12345
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  doc_id:
+                    type: string
+                    example: 343544
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/{id}/submit':
     put:
       security:

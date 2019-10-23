@@ -33,7 +33,8 @@ import {
   unPublished,
   replaceDoc,
   publishList,
-  docFilter
+  docFilter,
+  createNewDoc
 } from "./module";
 import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
@@ -94,7 +95,8 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 //  Create Document new Api
 router.post("/create/new", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await createDoc(req.body, res.locals.user._id));
+    const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
+    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
