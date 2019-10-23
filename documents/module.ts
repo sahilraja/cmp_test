@@ -898,31 +898,31 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
 
 export async function createFolder(body: any, userId: string) {
   try {
-    let folder= await folders.create({
+    let folder = await folders.create({
       name: body.name,
       parentId: body.parentId || null,
       ownerId: userId
     });
-    return {folder_id: folder._id}
+    return { folder_id: folder._id }
   } catch (error) {
     console.log(error);
     throw error;
   }
 }
 
-export async function moveToFolder(folderId: string,docId: any, userId: string) {
+export async function moveToFolder(folderId: string, docId: any, userId: string) {
   try {
 
     await Promise.all([
-    await folders.update({_id:folderId},{
-      $push: { doc_id: docId } 
-    }),
-    await documents.update({_id:docId},{
-      isInFolder:true
-    }),
+      await folders.update({ _id: folderId }, {
+        $push: { doc_id: docId }
+      }),
+      await documents.update({ _id: docId }, {
+        isInFolder: true
+      }),
     ])
 
-    return{
+    return {
       sucess: true
     }
   } catch (error) {
@@ -934,13 +934,13 @@ export async function moveToFolder(folderId: string,docId: any, userId: string) 
 export async function listFolders(userId: String) {
   try {
     let data = await folders
-      .find({ ownerId: userId})
+      .find({ ownerId: userId })
       .sort({ updatedAt: -1 });
-      console.log(data);
-    let folderList = data.map((folder: any)=>{
-      return{
-        folderId:folder._id,
-        name:folder.name,
+    console.log(data);
+    let folderList = data.map((folder: any) => {
+      return {
+        folderId: folder._id,
+        name: folder.name,
         date: folder.createdAt
       }
     })
@@ -948,5 +948,62 @@ export async function listFolders(userId: String) {
   } catch (error) {
     console.log(error);
     throw error;
+  }
+}
+export async function getFolderDetails(folderId: string, userId: any) {
+  const fetchedDoc = await folders.aggregate([
+    {
+      $match: {
+        ownerId: userId,
+        $or: [{ _id: Types.ObjectId(folderId) }, { parentId: folderId }]
+      }
+    },
+    // { "$unwind": "$doc_id" },
+    {
+      $lookup: {
+        from: "documents",
+        localField: "doc_id",
+        foreignField: "_id",
+        as: "doc_id"
+      }
+    },
+    { $unwind: { path: "$doc_id" } },
+    {
+      $project: {
+        name: 1,
+        doc_id: 1,
+        createdAt: 1,
+        ownerId: 1,
+        parentId: 1
+      }
+    }
+  ]).exec();
+
+  const folderList = await Promise.all(
+    fetchedDoc.map((folder: any) => {
+      return userData(folder);
+    })
+  )
+  return { folderData: folderList };
+
+}
+
+async function userData(folder: any) {
+  try {
+    return {
+
+      docId: folder.doc_id._id,
+      name: folder.doc_id.name,
+      description: folder.doc_id.description,
+      // tags: await getTags(folder.doc_id.tags),
+      role: (((await userRoleAndScope(folder.doc_id.ownerId)) as any).data.global || [
+        ""
+      ])[0],
+      owner: await userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
+      date: folder.doc_id.createdAt
+
+    }
+  } catch (err) {
+    throw err;
   }
 }

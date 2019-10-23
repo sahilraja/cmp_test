@@ -37,7 +37,8 @@ import {
   createNewDoc,
   createFolder,
   moveToFolder,
-  listFolders
+  listFolders,
+  getFolderDetails
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -544,6 +545,15 @@ router.put("/moveTo/folder/:id", authenticate, async (req, res, next: NextFuncti
 router.get("/folder/list", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await listFolders(res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+//list of folders and files in it
+router.get("/folder/:id/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getFolderDetails(req.params.id,res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
