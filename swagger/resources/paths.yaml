@@ -1090,9 +1090,10 @@
                 name:
                   type: string
                   example: Annula Report Folder
-                description:
+                parentId: 
                   type: string
-                  example: Dam for vizag
+                  example: "folderId1234"
+
 
       responses:
         "200":
@@ -1201,6 +1202,74 @@
                   
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
-        
+  # File move to a folder   
+  moveToFolder:
+  # "/docs/moveTo/folder":
+    put:
+      security:
+        - token: []
+      summary: Move a file to a Folder
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: folder_id   
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                docId:
+                  type: string
+                  example: docId1234
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      success:
+                        type: boolean
+                        example: true
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Delete folder   
+  deleteFolder:
+  # "/docs/folder/delete/{id}":
+    delete:
+      security:
+        - token: []
+      summary: Delete Folder
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: folder_id   
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      success:
+                        type: boolean
+                        example: true
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+             
           
           
