@@ -5,7 +5,7 @@ const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
     try {
-        res.status(OK).send(await create((req as any).user._id, req.body))
+        res.status(OK).send(await create(res.locals.user._id, req.body))
     } catch (error) {
         next(error)
     }
