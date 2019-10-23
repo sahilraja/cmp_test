@@ -64,6 +64,11 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/changePassword
   /user/userInfo/{id}:
     $ref: ./swagger/users/paths.yaml/#/userInfo
+# Groups APIs
+  /user/group/creat:
+    $ref: ./swagger/groups/paths.yaml/#/createGroup
+  /user/group/{id}/edit:
+    $ref: ./swagger/groups/paths.yaml/#/editGroup
 
 # Project APIs
   /project/city/code/add:

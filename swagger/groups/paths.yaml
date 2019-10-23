@@ -1,12 +1,11 @@
   # create project code
-  createProjectCode:
-  # "/project/city/code/add":
+  createGroup:
     post:
       security:
         - token: []
-      summary: add city code
+      summary: create group
       tags:
-        - PROJECT
+        - GROUPS
       requestBody:
         required: true
         content:
@@ -14,49 +13,29 @@
             schema:
               type: object
               required:
-                - citycode
-                - cityname
+                - name
+                - description
               properties:
-                citycode:
+                name:
                   type: string
-                  example: CITIIS-OR-BBR
-                cityname:
-                  type: string
-                  example: vizag
+                  example: groupName1
                 description:
                   type: string
-                  example: project for develop schools
+                  example: project description
       responses:
         "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success: 
-                    type: object
-                    properties:
-                      reference:
-                        type: string
-                        example: CITIIS-OR-BBR
-                      name:
-                        type: string
-                        example: vizag
-                      summary:
-                        type: string
-                        example: project for develop schools
+            $ref: "./schema/#responses/project"  
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # edit project code
-  editProjectCode:
+  editGroup:
   # "/project/city/code/edit/{id}":
     post:
       security:
         - token: []
-      summary: edit city code
+      summary: edit group
       tags:
-        - PROJECT
+        - GROUPS
 
       parameters:
         - in: path
@@ -64,7 +43,7 @@
           schema:
             type: string
           required: true
-          description: project id
+          description: group id
 
       requestBody:
         required: true
@@ -72,39 +51,17 @@
           application/json:
             schema:
               type: object
-              required:
-                - citycode
-                - cityname
               properties:
-                citycode:
+                name:
                   type: string
-                  example: CITIIS-OR-BBR
-                cityname:
-                  type: string
-                  example: vizag
+                  example: groupName1
                 description:
                   type: string
-                  example: project for develop schools
+                  example: project description
+                
       responses:
         "200":
-          description: success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success: 
-                    type: object
-                    properties:
-                      reference:
-                        type: string
-                        example: CITIIS-OR-BBR
-                      name:
-                        type: string
-                        example: vizag
-                      summary:
-                        type: string
-                        example: project for develop schoolss
+            $ref: "./schema/#responses/project"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # project inactive
@@ -140,7 +97,7 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # project list
   projectCodeList:
-  "/project/city/code/list":
+  # "/project/city/code/list":
     get:
       security:
         - token: []
