@@ -123,7 +123,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 export async function getDocList() {
   try {
     let data = await documents
-      .find({ parentId: null, status: STATUS.PUBLISHED })
+      .find({ parentId: null, status: STATUS.PUBLISHED, isInFolder: false })
       .sort({ updatedAt: -1 });
     const docList = await Promise.all(
       data.map(async doc => {
@@ -900,7 +900,7 @@ export async function createFolder(body: any, userId: string) {
   try {
     let folder= await folders.create({
       name: body.name,
-      parentId: body.entity_id || null,
+      parentId: body.parentId || null,
       ownerId: userId
     });
     return {folder_id: folder._id}
@@ -912,9 +912,16 @@ export async function createFolder(body: any, userId: string) {
 
 export async function moveToFolder(folderId: string,docId: any, userId: string) {
   try {
-    let data =  await folders.update({_id:folderId},{
+
+    await Promise.all([
+    await folders.update({_id:folderId},{
       $push: { doc_id: docId } 
-    });
+    }),
+    await documents.update({_id:docId},{
+      isInFolder:true
+    }),
+    ])
+
     return{
       sucess: true
     }

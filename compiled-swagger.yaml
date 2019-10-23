@@ -2819,6 +2819,33 @@ paths:
                     example: true
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/docs/folder/delete/{id}':
+    delete:
+      security:
+        - token: []
+      summary: Delete Folder
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: folder_id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /template/create:
     post:
       '400':

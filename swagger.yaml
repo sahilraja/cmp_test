@@ -183,7 +183,9 @@ paths:
   /docs/folder/{id}/list:
     $ref: ./swagger/resources/paths.yaml/#/foldersdocList
   /docs/moveTo/folder/{id}:
-    $ref: ./swagger/resources/paths.yaml/#/moveToFolder  
+    $ref: ./swagger/resources/paths.yaml/#/moveToFolder 
+  /docs/folder/delete/{id}:
+    $ref: ./swagger/resources/paths.yaml/#/deleteFolder    
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
