@@ -11,10 +11,7 @@ import { httpRequest, checkRoleScope } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
 import { getUserDetail } from "../users/module";
 import { userFindMany } from "../utils/users";
-<<<<<<< HEAD
 import { APIError } from "../utils/custom-error";
-=======
->>>>>>> activity log for project
 import { create as createLog } from "../log/module";
 import { documentsList } from "../documents/module";
 
