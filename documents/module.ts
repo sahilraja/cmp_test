@@ -123,7 +123,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 export async function getDocList() {
   try {
     let data = await documents
-      .find({ parentId: null, status: STATUS.PUBLISHED, isInFolder: false })
+      .find({ parentId: null, status: STATUS.PUBLISHED})
       .sort({ updatedAt: -1 });
     const docList = await Promise.all(
       data.map(async doc => {
@@ -155,15 +155,38 @@ async function docData(docData: any) {
 //  Get My Documents
 export async function getDocListOfMe(userId: string) {
   try {
+    let folderList = await folders
+      .find({ ownerId: userId },{_id: 0 ,doc_id:1 })
+    
+    
+      let folder_files= folderList.map((folder:any) => {
+          return folder.doc_id
+        })
+        var merged = [].concat.apply([], folder_files);
+        console.log(JSON.parse(JSON.stringify(merged)));
+        let folderDocIds = JSON.parse(JSON.stringify(merged));
+        // let folder_file= folder_files.reduce((main:any,folder:any) => {
+        //   console.log(JSON.stringify(folder));
+        //   [...main, ...(JSON.stringify(folder))]
+        // },[])
+        
+        // console.log(folder_file);
+        
     let docs = await documents
       .find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } })
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 })
     const docList = await Promise.all(
-      docs.map(async doc => {
-        return await docData(doc);
+      docs.map(doc => {
+          return  docData(doc);
       })
     );
-    return { docs: docList };
+    var result = docList.filter(function(docs){
+      return !folderDocIds.some(function(folderDocs:any){
+          return docs._id == folderDocs;     
+      });
+  })
+  console.log(result);
+    return { docs: result };
   } catch (error) {
     console.log(error);
     throw error;
@@ -997,30 +1020,34 @@ export async function getFolderDetails(folderId: string, userId: any) {
         parentId: folder.parentId
       }
     })
-  const docsList = await Promise.all(
+  const docs = await Promise.all(
     fetchedDoc.map((folder: any) => {
       return userData(folder);
     })
   )
+  const docsList = docs.map((folder: any) => {
+    return folder[0];
+  })
   return { subFolderList: subFolderList,docsList: docsList };
 
 }
 
 async function userData(folder: any) {
   try {
-    return {
-
+    
+  const data= await Promise.all([{
       docId: folder.doc_id._id,
       name: folder.doc_id.name,
       description: folder.doc_id.description,
-      // tags: await getTags(folder.doc_id.tags),
+      tags: await getTags(folder.doc_id.tags),
       role: (((await userRoleAndScope(folder.doc_id.ownerId)) as any).data.global || [
         ""
       ])[0],
       owner: await userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       date: folder.doc_id.createdAt
+  }])
+      return data
 
-    }
   } catch (err) {
     throw err;
   }
