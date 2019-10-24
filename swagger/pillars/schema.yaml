@@ -1,0 +1,7 @@
+responses:
+  schemas:
+    pillarSchema:
+      type: object
+      properties:
+        name:
+          type: string
