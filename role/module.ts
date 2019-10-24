@@ -75,7 +75,7 @@ export async function userRoleAndScope(userId: any) {
                 }
             }
         });
-        return { data: object }
+        return { data: object, user: userId }
     } catch (err) {
         console.log(err)
         throw err

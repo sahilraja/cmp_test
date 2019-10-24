@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError } from "../utils/custom-error";
@@ -48,6 +48,12 @@ router.post("/:id/edit", async (req: any, res: any, next: any) => {
 router.post(`/:id/manage-members`, async (req, res, next) => {
     try {
         res.status(OK).send(await manageProjectMembers(req.params.id, req.body.members))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+}).get(`/:id/members`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getProjectMembers(req.params.id))
     } catch (error) {
         next(new APIError(error.message))
     }

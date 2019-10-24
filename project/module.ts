@@ -3,12 +3,14 @@ import { project as ProjectSchema } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
-import { userRoleAndScope } from "../role/module";
+import { userRoleAndScope, roles_list } from "../role/module";
 import { taskModel } from "./task_model";
 import { workflowModel } from "./workflow_model";
 import { checkCapability } from "../utils/rbac";
 import { httpRequest } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
+import { getUserDetail } from "../users/module";
+import { userFindMany } from "../utils/users";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -74,6 +76,21 @@ export async function editProject(id: any, reqObject: any, user: any) {
 
 export async function manageProjectMembers(id: string, members:string[]) {
   return await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+}
+
+export async function getProjectMembers(id: string) {
+  const { members }: any = await ProjectSchema.findById(id).exec()
+  const [users, formattedRoleObjs] = await Promise.all([
+    userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1 }),
+    roles_list()
+  ]) 
+  const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
+  return users.map((user:any, i:number) => ({...user, role: formatUserRole((usersRoles.find((role:any) => role.user == user._id) as any).data.global[0], formattedRoleObjs.roles)}))
+}
+
+function formatUserRole(role: string, formattedRoleObjs: any) {
+  let userRole: any = formattedRoleObjs.find((roleObj: any) => roleObj.role === role);
+  return userRole ? userRole.description : role;
 }
 
 //  Get List of city Codes
