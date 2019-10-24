@@ -200,9 +200,9 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/createFolder
   /docs/folder/list:
     $ref: ./swagger/resources/paths.yaml/#/listFolders  
-  /docs/folder/{id}/list:
+  /docs/folder/{folderId}/list:
     $ref: ./swagger/resources/paths.yaml/#/foldersdocList
-  /docs/moveTo/folder/{id}:
+  /docs/moveTo/folder/{id}: 
     $ref: ./swagger/resources/paths.yaml/#/moveToFolder 
   /docs/folder/delete/{id}:
     $ref: ./swagger/resources/paths.yaml/#/deleteFolder    

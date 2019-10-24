@@ -38,7 +38,8 @@ import {
   createFolder,
   moveToFolder,
   listFolders,
-  getFolderDetails
+  getFolderDetails,
+  deleteFolder
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -535,7 +536,7 @@ router.post("/folder/create", authenticate, async (req, res, next: NextFunction)
 //Move file to a folder
 router.put("/moveTo/folder/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await moveToFolder(req.params.id,req.body.docId,res.locals.user._id));
+    res.status(200).send(await moveToFolder(req.params.id,req.body,res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -551,12 +552,19 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 });
 
 //list of folders and files in it
-router.get("/folder/:id/list", authenticate, async (req, res, next: NextFunction) => {
+router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getFolderDetails(req.params.id,res.locals.user._id));
+    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
 });
 
+router.delete("/folder/delete/:id", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await deleteFolder(req.params.id,res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
 export = router;

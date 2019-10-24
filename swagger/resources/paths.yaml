@@ -1147,7 +1147,7 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # folder doc List
   foldersdocList:
-  # "/docs/folder/{id}/list":
+  # "/docs/folder/{folderId}/list":
     get:
       security:
         - token: []
@@ -1156,7 +1156,7 @@
         - RESOURCES
       parameters:
         - in: path
-          name: id
+          name: folderId
           schema:
             type: string
           required: true
@@ -1217,7 +1217,7 @@
           schema:
             type: string
           required: true
-          description: folder_id   
+          description: folder id   
       requestBody:
         required: true
         content:
@@ -1228,6 +1228,9 @@
                 docId:
                   type: string
                   example: docId1234
+                subFolderId:
+                  type: string
+                  example: folderId1234  
       responses:
         "200":
           description: success

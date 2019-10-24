@@ -3168,7 +3168,7 @@ paths:
                           example: folderDescription
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/docs/folder/{id}/list':
+  '/docs/folder/{folderId}/list':
     get:
       security:
         - token: []
@@ -3177,7 +3177,7 @@ paths:
         - RESOURCES
       parameters:
         - in: path
-          name: id
+          name: folderId
           schema:
             type: string
           required: true
@@ -3235,7 +3235,7 @@ paths:
           schema:
             type: string
           required: true
-          description: folder_id
+          description: folder id
       requestBody:
         required: true
         content:
@@ -3246,6 +3246,9 @@ paths:
                 docId:
                   type: string
                   example: docId1234
+                subFolderId:
+                  type: string
+                  example: folderId1234
       responses:
         '200':
           description: success
