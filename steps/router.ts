@@ -19,7 +19,7 @@ router.get(`/list`, async (req, res, next) => {
     }
 })
 
-router.get(`/getStepsByIds`, async (req, res, next) => {
+router.post(`/getStepsByIds`, async (req, res, next) => {
     try {
         res.status(OK).send(await getStepsByIds(req.body.stepIds))
     } catch (error) {
