@@ -910,19 +910,18 @@ export async function createFolder(body: any, userId: string) {
   }
 }
 
-export async function moveToFolder(folderId: string, docId: any, userId: string) {
+export async function moveToFolder(folderId: string, body: any, userId: string) {
   try {
-
-    await Promise.all([
+    if(body.docId){
       await folders.update({ _id: folderId }, {
-        $push: { doc_id: docId }
-      }),
-      await documents.update({ _id: docId }, {
-        isInFolder: true
-      }),
-    ])
-
-    return {
+        $push: { doc_id: body.docId }
+      })
+  }else if(body.subFolderId){
+    await folders.update({_id: body.subFolderId }, {
+        parentId: folderId 
+    })
+  }
+   return {
       sucess: true
     }
   } catch (error) {
@@ -934,7 +933,7 @@ export async function moveToFolder(folderId: string, docId: any, userId: string)
 export async function listFolders(userId: String) {
   try {
     let data = await folders
-      .find({ ownerId: userId })
+      .find({ ownerId: userId ,parentId: null})
       .sort({ updatedAt: -1 });
     console.log(data);
     let folderList = data.map((folder: any) => {
@@ -978,13 +977,24 @@ export async function getFolderDetails(folderId: string, userId: any) {
       }
     }
   ]).exec();
-
-  const folderList = await Promise.all(
+  let subfolders = await folders
+      .find({ ownerId: userId ,parentId: folderId})
+      .sort({ updatedAt: -1 });
+  
+    let subFolderList = subfolders.map((folder: any) => {
+      return {
+        folderId: folder._id,
+        name: folder.name,
+        date: folder.createdAt,
+        parentId: folder.parentId
+      }
+    })
+  const docsList = await Promise.all(
     fetchedDoc.map((folder: any) => {
       return userData(folder);
     })
   )
-  return { folderData: folderList };
+  return { subFolderList: subFolderList,docsList: docsList };
 
 }
 
@@ -1007,3 +1017,15 @@ async function userData(folder: any) {
     throw err;
   }
 }
+
+export async function deleteFolder(folderId: string,userId: string)  {
+  try{
+    if(!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+   let data= await folders.remove({_id:folderId, ownerId:userId})
+   if(data){
+     return {success:true}
+   }
+   } catch (err) {
+     throw err;
+   }
+ }
