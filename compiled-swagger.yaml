@@ -771,7 +771,7 @@ paths:
                     example: userId
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  /user/group/creat:
+  /user/group/create:
     post:
       security:
         - token: []
