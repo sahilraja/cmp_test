@@ -1,0 +1,18 @@
+responses:
+  project:
+    description: group
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/groupSchema"
+  schemas:
+    groupSchema:
+      type: object
+      properties:
+        name: 
+          type: string
+          example: transerve
+        description:
+          type: string
+          example: this group for transerve team
+          
