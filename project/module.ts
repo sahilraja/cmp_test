@@ -86,12 +86,18 @@ export async function editProject(id: any, reqObject: any, user: any) {
   }
 }
 
-export async function manageProjectMembers(id: string, members: string[], loggedUserId: string) {
+
+export async function manageProjectMembers(id: string, members:string[], userId: string) {
   members = Array.from(new Set(members))
-  if (members.includes(loggedUserId)) {
+  if(members.includes(userId)){
     throw new APIError(`You are trying to add yourself as project member`)
   }
-  return await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+  const previousProjectData:any = await ProjectSchema.findById(id).exec()
+  const updatedProject:any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+  const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
+  const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
+  createLog({activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId:id, addedUserIds, removedUserIds})
+  return updatedProject
 }
 
 export async function getProjectMembers(id: string) {
