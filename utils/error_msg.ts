@@ -4,35 +4,35 @@ export const USER_ROUTER = {
     TOKEN_MISSING: "Missing Token.",
     TOKEN_INVALID: "Invalid Token.",
     MANDATORY: "Required all mandatory fields.",
-    VALID_PHONE_NO: "Enter Valid Phone Number.",
+    VALID_PHONE_NO: "Please enter valid phone number",
     VALID_PASSWORD: "Password must have one special character and at least 6 characters",
-    ALREADY_REGISTER: "Already User Registered.",
+    ALREADY_REGISTER: "User is already registered",
     INVALID_PARAMS_ID: "Given id not Valid.",
-    USER_NOT_EXIST: "User Not found.",
-    INVALID_FIELDS: "Enter Valid input.",
-    USER_NOT_REGISTER: "User Not Registered.",
-    INVALID_LOGIN_DETAILS: "Invalid login details.",
-    DEACTIVATED_BY_ADMIN: "Account Deactivated By Admin.",
-    ROLE_NOT_FOUND: "Fail to get Role.",
-    CAPABILITIES_NOT_FOUND: "Fail to get Capabilities.",
-    EMAIL_VERIFIED: "Email Already Verified",
-    GROUP_NOT_FOUND: "Group not found.",
+    USER_NOT_EXIST: "Coudln't find the User",
+    INVALID_FIELDS: "Please enter valid Input",
+    USER_NOT_REGISTER: "User Not User is not registered yet.",
+    INVALID_LOGIN_DETAILS: "Invalid Login details",
+    DEACTIVATED_BY_ADMIN: "Your account has been deactivated by admin",
+    ROLE_NOT_FOUND: "Failed to get role",
+    CAPABILITIES_NOT_FOUND: "Failed to get Capability",
+    EMAIL_VERIFIED: "Email already verified",
+    GROUP_NOT_FOUND: "Couldn't find group",
     USER_ARRAY: "Users must be an Array."
 };
 
 export const DOCUMENT_ROUTER = {
-    MANDATORY: "Required all mandatory fields.",
-    CREATE_ROLE_FAIL: "Fail to create role.",
-    CHILD_NOT_FOUND: "Child Document Not Found",
-    DOCID_NOT_VALID: "Given document_id is not Valid.",
-    FILE_NOT_FOUND: "Document is mandatory.",
-    INVALID_ADMIN: "User don't have capability to perform this action.",
-    NO_PERMISSION: "Unauthorised to create document ",
-    LIMIT_EXCEEDED: "should be in specified limit"
+    MANDATORY: "All mandatory fields are required",
+    CREATE_ROLE_FAIL: "Failed to create role",
+    CHILD_NOT_FOUND: "Couldn't find child document",
+    DOCID_NOT_VALID: "Document id - document_id is not valid",
+    FILE_NOT_FOUND: "Document is mandatory",
+    INVALID_ADMIN: "You don't have permission to perform this action",
+    NO_PERMISSION: "Couldn't create a document. Unaothorised",
+    LIMIT_EXCEEDED: "Document name should be within specified limit"
 }
 
 export const COMMENT_ROUTER = {
-    MANDATORY: "Required all mandatory fields.",
+    MANDATORY: "All mandatory fields are required",
 }
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",
@@ -52,8 +52,8 @@ export const RESPONSE = {
     SUCCESS_EMAIL: "Email send successfully.",
     ACTIVE: "active",
     INACTIVE: "inactive",
-    ADD_MEMBER: "Successfully Added Member.",
-    REMOVE_MEMBER: "Successfully Removed Member."
+    ADD_MEMBER: "Memeber added successfully",
+    REMOVE_MEMBER: "Member removed successfully"
 }
 
 export const GLOBAL_SCOPE = "global";

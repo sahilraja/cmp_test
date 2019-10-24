@@ -771,6 +771,176 @@ paths:
                     example: userId
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /user/group/create:
+    post:
+      security:
+        - token: []
+      summary: create group
+      tags:
+        - GROUPS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+              properties:
+                name:
+                  type: string
+                  example: groupName1
+                description:
+                  type: string
+                  example: project description
+      responses:
+        '200':
+          $ref: './schema/#responses/project'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}/edit':
+    post:
+      security:
+        - token: []
+      summary: edit group
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: groupName1
+                description:
+                  type: string
+                  example: project description
+      responses:
+        '200':
+          $ref: './schema/#responses/project'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}/status':
+    put:
+      security:
+        - token: []
+      summary: group status
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}/member/add':
+    post:
+      security:
+        - token: []
+      summary: add member to group
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+      responses:
+        '200':
+          $ref: './schema/#responses/project'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}/member/remove':
+    post:
+      security:
+        - token: []
+      summary: remove member from group
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+      responses:
+        '200':
+          $ref: './schema/#responses/project'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/group/{id}':
+    get:
+      security:
+        - token: []
+      summary: group Details
+      tags:
+        - GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        '200':
+          description: success
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
   /project/create:
     post:
       security:
