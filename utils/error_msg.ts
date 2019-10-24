@@ -28,7 +28,8 @@ export const DOCUMENT_ROUTER = {
     FILE_NOT_FOUND: "Document is mandatory",
     INVALID_ADMIN: "You don't have permission to perform this action",
     NO_PERMISSION: "Couldn't create a document. Unaothorised",
-    LIMIT_EXCEEDED: "Document name should be within specified limit"
+    LIMIT_EXCEEDED: "Document name should be within specified limit",
+    ALREADY_EXIST: "A folder with same name already exists"
 }
 
 export const COMMENT_ROUTER = {

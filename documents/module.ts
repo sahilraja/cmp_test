@@ -898,6 +898,12 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
 
 export async function createFolder(body: any, userId: string) {
   try {
+    if(!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    let data = await folders
+    .find({ ownerId: userId ,name: body.name});
+    if(data.length){
+      throw new Error(DOCUMENT_ROUTER.ALREADY_EXIST);
+    }  
     let folder = await folders.create({
       name: body.name,
       parentId: body.parentId || null,
@@ -911,6 +917,7 @@ export async function createFolder(body: any, userId: string) {
 }
 
 export async function moveToFolder(folderId: string, body: any, userId: string) {
+  if(!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   try {
     if(body.docId){
       await folders.update({ _id: folderId }, {
@@ -950,6 +957,7 @@ export async function listFolders(userId: String) {
   }
 }
 export async function getFolderDetails(folderId: string, userId: any) {
+  if(!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const fetchedDoc = await folders.aggregate([
     {
       $match: {
@@ -1021,7 +1029,13 @@ async function userData(folder: any) {
 export async function deleteFolder(folderId: string,userId: string)  {
   try{
     if(!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-   let data= await folders.remove({_id:folderId, ownerId:userId})
+    const data = await Promise.all([
+      await folders.remove({_id:folderId, ownerId:userId}),
+      await folders.update({parentId: folderId}, {
+        parentId: null 
+    },{"multi": true})
+    ])
+ 
    if(data){
      return {success:true}
    }
