@@ -211,7 +211,7 @@ router.put("/group/:id/edit", authenticate, async (req: Request, res: Response, 
 //  edit status of group
 router.put("/group/:id/status", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await groupStatus(req.params.id))
+        res.status(200).send(await groupStatus(req.params.id, res.locals.user._id))
     } catch (err) {
         next(new APIError(err.message));;
     };

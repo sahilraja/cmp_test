@@ -385,11 +385,12 @@ export async function createGroup(objBody: any, userId: string) {
 };
 
 //  change Group status
-export async function groupStatus(id: any) {
+export async function groupStatus(id: any, userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
+        if(group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
