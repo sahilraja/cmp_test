@@ -554,7 +554,7 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 //list of folders and files in it
 router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id,req.query.page, req.query.limit);
+    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id,req.query.page, req.query.limit));
   } catch (err) {
     next(new APIError(err.message));
   }
