@@ -127,14 +127,14 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 }
 
 //  Get Document Public List
-export async function getDocList() {
+export async function getDocList(host: string) {
   try {
     let data = await documents
       .find({ parentId: null, status: STATUS.PUBLISHED})
       .sort({ updatedAt: -1 });
     const docList = await Promise.all(
       data.map(async doc => {
-        return await docData(doc);
+        return await docData(doc, host);
       })
     );
     return { docs: docList };
@@ -149,12 +149,14 @@ export async function documentsList(docs:any[]): Promise<object[]>{
   return await documents.find({_id: {$in: docs}})
 }
 
-async function docData(docData: any) {
+async function docData(docData: any, host: string) {
   try {
+    let fileType = (docData.fileName.split(".")).pop()
     return {
       ...docData.toJSON(), tags: await getTags(docData.tags),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
-      owner: await userFindOne("id", docData.ownerId, { name: 1 })
+      owner: await userFindOne("id", docData.ownerId, { name: 1 }),
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png")? `${host}/docs/get-document/${docData.fileId}`: "N/A"
     };
   } catch (err) {
     throw err;
@@ -162,7 +164,7 @@ async function docData(docData: any) {
 }
 
 //  Get My Documents
-export async function getDocListOfMe(userId: string,page: number = 1, limit: number = 30) {
+export async function getDocListOfMe(userId: string,page: number = 1, limit: number = 30, host: string) {
   try {
     let folderList = await folders
       .find({ ownerId: userId },{_id: 0 ,doc_id:1 })
@@ -186,7 +188,7 @@ export async function getDocListOfMe(userId: string,page: number = 1, limit: num
       .sort({ updatedAt: -1 })
     const docList = await Promise.all(
       docs.map(doc => {
-          return  docData(doc);
+          return  docData(doc, host);
       })
     );
     var result = docList.filter(function(docs){
@@ -490,7 +492,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
   }
 }
 
-export async function approvalList() {
+export async function approvalList(host: string) {
   try {
     let docList = await documents
       .find({ parentId: { $ne: null }, status: STATUS.PUBLISHED })
@@ -503,7 +505,7 @@ export async function approvalList() {
     });
     return await Promise.all(
       parentDocList.map(async doc => {
-        return await docData(doc);
+        return await docData(doc, host);
       })
     );
   } catch (err) {
@@ -696,7 +698,7 @@ export async function viewerList(docId: string) {
   }
 }
 
-export async function sharedList(userId: string) {
+export async function sharedList(userId: string, host: string) {
   try {
     let docIds: any = []
     let groups = await userGroupsList(userId)
@@ -705,7 +707,7 @@ export async function sharedList(userId: string) {
     let docs = await documents.find({ _id: { $in: docIds } }).sort({ updatedAt: -1 });
     return await Promise.all(
       docs.map(async (doc: any) => {
-        return await docData(doc);
+        return await docData(doc, host);
       })
     );
   } catch (err) {
@@ -913,14 +915,14 @@ export async function replaceDoc(
   }
 }
 
-export async function publishList(userId: string) {
+export async function publishList(userId: string, host: string) {
   try {
     let docs = await documents
       .find({ ownerId: userId, status: STATUS.PUBLISHED })
       .sort({ updatedAt: -1 });
     return await Promise.all(
       docs.map(async (doc: any) => {
-        return await docData(doc);
+        return await docData(doc, host);
       })
     );
   } catch (err) {
@@ -929,7 +931,7 @@ export async function publishList(userId: string) {
 }
 
 // Get Filterd Documents
-export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30): Promise<object[]> {
+export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string): Promise<object[]> {
   search = search.trim();
   try {
     let docs: any = [],
@@ -947,7 +949,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
       shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 });
     }
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
-    let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc)));
+    let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     return filterOrdersByPageAndLimit(page, limit, filteredDocs)
   } catch (err) {
     throw err;
