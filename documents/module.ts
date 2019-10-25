@@ -53,7 +53,6 @@ export async function createNewDoc(body: any, userId: any) {
     if (body.description.length > configLimit.description) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    body.name = body.docName
     body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
@@ -172,15 +171,8 @@ export async function getDocListOfMe(userId: string,page: number = 1, limit: num
           return folder.doc_id
         })
         var merged = [].concat.apply([], folder_files);
-        console.log(JSON.parse(JSON.stringify(merged)));
         let folderDocIds = JSON.parse(JSON.stringify(merged));
-        // let folder_file= folder_files.reduce((main:any,folder:any) => {
-        //   console.log(JSON.stringify(folder));
-        //   [...main, ...(JSON.stringify(folder))]
-        // },[])
-        
-        // console.log(folder_file);
-        
+
     let docs = await documents
       .find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } })
       .sort({ updatedAt: -1 })
@@ -194,7 +186,7 @@ export async function getDocListOfMe(userId: string,page: number = 1, limit: num
           return docs._id == folderDocs;     
       });
   })
-  console.log(result);
+
   const docsData =  manualPagination(page, limit, result)
     return { docsData };
   } catch (error) {
