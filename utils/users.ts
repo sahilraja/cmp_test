@@ -289,7 +289,7 @@ export async function groupPatternMatch(searchQuery: object, patternQuery?: obje
             uri: `${USERS_URL}/group/Pattern-match`,
             method: "POST",
             body: {
-                searchQuery,
+                searchQuery: searchQuery || {} ,
                 patternQuery: patternQuery || {},
                 objectQuery: objectQuery || {},
                 selectFields: selectFields || {},

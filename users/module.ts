@@ -5,9 +5,9 @@ import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, gen
 import { checkRoleScope, userRoleAndScope, roles_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
-import { groupUserList, addUserToGroup, removeUserToGroup } from "../utils/groups";
+import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
 //import * as phoneNo from "phone";
 import { createECDH } from "crypto";
 import { loginSchema } from "./login-model";
@@ -403,6 +403,8 @@ export async function groupStatus(id: any) {
 export async function editGroup(objBody: any, id: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        let group: any = await groupFindOne("id", id);
+        
         const { name, description } = objBody
         let obj: any = {}
         if (name) {
@@ -418,9 +420,12 @@ export async function editGroup(objBody: any, id: string) {
 };
 
 //  Get group List
-export async function groupList() {
+export async function groupList(userId: string) {
     try {
-        let groups = await listGroup({ is_active: true }, undefined, "updatedAt")
+        let groupIds = await GetDocIdsForUser(userId, "group")
+        let meCreatedGroup = await groupPatternMatch({},{},{_id: userId},{},"updatedAt")
+        let sharedGroup = await groupPatternMatch({},{},{_id: groupIds},{},"updatedAt")
+        let groups = [...meCreatedGroup, ...sharedGroup]
         return await Promise.all(groups.map(async (group: any) => {
             return { ...group, users: ((await groupUserList(group._id)) as any).length }
         }));
