@@ -2,7 +2,7 @@ import * as request from "request-promise";
 import * as http from "http";
 import { MongooseDocument } from "mongoose";
 
-const USERS_URL = "http://192.168.1.146:4000";
+const USERS_URL = process.env.USERS_URL || "http://localhost:4000";
 const FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || "http://localhost:4040";
 
 // create user
