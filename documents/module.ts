@@ -14,7 +14,8 @@ import {
   getRoleOfDoc,
   GetUserIdsForDoc,
   GetDocCapabilitiesForUser,
-  checkCapability
+  checkCapability,
+  userGroupsList
 } from "../utils/groups";
 import { nodemail } from "../utils/email";
 import { docInvitePeople } from "../utils/email_template";
@@ -36,7 +37,7 @@ enum STATUS {
 
 export async function createNewDoc(body: any, userId: any) {
   try {
-    if (!body) throw new Error("Unable to create file or file missing")
+    if (Object.keys(body).length) throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data.global[0];
@@ -67,7 +68,7 @@ export async function createNewDoc(body: any, userId: any) {
         $push: { doc_id: doc.id }
       })
     }
-    return { doc_id: doc.id };
+    return doc;
   } catch (err) {
     throw err
   };
@@ -109,7 +110,7 @@ export async function createDoc(body: any, userId: string) {
 async function insertDOC(body: any, userId: string, fileObj?: any) {
   try {
     return await documents.create({
-      name: body.name,
+      name: body.docName || body.name,
       description: body.description || null,
       tags: body.tags,
       versionNum: "1",
@@ -143,14 +144,16 @@ export async function getDocList() {
   }
 }
 
+export async function documentsList(docs:any[]): Promise<object[]>{
+  docs = docs.map((id:string) => Types.ObjectId(id))
+  return await documents.find({_id: {$in: docs}})
+}
+
 async function docData(docData: any) {
   try {
     return {
-      ...docData.toJSON(),
-      tags: await getTags(docData.tags),
-      role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [
-        ""
-      ])[0],
+      ...docData.toJSON(), tags: await getTags(docData.tags),
+      role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { name: 1 })
     };
   } catch (err) {
@@ -436,7 +439,50 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       parentId: parent.id,
       fileId: parent.fileId,
       fileName: parent.fileName
-    });
+    })
+    return parent;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  };
+};
+
+export async function updateDocNew(objBody: any, docId: any, userId: string) {
+  try {
+    if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    let capability = await GetDocCapabilitiesForUser(userId, docId);
+    if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_ADMIN);
+    let obj: any = {};
+    if (objBody.docName) {
+      if (objBody.docName.length > configLimit.name) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      obj.name = objBody.docName;
+    }
+    if (objBody.description) {
+      if (objBody.description.length > configLimit.description) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      obj.description = objBody.description;
+    }
+    if (objBody.tags) {
+      obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
+    }
+    let child: any = await documents.find({ parentId: docId }).sort({ createdAt: -1 }).exec()
+    if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    if (objBody.description || objBody.docName || objBody.id) obj.versionNum = Number(child[0].versionNum) + 1
+    let parent: any = await documents.findByIdAndUpdate(docId, obj, { new: true }).exec()
+    if (objBody.description || objBody.docName || objBody.id) {
+      await documents.create({
+        name: parent.name,
+        description: parent.description,
+        tags: parent.tags,
+        versionNum: Number(child[0].versionNum) + 1,
+        status: parent.status,
+        ownerId: userId,
+        parentId: parent.id,
+        fileId: objBody.id || parent.fileId,
+        fileName: objBody.name || parent.fileName
+      });
+    } else {
+      await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags })
+    }
     return parent;
   } catch (err) {
     console.log(err);
@@ -652,10 +698,11 @@ export async function viewerList(docId: string) {
 
 export async function sharedList(userId: string) {
   try {
-    let docIds = await GetDocIdsForUser(userId);
-    let docs = await documents
-      .find({ _id: { $in: docIds } })
-      .sort({ updatedAt: -1 });
+    let docIds: any = []
+    let groups = await userGroupsList(userId)
+    await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group"))}));
+    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
+    let docs = await documents.find({ _id: { $in: docIds } }).sort({ updatedAt: -1 });
     return await Promise.all(
       docs.map(async (doc: any) => {
         return await docData(doc);
@@ -668,24 +715,21 @@ export async function sharedList(userId: string) {
 
 async function invite(user: any, docId: any, role: any, doc: any) {
   await shareDoc(user._id, user.type, docId, role);
-  let userData: any = await userFindOne("id", user._id);
-  let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
-  return nodemail({
-    email: userData.email,
-    subject: `Invitation for ${doc.name} document`,
-    html: docInvitePeople({
-      username: userName,
-      documentName: doc.name,
-      documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
-    })
-  });
+  if (user.type == "user") {
+    let userData: any = await userFindOne("id", user._id);
+    let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
+    return nodemail({
+      email: userData.email,
+      subject: `Invitation for ${doc.name} document`,
+      html: docInvitePeople({
+        username: userName,
+        documentName: doc.name,
+        documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
+      })
+    });
+  }
 }
-export async function invitePeople(
-  docId: string,
-  users: object[],
-  role: string,
-  userId: string
-) {
+export async function invitePeople(docId: string, users: object[], role: string, userId: string) {
   try {
 
     if (!docId || !users.length || !role) throw new Error("Missing fields.");
@@ -701,15 +745,10 @@ export async function invitePeople(
   }
 }
 
-export async function invitePeopleEdit(
-  docId: string,
-  userId: string,
-  type: string,
-  role: string
-) {
+export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
-    let userRole: any = await getRoleOfDoc(userId, docId);
+    let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
     return { message: "Edit user successfully." };
@@ -718,12 +757,7 @@ export async function invitePeopleEdit(
   }
 }
 
-export async function invitePeopleRemove(
-  docId: string,
-  userId: string,
-  type: string,
-  role: string
-) {
+export async function invitePeopleRemove(docId: string,userId: string,type: string,role: string) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
@@ -764,8 +798,7 @@ export async function invitePeopleList(docId: string) {
             type: "user",
             email: user.email,
             role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0],
-            docRole: (((await getRoleOfDoc(user._id, docId)) as any) ||
-              Array(2))[2]
+            docRole: (((await getRoleOfDoc(user._id, docId)) as any) || Array(2))[2]
           };
         })
       );
@@ -780,10 +813,11 @@ export async function invitePeopleList(docId: string) {
         groupData.map(async (group: any) => {
           return {
             id: group._id,
-            name: name,
+            name: group.name,
             type: "group",
             email: "N/A",
-            role: (((await getRoleOfDoc(group._id, docId)) as any) || Array(2))[2]
+            docRole: (((await getRoleOfDoc(group._id, docId, "group")) as any) || Array(2))[2],
+            role: "N/A"
           };
         })
       );

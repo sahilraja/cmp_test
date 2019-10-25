@@ -177,7 +177,7 @@ router.post("/forgot/setPassword", async (req: Request, res: Response, next: Nex
 //  Add Group
 router.post("/group/create", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await createGroup(req.body))
+        res.status(200).send(await createGroup(req.body, res.locals.user._id))
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -186,7 +186,7 @@ router.post("/group/create", authenticate, async (req: Request, res: Response, n
 //  List Group
 router.get("/group/list", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await groupList())
+        res.status(200).send(await groupList(res.locals.user._id))
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -213,7 +213,7 @@ router.put("/group/:id/status", authenticate, async (req: Request, res: Response
 //  Add Member
 router.post("/group/:id/member/add", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await addMember(req.params.id, req.body.users));
+        res.status(200).send(await addMember(req.params.id, req.body.users, res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -231,7 +231,7 @@ router.post("/group/:id/member/remove", authenticate, async (req: Request, res: 
 //  Get User suggestion
 router.get("/suggestion", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await userSuggestions(req.query.search));
+        res.status(200).send(await userSuggestions(req.query.search, res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));;
     };
