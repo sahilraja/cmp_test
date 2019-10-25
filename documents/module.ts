@@ -37,7 +37,8 @@ enum STATUS {
 
 export async function createNewDoc(body: any, userId: any) {
   try {
-    if (Object.keys(body).length) throw new Error("Unable to create file or file missing")
+    body.folderId = body.folderId?body.FolderId:"";
+    if (!Object.keys(body).length) throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data.global[0];
@@ -53,7 +54,6 @@ export async function createNewDoc(body: any, userId: any) {
     if (body.description.length > configLimit.description) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    body.name = body.docName
     body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
