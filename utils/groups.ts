@@ -81,7 +81,7 @@ export async function GetUserIdsForDocWithRole(docId: string, role: string) {
     };
 };
 
-export async function GetDocIdsForUser(userId: string, type?:string) {
+export async function GetDocIdsForUser(userId: string, type?:string): Promise<any[]> {
     try {
         let userType = type || "user"
         let policies = await groupsPolicyFilter(`${type}/${userId}`, 0, "p")
