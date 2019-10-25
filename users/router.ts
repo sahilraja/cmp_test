@@ -67,14 +67,21 @@ router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next
 //  Edit User
 router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const payload: any = await uploadToFileService(req)
-        // let payload: any 
+        //const payload: any = await uploadToFileService(req)
+         let payload: any 
         // if(req.file){
         //     payload = await uploadToFileService(req)
         // } else {
         //     payload = JSON.stringify(req.body)
         // }
-        // req.body.profilePic = JSON.parse(imageObj).id
+        const contentType :any= req.get('content-type');
+        if (contentType.includes('multipart/form-data')) {
+            payload = await uploadToFileService(req)
+        }
+        if (contentType.includes('application/json')) {
+            payload = JSON.stringify(req.body)
+        }
+        //req.body.profilePic = JSON.parse(imageObj).id
         res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user));
     } catch (err) {
         next(new APIError(err.message));;
