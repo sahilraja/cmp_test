@@ -40,7 +40,8 @@ import {
   listFolders,
   getFolderDetails,
   deleteFolder,
-  documentsList
+  documentsList,
+  updateDocNew
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -173,6 +174,29 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
     next(new APIError(err.message));;
   }
 });
+
+router.get(`/get-document/:docId`, async (request, response, next) => {
+  try {
+    console.log(FILES_SERVER_BASE)
+    const req = (FILES_SERVER_BASE as string).startsWith("https") ?
+      httpsGet(`${FILES_SERVER_BASE}/files/${request.params.docId}`, (res: any) => {
+        response.setHeader('Content-disposition', 'inline');
+        response.setHeader('Content-type', res.headers['content-type'])
+        res.pipe(response);
+      }) : httpGet(`${FILES_SERVER_BASE}/files/${request.params.docId}`, (res: any) => {
+        response.setHeader('Content-disposition', 'inline');
+        response.setHeader('Content-type', res.headers['content-type'])
+        res.pipe(response);
+      });
+    req.on('error', (e: Error) => {
+      next(e);
+    });
+    req.end();
+  } catch (err) {
+    next(new APIError(err.message));
+  };
+});
+
 
 //  Create new Version
 // router.post("/:id/versions/:versionId/create", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
@@ -382,66 +406,42 @@ router.get(
 );
 
 //  invite user
-router.post(
-  "/:id/share",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      res
-        .status(200)
-        .send(
-          await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id)
-        );
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.post("/:id/share", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
-);
+});
 
 //  invite user list
-router.get(
-  "/:id/share/list",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      res.status(200).send(await invitePeopleList(req.params.id));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.get("/:id/share/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await invitePeopleList(req.params.id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
-);
+});
+
+//  invite user edit      
+router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    const { id, type, userId } = req.params;
+    res.status(200).send(await invitePeopleEdit(id, userId, type, req.query.role));
+  } catch (err) {
+    next(new APIError(err.message));;
+  }
+});
 
 //  invite user edit
-router.put(
-  "/:id/share/:type/:userId/edit",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      const { id, type, userId } = req.params;
-      res
-        .status(200)
-        .send(await invitePeopleEdit(id, userId, type, req.query.role));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    const { id, type, userId } = req.params;
+    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
-);
-
-//  invite user edit
-router.delete(
-  "/:id/share/:type/:userId/remove",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      const { id, type, userId } = req.params;
-      res
-        .status(200)
-        .send(await invitePeopleRemove(id, userId, type, req.query.role));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
-  }
-);
+});
 
 //  update exist doc
 router.get(
@@ -507,10 +507,21 @@ router.post(
   }
 );
 
+
 //  update exist doc
 router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
+  }
+});
+
+//  update exist doc
+router.post("/:id/new", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+  try {
+    const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
+    res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -537,7 +548,7 @@ router.post("/folder/create", authenticate, async (req, res, next: NextFunction)
 //Move file to a folder
 router.put("/moveTo/folder/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await moveToFolder(req.params.id,req.body,res.locals.user._id));
+    res.status(200).send(await moveToFolder(req.params.id, req.body.docId, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
