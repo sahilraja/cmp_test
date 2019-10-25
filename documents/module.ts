@@ -921,7 +921,15 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
 
 export async function createFolder(body: any, userId: string) {
   try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "create-folder");
+    if (!isEligible) {
+      throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
+    }
     if(!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+
+
     let data = await folders
     .find({ ownerId: userId ,name: body.name});
     if(data.length){
@@ -979,7 +987,7 @@ export async function listFolders(userId: String) {
     throw error;
   }
 }
-export async function getFolderDetails(folderId: string, userId: any) {
+export async function getFolderDetails(folderId: string, userId: any,page: number = 1, limit: number = 30) {
   if(!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const fetchedDoc = await folders.aggregate([
     {
@@ -1028,7 +1036,8 @@ export async function getFolderDetails(folderId: string, userId: any) {
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  return { subFolderList: subFolderList,docsList: docsList };
+  const docsData =  filterOrdersByPageAndLimit(page, limit, docsList)
+  return { subFolderList: subFolderList,docsList: docsData };
 
 }
 
@@ -1070,3 +1079,24 @@ export async function deleteFolder(folderId: string,userId: string)  {
      throw err;
    }
  }
+ export async function removeFromFolder(folderId: string, body: any, userId: string) {
+  if(!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+  try {
+    if(body.docId){
+      await folders.update({ _id: folderId }, {
+        $pull: { doc_id: body.docId }
+      })
+  }else if(body.subFolderId){
+    await folders.update({_id: body.subFolderId }, {
+        parentId: null 
+    })
+  }
+   return {
+      sucess: true
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+ 

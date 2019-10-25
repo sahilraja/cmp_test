@@ -39,7 +39,8 @@ import {
   moveToFolder,
   listFolders,
   getFolderDetails,
-  deleteFolder
+  deleteFolder,
+  removeFromFolder
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -554,15 +555,25 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 //list of folders and files in it
 router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id));
+    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id,req.query.page, req.query.limit));
   } catch (err) {
     next(new APIError(err.message));
   }
 });
 
+//delete folder
 router.delete("/folder/delete/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await deleteFolder(req.params.id,res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+//Remove file/folder from a folder
+router.put("/removeFrom/folder/:id", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await removeFromFolder(req.params.id,req.body,res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

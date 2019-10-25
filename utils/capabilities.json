@@ -1,62 +1,80 @@
 [
         {
           "capability": "create-user",
+          "shortDescription": "Create User",
           "description": "Create User",
           "scope": "global"
         },
         {
           "capability": "create-task",
+          "shortDescription": "Create Task",
           "description": "Ability to create a task",
           "scope": "global"
         },
         {
           "capability": "create-subtask",
+          "shortDescription": "Create Subtask",
           "description": "Ability to create a task",
           "scope": "global"
         },
         {
           "capability": "attach-documents-to-task",
+          "shortDescription": "Attach Documents To Task",
           "description": "Ability to attach documents to a task",
           "scope": "global"
         },
         {
           "capability": "add-tag-to-task",
+          "shortDescription": "Add Tag To Task",
           "description": "Ability to add tag to a task",
           "scope": "global"
         },
         {
           "capability": "link-task",
+          "shortDescription": "Link Task",
           "description": "Ability to link task with other task",
           "scope": "global"
         },
         {
           "capability": "create-message",
+          "shortDescription": "Create Message",
           "description": "Ability to create a message",
           "scope": "global"
         },
         {
           "capability": "view-all-cmp-messages",
+          "shortDescription": "View All Cmp Messages",
           "description": "Ability to view all cmp message",
           "scope": "global"
         },
         {
           "capability": "create-doc",
+          "shortDescription": "Create Doc",
           "description": "Ability to create a document",
           "scope": "global"
         },
         {
           "capability": "project-view",
+          "shortDescription": "Project View",
           "description": "Project View",
           "scope": "global"
         },
         {
           "capability": "attach-documents",
+          "shortDescription": "Attach Documents",
           "description": "Ability to attach documents to a task",
           "scope": "global"
         },
         {
           "capability": "publish-documents",
+          "shortDescription": "Publish Documents",
           "description": "Publish Documents",
+          "scope": "global"
+        },
+        {
+          "capability": "create-folder",
+          "shortDescription": "Create Folder",
+          "description": "Ability to create a folder",
           "scope": "global"
         }
   ]
