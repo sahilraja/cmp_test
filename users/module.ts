@@ -447,7 +447,7 @@ export async function groupDetail(id: string) {
 };
 
 //  Add Member to Group
-export async function addMember(id: string, users: any[], userId) {
+export async function addMember(id: string, users: any[]) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
