@@ -580,12 +580,8 @@ router.delete("/folder/delete/:id", authenticate, async (req, res, next: NextFun
     next(new APIError(err.message));
   }
 });
-<<<<<<< HEAD
 
 router.post("/multiple/list", authenticate, async (req, res, next: NextFunction) => {
-=======
-router.post("/multiple/list", async (req, res, next: NextFunction) => {
->>>>>>> change task response
   try {
     res.status(200).send(await documentsList(req.body.ids));
   } catch (err) {
