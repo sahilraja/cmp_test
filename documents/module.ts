@@ -62,7 +62,7 @@ export async function createNewDoc(body: any, userId: any) {
     }
     body.parentId = doc.id;
     let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
-    if(body.folderId){
+    if (body.folderId) {
       await folders.update({ _id: body.folderId }, {
         $push: { doc_id: doc.id }
       })
@@ -129,7 +129,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 export async function getDocList(host: string) {
   try {
     let data = await documents
-      .find({ parentId: null, status: STATUS.PUBLISHED})
+      .find({ parentId: null, status: STATUS.PUBLISHED })
       .sort({ updatedAt: -1 });
     const docList = await Promise.all(
       data.map(async doc => {
@@ -143,9 +143,9 @@ export async function getDocList(host: string) {
   }
 }
 
-export async function documentsList(docs:any[]): Promise<object[]>{
-  docs = docs.map((id:string) => Types.ObjectId(id))
-  return await documents.find({_id: {$in: docs}})
+export async function documentsList(docs: any[]): Promise<object[]> {
+  docs = docs.map((id: string) => Types.ObjectId(id))
+  return await documents.find({ _id: { $in: docs } })
 }
 
 async function docData(docData: any, host: string) {
@@ -155,7 +155,7 @@ async function docData(docData: any, host: string) {
       ...docData.toJSON(), tags: await getTags(docData.tags),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { name: 1 }),
-      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png")? `${host}/docs/get-document/${docData.fileId}`: "N/A"
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
     };
   } catch (err) {
     throw err;
@@ -163,33 +163,38 @@ async function docData(docData: any, host: string) {
 }
 
 //  Get My Documents
-export async function getDocListOfMe(userId: string,page: number = 1, limit: number = 30, host: string) {
+export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
     let folderList = await folders
-      .find({ ownerId: userId },{_id: 0 ,doc_id:1 })
-    
-    
-      let folder_files= folderList.map((folder:any) => {
-          return folder.doc_id
-        })
-        var merged = [].concat.apply([], folder_files);
-        let folderDocIds = JSON.parse(JSON.stringify(merged));
+      .find({ ownerId: userId }, { _id: 0, doc_id: 1 })
+
+
+    let folder_files = folderList.map((folder: any) => {
+      return folder.doc_id
+    })
+    var merged = [].concat.apply([], folder_files);
+    let folderDocIds = JSON.parse(JSON.stringify(merged));
+    // let folder_file= folder_files.reduce((main:any,folder:any) => {
+    //   console.log(JSON.stringify(folder));
+    //   [...main, ...(JSON.stringify(folder))]
+    // },[])
+
+    // console.log(folder_file);
 
     let docs = await documents
       .find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } })
       .sort({ updatedAt: -1 })
     const docList = await Promise.all(
       docs.map(doc => {
-          return  docData(doc, host);
+        return docData(doc, host);
       })
     );
-    var result = docList.filter(function(docs){
-      return !folderDocIds.some(function(folderDocs:any){
-          return docs._id == folderDocs;     
+    var result = docList.filter(function (docs) {
+      return !folderDocIds.some(function (folderDocs: any) {
+        return docs._id == folderDocs;
       });
-  })
-
-  const docsData =  manualPagination(page, limit, result)
+    })
+    const docsData = manualPagination(page, limit, result)
     return { docsData };
   } catch (error) {
     console.log(error);
@@ -694,7 +699,7 @@ export async function sharedList(userId: string, host: string) {
   try {
     let docIds: any = []
     let groups = await userGroupsList(userId)
-    await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group"))}));
+    await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group")) }));
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     let docs = await documents.find({ _id: { $in: docIds } }).sort({ updatedAt: -1 });
     return await Promise.all(
@@ -751,7 +756,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
   }
 }
 
-export async function invitePeopleRemove(docId: string,userId: string,type: string,role: string) {
+export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
@@ -928,17 +933,22 @@ export async function docFilter(search: string, userId: string, page: number = 1
   try {
     let docs: any = [],
       shared: any = [];
+
+    let docIds: any = []
+    let groups = await userGroupsList(userId)
+    await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group")) }));
+    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     //  Search With Tags
     if (search.startsWith("#")) {
       let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
       if (!tags.length) return [];
       let tagId = tags.map(tag => tag._id).pop().toString();
       docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 });
-      shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: docIds }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
       //  Search With Tag Names
       docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 });
-      shared = await documents.find({ _id: { $in: await GetDocIdsForUser(userId) }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: docIds }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 });
     }
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
     let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc, host)));
@@ -954,7 +964,7 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
   return orders.slice(skip, skip + limit);
 };
 
-function manualPagination( page: number, limit: number,docs: any[]) {
+function manualPagination(page: number, limit: number, docs: any[]) {
   page = Number(page)
   limit = Number(limit)
   const skip = ((page - 1) * limit)
@@ -973,14 +983,14 @@ export async function createFolder(body: any, userId: string) {
     if (!isEligible) {
       throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     }
-    if(!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
 
 
     let data = await folders
-    .find({ ownerId: userId ,name: body.name});
-    if(data.length){
+      .find({ ownerId: userId, name: body.name });
+    if (data.length) {
       throw new Error(DOCUMENT_ROUTER.ALREADY_EXIST);
-    }  
+    }
     let folder = await folders.create({
       name: body.name,
       parentId: body.parentId || null,
@@ -994,18 +1004,18 @@ export async function createFolder(body: any, userId: string) {
 }
 
 export async function moveToFolder(folderId: string, body: any, userId: string) {
-  if(!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+  if (!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   try {
-    if(body.docId){
+    if (body.docId) {
       await folders.update({ _id: folderId }, {
         $push: { doc_id: body.docId }
       })
-  }else if(body.subFolderId){
-    await folders.update({_id: body.subFolderId }, {
-        parentId: folderId 
-    })
-  }
-   return {
+    } else if (body.subFolderId) {
+      await folders.update({ _id: body.subFolderId }, {
+        parentId: folderId
+      })
+    }
+    return {
       sucess: true
     }
   } catch (error) {
@@ -1017,7 +1027,7 @@ export async function moveToFolder(folderId: string, body: any, userId: string) 
 export async function listFolders(userId: String) {
   try {
     let data = await folders
-      .find({ ownerId: userId ,parentId: null})
+      .find({ ownerId: userId, parentId: null })
       .sort({ updatedAt: -1 });
     console.log(data);
     let folderList = data.map((folder: any) => {
@@ -1033,8 +1043,8 @@ export async function listFolders(userId: String) {
     throw error;
   }
 }
-export async function getFolderDetails(folderId: string, userId: any,page: number = 1, limit: number = 30) {
-  if(!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30) {
+  if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const fetchedDoc = await folders.aggregate([
     {
       $match: {
@@ -1063,17 +1073,17 @@ export async function getFolderDetails(folderId: string, userId: any,page: numbe
     }
   ]).exec();
   let subfolders = await folders
-      .find({ ownerId: userId ,parentId: folderId})
-      .sort({ updatedAt: -1 });
-  
-    let subFolderList = subfolders.map((folder: any) => {
-      return {
-        folderId: folder._id,
-        name: folder.name,
-        date: folder.createdAt,
-        parentId: folder.parentId
-      }
-    })
+    .find({ ownerId: userId, parentId: folderId })
+    .sort({ updatedAt: -1 });
+
+  let subFolderList = subfolders.map((folder: any) => {
+    return {
+      folderId: folder._id,
+      name: folder.name,
+      date: folder.createdAt,
+      parentId: folder.parentId
+    }
+  })
   const docs = await Promise.all(
     fetchedDoc.map((folder: any) => {
       return userData(folder);
@@ -1082,15 +1092,15 @@ export async function getFolderDetails(folderId: string, userId: any,page: numbe
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const docsData =  manualPagination(page, limit, docsList)
-  return { subFolderList: subFolderList,docsData };
+  const docsData = manualPagination(page, limit, docsList)
+  return { subFolderList: subFolderList, docsData };
 
 }
 
 async function userData(folder: any) {
   try {
-    
-  const data= await Promise.all([{
+
+    const data = await Promise.all([{
       docId: folder.doc_id._id,
       name: folder.doc_id.name,
       description: folder.doc_id.description,
@@ -1100,44 +1110,44 @@ async function userData(folder: any) {
       ])[0],
       owner: await userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       date: folder.doc_id.createdAt
-  }])
-      return data
+    }])
+    return data
 
   } catch (err) {
     throw err;
   }
 }
 
-export async function deleteFolder(folderId: string,userId: string)  {
-  try{
-    if(!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    const data = await Promise.all([
-      await folders.remove({_id:folderId, ownerId:userId}),
-      await folders.update({parentId: folderId}, {
-        parentId: null 
-    },{"multi": true})
-    ])
- 
-   if(data){
-     return {success:true}
-   }
-   } catch (err) {
-     throw err;
-   }
- }
- export async function removeFromFolder(folderId: string, body: any, userId: string) {
-  if(!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+export async function deleteFolder(folderId: string, userId: string) {
   try {
-    if(body.docId){
+    if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    const data = await Promise.all([
+      await folders.remove({ _id: folderId, ownerId: userId }),
+      await folders.update({ parentId: folderId }, {
+        parentId: null
+      }, { "multi": true })
+    ])
+
+    if (data) {
+      return { success: true }
+    }
+  } catch (err) {
+    throw err;
+  }
+}
+export async function removeFromFolder(folderId: string, body: any, userId: string) {
+  if (!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+  try {
+    if (body.docId) {
       await folders.update({ _id: folderId }, {
         $pull: { doc_id: body.docId }
       })
-  }else if(body.subFolderId){
-    await folders.update({_id: body.subFolderId }, {
-        parentId: null 
-    })
-  }
-   return {
+    } else if (body.subFolderId) {
+      await folders.update({ _id: body.subFolderId }, {
+        parentId: null
+      })
+    }
+    return {
       sucess: true
     }
   } catch (error) {
@@ -1145,4 +1155,3 @@ export async function deleteFolder(folderId: string,userId: string)  {
     throw error;
   }
 }
- 
