@@ -448,14 +448,14 @@ export async function groupDetail(id: string) {
 };
 
 //  Add Member to Group
-export async function addMember(id: string, users: any[]) {
+export async function addMember(id: string, users: any[], userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async (user: any) => { await addUserToGroup(user, id) }))
+        await Promise.all(users.map(async (user: any) => {if(data.createdBy != user){await addUserToGroup(user, id)} }))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
