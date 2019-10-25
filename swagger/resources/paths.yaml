@@ -202,6 +202,12 @@
               schema:
                 type: object
                 properties:
+                  page:
+                    type: number
+                    example: 1
+                  pages:
+                    type: number
+                    example: 3  
                   docs:
                     type: array
                     items:

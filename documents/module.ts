@@ -195,8 +195,8 @@ export async function getDocListOfMe(userId: string,page: number = 1, limit: num
       });
   })
   console.log(result);
-  const docsData =  filterOrdersByPageAndLimit(page, limit, result)
-    return { docs: docsData };
+  const docsData =  manualPagination(page, limit, result)
+    return { docsData };
   } catch (error) {
     console.log(error);
     throw error;
@@ -960,6 +960,17 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
   return orders.slice(skip, skip + limit);
 };
 
+function manualPagination( page: number, limit: number,docs: any[]) {
+  page = Number(page)
+  limit = Number(limit)
+  const skip = ((page - 1) * limit)
+  return {
+    page,
+    pages: Math.ceil(docs.length / limit),
+    docs: docs.slice(skip, skip + limit)
+  }
+}
+
 export async function createFolder(body: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
@@ -1077,8 +1088,8 @@ export async function getFolderDetails(folderId: string, userId: any,page: numbe
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const docsData =  filterOrdersByPageAndLimit(page, limit, docsList)
-  return { subFolderList: subFolderList,docsList: docsData };
+  const docsData =  manualPagination(page, limit, docsList)
+  return { subFolderList: subFolderList,docsData };
 
 }
 
