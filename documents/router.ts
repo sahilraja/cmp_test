@@ -587,7 +587,7 @@ router.post("/multiple/list", authenticate, async (req, res, next: NextFunction)
 router.post("/multiple/list", async (req, res, next: NextFunction) => {
 >>>>>>> change task response
   try {
-    res.status(200).send(await documentsList(req.body.id));
+    res.status(200).send(await documentsList(req.body.ids));
   } catch (err) {
     next(new APIError(err.message));
   }
