@@ -104,7 +104,6 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 router.post("/create/new", authenticate, async (req, res, next: NextFunction) => {
   try {
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
-    console.log(fileObj)
     res.status(200).send(await createNewDoc(fileObj, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
