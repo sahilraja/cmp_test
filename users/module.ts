@@ -370,13 +370,14 @@ export async function setNewPassword(objBody: any) {
 
 
 //  Create Group
-export async function createGroup(objBody: any) {
+export async function createGroup(objBody: any, userId: string) {
     try {
         const { name, description } = objBody
         if (!name || !description) throw new Error(USER_ROUTER.MANDATORY);
         return await groupCreate({
             name: name,
-            description: description
+            description: description,
+            createdBy: userId
         });
     } catch (err) {
         throw err;
