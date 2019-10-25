@@ -581,7 +581,7 @@ router.delete("/folder/delete/:id", authenticate, async (req, res, next: NextFun
   }
 });
 
-router.post("/multiple/list", authenticate, async (req, res, next: NextFunction) => {
+router.post("/multiple/list", async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await documentsList(req.body.ids));
   } catch (err) {

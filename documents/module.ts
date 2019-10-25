@@ -37,7 +37,7 @@ enum STATUS {
 
 export async function createNewDoc(body: any, userId: any) {
   try {
-    if (Object.keys(body).length) throw new Error("Unable to create file or file missing")
+    if (!Object.keys(body).length) throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data.global[0];
