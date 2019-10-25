@@ -2173,7 +2173,7 @@ paths:
                 upfile:
                   type: string
                   format: binary
-                name:
+                docName:
                   type: string
                   example: Annula Report
                 description:
@@ -2186,6 +2186,10 @@ paths:
                   example:
                     - 12346
                     - 12345
+                folderId:
+                  type: string
+                  example: folderId1234
+                  description: Mention folderId if creating inside folder
       responses:
         '200':
           description: success
@@ -2280,6 +2284,19 @@ paths:
       summary: my list of documents
       tags:
         - RESOURCES
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: number
+            example: '1'
+          description: Default Page = 1
+        - in: query
+          name: limit
+          schema:
+            type: number
+            example: '30'
+          description: Default Limit = 30
       responses:
         '200':
           description: success

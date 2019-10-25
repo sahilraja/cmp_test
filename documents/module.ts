@@ -45,13 +45,14 @@ export async function createNewDoc(body: any, userId: any) {
       throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     }
 
-    if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.name.length > configLimit.name) {
+    if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    if (body.docName.length > configLimit.name) {
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     if (body.description.length > configLimit.description) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
+    body.name = body.docName
     body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
@@ -61,6 +62,11 @@ export async function createNewDoc(body: any, userId: any) {
     }
     body.parentId = doc.id;
     let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+    if(body.folderId){
+      await folders.update({ _id: body.folderId }, {
+        $push: { doc_id: doc.id }
+      })
+    }
     return { doc_id: doc.id };
   } catch (err) {
     throw err
@@ -153,7 +159,7 @@ async function docData(docData: any) {
 }
 
 //  Get My Documents
-export async function getDocListOfMe(userId: string) {
+export async function getDocListOfMe(userId: string,page: number = 1, limit: number = 30) {
   try {
     let folderList = await folders
       .find({ ownerId: userId },{_id: 0 ,doc_id:1 })
@@ -186,7 +192,8 @@ export async function getDocListOfMe(userId: string) {
       });
   })
   console.log(result);
-    return { docs: result };
+  const docsData =  filterOrdersByPageAndLimit(page, limit, result)
+    return { docs: docsData };
   } catch (error) {
     console.log(error);
     throw error;
