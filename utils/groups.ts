@@ -84,8 +84,7 @@ export async function GetUserIdsForDocWithRole(docId: string, role: string) {
 export async function GetDocIdsForUser(userId: string, type?:string): Promise<any[]> {
     try {
         let userType = type || "user"
-        let policies = await groupsPolicyFilter(`${type}/${userId}`, 0, "p")
-        if (!policies.data) throw new Error("policies not found for this User.")
+        let policies = await groupsPolicyFilter(`${userType}/${userId}`, 1, "p")
         let users = policies.data.filter((policy: string[]) => {
             if (policy[2] == "collaborator" || policy[2] == "viewer")
                 return policy
