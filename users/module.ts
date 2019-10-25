@@ -5,7 +5,7 @@ import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, gen
 import { checkRoleScope, userRoleAndScope, roles_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
-import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser } from "../utils/groups";
+import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
 //import * as phoneNo from "phone";
@@ -423,8 +423,8 @@ export async function editGroup(objBody: any, id: string, userId: string) {
 //  Get group List
 export async function groupList(userId: string) {
     try {
-        let groupIds = await GetDocIdsForUser(userId, "group")
-        let meCreatedGroup = await groupPatternMatch({},{},{_id: userId},{},"updatedAt")
+        let groupIds = await userGroupsList(userId)
+        let meCreatedGroup = await groupPatternMatch({},{},{createdBy: userId},{},"updatedAt")
         let sharedGroup = await groupPatternMatch({},{},{_id: groupIds},{},"updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
         return await Promise.all(groups.map(async (group: any) => {
@@ -480,8 +480,8 @@ export async function removeMembers(id: string, users: any[]) {
 //  user and group suggestion
 export async function userSuggestions(search: string, userId: string) {
     try {
-        let groupIds = await GetDocIdsForUser(userId, "group")
-        let meCreatedGroup = await groupPatternMatch({},{name: search},{_id: userId},{},"updatedAt")
+        let groupIds = await userGroupsList(userId)
+        let meCreatedGroup = await groupPatternMatch({},{name: search},{createdBy: userId},{},"updatedAt")
         let sharedGroup = await groupPatternMatch({},{name: search},{_id: groupIds},{},"updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
         const searchQuery = search ? { name: new RegExp(search, "i"), emailVerified: true } : {is_active: true, emailVerified: true}
