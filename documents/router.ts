@@ -40,7 +40,7 @@ import {
   listFolders,
   getFolderDetails,
   deleteFolder,
-  removeFromFolder
+  documentsList
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -570,10 +570,9 @@ router.delete("/folder/delete/:id", authenticate, async (req, res, next: NextFun
   }
 });
 
-//Remove file/folder from a folder
-router.put("/removeFrom/folder/:id", authenticate, async (req, res, next: NextFunction) => {
+router.post("/multiple/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await removeFromFolder(req.params.id,req.body,res.locals.user._id));
+    res.status(200).send(await documentsList(req.body.id));
   } catch (err) {
     next(new APIError(err.message));
   }

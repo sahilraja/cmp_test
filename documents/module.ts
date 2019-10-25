@@ -136,7 +136,10 @@ export async function getDocList() {
     throw error;
   }
 }
-
+export async function documentsList(docs:any[]): Promise<object[]>{
+  docs = docs.map((id:string) => Types.ObjectId(id))
+  return await documents.find({_id: {$in: docs}})
+}
 async function docData(docData: any) {
   try {
     return {
