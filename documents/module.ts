@@ -1079,3 +1079,24 @@ export async function deleteFolder(folderId: string,userId: string)  {
      throw err;
    }
  }
+ export async function removeFromFolder(folderId: string, body: any, userId: string) {
+  if(!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+  try {
+    if(body.docId){
+      await folders.update({ _id: folderId }, {
+        $pull: { doc_id: body.docId }
+      })
+  }else if(body.subFolderId){
+    await folders.update({_id: body.subFolderId }, {
+        parentId: null 
+    })
+  }
+   return {
+      sucess: true
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+ 

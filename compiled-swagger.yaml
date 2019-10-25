@@ -3301,13 +3301,20 @@ paths:
                     example: true
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  /docs/removeFrom/folder:
+  '/docs/removeFrom/folder/{id}':
     put:
       security:
         - token: []
-      summary: Move a file to a Folder
+      summary: Remove a file from the Folder
       tags:
         - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: folder id
       requestBody:
         required: true
         content:

@@ -1288,13 +1288,20 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # remove file from a folder   
   removeFromFolder:
-  # "/docs/removeFrom/folder":
+  # "/docs/removeFrom/folder/{id}":
     put:
       security:
         - token: []
-      summary: Move a file to a Folder
+      summary: Remove a file from the Folder
       tags:
         - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: folder id     
       requestBody:
         required: true
         content:
