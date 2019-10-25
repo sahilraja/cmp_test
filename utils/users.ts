@@ -1,5 +1,6 @@
 import * as request from "request-promise";
 import * as http from "http";
+import { MongooseDocument } from "mongoose";
 
 const USERS_URL = process.env.USERS_URL || "http://localhost:4000";
 const FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || "http://localhost:4040";
@@ -242,9 +243,17 @@ export async function changePasswordInfo(payload: object, userId: string) {
 
 }
 
-//  group apis-----------------
+/*  ---- GROUP APIS IN USER MODULE -----  */
 
-export async function groupCreate(payload: any) {
+export interface GroupSchema {
+    name: string;
+    description: number;
+    is_active: boolean
+};
+
+
+//  Create Group Record in Users module
+export async function groupCreate(payload: any): Promise<GroupSchema> {
     try {
         let Options = {
             uri: `${USERS_URL}/group/create`,
@@ -258,7 +267,8 @@ export async function groupCreate(payload: any) {
     };
 };
 
-export async function listGroup(searchQuery: object, selectFields?: object, sort?: string) {
+//  Get Group List From User Module  
+export async function listGroup(searchQuery: object, selectFields?: object, sort?: string): Promise<GroupSchema[]> {
     try {
         let Options = {
             uri: `${USERS_URL}/group/list`,
@@ -272,12 +282,19 @@ export async function listGroup(searchQuery: object, selectFields?: object, sort
     };
 };
 
-export async function groupFindOne(key: string, value: string, selectFields?: object) {
+//  Get Group List From User Module  
+export async function groupPatternMatch(searchQuery: object, patternQuery?: object, objectQuery?: object, selectFields?: object, sort?: string): Promise<GroupSchema[]> {
     try {
         let Options = {
-            uri: `${USERS_URL}/group/findOne`,
+            uri: `${USERS_URL}/group/Pattern-match`,
             method: "POST",
-            body: { key, value, selectFields: selectFields || undefined },
+            body: {
+                searchQuery,
+                patternQuery: patternQuery || {},
+                objectQuery: objectQuery || {},
+                selectFields: selectFields || {},
+                sort: sort || undefined
+            },
             json: true
         }
         return await request(Options);
@@ -286,10 +303,26 @@ export async function groupFindOne(key: string, value: string, selectFields?: ob
     };
 };
 
-export async function groupEdit(groupId: string, payload: object) {
+//  Get Group Document from user Module
+export async function groupFindOne(key: string, value: string, selectFields?: object): Promise<GroupSchema> {
     try {
         let Options = {
-            uri: `${USERS_URL}/group/${groupId}/detail`,
+            uri: `${USERS_URL}/group/findOne`,
+            method: "POST",
+            body: { key, value, selectFields: selectFields || {} },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
+
+//  Edit Group Details in users Module
+export async function groupEdit(groupId: string, payload: object): Promise<GroupSchema> {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/group/${groupId}/edit`,
             method: "PUT",
             body: payload,
             json: true

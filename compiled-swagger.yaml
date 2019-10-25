@@ -795,12 +795,28 @@ paths:
                   type: string
                   example: project description
       responses:
-        '200':
-          $ref: './schema/#responses/project'
+        '200': &ref_1
+          description: group
+          content:
+            application/json:
+              schema: &ref_2
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: transerve
+                  description:
+                    type: string
+                    example: this group for transerve team
+                  createdBy:
+                    type: string
+                    example: 9uiewjf9023jfo39ur39
+                  is_active:
+                    type: boolean
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/group/{id}/edit':
-    post:
+    put:
       security:
         - token: []
       summary: edit group
@@ -827,8 +843,7 @@ paths:
                   type: string
                   example: project description
       responses:
-        '200':
-          $ref: './schema/#responses/project'
+        '200': *ref_1
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/group/{id}/status':
@@ -884,8 +899,7 @@ paths:
                   type: array
                   example: []
       responses:
-        '200':
-          $ref: './schema/#responses/project'
+        '200': *ref_1
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/group/{id}/member/remove':
@@ -913,8 +927,7 @@ paths:
                   type: array
                   example: []
       responses:
-        '200':
-          $ref: './schema/#responses/project'
+        '200': *ref_1
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/group/{id}':
@@ -941,6 +954,23 @@ paths:
             schema:
               type: object
               example: {}
+  /user/group/list:
+    get:
+      security:
+        - token: []
+      summary: group list
+      tags:
+        - GROUPS
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_2
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/create:
     post:
       security:
@@ -1010,7 +1040,7 @@ paths:
                     type: number
                   docs:
                     type: array
-                    items: &ref_1
+                    items: &ref_3
                       type: object
                       properties:
                         name:
@@ -1299,7 +1329,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_1
+              schema: *ref_3
   '/project/city/code/status/{id}': null
   /project/city/code/list: null
   '/project/{id}/task-list':
@@ -2173,7 +2203,7 @@ paths:
                 upfile:
                   type: string
                   format: binary
-                name:
+                docName:
                   type: string
                   example: Annula Report
                 description:
@@ -3375,7 +3405,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_2
+                  - &ref_4
                     type: object
                     properties:
                       content:
@@ -3406,7 +3436,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_2
+                items: *ref_4
   '/template/edit/{id}':
     post:
       '400':
@@ -3447,7 +3477,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_2
+                  - *ref_4
                   - type: object
                     properties:
                       id:
@@ -3504,7 +3534,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_2
+                  - *ref_4
                   - type: object
                     properties:
                       id:
@@ -3512,7 +3542,7 @@ paths:
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
           description: Success
-  /pillars/create: &ref_4
+  /pillars/create: &ref_6
     post:
       security:
         - token: []
@@ -3522,7 +3552,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_3
+            schema: &ref_5
               type: object
               properties:
                 name:
@@ -3541,7 +3571,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_3
+                    - *ref_5
                     - type: object
                     - properties:
                         id:
@@ -3561,15 +3591,15 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_3
+                  - *ref_5
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/pillars/{id}/edit': *ref_4
-  /steps/create: &ref_6
+  '/pillars/{id}/edit': *ref_6
+  /steps/create: &ref_8
     post:
       security:
         - token: []
@@ -3579,7 +3609,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_5
+            schema: &ref_7
               type: object
               properties:
                 name:
@@ -3598,7 +3628,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_5
+                    - *ref_7
                     - type: object
                     - properties:
                         id:
@@ -3618,28 +3648,28 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_5
+                  - *ref_7
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/steps/{id}/edit': *ref_6
+  '/steps/{id}/edit': *ref_8
 definitions:
   ErrorResponse:
     BadRequest:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_7
+          schema: &ref_9
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_7
+    Error: *ref_9
 components:
   securitySchemes:
     token:
@@ -3655,11 +3685,12 @@ components:
       required:
         - error
     userME: *ref_0
-    project: *ref_1
+    project: *ref_3
     userSchema: *ref_0
-    projectSchema: *ref_1
+    projectSchema: *ref_3
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'
-    pillarSchema: *ref_3
-    stepSchema: *ref_5
+    pillarSchema: *ref_5
+    stepSchema: *ref_7
+    groupSchema: *ref_2
 

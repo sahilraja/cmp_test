@@ -59,7 +59,7 @@
                 upfile:
                   type: string
                   format: binary
-                name:
+                docName:
                   type: string
                   example: Annula Report
                 description:

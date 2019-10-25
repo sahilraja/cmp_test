@@ -81,9 +81,10 @@ export async function GetUserIdsForDocWithRole(docId: string, role: string) {
     };
 };
 
-export async function GetDocIdsForUser(userId: string) {
+export async function GetDocIdsForUser(userId: string, type?:string) {
     try {
-        let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
+        let userType = type || "user"
+        let policies = await groupsPolicyFilter(`${type}/${userId}`, 0, "p")
         if (!policies.data) throw new Error("policies not found for this User.")
         let users = policies.data.filter((policy: string[]) => {
             if (policy[2] == "collaborator" || policy[2] == "viewer")
@@ -95,8 +96,9 @@ export async function GetDocIdsForUser(userId: string) {
     };
 };
 
+
 // get Role of Doc in return Array[2] 
-export async function getRoleOfDoc(userId: string, docId: string, type?:string ) :Promise<string> {
+export async function getRoleOfDoc(userId: string, docId: string, type?: string): Promise<string> {
     try {
         let userType = type || "user"
         let { data: policies } = await groupsPolicyFilter(`${userType}/${userId}`, 0, "p")
@@ -150,8 +152,9 @@ export async function GetDocCapabilitiesForUser(userId: string, docId: string) {
     };
 };
 
-// user Group list
-export async function userGroupsList(userId: string) {
+
+// Get user exist in group ids
+export async function userGroupsList(userId: string): Promise<string[]> {
     try {
         let Options = {
             uri: `${GROUPS_URL}/group/list/${userId}`,
@@ -164,8 +167,8 @@ export async function userGroupsList(userId: string) {
     };
 };
 
-// group user list
-export async function groupUserList(groupId: string) {
+// Get group is user ids
+export async function groupUserList(groupId: string): Promise<string[]> {
     try {
         let Options = {
             uri: `${GROUPS_URL}/group/user/list/${groupId}`,
@@ -178,7 +181,8 @@ export async function groupUserList(groupId: string) {
     };
 };
 
-export async function addUserToGroup(userId: string, groupId: string) {
+//  it will create users by group id in group rbc module
+export async function addUserToGroup(userId: string, groupId: string): Promise<string[]> {
     try {
         let Options = {
             uri: `${GROUPS_URL}/group/user/add`,
@@ -195,7 +199,8 @@ export async function addUserToGroup(userId: string, groupId: string) {
     };
 };
 
-export async function removeUserToGroup(userId: string, groupId: string) {
+//  it will remove user by group id in group rbc module
+export async function removeUserToGroup(userId: string, groupId: string): Promise<string[]> {
     try {
         let Options = {
             uri: `${GROUPS_URL}/group/user/remove`,
