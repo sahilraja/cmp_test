@@ -400,11 +400,11 @@ export async function groupStatus(id: any) {
 };
 
 //  Edit Group
-export async function editGroup(objBody: any, id: string) {
+export async function editGroup(objBody: any, id: string, userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupFindOne("id", id);
-        
+        if(group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
         const { name, description } = objBody
         let obj: any = {}
         if (name) {
