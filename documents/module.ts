@@ -53,6 +53,7 @@ export async function createNewDoc(body: any, userId: any) {
     if (body.description.length > configLimit.description) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
+    body.name = body.docName
     body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
@@ -62,6 +63,11 @@ export async function createNewDoc(body: any, userId: any) {
     }
     body.parentId = doc.id;
     let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+    if(body.folderId){
+      await folders.update({ _id: body.folderId }, {
+        $push: { doc_id: doc.id }
+      })
+    }
     return doc;
   } catch (err) {
     throw err
@@ -156,7 +162,7 @@ async function docData(docData: any) {
 }
 
 //  Get My Documents
-export async function getDocListOfMe(userId: string) {
+export async function getDocListOfMe(userId: string,page: number = 1, limit: number = 30) {
   try {
     let folderList = await folders
       .find({ ownerId: userId },{_id: 0 ,doc_id:1 })
@@ -189,7 +195,8 @@ export async function getDocListOfMe(userId: string) {
       });
   })
   console.log(result);
-    return { docs: result };
+  const docsData =  manualPagination(page, limit, result)
+    return { docsData };
   } catch (error) {
     console.log(error);
     throw error;
@@ -953,6 +960,17 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
   return orders.slice(skip, skip + limit);
 };
 
+function manualPagination( page: number, limit: number,docs: any[]) {
+  page = Number(page)
+  limit = Number(limit)
+  const skip = ((page - 1) * limit)
+  return {
+    page,
+    pages: Math.ceil(docs.length / limit),
+    docs: docs.slice(skip, skip + limit)
+  }
+}
+
 export async function createFolder(body: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
@@ -1070,8 +1088,8 @@ export async function getFolderDetails(folderId: string, userId: any,page: numbe
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const docsData =  filterOrdersByPageAndLimit(page, limit, docsList)
-  return { subFolderList: subFolderList,docsList: docsData };
+  const docsData =  manualPagination(page, limit, docsList)
+  return { subFolderList: subFolderList,docsData };
 
 }
 

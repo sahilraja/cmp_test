@@ -142,7 +142,7 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
 // Get My list
 router.get("/me", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocListOfMe(res.locals.user._id));
+    res.status(200).send(await getDocListOfMe(res.locals.user._id,req.query.page, req.query.limit));
   } catch (err) {
     next(new APIError(err.message));;
   }
