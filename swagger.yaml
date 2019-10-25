@@ -77,6 +77,8 @@ paths:
     $ref: ./swagger/groups/paths.yaml/#/removeMember
   /user/group/{id}:
     $ref: ./swagger/groups/paths.yaml/#/groupDetails
+  /user/group/list:
+    $ref: ./swagger/groups/paths.yaml/#/groupList
   
     
 # Project APIs
@@ -267,4 +269,6 @@ components:
       $ref: ./swagger/pillars/schema.yaml/#/responses/schemas/pillarSchema
     stepSchema:
       $ref: ./swagger/steps/schema.yaml/#/responses/schemas/stepSchema
+    groupSchema:
+      $ref: ./swagger/groups/schema.yaml/#/responses/schemas/groupSchema
 
