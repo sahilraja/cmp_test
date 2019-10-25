@@ -62,7 +62,7 @@ export async function createNewDoc(body: any, userId: any) {
     }
     body.parentId = doc.id;
     let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
-    return { doc_id: doc.id };
+    return doc;
   } catch (err) {
     throw err
   };
@@ -137,10 +137,12 @@ export async function getDocList() {
     throw error;
   }
 }
+
 export async function documentsList(docs:any[]): Promise<object[]>{
   docs = docs.map((id:string) => Types.ObjectId(id))
   return await documents.find({_id: {$in: docs}})
 }
+
 async function docData(docData: any) {
   try {
     return {
