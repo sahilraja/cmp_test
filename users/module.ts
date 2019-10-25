@@ -478,10 +478,12 @@ export async function removeMembers(id: string, users: any[]) {
 };
 
 //  user and group suggestion
-export async function userSuggestions(search: string) {
+export async function userSuggestions(search: string, userId: string) {
     try {
-        // let groups = await groupsModel.find({ name: new RegExp(search, "i") }, { name: 1 })
-        // groups = groups.map((group: any) => { return { ...group.toJSON(), type: "group" } })
+        let groupIds = await GetDocIdsForUser(userId, "group")
+        let meCreatedGroup = await groupPatternMatch({},{name: search},{_id: userId},{},"updatedAt")
+        let sharedGroup = await groupPatternMatch({},{name: search},{_id: groupIds},{},"updatedAt")
+        let groups = [...meCreatedGroup, ...sharedGroup]
         const searchQuery = search ? { name: new RegExp(search, "i"), emailVerified: true } : {is_active: true, emailVerified: true}
         let users: any = search ?
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
@@ -499,7 +501,7 @@ export async function userSuggestions(search: string) {
             return user
         })
         //  groups removed in removed
-        return [...users]
+        return [...users, ...groups]
     } catch (err) {
         throw err
     };
