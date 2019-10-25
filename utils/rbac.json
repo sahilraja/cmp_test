@@ -48,6 +48,12 @@
         "capability": "create-doc",
         "description": "Ability to create a document",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -84,6 +90,12 @@
       {
         "capability": "create-doc",
         "description": "Ability to create a document",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -124,6 +136,12 @@
         "capability": "create-doc",
         "description": "Ability to create a document",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -135,6 +153,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -148,6 +172,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -159,6 +189,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -172,6 +208,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -183,6 +225,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -196,6 +244,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -207,6 +261,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -220,6 +280,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -231,6 +297,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -244,6 +316,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -255,6 +333,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -268,6 +352,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -279,6 +369,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
@@ -292,6 +388,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -304,6 +406,12 @@
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
       }
     ]
   },
@@ -315,6 +423,12 @@
       {
         "capability": "project-view",
         "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
         "scope": "global"
       }
     ]
