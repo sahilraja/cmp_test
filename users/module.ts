@@ -1,6 +1,6 @@
 import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
-import { inviteUserForm, forgotPasswordForm, userLoginForm, userState ,profileOtp} from "../utils/email_template";
+import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
@@ -26,8 +26,8 @@ export async function inviteUser(objBody: any, user: any) {
             lastName: objBody.lastName,
             middleName: objBody.middleName
         })
-        let {firstName , lastName , middleName} = userData;
-        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        let { firstName, lastName, middleName } = userData;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         //  Add Role to User
         let RoleStatus = await addRole(userData._id, objBody.role)
         if (!RoleStatus.status) {
@@ -131,8 +131,8 @@ export async function edit_user(id: string, objBody: any, user: any) {
             obj.phone = objBody.phone;
         };
         let userRole;
-        if(id != user._id && objBody.role){
-            userRole = await updateRole(id,objBody.updateRole,objBody.role);
+        if (id != user._id && objBody.role) {
+            userRole = await updateRole(id, objBody.updateRole, objBody.role);
         }
         if (objBody.aboutme) {
             obj.aboutme = objBody.aboutme;
@@ -140,7 +140,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         // update user with edited fields
         let userInfo = await userEdit(id, objBody);
         console.log(`s`)
-        userInfo.role= userRole;
+        userInfo.role = userRole;
         return userInfo
 
     } catch (err) {
@@ -156,18 +156,17 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         const data = await Promise.all(docs.map(async doc => {
             return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
         }));
-        let rolesBody:any =  await roles_list();
-        data.map((user)=>{
-            rolesBody.roles.forEach((roleInfo:any) => {
-                if(roleInfo.role == user.role)
-                {
+        let rolesBody: any = await roles_list();
+        data.map((user) => {
+            rolesBody.roles.forEach((roleInfo: any) => {
+                if (roleInfo.role == user.role) {
                     user.role = roleInfo.description;
                     return false;
                 }
             });
             return user
         })
-        return { data, page:+page,pages: pages, count: total };
+        return { data, page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
     };
@@ -191,10 +190,10 @@ export async function user_status(id: string, user: any) {
 
         let userData: any = await userFindOne("id", id);
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
-        if(!userData.emailVerified) throw new Error("User not registered Yet.")
+        if (!userData.emailVerified) throw new Error("User not registered Yet.")
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
-        let state = data.is_active ? "Activated": "Inactivated"
+        let state = data.is_active ? "Activated" : "Inactivated"
 
         await nodemail({
             email: userData.email,
@@ -203,7 +202,7 @@ export async function user_status(id: string, user: any) {
                 state
             })
         })
-        return { message : data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
+        return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
         throw err;
     };
@@ -223,7 +222,7 @@ export async function user_login(objBody: any) {
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
-        await loginSchema.create({ip:objBody.ip,userId:userData._id});
+        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         await nodemail({
             email: userData.email,
@@ -280,9 +279,9 @@ export async function userRoles(id: any) {
         let [role, formattedRolesData] = await Promise.all([
             getRoles(id),
             roles_list()
-        ]) 
+        ])
         if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
-        const formattedRole = formattedRolesData.roles.find((roleObj:any) => roleObj.role == role.data[0].role)
+        const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
         return { roles: formattedRole ? formattedRole.description : role.data[0].role }
     } catch (err) {
         throw err
@@ -313,13 +312,13 @@ export async function forgotPassword(objBody: any) {
         };
         //  Find User
         let userDetails: any = await userFindOne("email", objBody.email);
-        if(!userDetails){
+        if (!userDetails) {
             throw new Error('Email ID is not registered')
         }
-        let {firstName , lastName , middleName} = userDetails;
-        let fullName = (firstName ? firstName + " " :"")+(middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        let { firstName, lastName, middleName } = userDetails;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
-        if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER) 
+        if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         //  Create Token
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
@@ -391,7 +390,7 @@ export async function groupStatus(id: any, userId: string) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        if(group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
+        if (group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
@@ -405,7 +404,7 @@ export async function editGroup(objBody: any, id: string, userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupFindOne("id", id);
-        if(group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
+        if (group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
         const { name, description } = objBody
         let obj: any = {}
         if (name) {
@@ -424,8 +423,8 @@ export async function editGroup(objBody: any, id: string, userId: string) {
 export async function groupList(userId: string) {
     try {
         let groupIds = await userGroupsList(userId)
-        let meCreatedGroup = await groupPatternMatch({},{},{createdBy: userId},{},"updatedAt")
-        let sharedGroup = await groupPatternMatch({},{},{_id: groupIds},{},"updatedAt")
+        let meCreatedGroup = await groupPatternMatch({}, {}, { createdBy: userId }, {}, "updatedAt")
+        let sharedGroup = await groupPatternMatch({}, {}, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
         return await Promise.all(groups.map(async (group: any) => {
             return { ...group, users: ((await groupUserList(group._id)) as any).length }
@@ -455,7 +454,7 @@ export async function addMember(id: string, users: any[], userId: string) {
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async (user: any) => {if(data.createdBy != user){await addUserToGroup(user, id)} }))
+        await Promise.all(users.map(async (user: any) => { if (data.createdBy != user) { await addUserToGroup(user, id) } }))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -463,14 +462,17 @@ export async function addMember(id: string, users: any[], userId: string) {
 };
 
 //  Remove Member From Group
-export async function removeMembers(id: string, users: any[]) {
+export async function removeMembers(id: string, users: any[], userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async (user: any) => { await removeUserToGroup(user, id) }))
+        await Promise.all(users.map(async (user: any) => { 
+            if (userId != user && data.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
+            await removeUserToGroup(user, id) 
+        }))
         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
         throw err
@@ -481,19 +483,18 @@ export async function removeMembers(id: string, users: any[]) {
 export async function userSuggestions(search: string, userId: string) {
     try {
         let groupIds = await userGroupsList(userId)
-        let meCreatedGroup = await groupPatternMatch({},{name: search},{createdBy: userId},{},"updatedAt")
-        let sharedGroup = await groupPatternMatch({},{name: search},{_id: groupIds},{},"updatedAt")
+        let meCreatedGroup = await groupPatternMatch({}, { name: search }, { createdBy: userId }, {}, "updatedAt")
+        let sharedGroup = await groupPatternMatch({}, { name: search }, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
-        const searchQuery = search ? { name: new RegExp(search, "i"), emailVerified: true } : {is_active: true, emailVerified: true}
+        const searchQuery = search ? { name: new RegExp(search, "i"), emailVerified: true } : { is_active: true, emailVerified: true }
         let users: any = search ?
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
         users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
-        let rolesBody:any =  await roles_list();
-        users.map((user:any)=>{
-            rolesBody.roles.forEach((roleInfo:any) => {
-                if(roleInfo.role == user.role)
-                {
+        let rolesBody: any = await roles_list();
+        users.map((user: any) => {
+            rolesBody.roles.forEach((roleInfo: any) => {
+                if (roleInfo.role == user.role) {
                     user.role = roleInfo.description;
                     return false;
                 }
@@ -545,14 +546,14 @@ export async function changeEmailInfo(objBody: any, user: any) {
         }
         //  find User
         let emailExist = await userFindOne("email", objBody.email);
-        if(emailExist) throw new Error("Already email exist.")
-        let validUser = await userLogin({email: user.email, password: objBody.password})
-        if(!validUser.token) throw new Error("Enter valid credentials.");
+        if (emailExist) throw new Error("Already email exist.")
+        let validUser = await userLogin({ email: user.email, password: objBody.password })
+        if (!validUser.token) throw new Error("Enter valid credentials.");
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
-        let {firstName , lastName , middleName} = userInfo;
-        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        let { firstName, lastName, middleName } = userInfo;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         let success = await nodemail({
             email: user.email,
             subject: MAIL_SUBJECT.OTP_SUBJECT,
@@ -561,34 +562,34 @@ export async function changeEmailInfo(objBody: any, user: any) {
                 otp: authOtp.otp
             })
         });
-        return {message: RESPONSE.SUCCESS_EMAIL};
+        return { message: RESPONSE.SUCCESS_EMAIL };
     }
     catch (err) {
         throw err
     };
 };
 
-export async function profileOtpVerify(objBody: any, user: any){
-    try{
-        if(!objBody.otp) throw new Error("Otp is Missing.");
-        let token :any = await jwt_Verify(user.otp_token)
-        if(objBody.otp == token.otp){
-            return await userEdit(user._id, {email: token.newEmail})
+export async function profileOtpVerify(objBody: any, user: any) {
+    try {
+        if (!objBody.otp) throw new Error("Otp is Missing.");
+        let token: any = await jwt_Verify(user.otp_token)
+        if (objBody.otp == token.otp) {
+            return await userEdit(user._id, { email: token.newEmail })
         }
-        else{
+        else {
             throw new Error("Enter Valid Otp.");
         }
-    }catch(err){
+    } catch (err) {
         throw err
     }
 }
-export async function loginHistory(id:string){
-    try{
+export async function loginHistory(id: string) {
+    try {
         //return await loginSchema.paginate({},{select:{createdBy:id,createdAt:1,ip:1},sort:{createdAt:1}});
-        let history = await loginSchema.find({userId:id}).sort({createdAt:1}).exec();
-        return {history:history}
+        let history = await loginSchema.find({ userId: id }).sort({ createdAt: 1 }).exec();
+        return { history: history }
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }

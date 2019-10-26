@@ -222,7 +222,7 @@ router.post("/group/:id/member/add", authenticate, async (req: Request, res: Res
 //  Remove Member
 router.post("/group/:id/member/remove", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await removeMembers(req.params.id, req.body.users));
+        res.status(200).send(await removeMembers(req.params.id, req.body.users, res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));;
     };
