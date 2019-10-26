@@ -3013,13 +3013,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  capabilities:
-                    type: array
-                    items:
-                      type: string
-                    example:
-                      - capabilitiy 1
-                      - capability 2
+                  docRole:
+                    type: string
+                    example: owner
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/{id}/publish':

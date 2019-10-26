@@ -712,6 +712,28 @@ export async function sharedList(userId: string, host: string) {
   }
 }
 
+export async function documnetCapabilities(docId: string, userId: string) {
+  try {
+    let groups = await userGroupsList(userId)
+    let capability = await GetDocCapabilitiesForUser(userId, docId)
+    if (capability.length) {
+      let role = capability.pop()
+      if (role == "owner" || role == "collaborator") return { docRole: role }
+    } else if (groups.length) {
+      for (const groupId of groups) {
+        let capability = await GetDocCapabilitiesForUser(groupId, docId)
+        if (capability.length) {
+          let role = capability.pop()
+          if (role == "owner" || role == "collaborator") return { docRole: role }
+        }
+      };
+    };
+    return { docRole: "viewer" }
+  } catch (err) {
+    throw err;
+  };
+};
+
 async function invite(user: any, docId: any, role: any, doc: any) {
   await shareDoc(user._id, user.type, docId, role);
   if (user.type == "user") {
@@ -726,8 +748,9 @@ async function invite(user: any, docId: any, role: any, doc: any) {
         documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
       })
     });
-  }
-}
+  };
+};
+
 export async function invitePeople(docId: string, users: object[], role: string, userId: string) {
   try {
 
