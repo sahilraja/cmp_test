@@ -2,7 +2,7 @@ import * as request from "request-promise";
 import { GROUPS_URL } from "./urls";
 import { promises } from "fs";
 
-enum roleHierarchy {
+export enum roleHierarchy {
     owner = 0,
     collaborator = 1,
     viewer = 2

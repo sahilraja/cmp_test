@@ -41,7 +41,8 @@ import {
   getFolderDetails,
   deleteFolder,
   documentsList,
-  updateDocNew
+  updateDocNew,
+  documnetCapabilities
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -142,7 +143,7 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
 // Get My list
 router.get("/me", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocListOfMe(res.locals.user._id,req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}` ));
+    res.status(200).send(await getDocListOfMe(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -444,19 +445,13 @@ router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, 
 });
 
 //  update exist doc
-router.get(
-  "/:id/capabilities",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      res
-        .status(200)
-        .send(await docCapabilities(req.params.id, res.locals.user._id));
-    } catch (err) {
-      next(new APIError(err.message));;
-    }
+router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await documnetCapabilities(req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
   }
-);
+});
 
 //  update exist doc
 router.post(
@@ -566,7 +561,7 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 //list of folders and files in it
 router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id,req.query.page, req.query.limit));
+    res.status(200).send(await getFolderDetails(req.params.folderId, res.locals.user._id, req.query.page, req.query.limit));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -575,7 +570,7 @@ router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFu
 //delete folder
 router.delete("/folder/delete/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await deleteFolder(req.params.id,res.locals.user._id));
+    res.status(200).send(await deleteFolder(req.params.id, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
