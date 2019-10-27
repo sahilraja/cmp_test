@@ -2,7 +2,7 @@ import * as request from "request-promise";
 import { GROUPS_URL } from "./urls";
 import { promises } from "fs";
 
-enum roleHierarchy {
+export enum roleHierarchy {
     owner = 0,
     collaborator = 1,
     viewer = 2
@@ -81,11 +81,10 @@ export async function GetUserIdsForDocWithRole(docId: string, role: string) {
     };
 };
 
-export async function GetDocIdsForUser(userId: string, type?:string) {
+export async function GetDocIdsForUser(userId: string, type?:string): Promise<any[]> {
     try {
         let userType = type || "user"
-        let policies = await groupsPolicyFilter(`${type}/${userId}`, 0, "p")
-        if (!policies.data) throw new Error("policies not found for this User.")
+        let policies = await groupsPolicyFilter(`${userType}/${userId}`, 1, "p")
         let users = policies.data.filter((policy: string[]) => {
             if (policy[2] == "collaborator" || policy[2] == "viewer")
                 return policy

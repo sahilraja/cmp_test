@@ -41,7 +41,8 @@ import {
   getFolderDetails,
   deleteFolder,
   documentsList,
-  updateDocNew
+  updateDocNew,
+  documnetCapabilities
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -114,7 +115,7 @@ router.post("/create/new", authenticate, async (req, res, next: NextFunction) =>
 //  Get Public List
 router.get("/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocList());
+    res.status(200).send(await getDocList(`${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -123,7 +124,7 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
 // Get My shared list
 router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await sharedList(res.locals.user._id));
+    res.status(200).send(await sharedList(res.locals.user._id, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -132,7 +133,7 @@ router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
 // Get My shared list
 router.get("/publish/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await publishList(res.locals.user._id));
+    res.status(200).send(await publishList(res.locals.user._id, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -142,7 +143,7 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
 // Get My list
 router.get("/me", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocListOfMe(res.locals.user._id,req.query.page, req.query.limit));
+    res.status(200).send(await getDocListOfMe(res.locals.user._id,req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}` ));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -151,7 +152,7 @@ router.get("/me", authenticate, async (req, res, next: NextFunction) => {
 //  Get pending Approval parent Docs
 router.get("/approvals", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await approvalList());
+    res.status(200).send(await approvalList(`${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -169,7 +170,7 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
 
 router.get("/search", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id, req.query.page, req.query.limit));
+    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));;
   }
@@ -444,14 +445,9 @@ router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, 
 });
 
 //  update exist doc
-router.get(
-  "/:id/capabilities",
-  authenticate,
-  async (req, res, next: NextFunction) => {
+router.get("/:id/capabilities",authenticate,async (req, res, next: NextFunction) => {
     try {
-      res
-        .status(200)
-        .send(await docCapabilities(req.params.id, res.locals.user._id));
+      res.status(200).send(await documnetCapabilities(req.params.id, res.locals.user._id));
     } catch (err) {
       next(new APIError(err.message));;
     }
