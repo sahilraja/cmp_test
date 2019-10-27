@@ -170,6 +170,7 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
       return folder.doc_id
     })
     var merged = [].concat.apply([], folder_files);
+    console.log(JSON.parse(JSON.stringify(merged)));
     let folderDocIds = JSON.parse(JSON.stringify(merged));
     // let folder_file= folder_files.reduce((main:any,folder:any) => {
     //   console.log(JSON.stringify(folder));
@@ -188,6 +189,7 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
         return docs._id == folderDocs;
       });
     })
+    console.log(result);
     const docsData = manualPagination(page, limit, result)
     return { docsData };
   } catch (error) {
