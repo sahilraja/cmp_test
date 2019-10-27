@@ -423,8 +423,8 @@ export async function editGroup(objBody: any, id: string, userId: string) {
 export async function groupList(userId: string) {
     try {
         let groupIds = await userGroupsList(userId)
-        let meCreatedGroup = await groupPatternMatch({}, {}, { createdBy: userId }, {}, "updatedAt")
-        let sharedGroup = await groupPatternMatch({}, {}, { _id: groupIds }, {}, "updatedAt")
+        let meCreatedGroup = await groupPatternMatch({ is_active: true }, {}, { createdBy: userId }, {}, "updatedAt")
+        let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
         return await Promise.all(groups.map(async (group: any) => {
             return { ...group, users: ((await groupUserList(group._id)) as any).length }
@@ -469,9 +469,9 @@ export async function removeMembers(id: string, users: any[], userId: string) {
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async (user: any) => { 
+        await Promise.all(users.map(async (user: any) => {
             if (userId != user && data.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
-            await removeUserToGroup(user, id) 
+            await removeUserToGroup(user, id)
         }))
         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
@@ -483,8 +483,8 @@ export async function removeMembers(id: string, users: any[], userId: string) {
 export async function userSuggestions(search: string, userId: string) {
     try {
         let groupIds = await userGroupsList(userId)
-        let meCreatedGroup = await groupPatternMatch({}, { name: search }, { createdBy: userId }, {}, "updatedAt")
-        let sharedGroup = await groupPatternMatch({}, { name: search }, { _id: groupIds }, {}, "updatedAt")
+        let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
+        let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
         const searchQuery = search ? { name: new RegExp(search, "i"), emailVerified: true } : { is_active: true, emailVerified: true }
         let users: any = search ?
