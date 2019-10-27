@@ -166,10 +166,7 @@ async function docData(docData: any, host: string) {
 //  Get My Documents
 export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
-    let folderList = await folders
-      .find({ ownerId: userId }, { _id: 0, doc_id: 1 })
-
-
+    let folderList = await folders.find({ ownerId: userId }, { _id: 0, doc_id: 1 })
     let folder_files = folderList.map((folder: any) => {
       return folder.doc_id
     })
@@ -183,13 +180,10 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
 
     // console.log(folder_file);
 
-    let docs = await documents
-      .find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } })
-      .sort({ updatedAt: -1 })
-    const docList = await Promise.all(
-      docs.map(doc => {
-        return docData(doc, host);
-      })
+    let docs = await documents.find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } }).sort({ updatedAt: -1 })
+    const docList = await Promise.all(docs.map((doc) => {
+      return docData(doc, host);
+    })
     );
     var result = docList.filter(function (docs) {
       return !folderDocIds.some(function (folderDocs: any) {
