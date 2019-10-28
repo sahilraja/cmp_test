@@ -191,6 +191,8 @@ export async function user_status(id: string, user: any) {
 
         let templatInfo = await getTemplateBySubstitutions('userState', {state});
 
+        //let templatInfo = await getTemplateBySubstitutions('userState', {state});
+
         await nodemail({
             email: userData.email,
             subject: templatInfo.subject,
