@@ -1390,14 +1390,112 @@ paths:
                                 example: PENDING
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/create-task': null
+  '/project/{id}/create-task':
+    post:
+      security:
+        - token: []
+      summary: task add
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: task_name
+                description:
+                  type: string
+                  example: task_description
+                startDate:
+                  type: string
+                  example: 22-1-2019
+                dueDate:
+                  type: string
+                  example: 22-1-2019
+                assignee:
+                  type: string
+                  example: userId1234
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schoolss
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/gantt-chart':
+    get:
+      security:
+        - token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            required: true
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_3
+                  - type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: 5b7af7b897dd507d05fa99b4
+                            startDate:
+                              type: string
+                              example: 2018-08-20T17:17:44.377Z
+                            endDate:
+                              type: string
+                              example: 2018-08-20T17:17:44.377Z
+                            progressPercentage:
+                              type: number
+                              example: 60
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/link-task':
     post:
       tags:
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true
@@ -1428,7 +1526,7 @@ paths:
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true

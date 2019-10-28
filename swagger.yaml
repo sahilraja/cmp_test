@@ -100,6 +100,8 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/getProjectTaskList
   /project/{id}/create-task:
     $ref: ./swagger/projects/paths.yaml/#/addTaskToProject
+  /project/{id}/gantt-chart:
+    $ref: ./swagger/projects/paths.yaml/#/getGanttChartForProject
   /project/{id}/link-task:
     $ref: ./swagger/projects/paths.yaml/#/linkTask
   /project/{id}/task/{task-id}/edit-date:

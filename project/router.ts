@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError } from "../utils/custom-error";
@@ -34,6 +34,13 @@ router.get("/:id/detail", async (req, res, next) => {
     }
 })
 
+router.get(`/:id/gantt-chart`, async (req,res, next) => {
+    try {
+        res.status(OK).send(await ganttChart(req.params.id, (req as any).token))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 //  Edit Project
 router.post("/:id/edit", async (req: any, res: any, next: any) => {
     try {
