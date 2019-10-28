@@ -2311,6 +2311,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /docs/me:
@@ -2368,6 +2372,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /docs/shared/me:
@@ -2406,6 +2414,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/{id}/file':
@@ -3287,6 +3299,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/moveTo/folder/{id}':

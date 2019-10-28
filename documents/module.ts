@@ -1062,7 +1062,7 @@ export async function listFolders(userId: String) {
     throw error;
   }
 }
-export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30) {
+export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30,host: string) {
   if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const fetchedDoc = await folders.aggregate([
     {
@@ -1105,7 +1105,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   })
   const docs = await Promise.all(
     fetchedDoc.map((folder: any) => {
-      return userData(folder);
+      return userData(folder,host);
     })
   )
   const docsList = docs.map((folder: any) => {
@@ -1116,9 +1116,9 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
 
 }
 
-async function userData(folder: any) {
+async function userData(folder: any,host: string) {
   try {
-
+    let fileType = (folder.doc_id.fileName.split(".")).pop()
     const data = await Promise.all([{
       docId: folder.doc_id._id,
       name: folder.doc_id.name,
@@ -1128,6 +1128,7 @@ async function userData(folder: any) {
         ""
       ])[0],
       owner: await userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt
     }])
     return data
