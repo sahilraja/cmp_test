@@ -16,7 +16,7 @@ const schema = new Schema(
     viewer: { type: Array },
     is_active: { type: Boolean, default: true },
     sourceId: { type: String },
-    isInFolder:{ type: Boolean, default: false }
+    isDeleted:{ type: Boolean, default: false }
   },
   { timestamps: true }
 );

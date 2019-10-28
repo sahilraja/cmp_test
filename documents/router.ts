@@ -42,7 +42,8 @@ import {
   deleteFolder,
   documentsList,
   updateDocNew,
-  documnetCapabilities
+  documnetCapabilities,
+  deleteDoc
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -585,3 +586,11 @@ router.post("/multiple/list", async (req, res, next: NextFunction) => {
   }
 });
 export = router;
+
+router.put("/delete/:id", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await deleteDoc(req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
+  }
+});

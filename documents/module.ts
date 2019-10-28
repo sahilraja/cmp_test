@@ -165,7 +165,7 @@ async function docData(docData: any, host: string) {
 //  Get My Documents
 export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
-    let folderList = await folders.find({ ownerId: userId }, { _id: 0, doc_id: 1 })
+    let folderList = await folders.find({ ownerId: userId,isDeleted: false }, { _id: 0, doc_id: 1 })
     let folder_files = folderList.map((folder: any) => {
       return folder.doc_id
     })
@@ -1174,3 +1174,30 @@ export async function removeFromFolder(folderId: string, body: any, userId: stri
     throw error;
   }
 }
+
+export async function deleteDoc(docId: any, userId: string) {
+  try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    
+    const isEligible = await checkRoleScope(userRole, "delete-doc");
+    if (!isEligible) {
+      throw new Error(DOCUMENT_ROUTER.NO_DELETE_PERMISSION);
+    }
+
+    if (!Types.ObjectId.isValid(docId))
+      throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    
+    let deletedDoc = await documents.update({_id:docId,ownerId:userId}, {isDeleted:true}, { new: true }).exec()
+    if(deletedDoc){
+      console.log(deleteDoc);
+      return{
+        success:true,
+        mesage:"File deleted successfully"
+      }
+    } 
+  }catch (err) {
+    console.log(err);
+    throw err;
+  };
+};
