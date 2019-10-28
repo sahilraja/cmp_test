@@ -390,7 +390,7 @@ export async function groupStatus(id: any, userId: string) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        if (group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
+        if (group.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
@@ -404,7 +404,7 @@ export async function editGroup(objBody: any, id: string, userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupFindOne("id", id);
-        if (group.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
+        if (group.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         const { name, description } = objBody
         let obj: any = {}
         if (name) {
@@ -454,7 +454,7 @@ export async function addMember(id: string, users: any[], userId: string) {
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async (user: any) => { if (data.createdBy != user) { await addUserToGroup(user, id) } }))
+        await Promise.all(users.map(async (user: any) => { if (data.createdBy._id != user) { await addUserToGroup(user, id) } }))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -470,7 +470,7 @@ export async function removeMembers(id: string, users: any[], userId: string) {
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => {
-            if (userId != user && data.createdBy != userId) throw new Error("Only this Action Performed By Group Admin.")
+            if (userId != user && data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
             await removeUserToGroup(user, id)
         }))
         return { message: RESPONSE.REMOVE_MEMBER }
