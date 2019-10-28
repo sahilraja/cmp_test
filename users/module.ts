@@ -471,6 +471,7 @@ export async function removeMembers(id: string, users: any[], userId: string) {
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => {
+            if(user == data.createdBy._id) throw new Error("This Action Is Not Valid")
             if (userId != user && data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
             await removeUserToGroup(user, id)
         }))
