@@ -47,8 +47,9 @@ export async function inviteUser(objBody: any, user: any) {
         //  Sent Mail to User
         let mailStatus = await nodemail({
             email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content})
+            subject: templatInfo.content,
+            html: templatInfo.content
+        })
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -188,11 +189,7 @@ export async function user_status(id: string, user: any) {
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated": "Inactivated"
-
         let templatInfo = await getTemplateBySubstitutions('userState', {state});
-
-        //let templatInfo = await getTemplateBySubstitutions('userState', {state});
-
         await nodemail({
             email: userData.email,
             subject: templatInfo.subject,
