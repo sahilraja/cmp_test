@@ -47,9 +47,8 @@ export async function inviteUser(objBody: any, user: any) {
         //  Sent Mail to User
         let mailStatus = await nodemail({
             email: userData.email,
-            subject: templatInfo.content,
-            html: templatInfo.content
-        })
+            subject: templatInfo.subject,
+            html: templatInfo.content})
         return { userId: userData._id };
     } catch (err) {
         throw err;
