@@ -583,13 +583,3 @@ export async function profileOtpVerify(objBody: any, user: any) {
         throw err
     }
 }
-export async function loginHistory(id: string) {
-    try {
-        //return await loginSchema.paginate({},{select:{createdBy:id,createdAt:1,ip:1},sort:{createdAt:1}});
-        let history = await loginSchema.find({ userId: id }).sort({ createdAt: 1 }).exec();
-        return { history: history }
-    }
-    catch (err) {
-        throw err
-    }
-}

@@ -20,7 +20,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople } from "../utils/email_template";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup,searchByname } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 
@@ -154,7 +154,7 @@ async function docData(docData: any, host: string) {
     return {
       ...docData.toJSON(), tags: await getTags(docData.tags),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
-      owner: await userFindOne("id", docData.ownerId, { name: 1 }),
+      owner: await userFindOne("id", docData.ownerId, { firstName: 1,middleName:1,lastName:1,email:1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
     };
   } catch (err) {
@@ -165,7 +165,7 @@ async function docData(docData: any, host: string) {
 //  Get My Documents
 export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
-    let folderList = await folders.find({ ownerId: userId }, { _id: 0, doc_id: 1 })
+    let folderList = await folders.find({ ownerId: userId,isDeleted: false }, { _id: 0, doc_id: 1 })
     let folder_files = folderList.map((folder: any) => {
       return folder.doc_id
     })
@@ -947,9 +947,16 @@ export async function publishList(userId: string, host: string) {
 }
 
 // Get Filterd Documents
-export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string): Promise<object[]> {
+export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string){
   search = search.trim();
   try {
+   let users = await searchByname(search);
+   console.log(users.users);
+   let userIds = users.users.map((user:any)=>{
+     return new RegExp(user._id, "i")
+   })
+   console.log(userIds);
+   
     let docs: any = [],
       shared: any = [];
 
@@ -965,13 +972,13 @@ export async function docFilter(search: string, userId: string, page: number = 1
       docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 });
       shared = await documents.find({ _id: { $in: docIds }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
-      //  Search With Tag Names
-      docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 });
-      shared = await documents.find({ _id: { $in: docIds }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 });
+      docs = await documents.find({parentId: null, $or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: docIds },$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")}] }).sort({ updatedAt: -1 });
     }
+    // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
     let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc, host)));
-    return filterOrdersByPageAndLimit(page, limit, filteredDocs)
+    return manualPagination(page, limit, filteredDocs)
   } catch (err) {
     throw err;
   };
@@ -980,7 +987,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
 //  Manual Pagination for Doc Filter
 function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): Promise<object[]> {
   let skip = ((page - 1) * limit);
-  return orders.slice(skip, skip + limit);
+  return orders.  slice(skip, skip + limit);
 };
 
 function manualPagination(page: number, limit: number, docs: any[]) {
@@ -1062,7 +1069,7 @@ export async function listFolders(userId: String) {
     throw error;
   }
 }
-export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30) {
+export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30,host: string) {
   if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const fetchedDoc = await folders.aggregate([
     {
@@ -1105,7 +1112,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   })
   const docs = await Promise.all(
     fetchedDoc.map((folder: any) => {
-      return userData(folder);
+      return userData(folder,host);
     })
   )
   const docsList = docs.map((folder: any) => {
@@ -1116,9 +1123,9 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
 
 }
 
-async function userData(folder: any) {
+async function userData(folder: any,host: string) {
   try {
-
+    let fileType = (folder.doc_id.fileName.split(".")).pop()
     const data = await Promise.all([{
       docId: folder.doc_id._id,
       name: folder.doc_id.name,
@@ -1128,6 +1135,7 @@ async function userData(folder: any) {
         ""
       ])[0],
       owner: await userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt
     }])
     return data
@@ -1174,3 +1182,30 @@ export async function removeFromFolder(folderId: string, body: any, userId: stri
     throw error;
   }
 }
+
+export async function deleteDoc(docId: any, userId: string) {
+  try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    
+    const isEligible = await checkRoleScope(userRole, "delete-doc");
+    if (!isEligible) {
+      throw new Error(DOCUMENT_ROUTER.NO_DELETE_PERMISSION);
+    }
+
+    if (!Types.ObjectId.isValid(docId))
+      throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    
+    let deletedDoc = await documents.update({_id:docId,ownerId:userId}, {isDeleted:true}, { new: true }).exec()
+    if(deletedDoc){
+      console.log(deleteDoc);
+      return{
+        success:true,
+        mesage:"File deleted successfully"
+      }
+    } 
+  }catch (err) {
+    console.log(err);
+    throw err;
+  };
+};

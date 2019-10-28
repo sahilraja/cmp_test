@@ -347,3 +347,18 @@ export async function otpVerify(objBody: string) {
     };
 };
 
+export async function searchByname(search:string) {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/search/${search}`,
+            method: "GET",
+            json: true
+        };
+        console.log(Options);
+        
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
+

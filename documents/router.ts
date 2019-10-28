@@ -42,7 +42,8 @@ import {
   deleteFolder,
   documentsList,
   updateDocNew,
-  documnetCapabilities
+  documnetCapabilities,
+  deleteDoc
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -562,7 +563,8 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 //list of folders and files in it
 router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id,req.query.page, req.query.limit));
+    const host = `${req.protocol}://${req.get('host')}`
+    res.status(200).send(await getFolderDetails(req.params.folderId,res.locals.user._id,req.query.page, req.query.limit,host));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -585,3 +587,11 @@ router.post("/multiple/list", async (req, res, next: NextFunction) => {
   }
 });
 export = router;
+
+router.put("/delete/:id", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await deleteDoc(req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
+  }
+});

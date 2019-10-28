@@ -2311,6 +2311,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /docs/me:
@@ -2368,6 +2372,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /docs/shared/me:
@@ -2406,6 +2414,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/{id}/file':
@@ -3122,7 +3134,7 @@ paths:
     get:
       security:
         - token: []
-      summary: Publish doc list
+      summary: 'Docs list(search by name,description, owner name and tags)'
       tags:
         - RESOURCES
       parameters:
@@ -3131,7 +3143,7 @@ paths:
           schema:
             type: string
           required: true
-          description: '#tagName or documentName'
+          description: '#tagName or docName/description/ownerName'
         - in: query
           name: page
           schema:
@@ -3150,10 +3162,39 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  $ref: './schema/#/responses/schemas/Document'
+                type: object
+                properties:
+                  page:
+                    type: number
+                    example: 1
+                  pages:
+                    type: number
+                    example: 3
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - tagId1234
+                            - tagId5432
+                        date:
+                          type: string
+                          example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /docs/folder/create:
@@ -3287,6 +3328,10 @@ paths:
                         date:
                           type: string
                           example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/moveTo/folder/{id}':
@@ -3394,6 +3439,36 @@ paths:
                   success:
                     type: boolean
                     example: true
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/docs/delete/{id}':
+    put:
+      security:
+        - token: []
+      summary: delete document from my documents
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: docId
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: File deleted successfully
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /template/create:

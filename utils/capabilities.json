@@ -76,6 +76,12 @@
           "shortDescription": "Create Folder",
           "description": "Ability to create a folder",
           "scope": "global"
+        },
+        {
+          "capability": "delete-doc",
+          "shortDescription": "Delete Document",
+          "description": "Ability to delete a document",
+          "scope": "global"
         }
   ]
   
