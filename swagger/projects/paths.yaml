@@ -368,7 +368,7 @@
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true
@@ -407,7 +407,7 @@
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true
@@ -434,11 +434,13 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   getGanttChartForProject:
     get:
+      security:
+        - token: []
       tags:
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true

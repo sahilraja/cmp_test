@@ -1450,11 +1450,13 @@ paths:
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/gantt-chart':
     get:
+      security:
+        - token: []
       tags:
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true
@@ -1493,7 +1495,7 @@ paths:
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true
@@ -1524,7 +1526,7 @@ paths:
         - PROJECT
       parameters:
         - in: path
-          name: Project Id
+          name: id
           schema:
             type: string
             required: true
