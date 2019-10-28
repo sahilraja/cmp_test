@@ -1,6 +1,7 @@
 import * as request from "request-promise";
 import { GROUPS_URL } from "./urls";
 import { promises } from "fs";
+import { groupFindOne } from "./users";
 
 export enum roleHierarchy {
     owner = 0,
@@ -174,7 +175,7 @@ export async function groupUserList(groupId: string): Promise<string[]> {
             method: "GET",
             json: true
         }
-        return (await request(Options)).users;
+        return ((await request(Options) as any).users || []).concat([(await groupFindOne("id", groupId) as any).createdBy._id]);
     } catch (err) {
         throw err;
     };
