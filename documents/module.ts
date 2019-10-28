@@ -20,7 +20,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople } from "../utils/email_template";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup,searchByname } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 
@@ -154,7 +154,7 @@ async function docData(docData: any, host: string) {
     return {
       ...docData.toJSON(), tags: await getTags(docData.tags),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
-      owner: await userFindOne("id", docData.ownerId, { name: 1 }),
+      owner: await userFindOne("id", docData.ownerId, { firstName: 1,middleName:1,lastName:1,email:1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
     };
   } catch (err) {
@@ -947,9 +947,16 @@ export async function publishList(userId: string, host: string) {
 }
 
 // Get Filterd Documents
-export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string): Promise<object[]> {
+export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string){
   search = search.trim();
   try {
+   let users = await searchByname(search);
+   console.log(users.users);
+   let userIds = users.users.map((user:any)=>{
+     return new RegExp(user._id, "i")
+   })
+   console.log(userIds);
+   
     let docs: any = [],
       shared: any = [];
 
@@ -965,13 +972,13 @@ export async function docFilter(search: string, userId: string, page: number = 1
       docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 });
       shared = await documents.find({ _id: { $in: docIds }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
-      //  Search With Tag Names
-      docs = await documents.find({ name: new RegExp(search, "i"), parentId: null }).sort({ updatedAt: -1 });
-      shared = await documents.find({ _id: { $in: docIds }, name: new RegExp(search, "i") }).sort({ updatedAt: -1 });
+      docs = await documents.find({parentId: null, $or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: docIds },$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")}] }).sort({ updatedAt: -1 });
     }
+    // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
     let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc, host)));
-    return filterOrdersByPageAndLimit(page, limit, filteredDocs)
+    return manualPagination(page, limit, filteredDocs)
   } catch (err) {
     throw err;
   };
@@ -980,7 +987,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
 //  Manual Pagination for Doc Filter
 function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): Promise<object[]> {
   let skip = ((page - 1) * limit);
-  return orders.slice(skip, skip + limit);
+  return orders.  slice(skip, skip + limit);
 };
 
 function manualPagination(page: number, limit: number, docs: any[]) {
