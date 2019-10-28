@@ -11,6 +11,7 @@ import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginated
 import * as phoneNo from "phone";
 import { createECDH } from "crypto";
 import { loginSchema } from "./login-model";
+import { getTemplateBySubstitutions } from "../email-templates/module";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -40,6 +41,9 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
+        
+        //let templatInfo = await getTemplateBySubstitutions('invite', {fullName,role:objBody.role, link: `${ANGULAR_URL}/user/register/${token}`});
+        
         //  Sent Mail to User
         let mailStatus = await nodemail({
             email: userData.email,
@@ -190,6 +194,8 @@ export async function user_status(id: string, user: any) {
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated"
 
+        //let templatInfo = await getTemplateBySubstitutions('userState', {state});
+
         await nodemail({
             email: userData.email,
             subject: `Your account has been ${state} | CMP`,
@@ -219,6 +225,9 @@ export async function user_login(objBody: any) {
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
+        
+        //let templatInfo = await getTemplateBySubstitutions('userLogin', {fullName:userData.firstName});
+
         await nodemail({
             email: userData.email,
             subject: MAIL_SUBJECT.LOGIN_SUBJECT,
@@ -318,6 +327,9 @@ export async function forgotPassword(objBody: any) {
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userDetails._id });
+
+        //let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+
         let success = await nodemail({
             email: userDetails.email,
             subject: MAIL_SUBJECT.FORGOT_PASSWORD,
@@ -550,8 +562,11 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
-        let { firstName, lastName, middleName } = userInfo;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        let {firstName , lastName , middleName} = userInfo;
+        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        
+        //let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+
         let success = await nodemail({
             email: objBody.email,
             subject: MAIL_SUBJECT.OTP_SUBJECT,
