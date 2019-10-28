@@ -555,7 +555,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let { firstName, lastName, middleName } = userInfo;
         let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         let success = await nodemail({
-            email: user.email,
+            email: objBody.email,
             subject: MAIL_SUBJECT.OTP_SUBJECT,
             html: profileOtp({
                 fullName,
@@ -572,7 +572,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
 export async function profileOtpVerify(objBody: any, user: any) {
     try {
         if (!objBody.otp) throw new Error("Otp is Missing.");
-        let token: any = await jwt_Verify(user.otp_token)
+        let token: any = await jwt_Verify(user.otp_token);
         if (objBody.otp == token.otp) {
             return await userEdit(user._id, { email: token.newEmail })
         }

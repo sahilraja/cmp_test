@@ -485,6 +485,12 @@
                 profilePic:
                   type: string
                   format: binary
+                role:
+                  type: string
+                  example: old role
+                updateRole:
+                  type: string
+                  example: new role
                 countryCode:
                   type: string
                   example: '+91'
