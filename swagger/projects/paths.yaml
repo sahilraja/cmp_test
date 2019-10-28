@@ -302,7 +302,7 @@
             $ref: "#/definitions/ErrorResponse/BadRequest"
   # edit project code
   addTaskToProject:
-  "/project/{id}/task/add":
+  # "/project/{id}/task/add":
     post:
       security:
         - token: []
@@ -325,30 +325,21 @@
             schema:
               type: object
               properties:
-                name: 
+                name:
                   type: string
-                  example:  Taskname
-                startDate: 
+                  example: task_name
+                description:
                   type: string
-                  example: 22-1-2001
-                endDate:
+                  example: task_description
+                startDate:
                   type: string
-                  example: 23-2-2019
-                access:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      type:
-                        type: string
-                        example: owner
-                      role:
-                        type: string
-                        example: mentor
-                      status:
-                        type: string
-                        example: PENDING
-                
+                  example: 22-1-2019
+                dueDate:
+                  type: string
+                  example: 22-1-2019
+                assignee:
+                  type: string
+                  example: userId1234
       responses:
         "200":
           description: success
@@ -441,3 +432,44 @@
                     type: string
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  getGanttChartForProject:
+    get:
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: Project Id
+          schema:
+            type: string
+            required: true
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: ./schema.yaml/#/responses/schemas/projectSchema
+                  - type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: 
+                              type: string
+                              example: 5b7af7b897dd507d05fa99b4
+                            startDate:
+                              type: string
+                              example: 2018-08-20 17:17:44.377Z
+                            endDate:
+                              type: string
+                              example: 2018-08-20 17:17:44.377Z
+                            progressPercentage:
+                              type: number
+                              example: 60
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+

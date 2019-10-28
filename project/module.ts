@@ -328,3 +328,16 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
   }
   return await httpRequest(options)  
 }
+
+export async function ganttChart(projectId: string, userToken: string){
+  const projectDetail = await ProjectSchema.findById(projectId).exec()
+  const options = {
+    url: `${TASKS_URL}/task/getTasksWithSubTasks`,
+    method:'POST',
+    body:{projectIds:[projectId]},
+    headers: {'Authorization':`Bearer ${userToken}`},
+    json: true
+  }
+  const tasks = await httpRequest(options)  
+  return {...(projectDetail as any).toJSON(), tasks}
+}
