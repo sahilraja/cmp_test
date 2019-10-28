@@ -42,14 +42,13 @@ export async function inviteUser(objBody: any, user: any) {
             role: objBody.role
         });
         
-        let templatInfo = await getTemplateBySubstitutions('invite', {fullName,role:objBody.role, link: `${ANGULAR_URL}/user/register/${token}`});
+        let templatInfo = await getTemplateBySubstitutions('invite', {fullName, role:objBody.role, link: `${ANGULAR_URL}/user/register/${token}`});
         
         //  Sent Mail to User
         let mailStatus = await nodemail({
             email: userData.email,
-            subject: templatInfo.content,
-            html: templatInfo.content
-        })
+            subject: templatInfo.subject,
+            html: templatInfo.content})
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -194,10 +193,8 @@ export async function user_status(id: string, user: any) {
 
         await nodemail({
             email: userData.email,
-            subject: `Your account has been ${state} | CMP`,
-            html: userState({
-                state
-            })
+            subject: templatInfo.subject,
+            html: templatInfo.content
         })
         return { message : data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
@@ -226,10 +223,8 @@ export async function user_login(objBody: any) {
 
         await nodemail({
             email: userData.email,
-            subject: MAIL_SUBJECT.LOGIN_SUBJECT,
-            html: userLoginForm({
-                username: userData.firstName
-            })
+            subject: templatInfo.subject,
+            html:templatInfo.content
         })
         return response
     } catch (err) {
@@ -328,11 +323,8 @@ export async function forgotPassword(objBody: any) {
 
         let success = await nodemail({
             email: userDetails.email,
-            subject: MAIL_SUBJECT.FORGOT_PASSWORD,
-            html: forgotPasswordForm({
-                fullName,
-                otp: authOtp.otp
-            })
+            subject: templatInfo.subject,
+            html: templatInfo.content
         })
         let tokenId = await jwt_for_url({ "id": userDetails._id });
         return { message: RESPONSE.SUCCESS_EMAIL, email: userDetails.email, id: tokenId }
@@ -558,11 +550,8 @@ export async function changeEmailInfo(objBody: any, user: any) {
 
         let success = await nodemail({
             email: user.email,
-            subject: MAIL_SUBJECT.OTP_SUBJECT,
-            html: profileOtp({
-                fullName,
-                otp: authOtp.otp
-            })
+            subject: templatInfo.subject,
+            html: templatInfo.content
         });
         return {message: RESPONSE.SUCCESS_EMAIL};
     }
