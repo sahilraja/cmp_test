@@ -6,7 +6,7 @@ export async function tag_list(search: string) {
       let success = await tags.find({ tag: new RegExp(search, "i"), is_active: true });
       return { status: true, data: success }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw err;
     }
   }

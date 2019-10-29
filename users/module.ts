@@ -333,7 +333,7 @@ export async function forgotPassword(objBody: any) {
         let tokenId = await jwt_for_url({ "id": userDetails._id });
         return { message: RESPONSE.SUCCESS_EMAIL, email: userDetails.email, id: tokenId }
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -362,7 +362,7 @@ export async function setNewPassword(objBody: any) {
         return { message: "succefully updated password" };
 
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -393,7 +393,7 @@ export async function groupStatus(id: any, userId: string) {
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };

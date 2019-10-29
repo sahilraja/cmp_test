@@ -39,7 +39,7 @@ export function hashPassword(password: any) {
     try {
         return bcrypt.hashSync(password, SALTROUNDS);
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -49,7 +49,7 @@ export function comparePassword(password: any, hash_password: any) {
     try {
         return bcrypt.compareSync(password, hash_password)
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };

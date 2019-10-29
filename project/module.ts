@@ -37,7 +37,7 @@ export async function createProject(reqObject: any, user: any) {
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -70,7 +70,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
     }
     return await ProjectSchema.findByIdAndUpdate(id, { $set:obj }, { new: true }).exec();
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -99,7 +99,7 @@ export async function projectList() {
   try {
     return await ProjectSchema.find({ is_active: true }).exec();
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -117,7 +117,7 @@ export async function city_code_status(id: any) {
       { is_active: projectData.is_active ? false : true },{new: true}
     ).exec();
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -133,7 +133,7 @@ export async function add_tag(reqObject: any) {
       description: reqObject.description || "N/A"
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -150,7 +150,7 @@ export async function edit_tag(id: any, reqObject: any) {
     }
     return await tags.findByIdAndUpdate(id, obj, { new: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -173,7 +173,7 @@ export async function tag_status(id: any) {
       { is_active: city.is_active == true ? false : true }
     );
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -189,7 +189,7 @@ export async function add_theme(reqObject: any) {
       description: reqObject.description || "N/A"
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -206,7 +206,7 @@ export async function edit_theme(id: any, reqObject: any) {
     }
     return await themes.findByIdAndUpdate(id, obj, { new: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -216,7 +216,7 @@ export async function theme_list() {
   try {
     return await themes.find({ is_active: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -233,7 +233,7 @@ export async function theme_status(id: any) {
       { is_active: city.is_active == true ? false : true }
     );
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -247,7 +247,7 @@ export async function getProjectsList(userId: any, userToken: string) {
     const projectIds = (list || []).map((_list) => _list.id)
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -271,7 +271,7 @@ export async function getProjectDetail(projectId: string) {
   try {
     return await ProjectSchema.findById(projectId).exec()
   } catch (error) {
-    console.log(error)
+    console.error(error)
     throw error
   };
 };

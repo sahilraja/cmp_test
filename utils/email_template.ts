@@ -17,7 +17,7 @@ export function inviteUserForm(body: any) {
         `
         return text;
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -35,7 +35,7 @@ export function forgotPasswordForm(body: any) {
 
         return text;
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -54,7 +54,7 @@ export function profileOtp(body: any) {
 
         return text;
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -75,7 +75,7 @@ export function docInvitePeople(body: any) {
         `
         return text;
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -84,7 +84,7 @@ export function userLoginForm(body: any) {
         const text = `Welcome to <h>CMP<h>`
         return text;
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 }
@@ -93,7 +93,7 @@ export function userState(body: any){
         const text = `Your account has been ${body.state} | CMP`
         return text;
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 }

@@ -17,7 +17,7 @@ export async function addComment(body: any, userId: string) {
         user_id: userId
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
@@ -35,7 +35,7 @@ export async function addComment(body: any, userId: string) {
       );
       return { comments: commentsList };
     } catch (error) {
-      console.log(error);
+      console.error(error);
       throw error;
     }
   }
