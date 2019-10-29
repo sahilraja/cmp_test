@@ -181,11 +181,11 @@ router.get(`/get-document/:docId`, async (request, response, next) => {
   try {
     console.log(FILES_SERVER_BASE)
     const req = (FILES_SERVER_BASE as string).startsWith("https") ?
-      httpsGet(`${FILES_SERVER_BASE}/files/${request.params.docId}`, (res: any) => {
+      httpsGet(`${FILES_SERVER_BASE}/compressed-image/${request.params.docId}`, (res: any) => {
         response.setHeader('Content-disposition', 'inline');
         response.setHeader('Content-type', res.headers['content-type'])
         res.pipe(response);
-      }) : httpGet(`${FILES_SERVER_BASE}/files/${request.params.docId}`, (res: any) => {
+      }) : httpGet(`${FILES_SERVER_BASE}/compressed-image/${request.params.docId}`, (res: any) => {
         response.setHeader('Content-disposition', 'inline');
         response.setHeader('Content-type', res.headers['content-type'])
         res.pipe(response);

@@ -1,5 +1,5 @@
 import { MISSING, PROJECT_ROUTER } from "../utils/error_msg";
-import { project as ProjectSchema } from "./project_model";
+import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
@@ -11,6 +11,7 @@ import { httpRequest } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
 import { getUserDetail } from "../users/module";
 import { userFindMany } from "../utils/users";
+import { APIError } from "../utils/custom-error";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -276,14 +277,43 @@ export async function getProjectDetail(projectId: string) {
 };
 
 export async function createTask(payload:any, projectId: string, userToken: string){
+  const taskPayload = await formatTaskPayload(payload, projectId)
   const options = {
     url: `${TASKS_URL}/task/create`,
-    body: {...payload, projectId},
+    body: {...taskPayload},
     method:'POST',
     headers: {'Authorization':`Bearer ${userToken}`},
     json: true
   }
   return await httpRequest(options)
+}
+
+async function formatTaskPayload(payload: any, projectId: string) {
+  return {...payload, projectId}
+  const projectInfo: any = await ProjectSchema.findById(projectId).exec()
+  const memberRoles = await Promise.all(
+    projectInfo.members.map((member: string) => userRoleAndScope(member))
+  )
+  let approvers = []
+  let endorsers = []
+  let viewers = []
+  let supporters = []
+  let assignee
+  if(payload.assignee && !Types.ObjectId.isValid(payload.assignee)){
+    const filteredAssignees = memberRoles.filter((role: any) => (role.data.global[0] == payload.assignee))
+    if(filteredAssignees.length > 1){
+      throw new APIError(PROJECT_ROUTER.MORE_THAN_ONE_RESULT_FOUND)
+    } else {
+      assignee = filteredAssignees[0]
+    }
+  } else {
+    assignee = payload.assignee
+  }
+  approvers = memberRoles.filter((role: any) => (payload.approvers || []).includes(role.data.global[0]))
+  endorsers = memberRoles.filter((role: any) => (payload.endorsers || []).includes(role.data.global[0]))
+  viewers = memberRoles.filter((role: any) => (payload.viewers || []).includes(role.data.global[0]))
+  supporters = memberRoles.filter((role: any) => (payload.supporters || []).includes(role.data.global[0]))
+  return { ...payload, assignee, approvers, endorsers, viewers, supporters }
 }
 
 export async function getProjectTasks(projectId: string, userToken: string) {
@@ -327,4 +357,17 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
     json: true
   }
   return await httpRequest(options)  
+}
+
+export async function ganttChart(projectId: string, userToken: string){
+  const projectDetail = await ProjectSchema.findById(projectId).exec()
+  const options = {
+    url: `${TASKS_URL}/task/getTasksWithSubTasks`,
+    method:'POST',
+    body:{projectIds:[projectId]},
+    headers: {'Authorization':`Bearer ${userToken}`},
+    json: true
+  }
+  const tasks = await httpRequest(options)  
+  return {...(projectDetail as any).toJSON(), tasks}
 }

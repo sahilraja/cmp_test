@@ -373,7 +373,7 @@ export async function setNewPassword(objBody: any) {
 export async function createGroup(objBody: any, userId: string) {
     try {
         const { name, description } = objBody
-        if (!name || !description) throw new Error(USER_ROUTER.MANDATORY);
+        if (!name) throw new Error(USER_ROUTER.MANDATORY);
         return await groupCreate({
             name: name,
             description: description,
@@ -454,6 +454,7 @@ export async function addMember(id: string, users: any[], userId: string) {
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
+        if (data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         await Promise.all(users.map(async (user: any) => { if (data.createdBy._id != user) { await addUserToGroup(user, id) } }))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
@@ -470,6 +471,7 @@ export async function removeMembers(id: string, users: any[], userId: string) {
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => {
+            if(user == data.createdBy._id) throw new Error("This Action Is Not Valid")
             if (userId != user && data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
             await removeUserToGroup(user, id)
         }))
