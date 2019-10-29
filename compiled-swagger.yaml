@@ -1734,7 +1734,7 @@ paths:
         - token: []
       tags:
         - ROLE
-      summary: Add capability
+      summary: Add capability to a Role
       requestBody:
         required: true
         content:
@@ -1781,7 +1781,7 @@ paths:
         - token: []
       tags:
         - ROLE
-      summary: Remove capability
+      summary: Remove capability of a Role
       requestBody:
         required: true
         content:
@@ -1820,6 +1820,49 @@ paths:
                       - role
                       - scope
                       - capability
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /role/add:
+    post:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      summary: Add role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - category
+                - description
+              properties:
+                role:
+                  type: string
+                  example: program-coordinator
+                  description: user roles
+                category:
+                  type: string
+                  example: PMU Team
+                  description: role catogery
+                description:
+                  type: string
+                  example: Program Coordinator
+                  description: Must be role description
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /comments/add:
