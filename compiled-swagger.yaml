@@ -991,13 +991,13 @@ paths:
             schema:
               type: object
               required:
-                - citycode
-                - cityname
+                - reference
+                - name
               properties:
-                citycode:
+                reference:
                   type: string
                   example: CITIIS-OR-BBR
-                cityname:
+                name:
                   type: string
                   example: vizag
                 description:
@@ -1255,6 +1255,34 @@ paths:
           $ref: './schema/#responses/project'
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/get-member-roles':
+    get:
+      security:
+        - token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            required: true
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key:
+                      type: string
+                      example: Project Coordinator
+                    value:
+                      type: string
+                      example: 558473626a58697j6
   '/project/{id}/edit':
     post:
       security:
@@ -1276,13 +1304,13 @@ paths:
             schema:
               type: object
               required:
-                - citycode
-                - cityname
+                - reference
+                - name
               properties:
-                citycode:
+                reference:
                   type: string
                   example: CITIIS-OR-BBR
-                cityname:
+                name:
                   type: string
                   example: vizag
                 description:
@@ -1336,7 +1364,6 @@ paths:
           content:
             application/json:
               schema: *ref_3
-  '/project/city/code/status/{id}': null
   /project/city/code/list: null
   '/project/{id}/task-list':
     get:

@@ -371,3 +371,17 @@ export async function ganttChart(projectId: string, userToken: string){
   const tasks = await httpRequest(options)  
   return {...(projectDetail as any).toJSON(), tasks}
 }
+
+export async function projectMembers(id: string) {
+  let [project, formattedRoleObjs]: any = await Promise.all([
+    ProjectSchema.findById(id).exec(),
+    roles_list()
+  ]) 
+  if (!project) throw new Error("Project Not Found.");
+  const userIds = [...project.members, project.createdBy]
+  const usersRoles = await Promise.all(userIds.map((userId:string) => userRoleAndScope(userId) ))
+  return userIds.map((user:any, i:number) => ({
+    value: user, 
+    key: formatUserRole((usersRoles.find((role:any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles)
+  }))
+}
