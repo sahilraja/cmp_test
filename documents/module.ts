@@ -170,7 +170,6 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
       return folder.doc_id
     })
     var merged = [].concat.apply([], folder_files);
-    console.log(JSON.parse(JSON.stringify(merged)));
     let folderDocIds = JSON.parse(JSON.stringify(merged));
     // let folder_file= folder_files.reduce((main:any,folder:any) => {
     //   console.log(JSON.stringify(folder));
@@ -184,12 +183,11 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
       return docData(doc, host);
     })
     );
-    var result = docList.filter(function (docs) {
-      return !folderDocIds.some(function (folderDocs: any) {
+    var result = docList.filter((docs)=> {
+      return !folderDocIds.some((folderDocs: any)=> {
         return docs._id == folderDocs;
       });
     })
-    console.log(result);
     const docsData = manualPagination(page, limit, result)
     return { docsData };
   } catch (error) {
@@ -1069,10 +1067,33 @@ export async function listFolders(userId: String) {
 export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30,host: string) {
   if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const [fetchedDoc, subfolders] = await Promise.all([
-    folders.find({
-      ownerId: userId,
-      $or: [{ _id: Types.ObjectId(folderId) }, { parentId: folderId }]
-    }).populate({ path: 'doc_id' }).exec(),
+    folders.aggregate([
+      {
+        $match: {
+          ownerId: userId,
+          $or: [{ _id: Types.ObjectId(folderId) }, { parentId: folderId }]
+        }
+      },
+      // { "$unwind": "$doc_id" },
+      {
+        $lookup: {
+          from: "documents",
+          localField: "doc_id",
+          foreignField: "_id",
+          as: "doc_id"
+        }
+      },
+      { $unwind: { path: "$doc_id" } },
+      {
+        $project: {
+          name: 1,
+          doc_id: 1,
+          createdAt: 1,
+          ownerId: 1,
+          parentId: 1
+        }
+      }
+    ]).exec(),
     folders
       .find({ ownerId: userId, parentId: folderId })
       .sort({ updatedAt: -1 }).exec()
@@ -1080,6 +1101,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
 
   let subFolderList = subfolders.map((folder: any) => {
     return {
+      type:'SUB_FOLDER',
       folderId: folder._id,
       name: folder.name,
       date: folder.createdAt,
@@ -1094,9 +1116,10 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const docsData = manualPagination(page, limit, docsList)
-  return { subFolderList, docsData };
-
+  const docsData = manualPagination(page, limit, [...subFolderList, ...  docsList])
+  const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
+  docsData.docs  = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
+  return { page: docsData.page,pages: docsData.pages,subFoldersList: filteredSubFolders, docsList: docsData.docs };
 }
 
 async function userData(folder: any,host: string) {
@@ -1187,3 +1210,46 @@ export async function deleteDoc(docId: any, userId: string) {
     throw err;
   };
 };
+
+export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30,host: string) {
+
+  const [foldersData,folderDocs,fetchedDoc] = await Promise.all([
+    folders
+      .find({ ownerId: userId, parentId: null })
+      .sort({ updatedAt: -1 }).exec(),
+    folders
+      .find({ ownerId: userId})
+      .sort({ updatedAt: -1 }).exec(),
+    documents
+      .find({ ownerId: userId,parentId: null, status: { $ne: STATUS.DRAFT }})
+      .sort({ updatedAt: -1 }).exec(),
+  ])
+  let folder_files = folderDocs.map((folder: any) => {
+    return folder.doc_id
+  })
+  var merged = [].concat.apply([], folder_files);
+  let folderDocIds = JSON.parse(JSON.stringify(merged));
+
+  let foldersList = foldersData.map((folder: any) => {
+    return {
+      type:'FOLDER',
+      folderId: folder._id,
+      name: folder.name,
+      date: folder.createdAt,
+      parentId: folder.parentId
+    }
+  })
+  const docList = await Promise.all(fetchedDoc.map((doc) => {
+    return docData(doc, host);
+  })
+  );
+  var docsList = docList.filter((docs)=> {
+    return !folderDocIds.some((folderDocs: any)=> {
+      return docs._id == folderDocs;
+    });
+  })
+  const docsData = manualPagination(page, limit, [...foldersList, ...  docsList])
+  const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
+  docsData.docs  = docsData.docs.filter(doc => doc.type != 'FOLDER')
+  return { page:docsData.page, pages:docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
+}

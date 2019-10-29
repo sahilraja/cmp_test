@@ -216,6 +216,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/removeFromFolder 
   /docs/delete/{id}: 
     $ref: ./swagger/resources/paths.yaml/#/deleteDoc   
+  /docs/all/me:
+    $ref: ./swagger/resources/paths.yaml/#/docsListAll    
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
