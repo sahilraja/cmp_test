@@ -2,7 +2,6 @@ import { Router, Request, Response, Handler } from "express";
 import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
-var multer = require('multer');
 import { readFileSync } from "fs";
 import { join } from "path";
 import { changePasswordInfo, uploadPhoto } from "../utils/users";
