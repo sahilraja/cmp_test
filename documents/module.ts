@@ -973,7 +973,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
       shared = await documents.find({ _id: { $in: docIds }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
       docs = await documents.find({parentId: null, $or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
-      shared = await documents.find({ _id: { $in: docIds },$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")}] }).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: docIds },$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},,{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
     }
     // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
