@@ -3,13 +3,20 @@ import { RBAC_URL } from "../utils/urls";
 import * as fs from "fs";
 import { join } from "path";
 import { userList } from "../utils/users";
+import { roleSchema } from "./model";
+import { init } from '../utils/role_management';
 
 // Get Roles List
 export async function role_list() {
-    let roles: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "rbac.json"), "utf8"));
-    return roles.map(role => {
-        return { role: role.role, description: role.description, category: role.category }
-    });
+    let roles = await roleSchema.find()
+    if (roles.length) {
+        return {
+            status: true,
+            roles: roles
+        }
+    } else {
+        roles: []
+    }
 };
 
 export async function roles_list() {
@@ -19,12 +26,12 @@ export async function roles_list() {
     });
     return {
         status: true,
-        roles:listOfRoles
+        roles: listOfRoles
     }
 };
 export async function capabilities_list() {
     let capabilities: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
-    let listcapabilities= capabilities.map(capability => {
+    let listcapabilities = capabilities.map(capability => {
         return { capability: capability.capability, description: capability.description, scope: capability.scope, shortDescription: capability.shortDescription, }
     });
     return {
@@ -171,23 +178,74 @@ export async function removeCapability(role: string, scope: string, capability: 
     };
 };
 export async function updaterole(role: string, description: string) {
-    try {        
+    try {
         let data = await roles_list()
         if (!data.roles.length) throw new Error("Error to fetch Roles")
-        let updated_roles = data.roles.map((eachRole)=>{
-            if(eachRole.role== role){
+        let updated_roles = data.roles.map((eachRole) => {
+            if (eachRole.role == role) {
                 eachRole.description = description;
-            }  return eachRole;
+            } return eachRole;
 
         })
         fs.writeFile(join(__dirname, "..", "utils", "roles.json"), JSON.stringify(updated_roles), (err) => {
             console.log(err || 'complete');
-           
-         });
-         return updated_roles;
-        
+
+        });
+        return updated_roles;
+
     } catch (err) {
         console.log(err);
         throw err
+    }
+}
+
+export async function addRolesFromJSON(userId: string) {
+    try {
+        let data = await roles_list()
+        if (!data.roles.length) throw new Error("Error to fetch Roles")
+        let roles = data.roles.map((eachRole) => {
+            return {
+                role: eachRole.role,
+                roleName: eachRole.description,
+                description: eachRole.description,
+                category: eachRole.category,
+                createdBy: userId
+            }
+        })
+        let response = await roleSchema.insertMany(roles);
+        return { success: true, response };
+
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}
+
+export async function addRole(userId: string, bodyObj: any) {
+    try {
+        if (!bodyObj.role || !bodyObj.category) throw new Error("All mandatory fields are reuired")
+        let role = bodyObj.role.replace(/ /g, '-');
+        role = role.toLowerCase().trim()
+        let response = await roleSchema.create({
+            role: role,
+            roleName: bodyObj.role,
+            description: bodyObj.description,
+            category: bodyObj.category,
+            createdBy: userId
+        });
+        return { success: true, response };
+
+    } catch (err) {
+        console.log(err);
+        throw err
+    }
+}
+
+export async function addRoleCapabilitiesFromJSON(userId: string) {
+    try {
+        await init();
+        return { success: true }
+    } catch (err) {
+        console.error(err);
     }
 }
