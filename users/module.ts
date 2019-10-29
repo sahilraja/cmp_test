@@ -8,7 +8,7 @@ import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
-//import * as phoneNo from "phone";
+import * as phoneNo from "phone";
 import { createECDH } from "crypto";
 import { loginSchema } from "./login-model";
 //  Create User
@@ -71,15 +71,22 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
         const { firstName, lastName, middleName, password, phone, aboutme, countryCode, profilePic } = objBody
 
-        if (!firstName || !lastName || !password || !phone) {
+        if (!firstName || !lastName || !password || !phone || !countryCode) {
             throw new Error(USER_ROUTER.MANDATORY);
         };
         if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(password)) {
             throw new Error(USER_ROUTER.VALID_PASSWORD)
         };
-        // if (!phoneNo(phone).length) {
-        //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
-        // };
+
+        let phoneNumber: string = countryCode + phone
+        if (!phoneNo(phoneNumber).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO)
+        }
+
+        if (aboutme.length > 200) {
+            throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+        }
+
         //  hash the password
         let success = await userEdit(token.id, {
             firstName, lastName, password, phone,
@@ -124,10 +131,11 @@ export async function edit_user(id: string, objBody: any, user: any) {
         if (objBody.countryCode) {
             obj.countryCode = objBody.countryCode;
         }
-        if (objBody.phone) {
-            // if (phoneNo(objBody.phone).length == 0) {
-            //     throw new Error(USER_ROUTER.VALID_PHONE_NO)
-            // }
+        if (objBody.phone && objBody.countryCode) {
+            let phoneNumber = objBody.countryCode + objBody.phone
+            if (!phoneNo(phoneNumber).length) {
+                throw new Error(USER_ROUTER.VALID_PHONE_NO)
+            }
             obj.phone = objBody.phone;
         };
         let userRole;
@@ -135,6 +143,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             userRole = await updateRole(id, objBody.updateRole, objBody.role);
         }
         if (objBody.aboutme) {
+            if (objBody.aboutme.length > 200) {
+                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+            }
             obj.aboutme = objBody.aboutme;
         };
         // update user with edited fields
@@ -470,7 +481,7 @@ export async function removeMembers(id: string, users: any[], userId: string) {
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => {
-            if(user == data.createdBy._id) throw new Error("This Action Is Not Valid")
+            if (user == data.createdBy._id) throw new Error("This Action Is Not Valid")
             if (userId != user && data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
             await removeUserToGroup(user, id)
         }))
@@ -580,6 +591,14 @@ export async function profileOtpVerify(objBody: any, user: any) {
         else {
             throw new Error("Enter Valid Otp.");
         }
+    } catch (err) {
+        throw err
+    }
+}
+export async function loginHistory(id: string) {
+    try {
+        let userLoginHistory = await loginSchema.find({ userId: id }).sort({createdAt:1})
+        return userLoginHistory;
     } catch (err) {
         throw err
     }
