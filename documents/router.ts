@@ -43,7 +43,8 @@ import {
   documentsList,
   updateDocNew,
   documnetCapabilities,
-  deleteDoc
+  deleteDoc,
+  getListOfFoldersAndFiles
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -179,7 +180,6 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 
 router.get(`/get-document/:docId`, async (request, response, next) => {
   try {
-    console.log(FILES_SERVER_BASE)
     const req = (FILES_SERVER_BASE as string).startsWith("https") ?
       httpsGet(`${FILES_SERVER_BASE}/compressed-image/${request.params.docId}`, (res: any) => {
         response.setHeader('Content-disposition', 'inline');
@@ -591,6 +591,14 @@ export = router;
 router.put("/delete/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await deleteDoc(req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));;
+  }
+});
+
+router.get("/all/me", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getListOfFoldersAndFiles(res.locals.user._id,req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}` ));
   } catch (err) {
     next(new APIError(err.message));;
   }

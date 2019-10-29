@@ -120,7 +120,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
       fileName: fileObj ? fileObj.fileName : null
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -138,7 +138,7 @@ export async function getDocList(host: string) {
     );
     return { docs: docList };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -170,7 +170,6 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
       return folder.doc_id
     })
     var merged = [].concat.apply([], folder_files);
-    console.log(JSON.parse(JSON.stringify(merged)));
     let folderDocIds = JSON.parse(JSON.stringify(merged));
     // let folder_file= folder_files.reduce((main:any,folder:any) => {
     //   console.log(JSON.stringify(folder));
@@ -184,16 +183,15 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
       return docData(doc, host);
     })
     );
-    var result = docList.filter(function (docs) {
-      return !folderDocIds.some(function (folderDocs: any) {
+    var result = docList.filter((docs)=> {
+      return !folderDocIds.some((folderDocs: any)=> {
         return docs._id == folderDocs;
       });
     })
-    console.log(result);
     const docsData = manualPagination(page, limit, result)
     return { docsData };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -213,7 +211,7 @@ export async function createFile(docId: string, file: any) {
     await documents.findByIdAndUpdate(child[0].id, { fileId: id, fileName: name }, { new: true });
     return { doc_id: docId };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -244,7 +242,7 @@ export async function submit(docId: string) {
     ]);
     return { docId: docId, fileId: parentDoc.fileId };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -285,7 +283,7 @@ export async function createNewVersion(
     });
     return { doc_id: createNewDoc.parentid, versionID: createNewDoc.id };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -311,7 +309,7 @@ export async function RejectDoc(docId: string, versionId: string) {
     }
     return { message: "Document Rejected." };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -334,7 +332,7 @@ export async function ApproveDoc(docId: string, versionId: string) {
     ]);
     return { message: "Document Approved." };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -358,7 +356,7 @@ export async function getDocDetails(docId: any) {
     });
     return docList;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -392,7 +390,7 @@ export async function getDocWithVersion(docId: any, versionId: any) {
     docList.role = role.data.global[0];
     return docList;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -437,7 +435,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
     })
     return parent;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   };
 };
@@ -480,7 +478,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     }
     return parent;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -502,7 +500,7 @@ export async function approvalList(host: string) {
       })
     );
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -547,7 +545,7 @@ export async function getVersions(docId: string) {
     if (!docVersions.length) throw new Error("Docs Not there");
     return docVersions;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -573,7 +571,7 @@ export async function getApprovalDoc(docId: string) {
     let modifiedRole: any = await userRoleAndScope(parentDoc.ownerId);
     parentDoc.role = modifiedRole.data.global[0];
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -582,7 +580,7 @@ async function getTags(tagIds: any[]) {
   try {
     return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -591,7 +589,7 @@ async function getThemes(themeIds: any[]) {
   try {
     return await themes.find({ _id: { $in: themeIds } }, { theme: 1 });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -953,11 +951,9 @@ export async function docFilter(search: string, userId: string, page: number = 1
   search = search.trim();
   try {
    let users = await searchByname(search);
-   console.log(users.users);
    let userIds = users.users.map((user:any)=>{
      return new RegExp(user._id, "i")
    })
-   console.log(userIds);
    
     let docs: any = [],
       shared: any = [];
@@ -1026,7 +1022,7 @@ export async function createFolder(body: any, userId: string) {
     });
     return { folder_id: folder._id }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -1047,7 +1043,7 @@ export async function moveToFolder(folderId: string, body: any, userId: string) 
       sucess: true
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -1057,7 +1053,6 @@ export async function listFolders(userId: String) {
     let data = await folders
       .find({ ownerId: userId, parentId: null })
       .sort({ updatedAt: -1 });
-    console.log(data);
     let folderList = data.map((folder: any) => {
       return {
         folderId: folder._id,
@@ -1067,45 +1062,48 @@ export async function listFolders(userId: String) {
     })
     return { folders: folderList };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
 export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30,host: string) {
   if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-  const fetchedDoc = await folders.aggregate([
-    {
-      $match: {
-        ownerId: userId,
-        $or: [{ _id: Types.ObjectId(folderId) }, { parentId: folderId }]
+  const [fetchedDoc, subfolders] = await Promise.all([
+    folders.aggregate([
+      {
+        $match: {
+          ownerId: userId,
+          $or: [{ _id: Types.ObjectId(folderId) }, { parentId: folderId }]
+        }
+      },
+      // { "$unwind": "$doc_id" },
+      {
+        $lookup: {
+          from: "documents",
+          localField: "doc_id",
+          foreignField: "_id",
+          as: "doc_id"
+        }
+      },
+      { $unwind: { path: "$doc_id" } },
+      {
+        $project: {
+          name: 1,
+          doc_id: 1,
+          createdAt: 1,
+          ownerId: 1,
+          parentId: 1
+        }
       }
-    },
-    // { "$unwind": "$doc_id" },
-    {
-      $lookup: {
-        from: "documents",
-        localField: "doc_id",
-        foreignField: "_id",
-        as: "doc_id"
-      }
-    },
-    { $unwind: { path: "$doc_id" } },
-    {
-      $project: {
-        name: 1,
-        doc_id: 1,
-        createdAt: 1,
-        ownerId: 1,
-        parentId: 1
-      }
-    }
-  ]).exec();
-  let subfolders = await folders
-    .find({ ownerId: userId, parentId: folderId })
-    .sort({ updatedAt: -1 });
+    ]).exec(),
+    folders
+      .find({ ownerId: userId, parentId: folderId })
+      .sort({ updatedAt: -1 }).exec()
+  ])
 
   let subFolderList = subfolders.map((folder: any) => {
     return {
+      type:'SUB_FOLDER',
       folderId: folder._id,
       name: folder.name,
       date: folder.createdAt,
@@ -1120,23 +1118,27 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const docsData = manualPagination(page, limit, docsList)
-  return { subFolderList: subFolderList, docsData };
-
+  const docsData = manualPagination(page, limit, [...subFolderList, ...  docsList])
+  const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
+  docsData.docs  = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
+  return { page: docsData.page,pages: docsData.pages,subFoldersList: filteredSubFolders, docsList: docsData.docs };
 }
 
 async function userData(folder: any,host: string) {
   try {
     let fileType = (folder.doc_id.fileName.split(".")).pop()
+    const [tags, userRole, owner] = await Promise.all([
+      getTags(folder.doc_id.tags),
+      userRoleAndScope(folder.doc_id.ownerId),
+      userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    ])
     const data = await Promise.all([{
       docId: folder.doc_id._id,
       name: folder.doc_id.name,
       description: folder.doc_id.description,
-      tags: await getTags(folder.doc_id.tags),
-      role: (((await userRoleAndScope(folder.doc_id.ownerId)) as any).data.global || [
-        ""
-      ])[0],
-      owner: await userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
+      tags,
+      role: ((userRole as any).data.global || [""])[0],
+      owner,
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt
     }])
@@ -1151,10 +1153,10 @@ export async function deleteFolder(folderId: string, userId: string) {
   try {
     if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     const data = await Promise.all([
-      await folders.remove({ _id: folderId, ownerId: userId }),
-      await folders.update({ parentId: folderId }, {
+      folders.remove({ _id: folderId, ownerId: userId }).exec(),
+      folders.update({ parentId: folderId }, {
         parentId: null
-      }, { "multi": true })
+      }, { "multi": true }).exec()
     ])
 
     if (data) {
@@ -1180,7 +1182,7 @@ export async function removeFromFolder(folderId: string, body: any, userId: stri
       sucess: true
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -1200,14 +1202,56 @@ export async function deleteDoc(docId: any, userId: string) {
     
     let deletedDoc = await documents.update({_id:docId,ownerId:userId}, {isDeleted:true}, { new: true }).exec()
     if(deletedDoc){
-      console.log(deleteDoc);
       return{
         success:true,
         mesage:"File deleted successfully"
       }
     } 
   }catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   };
 };
+
+export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30,host: string) {
+
+  const [foldersData,folderDocs,fetchedDoc] = await Promise.all([
+    folders
+      .find({ ownerId: userId, parentId: null })
+      .sort({ updatedAt: -1 }).exec(),
+    folders
+      .find({ ownerId: userId})
+      .sort({ updatedAt: -1 }).exec(),
+    documents
+      .find({ ownerId: userId,parentId: null, status: { $ne: STATUS.DRAFT }})
+      .sort({ updatedAt: -1 }).exec(),
+  ])
+  let folder_files = folderDocs.map((folder: any) => {
+    return folder.doc_id
+  })
+  var merged = [].concat.apply([], folder_files);
+  let folderDocIds = JSON.parse(JSON.stringify(merged));
+
+  let foldersList = foldersData.map((folder: any) => {
+    return {
+      type:'FOLDER',
+      folderId: folder._id,
+      name: folder.name,
+      date: folder.createdAt,
+      parentId: folder.parentId
+    }
+  })
+  const docList = await Promise.all(fetchedDoc.map((doc) => {
+    return docData(doc, host);
+  })
+  );
+  var docsList = docList.filter((docs)=> {
+    return !folderDocIds.some((folderDocs: any)=> {
+      return docs._id == folderDocs;
+    });
+  })
+  const docsData = manualPagination(page, limit, [...foldersList, ...  docsList])
+  const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
+  docsData.docs  = docsData.docs.filter(doc => doc.type != 'FOLDER')
+  return { page:docsData.page, pages:docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
+}

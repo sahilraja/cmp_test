@@ -3466,10 +3466,27 @@ paths:
               schema:
                 type: object
                 properties:
-                  folder:
-                    type: string
-                    example: folderName
-                  docs:
+                  page:
+                    type: number
+                    example: 1
+                  pages:
+                    type: number
+                    example: 3
+                  subFoldersList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        folderId:
+                          type: string
+                          example: folderId1234
+                        name:
+                          type: string
+                          example: folderName
+                        date:
+                          type: string
+                          example: 2019-10-24T09:47:57.601Z
+                  docsList:
                     type: array
                     items:
                       type: object
@@ -3480,12 +3497,6 @@ paths:
                         name:
                           type: string
                           example: docName
-                        uploadBy:
-                          type: string
-                          example: jeevan
-                        role:
-                          type: string
-                          example: project manager
                         tags:
                           type: array
                           items:
@@ -3637,6 +3648,81 @@ paths:
                   message:
                     type: string
                     example: File deleted successfully
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /docs/all/me:
+    get:
+      security:
+        - token: []
+      summary: my list of documents and folders
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: number
+            example: '1'
+          description: Default Page = 1
+        - in: query
+          name: limit
+          schema:
+            type: number
+            example: '30'
+          description: Default Limit = 30
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: number
+                    example: 1
+                  pages:
+                    type: number
+                    example: 3
+                  foldersList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        folderId:
+                          type: string
+                          example: folderId1234
+                        name:
+                          type: string
+                          example: folderName
+                        date:
+                          type: string
+                          example: 2019-10-24T09:47:57.601Z
+                  docsList:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - tagId1234
+                            - tagId5432
+                        date:
+                          type: string
+                          example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /template/create:

@@ -354,7 +354,6 @@ export async function searchByname(search:string) {
             method: "GET",
             json: true
         };
-        console.log(Options);
         
         return await request(Options);
     } catch (err) {
