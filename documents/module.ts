@@ -712,17 +712,19 @@ export async function documnetCapabilities(docId: string, userId: string) {
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
       let role = capability.pop()
-      if (role == "owner" || role == "collaborator") return { docRole: role }
+      if (role == "owner" || role == "collaborator") return [ role ]
     } else if (groups.length) {
       for (const groupId of groups) {
         let capability = await GetDocCapabilitiesForUser(groupId, docId)
         if (capability.length) {
           let role = capability.pop()
-          if (role == "owner" || role == "collaborator") return { docRole: role }
+          if (role == "owner" || role == "collaborator") return [ role ]
         }
       };
-    };
-    return { docRole: "viewer" }
+    }else{
+      return ["viewer"]
+    }
+    throw new Error("User dont have that capability")
   } catch (err) {
     throw err;
   };

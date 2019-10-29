@@ -42,13 +42,13 @@
             schema:
               type: object
               required:
-                - citycode
-                - cityname
+                - reference
+                - name
               properties:
-                citycode:
+                reference:
                   type: string
                   example: CITIIS-OR-BBR
-                cityname:
+                name:
                   type: string
                   example: vizag
                 description:
@@ -101,13 +101,13 @@
             schema:
               type: object
               required:
-                - citycode
-                - cityname
+                - reference
+                - name
               properties:
-                citycode:
+                reference:
                   type: string
                   example: CITIIS-OR-BBR
-                cityname:
+                name:
                   type: string
                   example: vizag
                 description:
@@ -136,7 +136,7 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # project inactive
-  activeInactiveCityCode:
+  activeInactivereference:
   "/project/city/code/status/{id}":
     put:
       security:
@@ -474,4 +474,31 @@
 
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
-
+  getMemberRoles:
+    get:
+      security:
+        - token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            required: true
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key: 
+                      type: string
+                      example: Project Coordinator
+                    value: 
+                      type: string
+                      example: 558473626a58697j6
