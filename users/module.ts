@@ -513,7 +513,7 @@ export async function userSuggestions(search: string, userId: string) {
             });
             return user
         })
-        //  groups removed in removed
+        groups = groups.map(group => { return { ...group, type: "group" } })
         return [...users, ...groups]
     } catch (err) {
         throw err
