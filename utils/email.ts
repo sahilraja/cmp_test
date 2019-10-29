@@ -43,14 +43,14 @@ export async function nodemail(objBody: any) {
 
     transporter.sendMail(mailOptions, function (error: any, info: any) {
       if (error) {
-        console.log(error);
+        console.error(error);
       } else {
         console.log('Email sent: ' + info.response);
       }
     });
 
   } catch (err) {
-    console.log(err)
+    console.error(err)
     throw err;
   }
 }

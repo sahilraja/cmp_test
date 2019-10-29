@@ -2160,16 +2160,10 @@ paths:
     get:
       security:
         - token: []
-      summary: get user details list
+      summary: get user login details list
       tags:
         - USERS
       parameters:
-        - in: header
-          name: ip
-          schema:
-            type: string
-          required: true
-          description: ip address
         - in: path
           name: id
           schema:

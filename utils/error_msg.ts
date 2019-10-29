@@ -1,23 +1,24 @@
 export const USER_ROUTER = {
-    INVALID_ADMIN: "User don't have capability to perform this action.",
+    INVALID_ADMIN: "You do not have necessary permissions to perform this action",
     CREATE_ROLE_FAIL: "Fail to create role.",
-    TOKEN_MISSING: "Missing Token.",
-    TOKEN_INVALID: "Invalid Token.",
+    TOKEN_MISSING: "Missing token",
+    TOKEN_INVALID: "Invalid token.",
     MANDATORY: "Required all mandatory fields.",
     VALID_PHONE_NO: "Please enter valid phone number",
     VALID_PASSWORD: "Password must have one special character and at least 6 characters",
     ALREADY_REGISTER: "User is already registered",
-    INVALID_PARAMS_ID: "Given id not Valid.",
-    USER_NOT_EXIST: "Coudln't find the User",
-    INVALID_FIELDS: "Please enter valid Input",
-    USER_NOT_REGISTER: "User Not User is not registered yet.",
-    INVALID_LOGIN_DETAILS: "Invalid Login details",
-    DEACTIVATED_BY_ADMIN: "Your account has been deactivated by admin",
-    ROLE_NOT_FOUND: "Failed to get role",
-    CAPABILITIES_NOT_FOUND: "Failed to get Capability",
-    EMAIL_VERIFIED: "Email already verified",
-    GROUP_NOT_FOUND: "Couldn't find group",
-    USER_ARRAY: "Users must be an Array."
+    INVALID_PARAMS_ID: "Given ID is invalid",
+    USER_NOT_EXIST: "User doesn't exist, please contact the admin",
+    INVALID_FIELDS: "Please enter valid input",
+    USER_NOT_REGISTER: "User is not registered yet",
+    INVALID_LOGIN_DETAILS: "Invalid login or password",
+    DEACTIVATED_BY_ADMIN: "Your account has been deactivated",
+    ROLE_NOT_FOUND: "Failed to fetch role and access details",
+    CAPABILITIES_NOT_FOUND: "Failed to fetch access privileges",
+    EMAIL_VERIFIED: "Email ID is already verified",
+    GROUP_NOT_FOUND: "Please enter a valid group name",
+    USER_ARRAY: "Users must be an Array.",
+    ABOUTME_LIMIT:"Aboutme field limit exceed"
 };
 
 export const DOCUMENT_ROUTER = {
@@ -39,9 +40,9 @@ export const COMMENT_ROUTER = {
 }
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",
-    INVALID_TOKEN: "Invalid Token",
-    INVALID_LOGIN: "Invalid credentials. Please login again",
-    USER_INACTIVE: "Credentials not valid anymore. Please contact your technology specialist to activate your account."
+    INVALID_TOKEN: "Invalid token",
+    INVALID_LOGIN: "Invalid login or password",
+    USER_INACTIVE: "User deactivated, please contact the admin"
 }
 
 export const MAIL_SUBJECT = {
@@ -55,8 +56,8 @@ export const RESPONSE = {
     SUCCESS_EMAIL: "Email send successfully.",
     ACTIVE: "active",
     INACTIVE: "inactive",
-    ADD_MEMBER: "Memeber added successfully",
-    REMOVE_MEMBER: "Member removed successfully"
+    ADD_MEMBER: "Group member added",
+    REMOVE_MEMBER: "Group member removed"
 }
 
 export const GLOBAL_SCOPE = "global";

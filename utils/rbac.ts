@@ -84,7 +84,7 @@ export async function checkCapability(object: any) {
         }
         return await request(Options);
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };

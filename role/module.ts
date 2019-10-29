@@ -56,7 +56,7 @@ export async function checkRoleScope(role: any, capabilities: any) {
         }
         return false
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err
     }
 }
@@ -84,7 +84,7 @@ export async function userRoleAndScope(userId: any) {
         });
         return { data: object, user: userId }
     } catch (err) {
-        console.log(err)
+        console.error(err)
         throw err
     }
 }
@@ -105,7 +105,7 @@ export async function usersForRole(role: string) {
         let users = await userList({ _id: { $in: success.users } }, { name: 1 })
         return { role: role, users: users }
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     };
 };
@@ -121,7 +121,7 @@ export async function capabilities() {
         if (!data.status) throw new Error("Error to fetch Roles")
         return data
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err
     }
 }
@@ -137,7 +137,7 @@ export async function allrolecapabilities() {
         if (!data.status) throw new Error("Error to fetch Roles")
         return data
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err
     }
 }
@@ -216,7 +216,7 @@ export async function addRolesFromJSON(userId: string) {
         return { success: true, response };
 
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err
     }
 }

@@ -120,7 +120,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
       fileName: fileObj ? fileObj.fileName : null
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -138,7 +138,7 @@ export async function getDocList(host: string) {
     );
     return { docs: docList };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -191,7 +191,7 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
     const docsData = manualPagination(page, limit, result)
     return { docsData };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -211,7 +211,7 @@ export async function createFile(docId: string, file: any) {
     await documents.findByIdAndUpdate(child[0].id, { fileId: id, fileName: name }, { new: true });
     return { doc_id: docId };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -242,7 +242,7 @@ export async function submit(docId: string) {
     ]);
     return { docId: docId, fileId: parentDoc.fileId };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -283,7 +283,7 @@ export async function createNewVersion(
     });
     return { doc_id: createNewDoc.parentid, versionID: createNewDoc.id };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -309,7 +309,7 @@ export async function RejectDoc(docId: string, versionId: string) {
     }
     return { message: "Document Rejected." };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -332,7 +332,7 @@ export async function ApproveDoc(docId: string, versionId: string) {
     ]);
     return { message: "Document Approved." };
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -356,7 +356,7 @@ export async function getDocDetails(docId: any) {
     });
     return docList;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -390,7 +390,7 @@ export async function getDocWithVersion(docId: any, versionId: any) {
     docList.role = role.data.global[0];
     return docList;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -435,7 +435,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
     })
     return parent;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   };
 };
@@ -478,7 +478,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     }
     return parent;
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -500,7 +500,7 @@ export async function approvalList(host: string) {
       })
     );
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -545,7 +545,7 @@ export async function getVersions(docId: string) {
     if (!docVersions.length) throw new Error("Docs Not there");
     return docVersions;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -571,7 +571,7 @@ export async function getApprovalDoc(docId: string) {
     let modifiedRole: any = await userRoleAndScope(parentDoc.ownerId);
     parentDoc.role = modifiedRole.data.global[0];
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -580,7 +580,7 @@ async function getTags(tagIds: any[]) {
   try {
     return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -589,7 +589,7 @@ async function getThemes(themeIds: any[]) {
   try {
     return await themes.find({ _id: { $in: themeIds } }, { theme: 1 });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -1022,7 +1022,7 @@ export async function createFolder(body: any, userId: string) {
     });
     return { folder_id: folder._id }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -1043,7 +1043,7 @@ export async function moveToFolder(folderId: string, body: any, userId: string) 
       sucess: true
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -1062,7 +1062,7 @@ export async function listFolders(userId: String) {
     })
     return { folders: folderList };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -1182,7 +1182,7 @@ export async function removeFromFolder(folderId: string, body: any, userId: stri
       sucess: true
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 }
@@ -1208,7 +1208,7 @@ export async function deleteDoc(docId: any, userId: string) {
       }
     } 
   }catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   };
 };
