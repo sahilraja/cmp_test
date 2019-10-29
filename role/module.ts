@@ -177,7 +177,6 @@ export async function updaterole(role: string, description: string) {
         let updated_roles = data.roles.map((eachRole)=>{
             if(eachRole.role== role){
                 eachRole.description = description;
-                console.log(eachRole);
             }  return eachRole;
 
         })

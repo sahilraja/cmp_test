@@ -27,9 +27,7 @@ export async function addComment(body: any, userId: string) {
     try {
       let data = await comments
         .find({ entity_id: doc_id})
-        .sort({ updatedAt: -1 });
-        console.log(data);
-        
+        .sort({ updatedAt: -1 }).exec();        
       const commentsList = await Promise.all(
         data.map(comment=> {
           return commentData(comment);

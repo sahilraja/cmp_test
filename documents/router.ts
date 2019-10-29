@@ -179,7 +179,6 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 
 router.get(`/get-document/:docId`, async (request, response, next) => {
   try {
-    console.log(FILES_SERVER_BASE)
     const req = (FILES_SERVER_BASE as string).startsWith("https") ?
       httpsGet(`${FILES_SERVER_BASE}/compressed-image/${request.params.docId}`, (res: any) => {
         response.setHeader('Content-disposition', 'inline');

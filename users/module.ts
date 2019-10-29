@@ -139,7 +139,6 @@ export async function edit_user(id: string, objBody: any, user: any) {
         };
         // update user with edited fields
         let userInfo = await userEdit(id, objBody);
-        console.log(`s`)
         userInfo.role = userRole;
         return userInfo
 
