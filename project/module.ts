@@ -16,7 +16,7 @@ import { APIError } from "../utils/custom-error";
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
   try {
-    if (!reqObject.citycode || !reqObject.cityname) {
+    if (!reqObject.reference || !reqObject.name) {
       throw new Error(MISSING);
     }
     //  check capability
@@ -30,7 +30,7 @@ export async function createProject(reqObject: any, user: any) {
     return await ProjectSchema.create({
       createdBy: user._id,
       name:reqObject.name,
-      reference: reqObject.citycode,
+      reference: reqObject.reference,
       city: reqObject.cityname,
       summary: reqObject.description || "N/A",
       maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
@@ -56,8 +56,11 @@ export async function editProject(id: any, reqObject: any, user: any) {
     });
     if (!capability.status) throw new Error("Invalid User");
 
-    if (reqObject.citycode) {
-      obj.reference = reqObject.citycode;
+    if (reqObject.reference) {
+      obj.reference = reqObject.reference;
+    }
+    if (reqObject.name) {
+      obj.name = reqObject.name;
     }
     if (reqObject.cityname) {
       obj.city = reqObject.cityname;
