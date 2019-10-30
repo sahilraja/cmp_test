@@ -82,6 +82,12 @@
           "shortDescription": "Delete Document",
           "description": "Ability to delete a document",
           "scope": "global"
+        },
+        {
+          "capability":"edit-task-progress-dates",
+          "shortDescription":"Edit Task Progress Dates",
+          "description":"Edit Task Progress Percentage",
+          "scope":"global"
         }
   ]
   
