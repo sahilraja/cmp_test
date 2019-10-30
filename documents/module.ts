@@ -344,8 +344,10 @@ export async function getDocDetails(docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
-    let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
-    if (!userCapability.length) throw new Error("Unauthorized access.")
+    if (publishDocs.status != 2) {
+      let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
+      if (!userCapability.length) throw new Error("Unauthorized access.")
+    }
     const docList = publishDocs.toJSON();
     docList.tags = await getTags(docList.tags);
     docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
