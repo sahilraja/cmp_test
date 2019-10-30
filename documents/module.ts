@@ -688,6 +688,7 @@ export async function sharedList(userId: string, host: string) {
     let docIds: any = []
     let groups = await userGroupsList(userId)
     docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
+    docIds = docIds.reduce((main: [], arr: [])=> main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     let docs = await documents.find({ _id: { $in: docIds },isDeleted: false }).sort({ updatedAt: -1 });
     return await Promise.all(
