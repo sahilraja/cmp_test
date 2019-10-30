@@ -18,7 +18,7 @@ export const USER_ROUTER = {
     EMAIL_VERIFIED: "Email ID is already verified",
     GROUP_NOT_FOUND: "Please enter a valid group name",
     USER_ARRAY: "Users must be an Array.",
-    ABOUTME_LIMIT:"Aboutme shall not exceed ....... characters"
+    ABOUTME_LIMIT:"Aboutme shall not exceed 200 characters"
 };
 
 export const DOCUMENT_ROUTER = {
