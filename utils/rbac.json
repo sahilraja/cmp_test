@@ -283,6 +283,11 @@
     "description": "SPV Project Incharge",
     "capabilities": [
       {
+        "capability":"edit-task-progress-dates",
+        "description":"Edit Task Progress Percentage",
+        "scope":"global"
+      },
+      {
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
