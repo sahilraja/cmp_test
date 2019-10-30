@@ -147,12 +147,12 @@ export async function edit_user(id: string, objBody: any, user: any) {
             if (objBody.aboutme.length > 200) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
-            objBody.aboutme = objBody.aboutme;
+            obj.aboutme = objBody.aboutme;
         };
-        objBody.profilePic = objBody.name;
-        delete objBody.name;
+        obj.profilePicName = objBody.name;
+
         // update user with edited fields
-        let userInfo = await userEdit(id, objBody);
+        let userInfo = await userEdit(id, obj);
         userInfo.role = userRole;
         return userInfo
 
