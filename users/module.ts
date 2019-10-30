@@ -69,7 +69,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         let user: any = await userFindOne("id", token.id)
         if (!user) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
-        const { firstName, lastName, middleName, password, phone, aboutme, countryCode, profilePic } = objBody
+        const { firstName, lastName, middleName, password, phone, aboutme, countryCode, profilePic, name } = objBody
 
         if (!firstName || !lastName || !password || !phone || !countryCode) {
             throw new Error(USER_ROUTER.MANDATORY);
@@ -95,7 +95,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             is_active: true,
             countryCode: countryCode || null,
             aboutme: aboutme || null,
-            emailVerified: true
+            emailVerified: true,
+            profilePicName: name
         })
         //  create life time token
         return { token: await createJWT({ id: success._id, role: token.role }) }
@@ -146,8 +147,10 @@ export async function edit_user(id: string, objBody: any, user: any) {
             if (objBody.aboutme.length > 200) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
-            obj.aboutme = objBody.aboutme;
+            objBody.aboutme = objBody.aboutme;
         };
+        objBody.profilePic = objBody.name;
+        delete objBody.name;
         // update user with edited fields
         let userInfo = await userEdit(id, objBody);
         userInfo.role = userRole;
