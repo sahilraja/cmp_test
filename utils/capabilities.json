@@ -88,6 +88,11 @@
           "shortDescription":"Edit Task Progress Dates",
           "description":"Edit Task Progress Percentage",
           "scope":"global"
+        },
+        {
+          "capability":"create-project",
+          "description":"Create Project",
+          "scope":"global"
         }
   ]
   

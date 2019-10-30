@@ -63,6 +63,11 @@
     "description": "Program Coordinator",
     "capabilities": [
       {
+        "capability":"create-project",
+        "description":"Create Project",
+        "scope":"global"
+      },
+      {
         "capability": "project-view",
         "description": "Project View",
         "scope": "global"
