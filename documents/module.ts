@@ -145,7 +145,7 @@ export async function getDocList(host: string) {
 
 export async function documentsList(docs: any[]): Promise<object[]> {
   docs = docs.map((id: string) => Types.ObjectId(id))
-  return await documents.find({ _id: { $in: docs } })
+  return await documents.find({ _id: { $in: docs }, isDeleted: false })
 }
 
 async function docData(docData: any, host: string) {
@@ -165,7 +165,7 @@ async function docData(docData: any, host: string) {
 //  Get My Documents
 export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
-    let folderList = await folders.find({ ownerId: userId,isDeleted: false }, { _id: 0, doc_id: 1 })
+    let folderList = await folders.find({ ownerId: userId }, { _id: 0, doc_id: 1 })
     let folder_files = folderList.map((folder: any) => {
       return folder.doc_id
     })
@@ -178,7 +178,7 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
 
     // console.log(folder_file);
 
-    let docs = await documents.find({ ownerId: userId, parentId: null, status: { $ne: STATUS.DRAFT } }).sort({ updatedAt: -1 })
+    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).sort({ updatedAt: -1 })
     const docList = await Promise.all(docs.map((doc) => {
       return docData(doc, host);
     })
@@ -486,7 +486,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
 export async function approvalList(host: string) {
   try {
     let docList = await documents
-      .find({ parentId: { $ne: null }, status: STATUS.PUBLISHED })
+      .find({ parentId: { $ne: null }, status: STATUS.PUBLISHED,isDeleted: false })
       .sort({ updatedAt: -1 });
     let parentDocsIdsArray = docList.map((doc: any) => {
       return doc.parentId;
@@ -538,7 +538,7 @@ export async function getVersions(docId: string) {
     if (!docId) throw new Error("Missing Doc ID");
     let docVersions = await documents
       .find(
-        { parentId: docId, status: { $ne: STATUS.DRAFT } },
+        { parentId: docId, status: { $ne: STATUS.DRAFT },isDeleted: false },
         { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }
       )
       .sort({ createdAt: -1 });
@@ -556,7 +556,7 @@ export async function getApprovalDoc(docId: string) {
     let [parent, pendingDoc]: any = await Promise.all([
       documents.findById(docId).exec(),
       documents
-        .find({ parentId: docId, status: STATUS.PENDING })
+        .find({ parentId: docId, status: STATUS.PENDING,isDeleted: false })
         .sort({ createdAt: -1 })
         .exec()
     ]);
@@ -695,7 +695,7 @@ export async function sharedList(userId: string, host: string) {
     let groups = await userGroupsList(userId)
     await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group")) }));
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
-    let docs = await documents.find({ _id: { $in: docIds } }).sort({ updatedAt: -1 });
+    let docs = await documents.find({ _id: { $in: docIds },isDeleted: false }).sort({ updatedAt: -1 });
     return await Promise.all(
       docs.map(async (doc: any) => {
         return await docData(doc, host);
@@ -967,10 +967,10 @@ export async function docFilter(search: string, userId: string, page: number = 1
       let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
       if (!tags.length) return [];
       let tagId = tags.map(tag => tag._id).pop().toString();
-      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null }).sort({ updatedAt: -1 });
+      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null,isDeleted: false }).sort({ updatedAt: -1 });
       shared = await documents.find({ _id: { $in: docIds }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
-      docs = await documents.find({parentId: null, $or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
+      docs = await documents.find({parentId: null, isDeleted: false,$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
       shared = await documents.find({ _id: { $in: docIds },$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},,{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
     }
     // {: Promise<object[]> 
@@ -1223,7 +1223,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
       .find({ ownerId: userId})
       .sort({ updatedAt: -1 }).exec(),
     documents
-      .find({ ownerId: userId,parentId: null, status: { $ne: STATUS.DRAFT }})
+      .find({ ownerId: userId,parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT }})
       .sort({ updatedAt: -1 }).exec(),
   ])
   let folder_files = folderDocs.map((folder: any) => {
