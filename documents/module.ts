@@ -153,8 +153,8 @@ async function docData(docData: any, host: string) {
   try {
     let fileType = (docData.fileName.split(".")).pop()
     return {
-      ...docData.toJSON(), 
-      tags: await getTags(docData.tags.filter((tag: string)=> Types.ObjectId.isValid(tag))),
+      ...docData.toJSON(),
+      tags: await getTags(docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag))),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
@@ -343,9 +343,9 @@ export async function ApproveDoc(docId: string, versionId: string) {
 export async function getDocDetails(docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
-    let userCapability = await documnetCapabilities(docId, userId)
-    if (!userCapability.length) throw new Error("Unauthorized access.")
     let publishDocs: any = await documents.findById(docId);
+    let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
+    if (!userCapability.length) throw new Error("Unauthorized access.")
     const docList = publishDocs.toJSON();
     docList.tags = await getTags(docList.tags);
     docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
@@ -482,7 +482,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
 export async function approvalList(host: string) {
   try {
     let docList = await documents
-      .find({ parentId: { $ne: null }, status: STATUS.PUBLISHED,isDeleted: false })
+      .find({ parentId: { $ne: null }, status: STATUS.PUBLISHED, isDeleted: false })
       .sort({ updatedAt: -1 });
     let parentDocsIdsArray = docList.map((doc: any) => {
       return doc.parentId;
@@ -534,7 +534,7 @@ export async function getVersions(docId: string) {
     if (!docId) throw new Error("Missing Doc ID");
     let docVersions = await documents
       .find(
-        { parentId: docId, status: { $ne: STATUS.DRAFT },isDeleted: false },
+        { parentId: docId, status: { $ne: STATUS.DRAFT }, isDeleted: false },
         { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }
       )
       .sort({ createdAt: -1 });
@@ -552,7 +552,7 @@ export async function getApprovalDoc(docId: string) {
     let [parent, pendingDoc]: any = await Promise.all([
       documents.findById(docId).exec(),
       documents
-        .find({ parentId: docId, status: STATUS.PENDING,isDeleted: false })
+        .find({ parentId: docId, status: STATUS.PENDING, isDeleted: false })
         .sort({ createdAt: -1 })
         .exec()
     ]);
@@ -692,7 +692,7 @@ export async function sharedList(userId: string, host: string) {
     docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
-    let docs = await documents.find({ _id: { $in: docIds },isDeleted: false }).sort({ updatedAt: -1 });
+    let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).sort({ updatedAt: -1 });
     return await Promise.all(
       docs.map(async (doc: any) => {
         return await docData(doc, host);
@@ -707,16 +707,17 @@ export async function documnetCapabilities(docId: string, userId: string) {
   try {
     let groups = await userGroupsList(userId)
     let viewer
+    let acceptCapabilities = ["owner", "collaborator", "viewer"]
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
-      let role = capability.pop()
+      let role = capability.filter((capability: any) => acceptCapabilities.includes(capability)).pop()
       if (role == "owner" || role == "collaborator") return [role]
       if (role == "viewer") viewer = role
     } else if (groups.length) {
       for (const groupId of groups) {
         let capability = await GetDocCapabilitiesForUser(groupId, docId, "group")
         if (capability.length) {
-          let role = capability.pop()
+          let role = capability.filter((capability: any) => acceptCapabilities.includes(capability)).pop()
           if (role == "collaborator") return [role]
           if (role == "viewer") viewer = role
         }
@@ -969,11 +970,11 @@ export async function docFilter(search: string, userId: string, page: number = 1
       let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
       if (!tags.length) return [];
       let tagId = tags.map(tag => tag._id).pop().toString();
-      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null,isDeleted: false }).sort({ updatedAt: -1 });
+      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).sort({ updatedAt: -1 });
       shared = await documents.find({ _id: { $in: docIds }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
-      docs = await documents.find({parentId: null, isDeleted: false,$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")}]}).sort({ updatedAt: -1 });
-      shared = await documents.find({ _id: { $in: docIds },$or:[{name: new RegExp(search, "i")},{ description: new RegExp(search, "i")},,{ ownerId: {$in: userIds}}]}).sort({ updatedAt: -1 });
+      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }] }).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: docIds }, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, , { ownerId: { $in: userIds } }] }).sort({ updatedAt: -1 });
     }
     // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
@@ -1098,7 +1099,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
           as: "doc_id"
         }
       },
-     
+
       { $unwind: { path: "$doc_id" } },
       {
         $project: {
@@ -1134,7 +1135,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   })
   const filteredDocs = docsList.filter(doc => doc.deleted == false)
 
-  const docsData = manualPagination(page, limit, [...subFolderList, ...  filteredDocs])
+  const docsData = manualPagination(page, limit, [...subFolderList, ...filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
   return { page: docsData.page, pages: docsData.pages, subFoldersList: filteredSubFolders, docsList: docsData.docs };
@@ -1157,7 +1158,7 @@ async function userData(folder: any, host: string) {
       owner,
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt,
-      deleted:folder.doc_id.isDeleted
+      deleted: folder.doc_id.isDeleted
     }])
     return data
 
@@ -1240,7 +1241,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
       .find({ ownerId: userId })
       .sort({ updatedAt: -1 }).exec(),
     documents
-      .find({ ownerId: userId,parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT }})
+      .find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } })
       .sort({ updatedAt: -1 }).exec(),
   ])
   let folder_files = folderDocs.map((folder: any) => {
@@ -1269,6 +1270,6 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   })
   const docsData = manualPagination(page, limit, [...foldersList, ...docsList])
   const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
-  docsData.docs  = docsData.docs.filter(doc => doc.type != 'FOLDER')
-  return { page:docsData.page, pages:docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
+  docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
+  return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
