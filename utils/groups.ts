@@ -85,7 +85,7 @@ export async function GetUserIdsForDocWithRole(docId: string, role: string) {
 export async function GetDocIdsForUser(userId: string, type?:string): Promise<any[]> {
     try {
         let userType = type || "user"
-        let policies = await groupsPolicyFilter(`${userType}/${userId}`, 1, "p")
+        let policies = await groupsPolicyFilter(`${userType}/${userId}`, 0, "p")
         let users = policies.data.filter((policy: string[]) => {
             if (policy[2] == "collaborator" || policy[2] == "viewer")
                 return policy
@@ -138,9 +138,10 @@ export async function GetUserIdsForDoc(docId: string) {
     };
 };
 
-export async function GetDocCapabilitiesForUser(userId: string, docId: string) {
+export async function GetDocCapabilitiesForUser(userId: string, docId: string, type?: string) {
     try {
-        let policies = await groupsPolicyFilter(`user/${userId}`, 0, "p")
+        let userType = type || "user"
+        let policies = await groupsPolicyFilter(`${userType}/${userId}`, 0, "p")
         if (!policies.data) throw new Error("policies not found for this User.")
         let capability = policies.data.filter((policy: string[]) => {
             if (policy[1].includes(docId))

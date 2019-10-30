@@ -687,7 +687,7 @@ export async function sharedList(userId: string, host: string) {
   try {
     let docIds: any = []
     let groups = await userGroupsList(userId)
-    await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group")) }));
+    docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     let docs = await documents.find({ _id: { $in: docIds },isDeleted: false }).sort({ updatedAt: -1 });
     return await Promise.all(
@@ -711,14 +711,15 @@ export async function documnetCapabilities(docId: string, userId: string) {
       if (role == "viewer") viewer = role
     } else if (groups.length) {
       for (const groupId of groups) {
-        let capability = await GetDocCapabilitiesForUser(groupId, docId)
+        let capability = await GetDocCapabilitiesForUser(groupId, docId, "group")
         if (capability.length) {
           let role = capability.pop()
           if (role == "collaborator") return [role]
           if (role == "viewer") viewer = role
         }
-      };
-    } else if (viewer) {
+      }; 
+    }
+    if (viewer) {
       return ["viewer"]
     }
     throw new Error("User dont have that capability")
