@@ -1,11 +1,13 @@
 import { Router, Request, Response, Handler } from "express";
-import { roles_list, capabilities_list, updaterole,userRoleAndScope, usersForRole, capabilities, allrolecapabilities, addCapability,removeCapability } from "./module";
-const router = Router();
+import { role_list, capabilities_list, updaterole,userRoleAndScope, usersForRole, capabilities, allrolecapabilities, addCapability,removeCapability,
+    addRolesFromJSON,addRole ,addRoleCapabilitiesFromJSON} from "./module";
+import { authenticate } from "../utils/utils";
+    const router = Router();
 
 //  list roles
 router.get('/list', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await roles_list());
+        res.status(200).send(await role_list());
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
@@ -68,6 +70,29 @@ router.put('/edit', async (req: Request, res: Response, next: Handler) => {
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
-});
+}); 
 
+router.post('/addRoles', authenticate,async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await addRolesFromJSON(res.locals.user._id));
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+}); 
+
+router.post('/add', authenticate,async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await addRole(res.locals.user._id,req.body));
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+}); 
+
+router.post('/add/roleCapabilities', authenticate,async (req: Request, res: Response, next: Handler) => {
+    try {
+        res.status(200).send(await addRoleCapabilitiesFromJSON(res.locals.user._id));
+    } catch (err) {
+        res.status(400).send({ error: err.message });
+    };
+}); 
 export = router;
