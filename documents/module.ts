@@ -688,7 +688,7 @@ export async function sharedList(userId: string, host: string) {
     let docIds: any = []
     let groups = await userGroupsList(userId)
     docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
-    docIds = docIds.reduce((main: [], arr: [])=> main.concat(arr), [])
+    docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     let docs = await documents.find({ _id: { $in: docIds },isDeleted: false }).sort({ updatedAt: -1 });
     return await Promise.all(
@@ -718,7 +718,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
           if (role == "collaborator") return [role]
           if (role == "viewer") viewer = role
         }
-      }; 
+      };
     }
     if (viewer) {
       return ["viewer"]
@@ -952,12 +952,13 @@ export async function docFilter(search: string, userId: string, page: number = 1
     let { users } = await searchByname(search);
     let userIds = users.map((user: any) => user._id)
     let docs: any = [], shared: any = [], docIds: any = [];
-    
+
     //  User doc Ids
-    let groups: string[] = await userGroupsList(userId)
-    await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group")) }));
+    let groups = await userGroupsList(userId)
+    docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
+    docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
-    
+
     //  Search With Tags
     if (search.startsWith("#")) {
       let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
