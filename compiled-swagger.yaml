@@ -1364,6 +1364,42 @@ paths:
           content:
             application/json:
               schema: *ref_3
+  '/project/{id}/members':
+    get:
+      security:
+        - token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            required: true
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    middleName:
+                      type: string
+                    email:
+                      type: string
+                    role:
+                      type: string
+                    id:
+                      type: string
+                    _id:
+                      type: string
   /project/city/code/list: null
   '/project/{id}/task-list':
     get:
