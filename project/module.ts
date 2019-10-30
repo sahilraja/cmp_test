@@ -3,7 +3,7 @@ import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
-import { userRoleAndScope, roles_list } from "../role/module";
+import { userRoleAndScope, roles_list, role_list } from "../role/module";
 import { taskModel } from "./task_model";
 import { workflowModel } from "./workflow_model";
 import { checkCapability } from "../utils/rbac";
@@ -20,12 +20,12 @@ export async function createProject(reqObject: any, user: any) {
       throw new Error(MISSING);
     }
     //  check capability
-    let capability = await checkCapability({
-      role: user.role,
-      scope: "global",
-      capability: "create-project"
-    });
-    if (!capability.status) throw new Error("Invalid User");
+    // let capability = await checkCapability({
+    //   role: user.role,
+    //   scope: "global",
+    //   capability: "create-project"
+    // });
+    // if (!capability.status) throw new Error("Invalid User");
 
     return await ProjectSchema.create({
       createdBy: user._id,
@@ -49,12 +49,12 @@ export async function editProject(id: any, reqObject: any, user: any) {
     let obj: any = {};
 
     //  check capability
-    let capability = await checkCapability({
-      role: user.role,
-      scope: "global",
-      capability: "create-project"
-    });
-    if (!capability.status) throw new Error("Invalid User");
+    // let capability = await checkCapability({
+    //   role: user.role,
+    //   scope: "global",
+    //   capability: "create-project"
+    // });
+    // if (!capability.status) throw new Error("Invalid User");
 
     if (reqObject.reference) {
       obj.reference = reqObject.reference;
@@ -84,9 +84,9 @@ export async function manageProjectMembers(id: string, members:string[]) {
 
 export async function getProjectMembers(id: string) {
   const { members }: any = await ProjectSchema.findById(id).exec()
-  const [users, formattedRoleObjs] = await Promise.all([
+  const [users, formattedRoleObjs]: any = await Promise.all([
     userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1 }),
-    roles_list()
+    role_list()
   ]) 
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
   return users.map((user:any, i:number) => ({...user, role: formatUserRole((usersRoles.find((role:any) => role.user == user._id) as any).data.global[0], formattedRoleObjs.roles)}))
@@ -94,7 +94,7 @@ export async function getProjectMembers(id: string) {
 
 function formatUserRole(role: string, formattedRoleObjs: any) {
   let userRole: any = formattedRoleObjs.find((roleObj: any) => roleObj.role === role);
-  return userRole ? userRole.description : role;
+  return userRole ? userRole.roleName : role;
 }
 
 //  Get List of city Codes
@@ -378,7 +378,7 @@ export async function ganttChart(projectId: string, userToken: string){
 export async function projectMembers(id: string) {
   let [project, formattedRoleObjs]: any = await Promise.all([
     ProjectSchema.findById(id).exec(),
-    roles_list()
+    role_list()
   ]) 
   if (!project) throw new Error("Project Not Found.");
   const userIds = [...project.members, project.createdBy]

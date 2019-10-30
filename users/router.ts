@@ -11,7 +11,7 @@ import { get as httpsGet } from "https";
 import { FILES_SERVER_BASE } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { OK } from "http-status-codes";
-import { roles_list } from "../role/module";
+import { roles_list, role_list } from "../role/module";
 const router = Router();
 
 //  Invite User
@@ -293,7 +293,7 @@ router.post('/profile/otp/verification',authenticate,async (req,res,next)=>{
 
 router.get(`/getFormattedRoles`, async (req, res, next) => {
     try {
-        res.status(OK).send(await roles_list())
+        res.status(OK).send(await role_list())
     } catch (error) {
         next(new APIError(error.message))
     }

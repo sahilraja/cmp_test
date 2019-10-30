@@ -2,7 +2,7 @@ import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
-import { checkRoleScope, userRoleAndScope, roles_list } from "../role/module";
+import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
@@ -166,11 +166,11 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         const data = await Promise.all(docs.map(async doc => {
             return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
         }));
-        let rolesBody: any = await roles_list();
+        let rolesBody: any = await role_list();
         data.map((user) => {
             rolesBody.roles.forEach((roleInfo: any) => {
                 if (roleInfo.role == user.role) {
-                    user.role = roleInfo.description;
+                    user.role = roleInfo.roleName;
                     return false;
                 }
             });
@@ -286,13 +286,13 @@ export async function userRoles(id: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         //  Get User Roles
-        let [role, formattedRolesData] = await Promise.all([
+        let [role, formattedRolesData]: any = await Promise.all([
             getRoles(id),
-            roles_list()
+            role_list()
         ])
         if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
         const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
-        return { roles: formattedRole ? formattedRole.description : role.data[0].role }
+        return { roles: formattedRole ? formattedRole.roleName : role.data[0].role }
     } catch (err) {
         throw err
     };
@@ -504,11 +504,11 @@ export async function userSuggestions(search: string, userId: string) {
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
         users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
-        let rolesBody: any = await roles_list();
+        let rolesBody: any = await role_list();
         users.map((user: any) => {
             rolesBody.roles.forEach((roleInfo: any) => {
                 if (roleInfo.role == user.role) {
-                    user.role = roleInfo.description;
+                    user.role = roleInfo.roleName;
                     return false;
                 }
             });
