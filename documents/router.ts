@@ -527,7 +527,7 @@ router.post("/:id/new", authenticate, ensureCanEditDocument, async (req, res, ne
 //  Get Document Details
 router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocDetails(req.params.id));
+    res.status(200).send(await getDocDetails(req.params.id, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));;
   }

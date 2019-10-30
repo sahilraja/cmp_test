@@ -494,6 +494,7 @@ export async function removeMembers(id: string, users: any[], userId: string) {
 //  user and group suggestion
 export async function userSuggestions(search: string, userId: string) {
     try {
+        search = search.trim()
         let groupIds = await userGroupsList(userId)
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
@@ -513,7 +514,7 @@ export async function userSuggestions(search: string, userId: string) {
             });
             return user
         })
-        //  groups removed in removed
+        groups = groups.map(group => { return { ...group, type: "group" } })
         return [...users, ...groups]
     } catch (err) {
         throw err

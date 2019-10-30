@@ -9,7 +9,7 @@ import { userInit, init } from './role_management';
 async function initializeDB() {
     try {
         await userInit();
-        await init();
+        // await init();
     } catch (err) {
         console.error(err);
     }
