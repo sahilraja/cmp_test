@@ -1028,6 +1028,17 @@ export async function createFolder(body: any, userId: string) {
 export async function moveToFolder(folderId: string, body: any, userId: string) {
   if (!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   try {
+    if(body.oldFolderId){
+      if (body.docId) {
+        await folders.update({ _id: body.oldFolderId }, {
+          $pull: { doc_id: body.docId }
+        })
+      } else if (body.subFolderId) {
+        await folders.update({ _id: body.subFolderId }, {
+          parentId: null
+        })
+      }
+    }
     if (body.docId) {
       await folders.update({ _id: folderId }, {
         $push: { doc_id: body.docId }
@@ -1071,7 +1082,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
       {
         $match: {
           ownerId: userId,
-          $or: [{ _id: Types.ObjectId(folderId) }, { parentId: folderId }]
+         _id: Types.ObjectId(folderId) 
         }
       },
       // { "$unwind": "$doc_id" },

@@ -1075,6 +1075,7 @@
           required: true
           description: "#tagName or docName/description/ownerName"
         - in: query
+
           name: page
           schema:
             type: number
@@ -1322,7 +1323,10 @@
                   example: docId1234
                 subFolderId:
                   type: string
-                  example: folderId1234  
+                  example: folderId1234 
+                oldFolderId:
+                  type: string
+                  example: oldfolderId1234   
       responses:
         "200":
           description: success
