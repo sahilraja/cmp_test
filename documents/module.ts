@@ -1085,6 +1085,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
           as: "doc_id"
         }
       },
+     
       { $unwind: { path: "$doc_id" } },
       {
         $project: {
@@ -1118,7 +1119,9 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const docsData = manualPagination(page, limit, [...subFolderList, ...  docsList])
+  const filteredDocs = docsList.filter(doc => doc.deleted == false)
+
+  const docsData = manualPagination(page, limit, [...subFolderList, ...  filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
   docsData.docs  = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
   return { page: docsData.page,pages: docsData.pages,subFoldersList: filteredSubFolders, docsList: docsData.docs };
@@ -1140,7 +1143,8 @@ async function userData(folder: any,host: string) {
       role: ((userRole as any).data.global || [""])[0],
       owner,
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
-      date: folder.doc_id.createdAt
+      date: folder.doc_id.createdAt,
+      deleted:folder.doc_id.isDeleted
     }])
     return data
 
