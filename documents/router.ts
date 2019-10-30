@@ -545,7 +545,7 @@ router.post("/folder/create", authenticate, async (req, res, next: NextFunction)
 //Move file to a folder
 router.put("/moveTo/folder/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await moveToFolder(req.params.id, req.body.docId, res.locals.user._id));
+    res.status(200).send(await moveToFolder(req.params.id, req.body, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
