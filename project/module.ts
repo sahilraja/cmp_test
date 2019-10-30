@@ -385,3 +385,17 @@ export async function projectMembers(id: string) {
     key: formatUserRole((usersRoles.find((role:any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles)
   }))
 }
+
+export async function getTaskDetail(projectId: string, id: string, userId: string, userToken: string) {
+  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  if(!projectDetail.members.includes(userId) && projectDetail.createdBy != userId){
+    throw new APIError(`You dont have access to this project`)
+  }
+  const options = {
+    url: `${TASKS_URL}/task/${id}/detail?isFromProject=${true}`,
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${userToken}` },
+    json: true
+  }
+  return await httpRequest(options)
+}
