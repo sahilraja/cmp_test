@@ -18,18 +18,18 @@ export const USER_ROUTER = {
     EMAIL_VERIFIED: "Email ID is already verified",
     GROUP_NOT_FOUND: "Please enter a valid group name",
     USER_ARRAY: "Users must be an Array.",
-    ABOUTME_LIMIT:"Aboutme field limit exceed"
+    ABOUTME_LIMIT:"Aboutme shall not exceed ....... characters"
 };
 
 export const DOCUMENT_ROUTER = {
     MANDATORY: "All mandatory fields are required",
     CREATE_ROLE_FAIL: "Failed to create role",
     CHILD_NOT_FOUND: "Couldn't find child document",
-    DOCID_NOT_VALID: "Document id - document_id is not valid",
-    FILE_NOT_FOUND: "Document is mandatory",
-    INVALID_ADMIN: "You don't have permission to perform this action",
-    NO_PERMISSION: "Couldn't create a document. Unauthorized",
-    LIMIT_EXCEEDED: "should be within specified limit",
+    DOCID_NOT_VALID: "Document ID is invalid",
+    FILE_NOT_FOUND: "Document upload is mandatory",
+    INVALID_ADMIN: "You don't have permissions to perform this action",
+    NO_PERMISSION: "Unable to create the document, unauthorized access",
+    LIMIT_EXCEEDED: "Document name shall not exceed ....... characters",
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
     NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized"
