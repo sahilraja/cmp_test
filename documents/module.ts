@@ -152,7 +152,8 @@ async function docData(docData: any, host: string) {
   try {
     let fileType = (docData.fileName.split(".")).pop()
     return {
-      ...docData.toJSON(), tags: await getTags(docData.tags),
+      ...docData.toJSON(), 
+      tags: await getTags(docData.tags.filter((tag: string)=> Types.ObjectId.isValid(tag))),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
