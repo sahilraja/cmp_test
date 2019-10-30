@@ -183,8 +183,8 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
       return docData(doc, host);
     })
     );
-    var result = docList.filter((docs)=> {
-      return !folderDocIds.some((folderDocs: any)=> {
+    var result = docList.filter((docs) => {
+      return !folderDocIds.some((folderDocs: any) => {
         return docs._id == folderDocs;
       });
     })
@@ -342,7 +342,7 @@ export async function getDocDetails(docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let userCapability = await documnetCapabilities(docId, userId)
-    if(!userCapability.length) throw new Error("Unauthorized access.")
+    if (!userCapability.length) throw new Error("Unauthorized access.")
     let publishDocs: any = await documents.findById(docId);
     const docList = publishDocs.toJSON();
     docList.tags = await getTags(docList.tags);
@@ -947,18 +947,15 @@ export async function publishList(userId: string, host: string) {
 export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string) {
   search = search.trim();
   try {
-   let users = await searchByname(search);
-   let userIds = users.users.map((user:any)=>{
-     return new RegExp(user._id, "i")
-   })
-   
-    let docs: any = [],
-      shared: any = [];
-
-    let docIds: any = []
-    let groups = await userGroupsList(userId)
+    let { users } = await searchByname(search);
+    let userIds = users.map((user: any) => user._id)
+    let docs: any = [], shared: any = [], docIds: any = [];
+    
+    //  User doc Ids
+    let groups: string[] = await userGroupsList(userId)
     await Promise.all(groups.map(async (groupId: string) => { docIds.concat(await GetDocIdsForUser(groupId, "group")) }));
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
+    
     //  Search With Tags
     if (search.startsWith("#")) {
       let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
@@ -1101,7 +1098,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
 
   let subFolderList = subfolders.map((folder: any) => {
     return {
-      type:'SUB_FOLDER',
+      type: 'SUB_FOLDER',
       folderId: folder._id,
       name: folder.name,
       date: folder.createdAt,
@@ -1120,8 +1117,8 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
 
   const docsData = manualPagination(page, limit, [...subFolderList, ...  filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
-  docsData.docs  = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
-  return { page: docsData.page,pages: docsData.pages,subFoldersList: filteredSubFolders, docsList: docsData.docs };
+  docsData.docs = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
+  return { page: docsData.page, pages: docsData.pages, subFoldersList: filteredSubFolders, docsList: docsData.docs };
 }
 
 async function userData(folder: any, host: string) {
@@ -1200,28 +1197,28 @@ export async function deleteDoc(docId: any, userId: string) {
 
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
-    
-    let deletedDoc = await documents.update({_id:docId,ownerId:userId}, {isDeleted:true}, { new: true }).exec()
-    if(deletedDoc){
-      return{
-        success:true,
-        mesage:"File deleted successfully"
+
+    let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }, { new: true }).exec()
+    if (deletedDoc) {
+      return {
+        success: true,
+        mesage: "File deleted successfully"
       }
-    } 
-  }catch (err) {
+    }
+  } catch (err) {
     console.error(err);
     throw err;
   };
 };
 
-export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30,host: string) {
+export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30, host: string) {
 
-  const [foldersData,folderDocs,fetchedDoc] = await Promise.all([
+  const [foldersData, folderDocs, fetchedDoc] = await Promise.all([
     folders
       .find({ ownerId: userId, parentId: null })
       .sort({ updatedAt: -1 }).exec(),
     folders
-      .find({ ownerId: userId})
+      .find({ ownerId: userId })
       .sort({ updatedAt: -1 }).exec(),
     documents
       .find({ ownerId: userId,parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT }})
@@ -1235,7 +1232,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
 
   let foldersList = foldersData.map((folder: any) => {
     return {
-      type:'FOLDER',
+      type: 'FOLDER',
       folderId: folder._id,
       name: folder.name,
       date: folder.createdAt,
@@ -1246,12 +1243,12 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
     return docData(doc, host);
   })
   );
-  var docsList = docList.filter((docs)=> {
-    return !folderDocIds.some((folderDocs: any)=> {
+  var docsList = docList.filter((docs) => {
+    return !folderDocIds.some((folderDocs: any) => {
       return docs._id == folderDocs;
     });
   })
-  const docsData = manualPagination(page, limit, [...foldersList, ...  docsList])
+  const docsData = manualPagination(page, limit, [...foldersList, ...docsList])
   const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
   docsData.docs  = docsData.docs.filter(doc => doc.type != 'FOLDER')
   return { page:docsData.page, pages:docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
