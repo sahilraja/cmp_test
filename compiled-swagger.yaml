@@ -1344,6 +1344,13 @@ paths:
         - token: []
       tags:
         - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
       requestBody:
         required: true
         content:

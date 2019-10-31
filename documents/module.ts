@@ -154,7 +154,7 @@ export async function documentsList(docs: any[]): Promise<object[]> {
 
 async function docData(docData: any, host: string) {
   try {
-    let fileType = (docData.fileName.split(".")).pop()
+    let fileType = docData.fileName ? (docData.fileName.split(".")).pop() : ""
     return {
       ...docData.toJSON(),
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)): []),
@@ -352,7 +352,7 @@ export async function getDocDetails(docId: any, userId: string) {
       if (!userCapability.length) throw new Error("Unauthorized access.")
     }
     const docList = publishDocs.toJSON();
-    docList.tags = await getTags(docList.tags);
+    docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)): []),
     docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
     docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     return docList;
