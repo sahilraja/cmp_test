@@ -1583,6 +1583,47 @@ paths:
                     type: string
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/task/{task-id}/view':
+    get:
+      security:
+        - token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            required: true
+        - in: path
+          name: task_id
+          schema:
+            type: string
+            required: true
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Taskname
+                  startDate:
+                    type: string
+                    example: 22-1-2001
+                  endDate:
+                    type: string
+                    example: 23-2-2019
+                  taskId:
+                    type: string
+                    example: TASK123
+                  _id:
+                    type: string
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/task/{task-id}/edit-date':
     post:
       tags:

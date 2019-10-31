@@ -335,7 +335,7 @@ export async function getProjectTasks(projectId: string, userToken: string) {
 }
 
 export async function editTask(projectId: string, taskId: string, userId: string, userToken: string, payload: any) {
-  const projectDetail = await ProjectSchema.findById(projectId).exec()
+  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
   if(!projectDetail){
     throw new Error(PROJECT_ROUTER.PROJECT_NOT_EXISTS)
   }

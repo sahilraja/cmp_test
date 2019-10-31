@@ -62,7 +62,7 @@ router.get("/:id/get-member-roles", async (req: any, res: any, next: any) => {
 
 router.post(`/:id/manage-members`, async (req, res, next) => {
     try {
-        res.status(OK).send(await manageProjectMembers(req.params.id, req.body.members, (req as any).user._id))
+        res.status(OK).send(await manageProjectMembers(req.params.id, req.body.members, res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -180,9 +180,9 @@ router.get("/:id/task-list", async (req, res, next) => {
     }
 })
 
-router.post(`/:id/task/:task_id/view`, async (req, res, next) => {
+router.get(`/:id/task/:task_id/view`, async (req, res, next) => {
     try {
-        res.status(OK).send(await getTaskDetail(req.params.id, req.params.task_id, (req as any).user._id, (req as any).token))
+        res.status(OK).send(await getTaskDetail(req.params.id, req.params.task_id, res.locals.user._id, (req as any).token))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -190,7 +190,7 @@ router.post(`/:id/task/:task_id/view`, async (req, res, next) => {
 
 router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
     try {
-        res.status(OK).send(await editTask(req.params.id, req.params.task_id, (req as any).user._id, (req as any).token, req.body))
+        res.status(OK).send(await editTask(req.params.id, req.params.task_id, res.locals.user._id, (req as any).token, req.body))
     } catch (error) {
         next(new APIError(error.message))
     }
