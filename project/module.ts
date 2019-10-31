@@ -78,7 +78,11 @@ export async function editProject(id: any, reqObject: any, user: any) {
   }
 }
 
-export async function manageProjectMembers(id: string, members:string[]) {
+export async function manageProjectMembers(id: string, members:string[], loggedUserId: string) {
+  members = Array.from(new Set(members))
+  if(members.includes(loggedUserId)){
+    throw new APIError(`You are trying to add yourself as project member`)
+  }
   return await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
 }
 
