@@ -113,31 +113,16 @@ export async function edit_user(id: string, objBody: any, user: any) {
             let admin_scope = await checkRoleScope(user.role, "create-user");
             if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
         }
-        let obj: any = {}
-        if (objBody.firstName) {
-            obj.firstName = objBody.firstName
-        }
-        if (objBody.lastName) {
-            obj.lastName = objBody.lastName
-        }
-        if (objBody.middleName) {
-            obj.middleName = objBody.middleName
-        }
         if (objBody.password) {
             if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
                 throw new Error(USER_ROUTER.VALID_PASSWORD)
             }
-            obj.password = objBody.password
         };
-        if (objBody.countryCode) {
-            obj.countryCode = objBody.countryCode;
-        }
         if (objBody.phone && objBody.countryCode) {
             let phoneNumber = objBody.countryCode + objBody.phone
             if (!phoneNo(phoneNumber).length) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
-            obj.phone = objBody.phone;
         };
         let userRole;
         if (id != user._id && objBody.role) {
@@ -147,12 +132,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             if (objBody.aboutme.length > 200) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
-            obj.aboutme = objBody.aboutme;
         };
-        obj.profilePicName = objBody.name;
-
         // update user with edited fields
-        let userInfo = await userEdit(id, obj);
+        let userInfo = await userEdit(id, objBody);
         userInfo.role = userRole;
         return userInfo
 
