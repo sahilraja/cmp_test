@@ -4,7 +4,7 @@ const schema = new Schema(
   {
     name: { type: String, trim: true },
     description: { type: String, trim: true },
-    tags: { type: Array },
+    tags: { type: Array},
     themes: { type: Array },
     fileId: { type: String },
     versionNum: { type: String },

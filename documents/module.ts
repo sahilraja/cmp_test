@@ -1,7 +1,7 @@
 import { documents } from "./model";
 import { folders } from "./folder-model";
 import * as http from "http";
-import { Types, STATES } from "mongoose";
+import { Types, STATES, set } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags as Tags } from "../tags/tag_model";
 import { themes } from "../project/theme_model";
@@ -129,9 +129,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 //  Get Document Public List
 export async function getDocList(host: string) {
   try {
-    let data = await documents
-      .find({ parentId: null, status: STATUS.PUBLISHED })
-      .sort({ updatedAt: -1 });
+    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
     const docList = await Promise.all(
       data.map(async doc => {
         return await docData(doc, host);
@@ -154,7 +152,7 @@ async function docData(docData: any, host: string) {
     let fileType = (docData.fileName.split(".")).pop()
     return {
       ...docData.toJSON(),
-      tags: await getTags(docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag))),
+      tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)): []),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
@@ -344,7 +342,7 @@ export async function getDocDetails(docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
-    if (publishDocs.status != 2) {
+    if (publishDocs.status != 2 && publishDocs.parentId == null) {
       let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
       if (!userCapability.length) throw new Error("Unauthorized access.")
     }
@@ -534,12 +532,7 @@ export async function uploadToFileService(request: any) {
 export async function getVersions(docId: string) {
   try {
     if (!docId) throw new Error("Missing Doc ID");
-    let docVersions = await documents
-      .find(
-        { parentId: docId, status: { $ne: STATUS.DRAFT }, isDeleted: false },
-        { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }
-      )
-      .sort({ createdAt: -1 });
+    let docVersions: any = await documents.find({ parentId: docId, status: { $ne: STATUS.DRAFT }, isDeleted: false }, { versionNum: 1, status: 1, createdAt: 1, updatedAt: 1 }).sort({ createdAt: -1 });
     if (!docVersions.length) throw new Error("Docs Not there");
     return docVersions;
   } catch (error) {
@@ -868,6 +861,11 @@ export async function published(body: any, docId: string, userId: string) {
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userId, doc, docId)
+    let role = await groupsAddPolicy(`user/${userId}`, publishedDoc._id, "owner");
+    if (!role.user) {
+      await documents.findByIdAndRemove(publishedDoc._id);
+      throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
+    }
     let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userId, doc)
     return publishedDoc
   } catch (err) {
@@ -879,10 +877,10 @@ async function publishedDocCreate(body: any, userId: string, doc: any, docId?: s
   try {
     return await documents.create({
       sourceId: docId || null,
-      name: body.name,
-      description: body.description,
-      themes: body.themes || null,
-      tags: body.tags || null,
+      name: body.name || doc.name,
+      description: body.description || doc.name,
+      themes: body.themes || doc.theme,
+      tags: body.tags || doc.tags,
       versionNum: 1,
       status: body.status,
       ownerId: userId,
@@ -976,7 +974,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
       shared = await documents.find({ _id: { $in: docIds }, tags: { $elemMatch: { $eq: tagId } } }).sort({ updatedAt: -1 });
     } else {
       docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }] }).sort({ updatedAt: -1 });
-      shared = await documents.find({ _id: { $in: docIds }, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, , { ownerId: { $in: userIds } }] }).sort({ updatedAt: -1 });
+      shared = await documents.find({ _id: { $in: docIds }, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ updatedAt: -1 });
     }
     // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
@@ -1035,7 +1033,7 @@ export async function createFolder(body: any, userId: string) {
 export async function moveToFolder(folderId: string, body: any, userId: string) {
   if (!folderId || (!body.docId && !body.subFolderId)) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   try {
-    if(body.oldFolderId){
+    if (body.oldFolderId) {
       if (body.docId) {
         await folders.update({ _id: body.oldFolderId }, {
           $pull: { doc_id: body.docId }
@@ -1089,7 +1087,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
       {
         $match: {
           ownerId: userId,
-         _id: Types.ObjectId(folderId) 
+          _id: Types.ObjectId(folderId)
         }
       },
       // { "$unwind": "$doc_id" },
