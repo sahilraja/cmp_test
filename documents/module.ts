@@ -24,6 +24,7 @@ import { userFindOne, userFindMany, userList, listGroup, searchByname } from "..
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
+import { ANGULAR_URL } from "../utils/urls";
 
 enum STATUS {
   DRAFT = 0,
@@ -740,7 +741,7 @@ async function invite(user: any, docId: any, role: any, doc: any) {
     let templatInfo = await getTemplateBySubstitutions('inviteForDocument',{
       fullName: userName,
       documentName: doc.name,
-      documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
+      documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`
     });
 
     return nodemail({
