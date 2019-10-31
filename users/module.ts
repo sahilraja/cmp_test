@@ -132,6 +132,10 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };
+        if(objBody.name){
+            objBody.profilePicName = objBody.name
+            delete objBody.name;
+        }
         // update user with edited fields
         let userInfo = await userEdit(id, objBody);
         userInfo.role = userRole;
