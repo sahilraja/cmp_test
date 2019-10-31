@@ -53,6 +53,11 @@ export async function createNewDoc(body: any, userId: any) {
     if (body.description.length > configLimit.description) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
+    let data = await documents
+      .find({ ownerId: userId, name: body.docName });
+    if (data.length) {
+      throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
+    }
     body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
@@ -1165,10 +1170,27 @@ async function userData(folder: any, host: string) {
 export async function deleteFolder(folderId: string, userId: string) {
   try {
     if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    const folderDetails = await folders.find({_id: folderId});
+    if(!folderDetails.length){
+       throw new Error("Folder doesnot exist")
+    }
+    let folderData = folderDetails.map((folder: any)=>{
+      return {
+        parentId:folder.parentId,
+        doc_id: folder.doc_id
+      }});
+      const parentId = folderData[0].parentId?folderData[0].parentId:null
+      let doc_id =  folderData[0].doc_id.length?folderData[0].doc_id:[]
+      doc_id = JSON.parse(JSON.stringify(doc_id))
+      console.log(doc_id);
+      
     const data = await Promise.all([
-      folders.remove({ _id: folderId, ownerId: userId }).exec(),
+      // folders.remove({ _id: folderId, ownerId: userId }).exec(),
       folders.update({ parentId: folderId }, {
-        parentId: null
+        parentId: parentId
+      }, { "multi": true }).exec(),
+      folders.update({ _id: parentId }, {
+         $addToSet: { doc_id:doc_id},
       }, { "multi": true }).exec()
     ])
 

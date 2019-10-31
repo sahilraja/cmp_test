@@ -32,7 +32,8 @@ export const DOCUMENT_ROUTER = {
     LIMIT_EXCEEDED: "Document name shall not exceed ....... characters",
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
-    NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized"
+    NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized",
+    DOC_ALREADY_EXIST: "A document with same name already exists"
 }
 
 export const COMMENT_ROUTER = {
