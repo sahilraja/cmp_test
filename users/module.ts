@@ -69,7 +69,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         let user: any = await userFindOne("id", token.id)
         if (!user) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
-        const { firstName, lastName, middleName, password, phone, aboutme, countryCode, profilePic } = objBody
+        const { firstName, lastName, middleName, password, phone, aboutme, countryCode, profilePic, name } = objBody
 
         if (!firstName || !lastName || !password || !phone || !countryCode) {
             throw new Error(USER_ROUTER.MANDATORY);
@@ -95,7 +95,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             is_active: true,
             countryCode: countryCode || null,
             aboutme: aboutme || null,
-            emailVerified: true
+            emailVerified: true,
+            profilePicName: name
         })
         //  create life time token
         return { token: await createJWT({ id: success._id, role: token.role }) }
@@ -112,31 +113,16 @@ export async function edit_user(id: string, objBody: any, user: any) {
             let admin_scope = await checkRoleScope(user.role, "create-user");
             if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
         }
-        let obj: any = {}
-        if (objBody.firstName) {
-            obj.firstName = objBody.firstName
-        }
-        if (objBody.lastName) {
-            obj.lastName = objBody.lastName
-        }
-        if (objBody.middleName) {
-            obj.middleName = objBody.middleName
-        }
         if (objBody.password) {
             if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
                 throw new Error(USER_ROUTER.VALID_PASSWORD)
             }
-            obj.password = objBody.password
         };
-        if (objBody.countryCode) {
-            obj.countryCode = objBody.countryCode;
-        }
         if (objBody.phone && objBody.countryCode) {
             let phoneNumber = objBody.countryCode + objBody.phone
             if (!phoneNo(phoneNumber).length) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
-            obj.phone = objBody.phone;
         };
         let userRole;
         if (id != user._id && objBody.role) {
@@ -146,7 +132,6 @@ export async function edit_user(id: string, objBody: any, user: any) {
             if (objBody.aboutme.length > 200) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
-            obj.aboutme = objBody.aboutme;
         };
         // update user with edited fields
         let userInfo = await userEdit(id, objBody);
