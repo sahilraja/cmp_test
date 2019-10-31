@@ -62,7 +62,7 @@ router.get("/:id/get-member-roles", async (req: any, res: any, next: any) => {
 
 router.post(`/:id/manage-members`, async (req, res, next) => {
     try {
-        res.status(OK).send(await manageProjectMembers(req.params.id, req.body.members))
+        res.status(OK).send(await manageProjectMembers(req.params.id, req.body.members, (req as any).user._id))
     } catch (error) {
         next(new APIError(error.message))
     }
