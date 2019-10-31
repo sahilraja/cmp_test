@@ -106,6 +106,8 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/getGanttChartForProject
   /project/{id}/link-task:
     $ref: ./swagger/projects/paths.yaml/#/linkTask
+  /project/{id}/task/{task-id}/view:
+    $ref: ./swagger/projects/paths.yaml/#/getTaskDetail
   /project/{id}/task/{task-id}/edit-date:
     $ref: ./swagger/projects/paths.yaml/#/editTaskDate
 # Roles
