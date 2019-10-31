@@ -23,6 +23,7 @@ import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { userFindOne, userFindMany, userList, listGroup, searchByname } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
+import { getTemplateBySubstitutions } from "../email-templates/module";
 
 enum STATUS {
   DRAFT = 0,
@@ -735,14 +736,17 @@ async function invite(user: any, docId: any, role: any, doc: any) {
   if (user.type == "user") {
     let userData: any = await userFindOne("id", user._id);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
+    
+    let templatInfo = await getTemplateBySubstitutions('inviteForDocument',{
+      fullName: userName,
+      documentName: doc.name,
+      documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
+    });
+
     return nodemail({
       email: userData.email,
-      subject: `Invitation for ${doc.name} document`,
-      html: docInvitePeople({
-        username: userName,
-        documentName: doc.name,
-        documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
-      })
+      subject: templatInfo.subject,
+      html: templatInfo.content
     });
   };
 };

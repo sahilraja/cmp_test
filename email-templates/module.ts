@@ -65,17 +65,17 @@ export async function getTemplateBySubstitutions(templateId: string, substitutio
         throw new Error(`Invalid email template ${templateId}`);
     }
     return {
-        subject: Object.keys(SUBSTITUTIONS).filter(key => SUBSTITUTIONS[key] in substitutions).reduce((prev, key) => {
-            return prev.replace(new RegExp(`\\[${SUBSTITUTIONS[key]}\\]`, "g"), substitutions[SUBSTITUTIONS[key]]);
-        }, template.title),
+        subject: Object.keys(substitutions).reduce((prev, key) => {
+            return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
+        }, template.subject),
         content: `<style type="text/css">p{margin-bottom:1em;}</style>${template.form == "html" ? 
         
-        Object.keys(SUBSTITUTIONS).filter(key => SUBSTITUTIONS[key] in substitutions).reduce((prev, key) => {
-            return prev.replace(new RegExp(`\\[${SUBSTITUTIONS[key]}\\]`, "g"), substitutions[SUBSTITUTIONS[key]]);
+        Object.keys(substitutions).reduce((prev, key) => {
+            return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
         }, template.content) : 
 
-        marked(Object.keys(SUBSTITUTIONS).filter(key => SUBSTITUTIONS[key] in substitutions).reduce((prev, key) => {
-            return prev.replace(new RegExp(`\\[${SUBSTITUTIONS[key]}\\]`, "g"), substitutions[SUBSTITUTIONS[key]]);
+        marked( Object.keys(substitutions).reduce((prev, key) => {
+            return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
         }, template.content))}`
     };
 }

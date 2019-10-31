@@ -52,7 +52,7 @@ app.use("/project", authenticate, projectRouter);
 app.use("/docs", documentRouter)
 app.use("/task", taskRouter)
 app.use("/tag", tagRouter);
-app.use("/template", authenticate, templateRouter);
+app.use("/template", templateRouter);
 app.use("/comments", authenticate, commentRouter);
 app.use(`/pillars`, authenticate, pillarRouter)
 app.use(`/steps`, authenticate, stepRouter)
