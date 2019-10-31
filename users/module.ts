@@ -554,7 +554,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
 
         let success = await nodemail({
-            email: user.email,
+            email: objBody.email,
             subject: templatInfo.subject,
             html: templatInfo.content
         });
