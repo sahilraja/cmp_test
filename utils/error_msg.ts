@@ -16,6 +16,7 @@ export const USER_ROUTER = {
     ROLE_NOT_FOUND: "Failed to fetch role and access details",
     CAPABILITIES_NOT_FOUND: "Failed to fetch access privileges",
     EMAIL_VERIFIED: "Email ID is already verified",
+    EMAIL_WRONG : "Given email id is invalid",
     GROUP_NOT_FOUND: "Please enter a valid group name",
     USER_ARRAY: "Users must be an Array.",
     ABOUTME_LIMIT:"Aboutme shall not exceed 200 characters"

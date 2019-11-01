@@ -18,6 +18,11 @@ export async function inviteUser(objBody: any, user: any) {
         if (!objBody.email || !objBody.role || !user) {
             throw new Error(USER_ROUTER.MANDATORY);
         };
+        if(objBody.email){
+            if(!validateEmail(objBody.email)){
+                throw Error(USER_ROUTER.EMAIL_WRONG);
+            }
+        }
         //  Check User Capability
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
@@ -108,6 +113,12 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        if(objBody.email){
+            let validEmail = validateEmail(objBody.email);
+            if(validEmail){
+                throw new Error(USER_ROUTER.EMAIL_WRONG);
+            }
+        } 
         if (id != user._id) {
             let admin_scope = await checkRoleScope(user.role, "create-user");
             if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
@@ -212,6 +223,11 @@ export async function user_login(objBody: any) {
         }
         if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
             throw Error(USER_ROUTER.INVALID_FIELDS);
+        }
+        if(objBody.email){
+            if(!validateEmail(objBody.email)){
+                throw Error(USER_ROUTER.EMAIL_WRONG);
+            }
         }
         //  find User
         let userData: any = await userFindOne("email", objBody.email);
@@ -537,6 +553,11 @@ export async function changeEmailInfo(objBody: any, user: any) {
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
         }
+        if(objBody.email){
+            if(!validateEmail(objBody.email)){
+                throw Error(USER_ROUTER.EMAIL_WRONG);
+            }
+        }
         if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
             throw Error(USER_ROUTER.INVALID_FIELDS);
         }
@@ -586,4 +607,9 @@ export async function loginHistory(id: string) {
     } catch (err) {
         throw err
     }
+}
+
+export function validateEmail(email:string){
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
 }
