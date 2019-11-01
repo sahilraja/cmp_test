@@ -12,6 +12,9 @@ router.post("/create", async (req, res, next) => {
     try {
         res.status(OK).send(await createProject(req.body, res.locals.user))
     } catch (err) {
+        if(err.code == 11000){
+            err.message = `${err.message.substring(err.message.indexOf("{ :")+5,err.message.indexOf("}")-2)} already exists`
+        }
         next(new APIError(err.message));
     }
 });

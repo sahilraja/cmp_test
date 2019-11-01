@@ -24,6 +24,7 @@ import { userFindOne, userFindMany, userList, listGroup, searchByname } from "..
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
+import { ANGULAR_URL } from "../utils/urls";
 
 enum STATUS {
   DRAFT = 0,
@@ -154,7 +155,7 @@ export async function documentsList(docs: any[]): Promise<object[]> {
 
 async function docData(docData: any, host: string) {
   try {
-    let fileType = (docData.fileName.split(".")).pop()
+    let fileType = docData.fileName ? (docData.fileName.split(".")).pop() : ""
     return {
       ...docData.toJSON(),
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)): []),
@@ -352,7 +353,7 @@ export async function getDocDetails(docId: any, userId: string) {
       if (!userCapability.length) throw new Error("Unauthorized access.")
     }
     const docList = publishDocs.toJSON();
-    docList.tags = await getTags(docList.tags);
+    docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)): []),
     docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
     docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     return docList;
@@ -741,7 +742,7 @@ async function invite(user: any, docId: any, role: any, doc: any) {
     let templatInfo = await getTemplateBySubstitutions('inviteForDocument',{
       fullName: userName,
       documentName: doc.name,
-      documentUrl: `https://cmp-dev.transerve.com/home/resources/doc/${doc._id}`
+      documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`
     });
 
     return nodemail({
