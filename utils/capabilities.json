@@ -91,7 +91,14 @@
         },
         {
           "capability":"create-project",
+          "shortDescription":"Create Project",
           "description":"Create Project",
+          "scope":"global"
+        },
+        {
+          "capability":"display-role-management",
+          "shortDescription":"Display Role Management",
+          "description":"Display Role Management",
           "scope":"global"
         }
   ]
