@@ -38,7 +38,7 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/userCapabilities
   /user/me:
     $ref: ./swagger/users/paths.yaml/#/userDetails
-  /user/resend/invite/{id}:
+  /user/invite/resend/{role}/{id}:
     $ref: ./swagger/users/paths.yaml/#/resendInvite
   /user/forgot:
     $ref: ./swagger/users/paths.yaml/#/forgotPassword

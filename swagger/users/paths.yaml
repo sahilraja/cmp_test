@@ -269,7 +269,7 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   # user capabilities
   resendInvite:
-  # "/user/resend/invite/{id}":
+  # "/user/resend/{role}/{id}":
     get:
       security:
         - token: []
@@ -283,6 +283,13 @@
               type: string
             required: true
             description: user id
+          
+          - in: path
+            name: role
+            schema:
+              type: string
+            required: true
+            description: user role
       responses:
         "200":
           description: success
