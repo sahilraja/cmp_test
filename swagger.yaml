@@ -194,6 +194,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/deleteUserPermission
   /user/suggestion:
     $ref: ./swagger/resources/paths.yaml/#/userSuggestion
+  /user/getUsersForProject:
+    $ref: ./swagger/resources/paths.yaml/#/getUsersForProject
   /docs/{id}/capabilities:
     $ref: ./swagger/resources/paths.yaml/#/docCapabilitiesForUser
   /docs/{id}/publish:

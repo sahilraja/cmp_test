@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject } from "./module";
 import { authenticate } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -242,6 +242,14 @@ router.get("/suggestion", authenticate, async (req: Request, res: Response, next
         next(new APIError(err.message));;
     };
 });
+
+router.get(`/getUsersForProject`, authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getUsersForProject(req.query.search, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 
 //  Group Details
 router.get("/group/:id", authenticate, async (req: Request, res: Response, next: NextFunction) => {
