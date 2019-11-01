@@ -262,7 +262,7 @@ export async function getProjectsList(userId: any, userToken: string) {
 async function mapProgressPercentageForProjects(projectIds: string[], userToken: string, list: any[]) {
   const projectRelatedTasks = await httpRequest({
     url: `${TASKS_URL}/task/getTasksByProjectIds`,
-    payload:{projectIds},
+    body:{projectIds},
     json: true,
     method:'POST',
     headers: {'Authorization': `Bearer ${userToken}`}
