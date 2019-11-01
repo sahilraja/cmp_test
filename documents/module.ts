@@ -1149,7 +1149,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
 
 async function userData(folder: any, host: string) {
   try {
-    let fileType = (folder.doc_id.fileName.split(".")).pop()
+    let fileType = folder.doc_id.fileName?(folder.doc_id.fileName.split(".")).pop():""
     const [tags, userRole, owner] = await Promise.all([
       getTags(folder.doc_id.tags),
       userRoleAndScope(folder.doc_id.ownerId),
