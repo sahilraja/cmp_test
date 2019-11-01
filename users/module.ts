@@ -511,6 +511,7 @@ export async function userSuggestions(search: string, userId: string) {
             rolesBody.roles.forEach((roleInfo: any) => {
                 if (roleInfo.role == user.role) {
                     user.role = roleInfo.roleName;
+                    user.nonDisplaybleRole = roleInfo.role
                     return false;
                 }
             });
@@ -522,6 +523,12 @@ export async function userSuggestions(search: string, userId: string) {
         throw err
     };
 };
+
+export async function getUsersForProject(search: string, userId: string) {
+    const data = await userSuggestions(search, userId)
+    return data.filter(data1 => data1.type == 'group').concat(data.filter(data1 => data1.nonDisplaybleRole && (data1.nonDisplaybleRole != 'program-coordinator')))
+}
+
 export async function otpVerification(objBody: any) {
     try {
         if (!objBody.otp) {

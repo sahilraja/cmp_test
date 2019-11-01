@@ -3261,6 +3261,32 @@ paths:
                   $ref: './schema/#/responses/schemas/DocPermissions'
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /user/getUsersForProject:
+    get:
+      security:
+        - token: []
+      summary: shared users list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: true
+          description: sarch name
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: './schema/#/responses/schemas/DocPermissions'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/{id}/capabilities':
     get:
       security:
