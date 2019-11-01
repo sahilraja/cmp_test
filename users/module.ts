@@ -114,8 +114,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if(objBody.email){
-            let validEmail = validateEmail(objBody.email);
-            if(validEmail){
+            if(!validateEmail(objBody.email)){
                 throw new Error(USER_ROUTER.EMAIL_WRONG);
             }
         } 
