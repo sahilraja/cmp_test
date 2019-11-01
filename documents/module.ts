@@ -1191,7 +1191,7 @@ export async function deleteFolder(folderId: string, userId: string) {
       console.log(doc_id);
       
     const data = await Promise.all([
-      // folders.remove({ _id: folderId, ownerId: userId }).exec(),
+      folders.remove({ _id: folderId, ownerId: userId }).exec(),
       folders.update({ parentId: folderId }, {
         parentId: parentId
       }, { "multi": true }).exec(),
