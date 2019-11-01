@@ -259,14 +259,17 @@ export async function userInviteResend(id: string, role: any) {
         if (!userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
         let token = await jwt_for_url({ user: id, role: role });
+
+        let {firstName , lastName , middleName} = userData;
+        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
+
         //  mail sent user
-        let success = await nodemail({
+        let templatInfo = await getTemplateBySubstitutions('invite', {fullName,role, link: `${ANGULAR_URL}/user/register/${token}`});
+        //  Sent Mail to User
+        let mailStatus = await nodemail({
             email: userData.email,
-            subject: MAIL_SUBJECT.INVITE_USER,
-            html: inviteUserForm({
-                role: role,
-                link: `${ANGULAR_URL}/user/register/${token}`
-            })
+            subject: templatInfo.subject,
+            html: templatInfo.content
         })
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
