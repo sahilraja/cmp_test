@@ -1,11 +1,11 @@
 import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
-import { inviteUserForm, forgotPasswordForm, userLoginForm, userState ,profileOtp} from "../utils/email_template";
+import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
-import { groupUserList, addUserToGroup, removeUserToGroup, userGroupsList } from "../utils/groups";
+import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
 import * as phoneNo from "phone";
@@ -32,8 +32,8 @@ export async function inviteUser(objBody: any, user: any) {
             lastName: objBody.lastName,
             middleName: objBody.middleName
         })
-        let {firstName , lastName , middleName} = userData;
-        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        let { firstName, lastName, middleName } = userData;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         //  Add Role to User
         let RoleStatus = await addRole(userData._id, objBody.role)
         if (!RoleStatus.status) {
@@ -114,8 +114,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if(objBody.email){
-            let validEmail = validateEmail(objBody.email);
-            if(validEmail){
+            if(!validateEmail(objBody.email)){
                 throw new Error(USER_ROUTER.EMAIL_WRONG);
             }
         } 
@@ -135,8 +134,8 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }
         };
         let userRole;
-        if(id != user._id && objBody.role){
-            userRole = await updateRole(id,objBody.updateRole,objBody.role);
+        if (id != user._id && objBody.role) {
+            userRole = await updateRole(id, objBody.updateRole, objBody.role);
         }
         if (objBody.aboutme) {
             if (objBody.aboutme.length > 200) {
@@ -175,7 +174,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             });
             return user
         })
-        return { data, page:+page,pages: pages, count: total };
+        return { data, page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
     };
@@ -199,7 +198,7 @@ export async function user_status(id: string, user: any) {
 
         let userData: any = await userFindOne("id", id);
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
-        if(!userData.emailVerified) throw new Error("User not registered Yet.")
+        if (!userData.emailVerified) throw new Error("User not registered Yet.")
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated": "Inactivated"
@@ -223,7 +222,7 @@ export async function user_login(objBody: any) {
         }
         if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
             throw Error(USER_ROUTER.INVALID_FIELDS);
-        }
+        };
         if(objBody.email){
             if(!validateEmail(objBody.email)){
                 throw Error(USER_ROUTER.EMAIL_WRONG);
@@ -234,7 +233,7 @@ export async function user_login(objBody: any) {
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
-        await loginSchema.create({ip:objBody.ip,userId:userData._id});
+        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         
         let templatInfo = await getTemplateBySubstitutions('userLogin', {fullName:userData.firstName});
@@ -328,13 +327,13 @@ export async function forgotPassword(objBody: any) {
         };
         //  Find User
         let userDetails: any = await userFindOne("email", objBody.email);
-        if(!userDetails){
+        if (!userDetails) {
             throw new Error('Email ID is not registered')
         }
-        let {firstName , lastName , middleName} = userDetails;
-        let fullName = (firstName ? firstName + " " :"")+(middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        let { firstName, lastName, middleName } = userDetails;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
-        if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER) 
+        if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         //  Create Token
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
@@ -386,13 +385,14 @@ export async function setNewPassword(objBody: any) {
 
 
 //  Create Group
-export async function createGroup(objBody: any) {
+export async function createGroup(objBody: any, userId: string) {
     try {
         const { name, description } = objBody
         if (!name) throw new Error(USER_ROUTER.MANDATORY);
         return await groupCreate({
             name: name,
-            description: description
+            description: description,
+            createdBy: userId
         });
     } catch (err) {
         throw err;
@@ -400,11 +400,12 @@ export async function createGroup(objBody: any) {
 };
 
 //  change Group status
-export async function groupStatus(id: any) {
+export async function groupStatus(id: any, userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
+        if (group.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
@@ -414,9 +415,11 @@ export async function groupStatus(id: any) {
 };
 
 //  Edit Group
-export async function editGroup(objBody: any, id: string) {
+export async function editGroup(objBody: any, id: string, userId: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        let group: any = await groupFindOne("id", id);
+        if (group.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         const { name, description } = objBody
         let obj: any = {}
         if (name) {
@@ -432,9 +435,12 @@ export async function editGroup(objBody: any, id: string) {
 };
 
 //  Get group List
-export async function groupList() {
+export async function groupList(userId: string) {
     try {
-        let groups = await listGroup({ is_active: true }, undefined, "updatedAt")
+        let groupIds = await userGroupsList(userId)
+        let meCreatedGroup = await groupPatternMatch({ is_active: true }, {}, { createdBy: userId }, {}, "updatedAt")
+        let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
+        let groups = [...meCreatedGroup, ...sharedGroup]
         return await Promise.all(groups.map(async (group: any) => {
             return { ...group, users: ((await groupUserList(group._id)) as any).length }
         }));
@@ -458,16 +464,13 @@ export async function groupDetail(id: string) {
 //  Add Member to Group
 export async function addMember(id: string, users: any[], userId: string) {
     try {
-        if (!Types.ObjectId.isValid(id)) {throw new Error(USER_ROUTER.INVALID_PARAMS_ID);}
-        if (!id || !users) {throw new Error(USER_ROUTER.MANDATORY);}
-        if (!Array.isArray(users)) {throw new Error(USER_ROUTER.USER_ARRAY)}
+        if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
+        if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
-        if (!data) {throw new Error(USER_ROUTER.GROUP_NOT_FOUND);}
-        if (data.createdBy._id != userId) {throw new Error("Only this Action Performed By Group Admin.")}
-        await Promise.all(users.map(async (user: any) => { 
-            if (data.createdBy._id != user) { 
-                await addUserToGroup(user, id) } 
-        }))
+        if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
+        if (data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
+        await Promise.all(users.map(async (user: any) => { if (data.createdBy._id != user) { await addUserToGroup(user, id) } }))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -573,9 +576,9 @@ export async function changeEmailInfo(objBody: any, user: any) {
         }
         //  find User
         let emailExist = await userFindOne("email", objBody.email);
-        if(emailExist) throw new Error("Already email exist.")
-        let validUser = await userLogin({email: user.email, password: objBody.password})
-        if(!validUser.token) throw new Error("Enter valid credentials.");
+        if (emailExist) throw new Error("Already email exist.")
+        let validUser = await userLogin({ email: user.email, password: objBody.password })
+        if (!validUser.token) throw new Error("Enter valid credentials.");
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
@@ -589,7 +592,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
             subject: templatInfo.subject,
             html: templatInfo.content
         });
-        return {message: RESPONSE.SUCCESS_EMAIL};
+        return { message: RESPONSE.SUCCESS_EMAIL };
     }
     catch (err) {
         throw err

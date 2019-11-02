@@ -708,6 +708,8 @@ export async function documnetCapabilities(docId: string, userId: string) {
   try {
     let groups = await userGroupsList(userId)
     let viewer
+    let doc: any = await documents.findById(docId);
+    if(doc.status == 2) return ["public"]
     let acceptCapabilities = ["owner", "collaborator", "viewer"]
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
@@ -727,7 +729,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
     if (viewer) {
       return ["viewer"]
     }
-    throw new Error("User dont have that capability")
+    return ["no_access"]
   } catch (err) {
     throw err;
   };
