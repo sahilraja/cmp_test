@@ -10,4 +10,4 @@ const schema = new Schema({
 }, { timestamps: true });
 
 schema.plugin(mongoosePagination);
-export const privateGroupSchema = model("private group", schema);
+export const privateGroupSchema = model("private_group", schema);
