@@ -4081,6 +4081,21 @@ paths:
               properties:
                 name:
                   type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: step1
+                  _id:
+                    type: string
+                    example: 5968574635575c547q74
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /steps/list:
     get:
       security:
@@ -4122,6 +4137,8 @@ paths:
                         type: string
                         example: 5968574635575c547q74
           description: Success
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/steps/{id}/edit': *ref_8
 definitions:
   ErrorResponse:
