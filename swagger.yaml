@@ -126,7 +126,9 @@ paths:
   /role/capability/remove:
     $ref: ./swagger/roles/paths.yaml/#/removeCapability
   /role/add:
-    $ref: ./swagger/roles/paths.yaml/#/addRole  
+    $ref: ./swagger/roles/paths.yaml/#/addRole 
+  /role/{role}/edit:
+    $ref: ./swagger/roles/paths.yaml/#/editRole   
 # Comments
   /comments/add:
     $ref: ./swagger/comments/paths.yaml/#/addComment  

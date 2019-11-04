@@ -1019,11 +1019,11 @@ export async function createFolder(body: any, userId: string) {
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
 
 
-    let data = await folders
-      .find({ ownerId: userId, name: body.name });
-    if (data.length) {
-      throw new Error(DOCUMENT_ROUTER.ALREADY_EXIST);
-    }
+    // let data = await folders
+    //   .find({ ownerId: userId, name: body.name });
+    // if (data.length) {
+    //   throw new Error(DOCUMENT_ROUTER.ALREADY_EXIST);
+    // }
     let folder = await folders.create({
       name: body.name,
       parentId: body.parentId || null,
