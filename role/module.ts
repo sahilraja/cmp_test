@@ -177,21 +177,25 @@ export async function removeCapability(role: string, scope: string, capability: 
         throw err;
     };
 };
-export async function updaterole(role: string, description: string) {
+export async function updaterole(role:string,bodyObj:any) {
     try {
-        let data = await roles_list()
-        if (!data.roles.length) throw new Error("Error to fetch Roles")
-        let updated_roles = data.roles.map((eachRole) => {
-            if (eachRole.role == role) {
-                eachRole.description = description;
-            } return eachRole;
 
+        let findRole = await roleSchema.find({role:role})
+        if(!findRole.length){
+            throw new Error("Role does not exist");
+        }
+        let roleData = findRole.map((_role:any)=>{
+            return _role;
         })
-        fs.writeFile(join(__dirname, "..", "utils", "roles.json"), JSON.stringify(updated_roles), (err) => {
-            console.log(err || 'complete');
-
-        });
-        return updated_roles;
+        let updateRole = await roleSchema.update({role:role}, { 
+            category:bodyObj.category?bodyObj.category:roleData[0].category,
+            roleName:bodyObj.roleName?bodyObj.roleName:roleData[0].roleName,
+            description:bodyObj.description?bodyObj.description:roleData[0].description
+         }).exec()
+ 
+        if (updateRole) {
+        return { success:true, data:updaterole }
+        }
 
     } catch (err) {
         console.log(err);
@@ -223,12 +227,12 @@ export async function addRolesFromJSON(userId: string) {
 
 export async function addRole(userId: string, bodyObj: any) {
     try {
-        if (!bodyObj.role || !bodyObj.category) throw new Error("All mandatory fields are reuired")
+        if (!bodyObj.role || !bodyObj.category || !bodyObj.roleName) throw new Error("All mandatory fields are reuired")
         let role = bodyObj.role.replace(/ /g, '-');
         role = role.toLowerCase().trim()
         let response = await roleSchema.create({
-            role: role,
-            roleName: bodyObj.role,
+            role: bodyObj.role,
+            roleName: bodyObj.roleName,
             description: bodyObj.description,
             category: bodyObj.category,
             createdBy: userId

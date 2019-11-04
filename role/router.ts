@@ -64,9 +64,9 @@ router.put('/capability/remove', async (req: Request, res: Response, next: Handl
     };
 });
 
-router.put('/edit', async (req: Request, res: Response, next: Handler) => {
+router.put('/:role/edit', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await updaterole(req.body.role,req.body.description));
+        res.status(200).send(await updaterole(req.params.role,req.body));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
