@@ -10,6 +10,22 @@ createStep:
         application/json:
           schema:
             $ref: "./schema.yaml/#/responses/schemas/stepSchema"
+    responses:
+      "200":
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: step1
+                _id:
+                  type: string
+                  example: 5968574635575c547q74
+      "400":
+        $ref: "#/definitions/ErrorResponse/BadRequest"
+                  
 listSteps:
   get:
     security:
@@ -51,6 +67,8 @@ getStepDetail:
                     type: string
                     example: 5968574635575c547q74
         description: Success
+      "400":
+        $ref: "#/definitions/ErrorResponse/BadRequest"
 editStep:
   post:
     security:
@@ -75,3 +93,18 @@ editStep:
                 type: string
                 required: true
                 example: pillar1
+    responses:
+      "200":
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: step1
+                _id:
+                  type: string
+                  example: 5968574635575c547q74
+      "400":
+        $ref: "#/definitions/ErrorResponse/BadRequest"
