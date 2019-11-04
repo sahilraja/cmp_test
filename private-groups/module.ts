@@ -1,6 +1,7 @@
 import { privateGroupSchema } from "./model";
 import * as mongoose from "mongoose";
 import { RESPONSE } from "../utils/error_msg";
+import { userFindMany, userFindOne } from "../utils/users";
 
 export interface privateGroup extends mongoose.Document {
     name: string;
@@ -52,7 +53,12 @@ export async function privateGroupStatus(groupId: string, userId: string): Promi
 //  Get Group Detail
 export async function privateGroupDetails(groupId: string): Promise<any>{
     try {
-        return await privateGroupSchema.findById(groupId).exec()
+        let groupDetails: any =  await privateGroupSchema.findById(groupId).exec()
+        return { 
+            ...groupDetails,
+            createdBy: await userFindOne("id", groupDetails.createdBy, { firstName: 1, middleName: 1, lastName: 1, email: 1 }), 
+            members: await userFindMany('_id', groupDetails.members, { firstName: 1, lastName: 1, middleName: 1, email: 1 })
+        } 
     } catch (err) {
       throw err; 
     };
@@ -61,7 +67,15 @@ export async function privateGroupDetails(groupId: string): Promise<any>{
 //  Get Group Detail
 export async function privateGroupList(): Promise<any[]>{
     try {
-        return await privateGroupSchema.find({}).exec()
+        let groupList = await privateGroupSchema.find({}).exec()
+        return await Promise.all(groupList.map((group: any) =>{
+            return { 
+                ...group,
+                createdBy: userFindOne("id", group.createdBy, { firstName: 1, middleName: 1, lastName: 1, email: 1 }), 
+                members: userFindMany('_id', group.members, { firstName: 1, lastName: 1, middleName: 1, email: 1 })
+            }
+        }))
+        
     } catch (err) {
       throw err; 
     };
