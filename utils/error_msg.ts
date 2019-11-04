@@ -30,7 +30,7 @@ export const DOCUMENT_ROUTER = {
     FILE_NOT_FOUND: "Document upload is mandatory",
     INVALID_ADMIN: "You don't have permissions to perform this action",
     NO_PERMISSION: "Unable to create the document, unauthorized access",
-    LIMIT_EXCEEDED: "Document name shall not exceed ....... characters",
+    LIMIT_EXCEEDED: "Document name should not exceed more than 30 characters",
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
     NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized",

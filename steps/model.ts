@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import plugin from "mongoose-transform";
 const SchemaDef = new Schema({
-    sequence: { type: Number },
+    name: { type: String },
     createdBy:{ type: String },
     disabled: { type: Boolean, default: false }
 }, { timestamps: true })

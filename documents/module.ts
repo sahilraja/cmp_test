@@ -39,7 +39,7 @@ enum STATUS {
 
 export async function createNewDoc(body: any, userId: any) {
   try {
-    if (!Object.keys(body).length) throw new Error("Unable to create file or file missing")
+    if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data.global[0];
@@ -50,13 +50,12 @@ export async function createNewDoc(body: any, userId: any) {
 
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     if (body.docName.length > configLimit.name) {
-      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      throw new Error(DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     if (body.description.length > configLimit.description) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    let data = await documents
-      .find({ ownerId: userId, name: body.docName });
+    let data = await documents.find({ ownerId: userId, name: body.docName });
     if (data.length) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
