@@ -10,8 +10,9 @@ import { comments } from "./model";
 
 export async function addComment(body: any, userId: string) {
     try {
+      if(!body.type || !body.comment || !body.entity_id) throw new Error("All mandatory fields are required")
       return await comments.create({
-        name: body.name,
+        type: body.type,
         comment: body.comment,
         entity_id: body.entity_id,
         user_id: userId
@@ -23,10 +24,11 @@ export async function addComment(body: any, userId: string) {
   }
 
 
- export async function commentsList(doc_id: String) {
+ export async function commentsList(doc_id: String,type: string) {
     try {
+      if(!doc_id) {throw new Error("Id is required")}
       let data = await comments
-        .find({ entity_id: doc_id});        
+        .find({ entity_id: doc_id, type: type});        
       const commentsList = await Promise.all(
         data.map(comment=> {
           return commentData(comment);
@@ -44,6 +46,7 @@ export async function addComment(body: any, userId: string) {
         let data= await Promise.all([{
             commentId: commentData._id,
             comment:commentData.comment,
+            type: commentData.type,
             role:(((await userRoleAndScope(commentData.user_id)) as any).data.global || [
                 ""
               ])[0], 

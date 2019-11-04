@@ -11,7 +11,8 @@ const router = Router();
 //  list roles
 router.get('/list/:doc_id', async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await commentsList(req.params.doc_id));
+        let type = req.query.type?req.query.type:"document"
+        res.status(200).send(await commentsList(req.params.doc_id,type));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
