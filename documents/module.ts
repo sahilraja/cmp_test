@@ -708,8 +708,6 @@ export async function documnetCapabilities(docId: string, userId: string) {
   try {
     let groups = await userGroupsList(userId)
     let viewer
-    let doc: any = await documents.findById(docId);
-    if(doc.status == 2) return ["public"]
     let acceptCapabilities = ["owner", "collaborator", "viewer"]
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
@@ -729,7 +727,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
     if (viewer) {
       return ["viewer"]
     }
-    return ["no_access"]
+    throw new Error("User dont have that capability")
   } catch (err) {
     throw err;
   };
@@ -1141,7 +1139,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const filteredDocs = docsList.filter(doc => doc.deleted == false)
+  const filteredDocs = docsList.filter(doc => doc.isDeleted == false)
 
   const docsData = manualPagination(page, limit, [...subFolderList, ...filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
@@ -1158,7 +1156,7 @@ async function userData(folder: any, host: string) {
       userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     ])
     const data = await Promise.all([{
-      docId: folder.doc_id._id,
+      _id: folder.doc_id._id,
       name: folder.doc_id.name,
       description: folder.doc_id.description,
       tags,
@@ -1166,7 +1164,7 @@ async function userData(folder: any, host: string) {
       owner,
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt,
-      deleted: folder.doc_id.isDeleted
+      isDeleted: folder.doc_id.isDeleted
     }])
     return data
 
