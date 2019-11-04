@@ -863,18 +863,20 @@ export async function docCapabilities(docId: string, userId: string) {
   }
 }
 
-export async function published(body: any, docId: string, userId: string) {
+export async function published(body: any, docId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Given Id is Not Valid")
+    let admin_scope = await checkRoleScope(userObj.role, "publish-documents");
+    if (!admin_scope) throw new Error("Unauthorized Action.");
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
-    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userId, doc, docId)
-    let role = await groupsAddPolicy(`user/${userId}`, publishedDoc._id, "owner");
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
+    let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
-    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userId, doc)
+    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc)
     return publishedDoc
   } catch (err) {
     throw err;
