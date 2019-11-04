@@ -504,7 +504,9 @@ export async function userSuggestions(search: string, userId: string) {
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
-        const searchQuery = search ? { name: new RegExp(search, "i"), emailVerified: true } : { is_active: true, emailVerified: true }
+        const searchQuery = search ? { $or:[{
+            firstName: new RegExp(search, "i")
+        },{lastName: new RegExp(search, "i")},{middleName: new RegExp(search, "i")}], emailVerified: true } : { is_active: true, emailVerified: true }
         let users: any = search ?
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
