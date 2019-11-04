@@ -459,7 +459,7 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 router.post(
   "/:id/publish", authenticate, async (req, res, next: NextFunction) => {
     try {
-      res.status(200).send(await published(req.body, req.params.id, res.locals.user._id));
+      res.status(200).send(await published(req.body, req.params.id, res.locals.user));
     } catch (err) {
       next(new APIError(err.message));;
     }
