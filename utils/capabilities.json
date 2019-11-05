@@ -100,6 +100,72 @@
           "shortDescription":"Display Role Management",
           "description":"Display Role Management",
           "scope":"global"
+        },
+        {
+          "capability":"create-project",
+          "shortDescription":"create Project",
+          "description":"create Project",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-project",
+          "shortDescription":"edit Project",
+          "description":"edit Project",
+          "scope":"global"
+        },
+        {
+          "capability":"create-tag",
+          "shortDescription":"create tag",
+          "description":"create tag",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-tag",
+          "shortDescription":"edit tag",
+          "description":"edit tag",
+          "scope":"global"
+        },
+        {
+          "capability":"project-create-task",
+          "shortDescription":"project create task",
+          "description":"project create task",
+          "scope":"global"
+        },
+        {
+          "capability":"project-edit-task",
+          "shortDescription":"project edit task",
+          "description":"project edit task",
+          "scope":"global"
+        },
+        {
+          "capability":"publish-document",
+          "shortDescription":"published documents",
+          "description":"published documents",
+          "scope":"global"
+        },
+        {
+          "capability":"unpublish-document",
+          "shortDescription":"unpublished documents",
+          "description":"unpublished documents",
+          "scope":"global"
+        },
+        {
+          "capability":"create-group",
+          "shortDescription":"create group",
+          "description":"create group",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-group",
+          "shortDescription":"edit group",
+          "description":"edit group",
+          "scope":"global"
+        },
+        {
+          "capability":"project-add-core-team",
+          "shortDescription":"add core team",
+          "description":"add core team",
+          "scope":"global"
         }
   ]
   

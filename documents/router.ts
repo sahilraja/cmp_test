@@ -185,7 +185,7 @@ router.post("/user-capabilities", authenticate, async (req, res, next)=>{
     res.status(200).send(await checkCapabilitiesForUser(req.body))
   } catch (err) {
     next(new APIError(err.message));
-  };
+  };                 
 });
 
 router.post("/add-user-capabilities", authenticate, async (req, res, next)=>{
