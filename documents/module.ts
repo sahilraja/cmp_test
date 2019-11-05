@@ -25,6 +25,7 @@ import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
+import { Promise } from "bluebird";
 
 enum STATUS {
   DRAFT = 0,
@@ -39,7 +40,7 @@ enum STATUS {
 
 export async function createNewDoc(body: any, userId: any) {
   try {
-    if (!Object.keys(body).length) throw new Error("Unable to create file or file missing")
+    if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data.global[0];
@@ -50,13 +51,12 @@ export async function createNewDoc(body: any, userId: any) {
 
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     if (body.docName.length > configLimit.name) {
-      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      throw new Error(DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     if (body.description.length > configLimit.description) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    let data = await documents
-      .find({ ownerId: userId, name: body.docName });
+    let data = await documents.find({ ownerId: userId, name: body.docName.toLowerCase() });
     if (data.length) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
@@ -450,7 +450,11 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     let obj: any = {};
     if (objBody.docName) {
       if (objBody.docName.length > configLimit.name) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
-      obj.name = objBody.docName;
+      let data = await documents.find({ ownerId: userId, name: objBody.docName.toLowerCase() });
+      if (data.length) {
+        throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
+      }
+      obj.name = objBody.docName.toLowerCase();
     }
     if (objBody.description) {
       if (objBody.description.length > configLimit.description) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
@@ -729,7 +733,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
     if (viewer) {
       return ["viewer"]
     }
-    return ["no_access"]
+    throw new Error("User dont have that capability")
   } catch (err) {
     throw err;
   };
@@ -1023,11 +1027,11 @@ export async function createFolder(body: any, userId: string) {
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
 
 
-    let data = await folders
-      .find({ ownerId: userId, name: body.name });
-    if (data.length) {
-      throw new Error(DOCUMENT_ROUTER.ALREADY_EXIST);
-    }
+    // let data = await folders
+    //   .find({ ownerId: userId, name: body.name });
+    // if (data.length) {
+    //   throw new Error(DOCUMENT_ROUTER.ALREADY_EXIST);
+    // }
     let folder = await folders.create({
       name: body.name,
       parentId: body.parentId || null,
@@ -1143,7 +1147,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   const docsList = docs.map((folder: any) => {
     return folder[0];
   })
-  const filteredDocs = docsList.filter(doc => doc.deleted == false)
+  const filteredDocs = docsList.filter(doc => doc.isDeleted == false)
 
   const docsData = manualPagination(page, limit, [...subFolderList, ...filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
@@ -1160,7 +1164,7 @@ async function userData(folder: any, host: string) {
       userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     ])
     const data = await Promise.all([{
-      docId: folder.doc_id._id,
+      _id: folder.doc_id._id,
       name: folder.doc_id.name,
       description: folder.doc_id.description,
       tags,
@@ -1168,7 +1172,7 @@ async function userData(folder: any, host: string) {
       owner,
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt,
-      deleted: folder.doc_id.isDeleted
+      isDeleted: folder.doc_id.isDeleted
     }])
     return data
 

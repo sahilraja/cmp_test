@@ -1954,6 +1954,7 @@ paths:
               type: object
               required:
                 - role
+                - roleName
                 - category
                 - description
               properties:
@@ -1961,6 +1962,61 @@ paths:
                   type: string
                   example: program-coordinator
                   description: user roles
+                roleName:
+                  type: string
+                  example: Program Coordinator
+                  description: user roles
+                category:
+                  type: string
+                  example: PMU Team
+                  description: role catogery
+                description:
+                  type: string
+                  example: Program Coordinator
+                  description: Must be role description
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/role/{role}/edit':
+    put:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      parameters:
+        - in: path
+          name: role
+          schema:
+            type: string
+          example: program-coordinator
+          required: true
+          description: role key
+      summary: Edit role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - roleName
+                - category
+                - description
+              properties:
+                roleName:
+                  type: string
+                  example: Program Coordinator
+                  description: role nsame
                 category:
                   type: string
                   example: PMU Team
@@ -4081,6 +4137,21 @@ paths:
               properties:
                 name:
                   type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: step1
+                  _id:
+                    type: string
+                    example: 5968574635575c547q74
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /steps/list:
     get:
       security:
@@ -4122,6 +4193,8 @@ paths:
                         type: string
                         example: 5968574635575c547q74
           description: Success
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/steps/{id}/edit': *ref_8
 definitions:
   ErrorResponse:
