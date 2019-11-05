@@ -25,6 +25,7 @@ import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
+import { Promise } from "bluebird";
 
 enum STATUS {
   DRAFT = 0,
@@ -711,6 +712,8 @@ export async function documnetCapabilities(docId: string, userId: string) {
   try {
     let groups = await userGroupsList(userId)
     let viewer
+    let doc: any = await documents.findById(docId);
+    if (doc.status == 2) return ["public"]
     let acceptCapabilities = ["owner", "collaborator", "viewer"]
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
@@ -1305,3 +1308,25 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
   return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
+
+
+export async function checkCapabilitiesForUser(objBody: any) {
+  try {
+    let { docIds, userIds } = objBody
+    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds)))
+  } catch (err) {
+    throw err
+  };
+};
+
+async function loopUsersAndFetchData(docId: string, userIds: string[]) {
+  const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
+  return {
+    [docId]: s.map((s1, i) => {
+      if (s1.includes('no_access')) {
+        return userIds[i]
+      }
+    }).filter((user: any) => Types.ObjectId.isValid(user))
+  };
+};
