@@ -732,7 +732,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
     if (viewer) {
       return ["viewer"]
     }
-    throw new Error("User dont have that capability")
+    return[ "no_access"]
   } catch (err) {
     throw err;
   };
@@ -1313,7 +1313,8 @@ export async function checkCapabilitiesForUser(objBody: any) {
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds)))
+    let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds)))
+    return obj.reduce((main: any, curr: any)=>Object.assign({}, main,curr), {})
   } catch (err) {
     throw err
   };
@@ -1333,8 +1334,7 @@ async function loopUsersAndFetchData(docId: string, userIds: string[]) {
 
 export async function shareDocForUsers(obj: any){
   try {
-    let docIds = obj.keys()
-    await Promise.all(docIds.map((doc: string)=> loopForAddCapability(doc, obj.doc)))
+    await Promise.all(Object.keys(obj).map((docId: string)=> loopForAddCapability(docId, obj.doc)))
     return { message: "shared successfully"}
   } catch (err) {
     throw err
