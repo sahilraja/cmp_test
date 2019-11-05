@@ -44,7 +44,9 @@ import {
   updateDocNew,
   documnetCapabilities,
   deleteDoc,
-  getListOfFoldersAndFiles
+  getListOfFoldersAndFiles,
+  checkCapabilitiesForUser,
+  shareDocForUsers
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -119,7 +121,7 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getDocList(`${req.protocol}://${req.get('host')}`));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -128,7 +130,7 @@ router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await sharedList(res.locals.user._id, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -137,7 +139,7 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
   try {
     res.status(200).send(await publishList(res.locals.user._id, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 }
 );
@@ -147,7 +149,7 @@ router.get("/me", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getDocListOfMe(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -156,7 +158,7 @@ router.get("/approvals", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await approvalList(`${req.protocol}://${req.get('host')}`));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -165,7 +167,7 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
   try {
     res.status(200).send(await getApprovalDoc(req.params.id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 }
 );
@@ -174,8 +176,24 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await docFilter(req.query.filter, res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
+});
+
+router.post("/user-capabilities", authenticate, async (req, res, next)=>{
+  try {
+    res.status(200).send(await checkCapabilitiesForUser(req.body))
+  } catch (err) {
+    next(new APIError(err.message));
+  };
+});
+
+router.post("/add-user-capabilities", authenticate, async (req, res, next)=>{
+  try {
+    res.status(200).send(await shareDocForUsers(req.body.object))
+  } catch (err) {
+    next(new APIError(err.message));
+  };
 });
 
 router.get(`/get-document/:docId`, async (request, response, next) => {
@@ -206,7 +224,7 @@ router.get(`/get-document/:docId`, async (request, response, next) => {
 //         const { id, versionId } = req.params
 //         res.status(200).send(await createNewVersion(id, versionId, res.locals.user._id, req.body));
 //     } catch (err) {
-//         next(new APIError(err.message));;
+//         next(new APIError(err.message));
 //     };
 // });
 
@@ -216,7 +234,7 @@ router.get("/:id/versions", authenticate, ensureCanPublishDocument, async (req, 
     const { id } = req.params;
     res.status(200).send(await getVersions(id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 }
 );
@@ -227,7 +245,7 @@ router.get("/:id/versions", authenticate, ensureCanPublishDocument, async (req, 
 //         const { id, versionId } = req.params
 //         res.status(200).send(await ApproveDoc(id, versionId))
 //     } catch (err) {
-//         next(new APIError(err.message));;
+//         next(new APIError(err.message));
 //     };
 // });
 
@@ -237,7 +255,7 @@ router.get("/:id/versions", authenticate, ensureCanPublishDocument, async (req, 
 //         const { id, versionId } = req.params
 //         res.status(200).send(await RejectDoc(id, versionId))
 //     } catch (err) {
-//         next(new APIError(err.message));;
+//         next(new APIError(err.message));
 //     };
 // });
 
@@ -249,7 +267,7 @@ router.post("/:id/file", authenticate, ensureCanEditDocument, async (req, res, n
     let response = await createFile(id, fileObj);
     res.status(200).send(response);
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 }
 );
@@ -268,7 +286,7 @@ router.post("/:id/file", authenticate, ensureCanEditDocument, async (req, res, n
 //         });
 //         req.end();
 //     } catch (err) {
-//         next(new APIError(err.message));;
+//         next(new APIError(err.message));
 //     };
 // });
 
@@ -295,7 +313,7 @@ router.get(
       });
       req.end();
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -309,7 +327,7 @@ router.put(
     try {
       res.status(200).send(await submit(req.params.id));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -333,7 +351,7 @@ router.post(
         .status(200)
         .send(await addCollaborator(req.params.id, req.body.collaborators));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -348,7 +366,7 @@ router.put(
         .status(200)
         .send(await removeCollaborator(req.params.id, req.body.collaborators));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -361,7 +379,7 @@ router.post(
     try {
       res.status(200).send(await addViewers(req.params.id, req.body.viewers));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -376,7 +394,7 @@ router.put(
         .status(200)
         .send(await removeViewers(req.params.id, req.body.viewers));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -389,7 +407,7 @@ router.get(
     try {
       res.status(200).send(await viewerList(req.params.id));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -402,7 +420,7 @@ router.get(
     try {
       res.status(200).send(await collaboratorList(req.params.id));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -412,7 +430,7 @@ router.post("/:id/share", authenticate, async (req, res, next: NextFunction) => 
   try {
     res.status(200).send(await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -421,7 +439,7 @@ router.get("/:id/share/list", authenticate, async (req, res, next: NextFunction)
   try {
     res.status(200).send(await invitePeopleList(req.params.id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -431,7 +449,7 @@ router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next:
     const { id, type, userId } = req.params;
     res.status(200).send(await invitePeopleEdit(id, userId, type, req.query.role));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -441,7 +459,7 @@ router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, 
     const { id, type, userId } = req.params;
     res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -450,7 +468,7 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
   try {
     res.status(200).send(await documnetCapabilities(req.params.id, res.locals.user._id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 }
 );
@@ -459,9 +477,9 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 router.post(
   "/:id/publish", authenticate, async (req, res, next: NextFunction) => {
     try {
-      res.status(200).send(await published(req.body, req.params.id, res.locals.user._id));
+      res.status(200).send(await published(req.body, req.params.id, res.locals.user));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -474,7 +492,7 @@ router.put(
     try {
       res.status(200).send(await unPublished(req.params.id));
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -495,7 +513,7 @@ router.post(
           )
         );
     } catch (err) {
-      next(new APIError(err.message));;
+      next(new APIError(err.message));
     }
   }
 );
@@ -506,7 +524,7 @@ router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: 
   try {
     res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -516,7 +534,7 @@ router.post("/:id/new", authenticate, ensureCanEditDocument, async (req, res, ne
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
     res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -525,7 +543,7 @@ router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: N
   try {
     res.status(200).send(await getDocDetails(req.params.id, res.locals.user._id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -588,7 +606,7 @@ router.put("/delete/:id", authenticate, async (req, res, next: NextFunction) => 
   try {
     res.status(200).send(await deleteDoc(req.params.id, res.locals.user._id));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
 
@@ -596,6 +614,8 @@ router.get("/all/me", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getListOfFoldersAndFiles(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
-    next(new APIError(err.message));;
+    next(new APIError(err.message));
   }
 });
+
+
