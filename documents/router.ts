@@ -46,7 +46,8 @@ import {
   deleteDoc,
   getListOfFoldersAndFiles,
   checkCapabilitiesForUser,
-  shareDocForUsers
+  shareDocForUsers,
+  suggestTags
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -600,7 +601,6 @@ router.post("/multiple/list", async (req, res, next: NextFunction) => {
     next(new APIError(err.message));
   }
 });
-export = router;
 
 router.put("/delete/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
@@ -618,4 +618,12 @@ router.get("/all/me", authenticate, async (req, res, next: NextFunction) => {
   }
 });
 
+router.post("/:docId/suggest/tags", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await suggestTags(req.params.docId,req.body,res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
 
+export = router;
