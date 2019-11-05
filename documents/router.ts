@@ -45,7 +45,8 @@ import {
   documnetCapabilities,
   deleteDoc,
   getListOfFoldersAndFiles,
-  checkCapabilitiesForUser
+  checkCapabilitiesForUser,
+  shareDocForUsers
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -182,6 +183,14 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 router.post("/user-capabilities", authenticate, async (req, res, next)=>{
   try {
     res.status(200).send(await checkCapabilitiesForUser(req.body))
+  } catch (err) {
+    next(new APIError(err.message));
+  };
+});
+
+router.post("/add-user-capabilities", authenticate, async (req, res, next)=>{
+  try {
+    res.status(200).send(await shareDocForUsers(req.body.object))
   } catch (err) {
     next(new APIError(err.message));
   };
