@@ -25,6 +25,7 @@ import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
+import { Promise } from "bluebird";
 
 enum STATUS {
   DRAFT = 0,
@@ -135,7 +136,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 //  Get Document Public List
 export async function getDocList(host: string) {
   try {
-    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED, isDeleted:false }).sort({ name: 1 });
+    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED, isDeleted: false }).sort({ name: 1 });
     const docList = await Promise.all(
       data.map(async doc => {
         return await docData(doc, host);
@@ -158,7 +159,7 @@ async function docData(docData: any, host: string) {
     let fileType = docData.fileName ? (docData.fileName.split(".")).pop() : ""
     return {
       ...docData.toJSON(),
-      tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)): []),
+      tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
@@ -210,7 +211,7 @@ export async function createFile(docId: string, file: any) {
     const { id, name } = JSON.parse(file);
     if (!id || !name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let [child, parent]: any = await Promise.all([
-      documents.find({ parentId: docId,isDeleted:false }).sort({ createdAt: -1 }).exec(),
+      documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec(),
       documents.findByIdAndUpdate(docId, { fileId: id, fileName: name }, { new: true }).exec()
     ]);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
@@ -230,7 +231,7 @@ export async function submit(docId: string) {
     let [parent, child]: any = await Promise.all([
       documents.findById(docId).exec(),
       documents
-        .find({ parentId: docId ,isDeleted: false})
+        .find({ parentId: docId, isDeleted: false })
         .sort({ createdAt: -1 })
         .exec()
     ]);
@@ -353,8 +354,8 @@ export async function getDocDetails(docId: any, userId: string) {
       if (!userCapability.length) throw new Error("Unauthorized access.")
     }
     const docList = publishDocs.toJSON();
-    docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)): []),
-    docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
+    docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
+      docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
     docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     return docList;
   } catch (err) {
@@ -420,7 +421,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
     if (objBody.tags) {
       obj.tags = objBody.tags;
     }
-    let child: any = await documents.find({ parentId: docId ,isDeleted:false}).sort({ createdAt: -1 }).exec()
+    let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     obj.versionNum = Number(child[0].versionNum) + 1
     let parent: any = await documents.findByIdAndUpdate(docId, obj, { new: true }).exec()
@@ -459,7 +460,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     if (objBody.tags) {
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
-    let child: any = await documents.find({ parentId: docId,isDeleted:false }).sort({ createdAt: -1 }).exec()
+    let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     if (objBody.description || objBody.docName || objBody.id) obj.versionNum = Number(child[0].versionNum) + 1
     let parent: any = await documents.findByIdAndUpdate(docId, obj, { new: true }).exec()
@@ -494,7 +495,7 @@ export async function approvalList(host: string) {
       return doc.parentId;
     });
     let parentDocList = await documents.find({
-      _id: { $in: parentDocsIdsArray },isDeleted:false
+      _id: { $in: parentDocsIdsArray }, isDeleted: false
     });
     return await Promise.all(
       parentDocList.map(async doc => {
@@ -709,7 +710,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
     let groups = await userGroupsList(userId)
     let viewer
     let doc: any = await documents.findById(docId);
-    if(doc.status == 2) return ["public"]
+    if (doc.status == 2) return ["public"]
     let acceptCapabilities = ["owner", "collaborator", "viewer"]
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
@@ -740,8 +741,8 @@ async function invite(user: any, docId: any, role: any, doc: any) {
   if (user.type == "user") {
     let userData: any = await userFindOne("id", user._id);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
-    
-    let templatInfo = await getTemplateBySubstitutions('inviteForDocument',{
+
+    let templatInfo = await getTemplateBySubstitutions('inviteForDocument', {
       fullName: userName,
       documentName: doc.name,
       documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`
@@ -981,10 +982,10 @@ export async function docFilter(search: string, userId: string, page: number = 1
       if (!tags.length) return [];
       let tagId = tags.map(tag => tag._id).pop().toString();
       docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds },isDeleted: false , tags: { $elemMatch: { $eq: tagId } } }).sort({ name: 1 });
+      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).sort({ name: 1 });
     } else {
       docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }] }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds },isDeleted: false , $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ name: 1 });
+      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ name: 1 });
     }
     // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
@@ -1109,7 +1110,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
           as: "doc_id"
         }
       },
-      { $sort: {name:1}},
+      { $sort: { name: 1 } },
       { $unwind: { path: "$doc_id" } },
       {
         $project: {
@@ -1153,7 +1154,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
 
 async function userData(folder: any, host: string) {
   try {
-    let fileType = folder.doc_id.fileName?(folder.doc_id.fileName.split(".")).pop():""
+    let fileType = folder.doc_id.fileName ? (folder.doc_id.fileName.split(".")).pop() : ""
     const [tags, userRole, owner] = await Promise.all([
       getTags(folder.doc_id.tags),
       userRoleAndScope(folder.doc_id.ownerId),
@@ -1180,27 +1181,28 @@ async function userData(folder: any, host: string) {
 export async function deleteFolder(folderId: string, userId: string) {
   try {
     if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    const folderDetails = await folders.find({_id: folderId});
-    if(!folderDetails.length){
-       throw new Error("Folder doesnot exist")
+    const folderDetails = await folders.find({ _id: folderId });
+    if (!folderDetails.length) {
+      throw new Error("Folder doesnot exist")
     }
-    let folderData = folderDetails.map((folder: any)=>{
+    let folderData = folderDetails.map((folder: any) => {
       return {
-        parentId:folder.parentId,
+        parentId: folder.parentId,
         doc_id: folder.doc_id
-      }});
-      const parentId = folderData[0].parentId?folderData[0].parentId:null
-      let doc_id =  folderData[0].doc_id.length?folderData[0].doc_id:[]
-      doc_id = JSON.parse(JSON.stringify(doc_id))
-      console.log(doc_id);
-      
+      }
+    });
+    const parentId = folderData[0].parentId ? folderData[0].parentId : null
+    let doc_id = folderData[0].doc_id.length ? folderData[0].doc_id : []
+    doc_id = JSON.parse(JSON.stringify(doc_id))
+    console.log(doc_id);
+
     const data = await Promise.all([
       folders.remove({ _id: folderId, ownerId: userId }).exec(),
       folders.update({ parentId: folderId }, {
         parentId: parentId
       }, { "multi": true }).exec(),
       folders.update({ _id: parentId }, {
-         $addToSet: { doc_id:doc_id},
+        $addToSet: { doc_id: doc_id },
       }, { "multi": true }).exec()
     ])
 
@@ -1245,7 +1247,7 @@ export async function deleteDoc(docId: any, userId: string) {
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let findDoc = await documents.find({ _id: docId, ownerId: userId })
-    if(!findDoc.length){
+    if (!findDoc.length) {
       throw new Error("File Id is Invalid")
     }
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
@@ -1303,3 +1305,25 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
   return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
+
+
+export async function checkCapabilitiesForUser(objBody: any) {
+  try {
+    let { docIds, userIds } = objBody
+    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds)))
+  } catch (err) {
+    throw err
+  };
+};
+
+async function loopUsersAndFetchData(docId: string, userIds: string[]) {
+  const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
+  return {
+    [docId]: s.map((s1, i) => {
+      if (s1.includes('no_access')) {
+        return userIds[i]
+      }
+    }).filter((user: any) => Types.ObjectId.isValid(user))
+  };
+};
