@@ -25,7 +25,6 @@ import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
-import { Promise } from "bluebird";
 
 enum STATUS {
   DRAFT = 0,
