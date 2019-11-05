@@ -48,7 +48,7 @@ app.get('/', (request: Request, response: Response) => {
 //  Middleware
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 app.use('/user', usersRouter);
-app.use("/role", authenticate, roleRouter);
+app.use("/role", roleRouter);
 app.use("/project", authenticate, projectRouter);
 app.use("/docs", documentRouter)
 app.use("/task", taskRouter)

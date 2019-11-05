@@ -12,6 +12,7 @@ import * as phoneNo from "phone";
 import { createECDH } from "crypto";
 import { loginSchema } from "./login-model";
 import { getTemplateBySubstitutions } from "../email-templates/module";
+import { APIError } from "../utils/custom-error";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -25,7 +26,7 @@ export async function inviteUser(objBody: any, user: any) {
         }
         //  Check User Capability
         let admin_scope = await checkRoleScope(user.role, "create-user");
-        if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
+        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({
             email: objBody.email,
             firstName: objBody.firstName,
@@ -120,7 +121,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         } 
         if (id != user._id) {
             let admin_scope = await checkRoleScope(user.role, "create-user");
-            if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
+            if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         if (objBody.password) {
             if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
@@ -194,7 +195,7 @@ export async function user_status(id: string, user: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
 
         let admin_scope = await checkRoleScope(user.role, "create-user");
-        if (!admin_scope) throw new Error(USER_ROUTER.INVALID_ADMIN);
+        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
 
         let userData: any = await userFindOne("id", id);
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
@@ -230,7 +231,7 @@ export async function user_login(objBody: any) {
         }
         //  find User
         let userData: any = await userFindOne("email", objBody.email);
-        if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
+        if (!userData) throw new Error(USER_ROUTER.INVALID_USER );
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
@@ -255,7 +256,7 @@ export async function userInviteResend(id: string, role: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
 
         let userData: any = await userFindOne("id", id)
-        if (!userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
+        if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
         let token = await jwt_for_url({ user: id, role: role });
 
@@ -385,14 +386,16 @@ export async function setNewPassword(objBody: any) {
 
 
 //  Create Group
-export async function createGroup(objBody: any, userId: string) {
+export async function createGroup(objBody: any, userObj: any) {
     try {
+        let isEligible = await checkRoleScope(userObj.role, "create-group");
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         const { name, description } = objBody
         if (!name) throw new Error(USER_ROUTER.MANDATORY);
         return await groupCreate({
             name: name,
             description: description,
-            createdBy: userId
+            createdBy: userObj._id
         });
     } catch (err) {
         throw err;
@@ -400,12 +403,13 @@ export async function createGroup(objBody: any, userId: string) {
 };
 
 //  change Group status
-export async function groupStatus(id: any, userId: string) {
+export async function groupStatus(id: any, userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        let isEligible = await checkRoleScope(userObj.role, "edit-group");
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        if (group.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
@@ -415,11 +419,12 @@ export async function groupStatus(id: any, userId: string) {
 };
 
 //  Edit Group
-export async function editGroup(objBody: any, id: string, userId: string) {
+export async function editGroup(objBody: any, id: string, userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        let isEligible = await checkRoleScope(userObj.role, "edit-group");
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         let group: any = await groupFindOne("id", id);
-        if (group.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         const { name, description } = objBody
         let obj: any = {}
         if (name) {
@@ -438,7 +443,7 @@ export async function editGroup(objBody: any, id: string, userId: string) {
 export async function groupList(userId: string) {
     try {
         let groupIds = await userGroupsList(userId)
-        let meCreatedGroup = await groupPatternMatch({ is_active: true }, {}, { createdBy: userId }, {}, "updatedAt")
+        let meCreatedGroup = await groupPatternMatch({ is_active: true }, {}, {}, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
         return await Promise.all(groups.map(async (group: any) => {
@@ -462,14 +467,15 @@ export async function groupDetail(id: string) {
 };
 
 //  Add Member to Group
-export async function addMember(id: string, users: any[], userId: string) {
+export async function addMember(id: string, users: any[], userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        let isEligible = await checkRoleScope(userObj.role, "edit-group");
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        if (data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
         await Promise.all(users.map(async (user: any) => { if (data.createdBy._id != user) { await addUserToGroup(user, id) } }))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
@@ -478,16 +484,17 @@ export async function addMember(id: string, users: any[], userId: string) {
 };
 
 //  Remove Member From Group
-export async function removeMembers(id: string, users: any[], userId: string) {
+export async function removeMembers(id: string, users: any[f], userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        let isEligible = await checkRoleScope(userObj.role, "edit-group");
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => {
-            if (user == data.createdBy._id) throw new Error("This Action Is Not Valid")
-            if (userId != user && data.createdBy._id != userId) throw new Error("Only this Action Performed By Group Admin.")
+            if (userObj._id != user) throw new Error("Only this Action Performed By Group Admin.")
             await removeUserToGroup(user, id)
         }))
         return { message: RESPONSE.REMOVE_MEMBER }

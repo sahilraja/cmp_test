@@ -183,7 +183,7 @@ router.post("/forgot/setPassword", async (req: Request, res: Response, next: Nex
 //  Add Group
 router.post("/group/create", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await createGroup(req.body, res.locals.user._id))
+        res.status(200).send(await createGroup(req.body, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -201,7 +201,7 @@ router.get("/group/list", authenticate, async (req: Request, res: Response, next
 //  Edit Group
 router.put("/group/:id/edit", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await editGroup(req.body, req.params.id, res.locals.user._id))
+        res.status(200).send(await editGroup(req.body, req.params.id, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -210,7 +210,7 @@ router.put("/group/:id/edit", authenticate, async (req: Request, res: Response, 
 //  edit status of group
 router.put("/group/:id/status", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await groupStatus(req.params.id, res.locals.user._id))
+        res.status(200).send(await groupStatus(req.params.id, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -219,7 +219,7 @@ router.put("/group/:id/status", authenticate, async (req: Request, res: Response
 //  Add Member
 router.post("/group/:id/member/add", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await addMember(req.params.id, req.body.users, res.locals.user._id));
+        res.status(200).send(await addMember(req.params.id, req.body.users, res.locals.user));
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -228,7 +228,7 @@ router.post("/group/:id/member/add", authenticate, async (req: Request, res: Res
 //  Remove Member
 router.post("/group/:id/member/remove", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await removeMembers(req.params.id, req.body.users, res.locals.user._id));
+        res.status(200).send(await removeMembers(req.params.id, req.body.users, res.locals.user));
     } catch (err) {
         next(new APIError(err.message));;
     };
