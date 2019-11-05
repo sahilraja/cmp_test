@@ -711,6 +711,8 @@ export async function documnetCapabilities(docId: string, userId: string) {
   try {
     let groups = await userGroupsList(userId)
     let viewer
+    let doc: any = await documents.findById(docId);
+    if (doc.status == 2) return ["public"]
     let acceptCapabilities = ["owner", "collaborator", "viewer"]
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
@@ -864,18 +866,20 @@ export async function docCapabilities(docId: string, userId: string) {
   }
 }
 
-export async function published(body: any, docId: string, userId: string) {
+export async function published(body: any, docId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Given Id is Not Valid")
+    let admin_scope = await checkRoleScope(userObj.role, "publish-documents");
+    if (!admin_scope) throw new Error("Unauthorized Action.");
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
-    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userId, doc, docId)
-    let role = await groupsAddPolicy(`user/${userId}`, publishedDoc._id, "owner");
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
+    let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
-    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userId, doc)
+    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc)
     return publishedDoc
   } catch (err) {
     throw err;
@@ -1303,3 +1307,25 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
   return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
+
+
+export async function checkCapabilitiesForUser(objBody: any) {
+  try {
+    let { docIds, userIds } = objBody
+    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds)))
+  } catch (err) {
+    throw err
+  };
+};
+
+async function loopUsersAndFetchData(docId: string, userIds: string[]) {
+  const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
+  return {
+    [docId]: s.map((s1, i) => {
+      if (s1.includes('no_access')) {
+        return userIds[i]
+      }
+    }).filter((user: any) => Types.ObjectId.isValid(user))
+  };
+};
