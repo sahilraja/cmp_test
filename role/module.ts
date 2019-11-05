@@ -203,7 +203,7 @@ export async function updaterole(role:string,bodyObj:any) {
     }
 }
 
-export async function addRolesFromJSON(userId: string) {
+export async function addRolesFromJSON() {
     try {
         let data = await roles_list()
         if (!data.roles.length) throw new Error("Error to fetch Roles")
@@ -212,8 +212,7 @@ export async function addRolesFromJSON(userId: string) {
                 role: eachRole.role,
                 roleName: eachRole.description,
                 description: eachRole.description,
-                category: eachRole.category,
-                createdBy: userId
+                category: eachRole.category
             }
         })
         let response = await roleSchema.insertMany(roles);
