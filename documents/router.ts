@@ -490,7 +490,7 @@ router.put(
   authenticate,
   async (req, res, next: NextFunction) => {
     try {
-      res.status(200).send(await unPublished(req.params.id));
+      res.status(200).send(await unPublished(req.params.id, res.locals.user));
     } catch (err) {
       next(new APIError(err.message));
     }

@@ -1,4 +1,5 @@
 export const USER_ROUTER = {
+    INVALID_USER: "Invalid Credentials.",
     INVALID_ADMIN: "You do not have necessary permissions to perform this action",
     CREATE_ROLE_FAIL: "Fail to create role.",
     TOKEN_MISSING: "Missing token",

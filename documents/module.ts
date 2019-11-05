@@ -25,6 +25,7 @@ import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
+import { APIError } from "../utils/custom-error";
 
 enum STATUS {
   DRAFT = 0,
@@ -45,7 +46,7 @@ export async function createNewDoc(body: any, userId: any) {
     let userRole = userRoles.data.global[0];
     const isEligible = await checkRoleScope(userRole, "create-doc");
     if (!isEligible) {
-      throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
 
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
@@ -88,7 +89,7 @@ export async function createDoc(body: any, userId: string) {
     let userRole = userRoles.data.global[0];
     const isEligible = await checkRoleScope(userRole, "create-doc");
     if (!isEligible) {
-      throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     if (body.name.length > configLimit.name) {
@@ -869,8 +870,8 @@ export async function docCapabilities(docId: string, userId: string) {
 export async function published(body: any, docId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Given Id is Not Valid")
-    let admin_scope = await checkRoleScope(userObj.role, "publish-documents");
-    if (!admin_scope) throw new Error("Unauthorized Action.");
+    let admin_scope = await checkRoleScope(userObj.role, "publish-document");
+    if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
@@ -907,23 +908,18 @@ async function publishedDocCreate(body: any, userId: string, doc: any, docId?: s
 }
 
 
-export async function unPublished(docId: string) {
+export async function unPublished(docId: string, userObj: any) {
   try {
-    return await documents.findByIdAndUpdate(
-      docId,
-      { status: STATUS.UNPUBLISHED },
-      { new: true }
-    );
+    if(!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
+    let isEligible = await checkRoleScope(userObj.role, "unpublish-document");
+    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    return await documents.findByIdAndUpdate(docId,{ status: STATUS.UNPUBLISHED },{ new: true });
   } catch (err) {
     throw err;
-  }
-}
+  };
+};
 
-export async function replaceDoc(
-  docId: string,
-  replaceDoc: string,
-  userId: string
-) {
+export async function replaceDoc(docId: string,replaceDoc: string,userId: string) {
   try {
     let [doc, unPublished]: any = await Promise.all([
       documents.findById(replaceDoc).exec(),
@@ -946,8 +942,8 @@ export async function replaceDoc(
     });
   } catch (err) {
     throw err;
-  }
-}
+  };
+};
 
 export async function publishList(userId: string, host: string) {
   try {
@@ -1021,7 +1017,7 @@ export async function createFolder(body: any, userId: string) {
     let userRole = userRoles.data.global[0];
     const isEligible = await checkRoleScope(userRole, "create-folder");
     if (!isEligible) {
-      throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
 
@@ -1243,7 +1239,7 @@ export async function deleteDoc(docId: any, userId: string) {
 
     const isEligible = await checkRoleScope(userRole, "delete-doc");
     if (!isEligible) {
-      throw new Error(DOCUMENT_ROUTER.NO_DELETE_PERMISSION);
+      throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
     }
 
     if (!Types.ObjectId.isValid(docId))

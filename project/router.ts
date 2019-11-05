@@ -80,7 +80,7 @@ router.post(`/:id/manage-members`, async (req, res, next) => {
 //  edit status of Project
 router.put("/city/code/status/:id", async (req: any, res: any, next: any) => {
     try {
-        res.status(OK).send(await city_code_status(req.params.id))
+        res.status(OK).send(await city_code_status(req.params.id, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));;
     }
@@ -89,7 +89,7 @@ router.put("/city/code/status/:id", async (req: any, res: any, next: any) => {
 //  add tag
 router.post("/tag/add", async (req: any, res: any, next: any) => {
     try {
-        res.status(OK).send(await add_tag(req.body))
+        res.status(OK).send(await add_tag(req.body, res.locals.user))
     } catch (err) {
         if(err.code == 11000){
             err.message = `Tag already exists`
@@ -101,7 +101,7 @@ router.post("/tag/add", async (req: any, res: any, next: any) => {
 //  edit tag
 router.post("/tag/edit/:id", async (req: any, res: any, next: any) => {
     try {
-        res.status(OK).send(await edit_tag(req.params.id, req.body))
+        res.status(OK).send(await edit_tag(req.params.id, req.body, res.locals.user))
     } catch (err) {
         if(err.code == 11000){
             err.message = `Tag already exists`
@@ -123,7 +123,7 @@ router.post(`/getTagByIds`, async (req, res, next) => {
 //  edit status of tag
 router.put("/tag/status/:id", async (req: any, res: any, next: any) => {
     try {
-        res.status(OK).send(await tag_status(req.params.id))
+        res.status(OK).send(await tag_status(req.params.id, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));;
     }
@@ -168,7 +168,7 @@ router.put("/theme/status/:id", async (req: any, res: any, next: any) => {
 // add task
 router.post("/:id/create-task", async (req, res, next) => {
     try {
-        res.status(OK).send(await createTask(req.body, req.params.id, (req as any).token))
+        res.status(OK).send(await createTask(req.body, req.params.id, (req as any).token, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));
     }
@@ -193,7 +193,7 @@ router.get(`/:id/task/:task_id/view`, async (req, res, next) => {
 
 router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
     try {
-        res.status(OK).send(await editTask(req.params.id, req.params.task_id, res.locals.user._id, (req as any).token, req.body))
+        res.status(OK).send(await editTask(req.params.id, req.params.task_id, res.locals.user, (req as any).token, req.body))
     } catch (error) {
         next(new APIError(error.message))
     }
