@@ -1324,8 +1324,29 @@ async function loopUsersAndFetchData(docId: string, userIds: string[]) {
   return {
     [docId]: s.map((s1, i) => {
       if (s1.includes('no_access')) {
-        return userIds[i]
+        return {_id: userIds[i], type: "user"}
       }
-    }).filter((user: any) => Types.ObjectId.isValid(user))
+      return {_id: false}
+    }).filter(({_id}: any) => Types.ObjectId.isValid(_id))
   };
 };
+
+export async function shareDocForUsers(obj: any){
+  try {
+    let docIds = obj.keys()
+    await Promise.all(docIds.map((doc: string)=> loopForAddCapability(doc, obj.doc)))
+    return { message: "shared successfully"}
+  } catch (err) {
+    throw err
+  };
+};
+
+async function loopForAddCapability(docId: string, users: any[]){
+  try {
+    const role = "viewer"
+    let doc = await documents.findById(docId)
+    await Promise.all(users.map(userObj=> invite(userObj, docId, role, doc)))
+  } catch (err) {
+    throw err
+  };
+}; 
