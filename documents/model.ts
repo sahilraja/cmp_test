@@ -16,7 +16,8 @@ const schema = new Schema(
     viewer: { type: Array },
     is_active: { type: Boolean, default: true },
     sourceId: { type: String },
-    isDeleted:{ type: Boolean, default: false }
+    isDeleted:{ type: Boolean, default: false },
+    suggestedTags:[{ userId:String, tags:Array }]
   },
   { timestamps: true }
 );

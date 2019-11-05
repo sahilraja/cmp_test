@@ -350,7 +350,7 @@ export async function otpVerify(objBody: string) {
 export async function searchByname(search:string) {
     try {
         let Options = {
-            uri: `${USERS_URL}/user/search/?search=${search}`,
+            uri: `${USERS_URL}/user/search?search=${search}`,
             method: "GET",
             json: true
         };

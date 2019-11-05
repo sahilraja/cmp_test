@@ -161,7 +161,7 @@ async function docData(docData: any, host: string) {
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
-      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A"
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${docData.fileId}` : "N/A",  
     };
   } catch (err) {
     throw err;
@@ -194,6 +194,7 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
         return docs._id == folderDocs;
       });
     })
+    
     const docsData = manualPagination(page, limit, result)
     return { docsData };
   } catch (error) {
@@ -345,7 +346,7 @@ export async function ApproveDoc(docId: string, versionId: string) {
 
 //  Get Doc Details
 export async function getDocDetails(docId: any, userId: string) {
-  try {
+  try { 
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
     if (publishDocs.status != 2 && publishDocs.parentId == null) {
@@ -698,8 +699,16 @@ export async function sharedList(userId: string, host: string) {
     docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).sort({ name: 1 });
+ 
+
     return await Promise.all(
       docs.map(async (doc: any) => {
+        const filteredDocs = doc.suggestedTags.filter((tag:any) => tag.userId == userId)
+        let users= await Promise.all(
+        filteredDocs.map((suggestedTagsInfo: any)=>{
+          return userInfo(suggestedTagsInfo);
+        }))
+        doc._doc.suggestedTags = users
         return await docData(doc, host);
       })
     );
@@ -982,7 +991,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
       docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).sort({ name: 1 });
       shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).sort({ name: 1 });
     } else {
-      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }] }).sort({ name: 1 });
+      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") },{ ownerId: { $in: userIds } }] }).sort({ name: 1 });
       shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ name: 1 });
     }
     // {: Promise<object[]> 
@@ -1346,3 +1355,33 @@ async function loopForAddCapability(docId: string, users: any[]){
     throw err
   };
 }; 
+
+export async function suggestTags(docId: string, body: any, userId:string){
+  try {
+    if(!body.tags){ throw new Error("Tags is required field")}
+    let doc = await documents.findByIdAndUpdate(docId,{
+       "$push": { suggestedTags: { userId: userId,  tags:body.tags }
+      }  
+        // "$push": { tags: { "$each": body.tags  } }    
+    })
+   if(doc){
+     return {
+       sucess: true,
+       message:"Tag suggested successfully"
+     }
+   }
+  } catch (err) {
+    throw err
+  };
+}; 
+
+async function userInfo(docData: any) {
+  try {
+       return {
+      ...docData.toJSON(),
+      user: await userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
+      };
+  } catch (err) {
+    throw err;
+  }
+}
