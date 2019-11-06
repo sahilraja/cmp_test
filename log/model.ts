@@ -17,6 +17,8 @@ const SchemaDef = new Schema({
     updatedDueDate: {type: Date, default: null},
     oldStatus:{type: Number},
     updatedStatus:{type: Number},
+    oldCost:{type: Number, default: null},
+    updatedCost: {type: Number, default: null},
     projectId: { type: Schema.Types.ObjectId, ref: 'project' }
 }, { timestamps: true })
 

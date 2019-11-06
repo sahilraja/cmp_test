@@ -460,7 +460,9 @@ export async function addFundReleased(projectId: string, payload: any, userId: s
       createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
     }
   ]).sort((a: any, b: any) => a.installment - b.installment)}
-  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: userId})
+  return updatedFund
 }
 
 export async function addFundsUtilized(projectId: string, payload: any, userId: string) {
@@ -478,7 +480,9 @@ export async function addFundsUtilized(projectId: string, payload: any, userId: 
       createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
     }
   ]).sort((a: any, b: any) => a.installment - b.installment)}
-  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: userId})
+  return updatedProject
 }
 
 export async function updateReleasedFund(projectId: string, payload: any, userId: string) {
@@ -487,7 +491,9 @@ export async function updateReleasedFund(projectId: string, payload: any, userId
   updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  return await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
+  return updatedProject
   // if(!payload.installment || !payload.subInstallment){
   //   throw new APIError(`Installment is required`)
   // }
@@ -524,5 +530,7 @@ export async function updateUtilizedFund(projectId: string, payload: any, userId
   updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  return await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
+  return updatedProject
 }
