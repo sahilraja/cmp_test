@@ -462,7 +462,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     let obj: any = {};
     if (objBody.docName) {
       if (objBody.docName.length > configLimit.name) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
-      let data = await documents.find({ ownerId: userId, name: objBody.docName.toLowerCase() });
+      let data = (await documents.find({ ownerId: userId, name: objBody.docName.toLowerCase() })).filter(({_id: id})=> docId != id)
       if (data.length) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
