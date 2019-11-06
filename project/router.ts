@@ -13,7 +13,7 @@ router.post("/create", async (req, res, next) => {
         res.status(OK).send(await createProject(req.body, res.locals.user))
     } catch (err) {
         if(err.code == 11000){
-            err.message = `${err.message.substring(err.message.indexOf("{ :")+5,err.message.indexOf("}")-2)} already exists`
+            err.message = `Reference code already exists`
         }
         next(new FormattedAPIError(err.message, false));
     }
