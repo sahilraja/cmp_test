@@ -462,6 +462,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
       obj.description = objBody.description;
     }
     if (objBody.tags) {
+      if(!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
@@ -1172,7 +1173,7 @@ async function userData(folder: any, host: string) {
       tags,
       role: ((userRole as any).data.global || [""])[0],
       owner,
-      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/docs/get-document/${folder.doc_id.fileId}` : "N/A",
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt,
       isDeleted: folder.doc_id.isDeleted
     }])
