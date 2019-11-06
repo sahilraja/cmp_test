@@ -131,6 +131,8 @@ paths:
                 - lastName
                 - phone
                 - password
+                - countryCode
+                - mobileOtp
               properties:
                 firstName:
                   type: string
@@ -156,6 +158,9 @@ paths:
                 password:
                   type: string
                   example: password
+                mobileOtp:
+                  type: string
+                  example: '1234'
       responses:
         '200':
           description: success
@@ -346,14 +351,17 @@ paths:
             schema:
               type: object
               required:
-                - password
+                - email
               properties:
                 email:
                   type: string
                   example: eswar@transerve.com
                 otp:
-                  type: number
-                  example: 2452
+                  type: string
+                  example: '2452'
+                mobileOtp:
+                  type: string
+                  example: '1234'
       responses:
         '200':
           description: success
@@ -664,10 +672,14 @@ paths:
               type: object
               required:
                 - otp
+                - mobileOtp
               properties:
                 otp:
-                  type: Number
-                  example: 1234
+                  type: string
+                  example: '1234'
+                mobileOtp:
+                  type: string
+                  example: '5678'
       responses:
         '200':
           content:
@@ -783,6 +795,60 @@ paths:
                     example: userId
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /user/resend/mobileOtp: &ref_1
+    get:
+      summary: resend mobile otp
+      tags:
+        - USERS
+      parameters:
+        - in: query
+          name: phone
+          schema:
+            type: string
+          description: phone number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messsge:
+                    type: string
+                    example: Mobile otp is send successfully
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /user/mobile/verify:
+    get:
+      summary: verfiy mobile otp
+      tags:
+        - USERS
+      parameters:
+        - in: query
+          name: phone
+          schema:
+            type: string
+          description: phone number
+        - in: query
+          name: otp
+          schema:
+            type: string
+          description: mobile otp
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Mobile otp is verified
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /user/send/mobileOtp: *ref_1
   /user/group/create:
     post:
       security:
@@ -807,11 +873,11 @@ paths:
                   type: string
                   example: project description
       responses:
-        '200': &ref_1
+        '200': &ref_2
           description: group
           content:
             application/json:
-              schema: &ref_2
+              schema: &ref_3
                 type: object
                 properties:
                   name:
@@ -855,7 +921,7 @@ paths:
                   type: string
                   example: project description
       responses:
-        '200': *ref_1
+        '200': *ref_2
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/group/{id}/status':
@@ -911,7 +977,7 @@ paths:
                   type: array
                   example: []
       responses:
-        '200': *ref_1
+        '200': *ref_2
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/group/{id}/member/remove':
@@ -939,7 +1005,7 @@ paths:
                   type: array
                   example: []
       responses:
-        '200': *ref_1
+        '200': *ref_2
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/user/group/{id}':
@@ -980,7 +1046,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_2
+                items: *ref_3
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/create:
@@ -1052,7 +1118,7 @@ paths:
                     type: number
                   docs:
                     type: array
-                    items: &ref_3
+                    items: &ref_4
                       type: object
                       properties:
                         name:
@@ -1376,7 +1442,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_3
+              schema: *ref_4
   '/project/{id}/members':
     get:
       security:
@@ -1543,7 +1609,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_3
+                  - *ref_4
                   - type: object
                     properties:
                       tasks:
@@ -4191,7 +4257,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_4
+                  - &ref_5
                     type: object
                     properties:
                       content:
@@ -4222,7 +4288,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_4
+                items: *ref_5
   '/template/edit/{id}':
     post:
       '400':
@@ -4263,7 +4329,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_4
+                  - *ref_5
                   - type: object
                     properties:
                       id:
@@ -4320,7 +4386,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_4
+                  - *ref_5
                   - type: object
                     properties:
                       id:
@@ -4328,7 +4394,7 @@ paths:
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
           description: Success
-  /pillars/create: &ref_6
+  /pillars/create: &ref_7
     post:
       security:
         - token: []
@@ -4338,7 +4404,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_5
+            schema: &ref_6
               type: object
               properties:
                 name:
@@ -4357,7 +4423,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_5
+                    - *ref_6
                     - type: object
                     - properties:
                         id:
@@ -4377,15 +4443,15 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_5
+                  - *ref_6
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/pillars/{id}/edit': *ref_6
-  /steps/create: &ref_8
+  '/pillars/{id}/edit': *ref_7
+  /steps/create: &ref_9
     post:
       security:
         - token: []
@@ -4395,7 +4461,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_7
+            schema: &ref_8
               type: object
               properties:
                 name:
@@ -4429,7 +4495,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_7
+                    - *ref_8
                     - type: object
                     - properties:
                         id:
@@ -4449,7 +4515,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_7
+                  - *ref_8
                   - type: object
                   - properties:
                       id:
@@ -4511,14 +4577,14 @@ definitions:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_9
+          schema: &ref_10
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_9
+    Error: *ref_10
 components:
   securitySchemes:
     token:
@@ -4534,12 +4600,12 @@ components:
       required:
         - error
     userME: *ref_0
-    project: *ref_3
+    project: *ref_4
     userSchema: *ref_0
-    projectSchema: *ref_3
+    projectSchema: *ref_4
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'
-    pillarSchema: *ref_5
-    stepSchema: *ref_7
-    groupSchema: *ref_2
+    pillarSchema: *ref_6
+    stepSchema: *ref_8
+    groupSchema: *ref_3
 
