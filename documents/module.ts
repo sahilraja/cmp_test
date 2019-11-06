@@ -353,7 +353,18 @@ export async function getDocDetails(docId: any, userId: string) {
       let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
       if (!userCapability.length) throw new Error("Unauthorized access.")
     }
+    let filteredDocs; 
     const docList = publishDocs.toJSON();
+    if(docList.ownerId == userId){
+      filteredDocs = docList.suggestedTags
+    }else{
+      filteredDocs = docList.suggestedTags.filter((tag:any) => tag.userId == userId)
+    }
+    let users = await Promise.all(
+    filteredDocs.map((suggestedTagsInfo: any)=>{
+      return userInfo(suggestedTagsInfo);
+    }))
+    docList.suggestedTags = users
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
     docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
@@ -1379,10 +1390,11 @@ export async function suggestTags(docId: string, body: any, userId:string){
 async function userInfo(docData: any) {
   try {
        return {
-      ...docData.toJSON(),
+      ...docData,
       user: await userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       };
   } catch (err) {
     throw err;
   }
 }
+
