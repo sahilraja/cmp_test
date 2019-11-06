@@ -484,7 +484,7 @@ export async function addMember(id: string, users: any[], userObj: any) {
 };
 
 //  Remove Member From Group
-export async function removeMembers(id: string, users: any[f], userObj: any) {
+export async function removeMembers(id: string, users: any[], userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
