@@ -1337,7 +1337,9 @@ async function loopUsersAndFetchData(docId: string, userIds: string[]) {
 
 export async function shareDocForUsers(obj: any){
   try {
-    await Promise.all(Object.keys(obj).map((docId: string)=> loopForAddCapability(docId, obj.doc)))
+    if(Object.keys(obj).length) {
+      await Promise.all((Object.keys(obj)).map((docId: string)=> loopForAddCapability(docId, obj[docId])))
+    }
     return { message: "shared successfully"}
   } catch (err) {
     throw err
