@@ -1409,7 +1409,7 @@ async function userInfo(docData: any) {
   }
 }
 
-export async function approve(docId: string, body: any, userId: string, ) {
+export async function approveTags(docId: string, body: any, userId: string, ) {
   try {
     if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
@@ -1440,6 +1440,46 @@ export async function approve(docId: string, body: any, userId: string, ) {
     return {
       sucess: true,
       message: "Tag approved successfully"
+       }
+    }
+  } catch (err) {
+    throw err
+  };
+};
+
+export async function rejectTags(docId: string, body: any, userId: string, ) {
+  try {
+    if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
+    let docdetails: any = await documents.findById(docId)
+    if (!docdetails) { throw new Error("DocId is Invalid") }
+    let [filteredDoc, filteredDoc1]: any = await Promise.all([
+      docdetails.suggestedTags.filter((tag: any) => tag.userId == body.userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags.filter((tag: any) => tag != body.tagId)
+          }
+        }),
+      docdetails.suggestedTags.filter((tag: any) => tag.userId != body.userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags
+          }
+        })
+    ])
+    let filteredDocs = [...filteredDoc, ...filteredDoc1]
+
+      let doc = await documents.findByIdAndUpdate(docId,{
+          suggestedTags: filteredDocs,
+            "$push": {
+              rejectedTags: { userId: body.userId, tags: body.tagId }
+            }
+        })
+     if(doc){
+    return {
+      sucess: true,
+      message: "Tag Rejected"
        }
     }
   } catch (err) {

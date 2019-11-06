@@ -230,6 +230,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/suggestTags      
   /docs/{docId}/approve/tags:
     $ref: ./swagger/resources/paths.yaml/#/approveTags 
+  /docs/{docId}/reject/tags:
+    $ref: ./swagger/resources/paths.yaml/#/rejectTags   
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
