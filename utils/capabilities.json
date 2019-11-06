@@ -49,7 +49,7 @@
         },
         {
           "capability": "create-doc",
-          "shortDescription": "Create Doc",
+          "shortDescription": "Create Document",
           "description": "Ability to create a document",
           "scope": "global"
         },

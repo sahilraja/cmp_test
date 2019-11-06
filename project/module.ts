@@ -281,7 +281,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
   })
   return (list || []).map((_list) => {
     const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id)
-    return ({ ..._list.toJSON(), progressPercentage: tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length })
+    return ({ ..._list.toJSON(), progressPercentage: (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(2) })
   })
 }
 
@@ -349,7 +349,7 @@ export async function getProjectTasks(projectId: string, userToken: string) {
 }
 
 export async function editTask(projectId: string, taskId: string, userObj: any, userToken: string, payload: any) {
-  let isEligible = await checkRoleScope(userObj.role, "project-edit-task");
+  let isEligible = await checkRoleScope(userObj.role, "edit-task-progress-dates");
   if (!isEligible) throw new APIError("Unauthorized Action.", 403);
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
   if (!projectDetail) {
