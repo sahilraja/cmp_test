@@ -3978,6 +3978,49 @@ paths:
                     example: Tag approved successfully
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/docs/{docId}/reject/tags':
+    post:
+      security:
+        - token: []
+      summary: Reject suggested tags
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: docId
+          schema:
+            type: string
+          required: true
+          description: DocumentId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tagId:
+                  type: string
+                  example: tag1234
+                userId:
+                  type: string
+                  example: user1234
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Tag rejected
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /template/create:
     post:
       '400':

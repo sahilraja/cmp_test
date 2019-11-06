@@ -48,7 +48,8 @@ import {
   checkCapabilitiesForUser,
   shareDocForUsers,
   suggestTags,
-  approve
+  approveTags,
+  rejectTags
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -642,7 +643,15 @@ router.post("/:docId/suggest/tags", authenticate, async (req, res, next: NextFun
 });
 router.post("/:docId/approve/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await approve(req.params.docId,req.body,res.locals.user._id));
+    res.status(200).send(await approveTags(req.params.docId,req.body,res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:docId/reject/tags", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await rejectTags(req.params.docId,req.body,res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
