@@ -19,8 +19,8 @@ export async function inviteUser(objBody: any, user: any) {
         if (!objBody.email || !objBody.role || !user) {
             throw new Error(USER_ROUTER.MANDATORY);
         };
-        if(objBody.email){
-            if(!validateEmail(objBody.email)){
+        if (objBody.email) {
+            if (!validateEmail(objBody.email)) {
                 throw Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
@@ -47,14 +47,15 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        
-        let templatInfo = await getTemplateBySubstitutions('invite', {fullName, role:objBody.role, link: `${ANGULAR_URL}/user/register/${token}`});
-        
+
+        let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
+
         //  Sent Mail to User
         let mailStatus = await nodemail({
             email: userData.email,
             subject: templatInfo.subject,
-            html: templatInfo.content})
+            html: templatInfo.content
+        })
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -114,11 +115,11 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        if(objBody.email){
-            if(!validateEmail(objBody.email)){
+        if (objBody.email) {
+            if (!validateEmail(objBody.email)) {
                 throw new Error(USER_ROUTER.EMAIL_WRONG);
             }
-        } 
+        }
         if (id != user._id) {
             let admin_scope = await checkRoleScope(user.role, "create-user");
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
@@ -143,7 +144,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };
-        if(objBody.name){
+        if (objBody.name) {
             objBody.profilePicName = objBody.name
             delete objBody.name;
         }
@@ -202,14 +203,14 @@ export async function user_status(id: string, user: any) {
         if (!userData.emailVerified) throw new Error("User not registered Yet.")
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
-        let state = data.is_active ? "Activated": "Inactivated"
-        let templatInfo = await getTemplateBySubstitutions('userState', {state});
+        let state = data.is_active ? "Activated" : "Inactivated"
+        let templatInfo = await getTemplateBySubstitutions('userState', { state });
         await nodemail({
             email: userData.email,
             subject: templatInfo.subject,
             html: templatInfo.content
         })
-        return { message : data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
+        return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
         throw err;
     };
@@ -224,25 +225,25 @@ export async function user_login(objBody: any) {
         if ((typeof objBody.email !== "string") || (typeof objBody.password !== "string")) {
             throw Error(USER_ROUTER.INVALID_FIELDS);
         };
-        if(objBody.email){
-            if(!validateEmail(objBody.email)){
+        if (objBody.email) {
+            if (!validateEmail(objBody.email)) {
                 throw Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
         //  find User
         let userData: any = await userFindOne("email", objBody.email);
-        if (!userData) throw new Error(USER_ROUTER.INVALID_USER );
+        if (!userData) throw new Error(USER_ROUTER.INVALID_USER);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
-        
-        let templatInfo = await getTemplateBySubstitutions('userLogin', {fullName:userData.firstName});
+
+        let templatInfo = await getTemplateBySubstitutions('userLogin', { fullName: userData.firstName });
 
         await nodemail({
             email: userData.email,
             subject: templatInfo.subject,
-            html:templatInfo.content
+            html: templatInfo.content
         })
         return response
     } catch (err) {
@@ -260,11 +261,11 @@ export async function userInviteResend(id: string, role: any) {
         //  create token for 24hrs
         let token = await jwt_for_url({ user: id, role: role });
 
-        let {firstName , lastName , middleName} = userData;
-        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        let { firstName, lastName, middleName } = userData;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
 
         //  mail sent user
-        let templatInfo = await getTemplateBySubstitutions('invite', {fullName,role, link: `${ANGULAR_URL}/user/register/${token}`});
+        let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role, link: `${ANGULAR_URL}/user/register/${token}` });
         //  Sent Mail to User
         let mailStatus = await nodemail({
             email: userData.email,
@@ -312,6 +313,7 @@ export async function userCapabilities(id: any) {
         let roles = await getRoles(id)
         if (!roles.data.length) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
         //  Get Capabilities of User
+        // if (roles.data[0].role == "program-coordinator") return { roles: ["create-user", "create-task", "create-subtask", "attach-documents-to-task", "link-task", "create-message", "view-all-cmp-messages", "create-doc", "project-view", "attach-documents", "publish-documents", "create-folder", "delete-doc", "edit-task-progress-dates", "create-project", "display-role-management", "create-project", "edit-project", "create-tag", "edit-tag", "project-create-task", "project-edit-task", "publish-document", "unpublish-document", "create-group", "edit-group", "project-add-core-team"] }
         let success = await roleCapabilitylist(roles.data[0].role)
         if (!success.status) throw new Error(USER_ROUTER.CAPABILITIES_NOT_FOUND);
         return { roles: success.data }
@@ -340,7 +342,7 @@ export async function forgotPassword(objBody: any) {
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userDetails._id });
 
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
 
         let success = await nodemail({
             email: userDetails.email,
@@ -511,9 +513,11 @@ export async function userSuggestions(search: string, userId: string) {
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
-        const searchQuery = search ? { $or:[{
-            firstName: new RegExp(search, "i")
-        },{lastName: new RegExp(search, "i")},{middleName: new RegExp(search, "i")}], emailVerified: true } : { is_active: true, emailVerified: true }
+        const searchQuery = search ? {
+            $or: [{
+                firstName: new RegExp(search, "i")
+            }, { lastName: new RegExp(search, "i") }, { middleName: new RegExp(search, "i") }], emailVerified: true
+        } : { is_active: true, emailVerified: true }
         let users: any = search ?
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
@@ -575,8 +579,8 @@ export async function changeEmailInfo(objBody: any, user: any) {
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
         }
-        if(objBody.email){
-            if(!validateEmail(objBody.email)){
+        if (objBody.email) {
+            if (!validateEmail(objBody.email)) {
                 throw Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
@@ -591,10 +595,10 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
-        let {firstName , lastName , middleName} = userInfo;
-        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
-        
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+        let { firstName, lastName, middleName } = userInfo;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+
+        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
 
         let success = await nodemail({
             email: objBody.email,
@@ -615,23 +619,23 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (objBody.otp == token.otp) {
             return await userEdit(user._id, { email: token.newEmail })
         }
-        else{
+        else {
             throw new Error("Enter Valid Otp.");
         }
-    }catch(err){
+    } catch (err) {
         throw err
     }
 }
 export async function loginHistory(id: string) {
     try {
-        let userLoginHistory = await loginSchema.find({ userId: id }).sort({createdAt:1})
+        let userLoginHistory = await loginSchema.find({ userId: id }).sort({ createdAt: 1 })
         return userLoginHistory;
     } catch (err) {
         throw err
     }
 }
 
-export function validateEmail(email:string){
+export function validateEmail(email: string) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
