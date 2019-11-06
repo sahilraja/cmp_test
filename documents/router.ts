@@ -640,7 +640,7 @@ router.post("/:docId/suggest/tags", authenticate, async (req, res, next: NextFun
     next(new APIError(err.message));
   }
 });
-router.post("/:docId/approve", authenticate, async (req, res, next: NextFunction) => {
+router.post("/:docId/approve/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await approve(req.params.docId,req.body,res.locals.user._id));
   } catch (err) {
