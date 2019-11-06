@@ -27,8 +27,7 @@ export async function addComment(body: any, userId: string) {
  export async function commentsList(doc_id: String,type: string) {
     try {
       if(!doc_id) {throw new Error("Id is required")}
-      let data = await comments
-        .find({ entity_id: doc_id, type: type});        
+      let data = await comments.find({ entity_id: doc_id, type: type});        
       const commentsList = await Promise.all(
         data.map(comment=> {
           return commentData(comment);
@@ -47,6 +46,7 @@ export async function addComment(body: any, userId: string) {
             commentId: commentData._id,
             comment:commentData.comment,
             type: commentData.type,
+            createdAt: commentData.createdAt,
             role:(((await userRoleAndScope(commentData.user_id)) as any).data.global || [
                 ""
               ])[0], 
