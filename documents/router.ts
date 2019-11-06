@@ -149,10 +149,10 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
 router.get("/all/list", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(
-      [...((await getDocList(`${req.protocol}://${req.get('host')}`) as any).docs),
+      {docs: [...((await getDocList(`${req.protocol}://${req.get('host')}`) as any).docs),
       ...(await sharedList(res.locals.user._id, `${req.protocol}://${req.get('host')}`)),
       ...(await publishList(res.locals.user._id, `${req.protocol}://${req.get('host')}`))
-      ]);
+      ]});
   } catch (err) {
     next(new APIError(err.message));
   }
