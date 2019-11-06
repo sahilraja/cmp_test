@@ -228,6 +228,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/docsListAll  
   /docs/{docId}/suggest/tags:
     $ref: ./swagger/resources/paths.yaml/#/suggestTags      
+  /docs/{docId}/approve/tags:
+    $ref: ./swagger/resources/paths.yaml/#/approveTags 
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
