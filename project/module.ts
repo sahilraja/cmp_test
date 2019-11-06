@@ -422,3 +422,90 @@ export async function getTaskDetail(projectId: string, id: string, userId: strin
   }
   return await httpRequest(options)
 }
+
+export async function getFinancialInfo(projectId: string) {
+  const projectDetail = await ProjectSchema.findById(projectId).exec()
+  
+}
+
+export async function addFundReleased(projectId: string, payload: any, userId: string) {
+  if(!payload.installment){
+    throw new APIError(`Installment is required`)
+  }
+  const fund: any = await ProjectSchema.findById(projectId).exec()
+  const { fundsReleased } = fund
+  const otherFunds = fundsReleased.filter((fund: any) => fund.installment != payload.installment)
+  const matchedFunds = fundsReleased.filter((fund: any) => fund.installment == payload.installment)
+  const updates = {fundsReleased: otherFunds.concat(matchedFunds).concat([
+    {
+      subInstallment:matchedFunds.length + 1,
+      installment: payload.installment, document: payload.document, cost: payload.cost, 
+      createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
+    }
+  ]).sort((a: any, b: any) => a.installment - b.installment)}
+  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+}
+
+export async function addFundsUtilized(projectId: string, payload: any, userId: string) {
+  if(!payload.installment){
+    throw new Error(`Installment is required`)
+  }
+  const project: any = await ProjectSchema.findById(projectId).exec()
+  const { fundsUtilised } = project
+  const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
+  const matchedFunds = fundsUtilised.filter((fund: any) => fund.installment == payload.installment)
+  const updates = {fundsUtilised: otherFunds.concat(matchedFunds).concat([
+    {
+      subInstallment: matchedFunds.length + 1,
+      installment: payload.installment, document: payload.document, cost: payload.cost, 
+      createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
+    }
+  ]).sort((a: any, b: any) => a.installment - b.installment)}
+  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+}
+
+export async function updateReleasedFund(projectId: string, payload: any, userId: string) {
+  const {document, cost, _id} = payload
+  let updates:any = {}
+  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  updates['fundsReleased.$.document'] = document
+  updates['fundsReleased.$.cost'] = cost
+  return await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  // if(!payload.installment || !payload.subInstallment){
+  //   throw new APIError(`Installment is required`)
+  // }
+  // const project: any = await ProjectSchema.findById(projectId).exec()
+  // const { fundsReleased } = project.toJSON()
+  // const otherFunds = fundsReleased.filter((fund: any) => fund.installment != payload.installment)
+  // const matchedFunds = fundsReleased.filter((fund: any) => fund.installment == payload.installment)
+  // const matchedSubFund = matchedFunds.find((fund: any) => fund.subInstallment == payload.installment)
+  // const updates = {fundsReleased: otherFunds.concat(matchedFunds.filter((fund: any) => fund.subInstallment != payload.installment)).concat([
+  //   {
+  //     ...matchedSubFund, document: payload.document, cost: payload.cost, modifiedAt: new Date(), modifiedBy: userId
+  //   }
+  // ]).sort((a: any, b: any) => a.installment - b.installment)}
+  // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+}
+
+export async function updateUtilizedFund(projectId: string, payload: any, userId: string) {
+  // if(!payload.installment || !payload.subInstallment){
+  //   throw new Error(`Installment is required`)
+  // }
+  // const project: any = await ProjectSchema.findById(projectId).exec()
+  // const { fundsUtilised } = project.toJSON()
+  // const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
+  // const matchedFunds = fundsUtilised.filter((fund: any) => fund.installment == payload.installment)
+  // const matchedSubFund = matchedFunds.find((fund: any) => fund.subInstallment == payload.installment)
+  // const updates = {fundsUtilised: otherFunds.concat(matchedFunds.filter((fund: any) => fund.subInstallment != payload.installment)).concat([
+  //   {
+  //     ...matchedSubFund, document: payload.document, cost: payload.cost, modifiedAt: new Date(), modifiedBy: userId
+  //   }
+  // ]).sort((a: any, b: any) => a.installment - b.installment)}
+  // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  const {document, cost, _id} = payload
+  let updates:any = {}
+  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  updates['fundsReleased.$.document'] = document
+  updates['fundsReleased.$.cost'] = cost
+  return await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+}

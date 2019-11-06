@@ -110,6 +110,14 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/getTaskDetail
   /project/{id}/task/{task-id}/edit-date:
     $ref: ./swagger/projects/paths.yaml/#/editTaskDate
+  /project/{id}/add-released-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addReleasedFund
+  /project/{id}/add-utilized-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addUtilizedFund
+  /project/{id}/update-released-fund:
+    $ref: ./swagger/projects/paths.yaml/#/updateReleasedFund
+  /project/{id}/update-utilized-fund:
+    $ref: ./swagger/projects/paths.yaml/#/updateUtilizedFund
 # Roles
   /role/list:
     $ref: ./swagger/roles/paths.yaml/#/getRoles
