@@ -108,11 +108,14 @@ export async function checkRoleScope(role: any, capabilities: any) {
   try {
       const data: any = await fetchRoles()
       if (!data.status) throw new Error("Error to fetch Roles")
-      for (const policy of data.data) {
-          if (policy[0].includes(role) && policy[2].includes(capabilities)) {
-              return true
-          }
+      if(data.data.find((d:any) => d[0] == role && d[2] == capabilities)){
+        return true
       }
+      // for (const policy of data.data) {
+      //     if ((policy[0] == role) && (policy[2] == capabilities)) {
+      //         return true
+      //     }
+      // }
       return false
   } catch (err) {
       console.log(err);
