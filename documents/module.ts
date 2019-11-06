@@ -135,7 +135,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 //  Get Document Public List
 export async function getDocList(host: string) {
   try {
-    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED, isDeleted: false }).sort({ name: 1 });
+    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     const docList = await Promise.all(
       data.map(async doc => {
         return await docData(doc, host);
@@ -698,9 +698,7 @@ export async function sharedList(userId: string, host: string) {
     docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
-    let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).sort({ name: 1 });
- 
-
+    let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     return await Promise.all(
       docs.map(async (doc: any) => {
         const filteredDocs = doc.suggestedTags.filter((tag:any) => tag.userId == userId)
@@ -957,8 +955,7 @@ export async function replaceDoc(docId: string,replaceDoc: string,userId: string
 export async function publishList(userId: string, host: string) {
   try {
     let docs = await documents
-      .find({ ownerId: userId, status: STATUS.PUBLISHED })
-      .sort({ updatedAt: -1 });
+      .find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
     return await Promise.all(
       docs.map(async (doc: any) => {
         return await docData(doc, host);
