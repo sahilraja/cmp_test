@@ -425,7 +425,8 @@ export async function getTaskDetail(projectId: string, id: string, userId: strin
 
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
-  
+  const { fundsReleased, fundsUtilised }:any = projectDetail
+  return { fundsReleased, fundsUtilised }
 }
 
 export async function addFundReleased(projectId: string, payload: any, userId: string) {
