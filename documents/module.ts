@@ -353,16 +353,25 @@ export async function getDocDetails(docId: any, userId: string) {
       let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
       if (!userCapability.length) throw new Error("Unauthorized access.")
     }
-    let filteredDocs;
+    let filteredDocs:any; 
     const docList = publishDocs.toJSON();
     if (docList.ownerId == userId) {
       filteredDocs = docList.suggestedTags
     } else {
       filteredDocs = docList.suggestedTags.filter((tag: any) => tag.userId == userId)
     }
+   
+    const userData = Array.from(
+      new Set(filteredDocs.map((_respdata: any) => _respdata.userId))
+    ).map((userId: any) => ({
+      userId,
+      tags: filteredDocs
+        .filter((_respdata: any) => _respdata.userId == userId)
+        .reduce((resp: any, eachTag: any) => [...resp, ...eachTag.tags], [])
+    }));
     let users = await Promise.all(
-      filteredDocs.map((suggestedTagsInfo: any) => {
-        return userInfo(suggestedTagsInfo);
+      userData.map((suggestedTagsInfo: any)=>{
+          return userInfo(suggestedTagsInfo);
       }))
     docList.suggestedTags = users
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
@@ -1402,23 +1411,23 @@ async function userInfo(docData: any) {
 
 export async function approve(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId || !body.tagId || !body.tag) { throw new Error("All mandatory fields are missing") }
-    let docdetails: any = await documents.findById(docId)
-    if (!docdetails) { throw new Error("DocId is Invalid") }
-    let filteredDoc = docdetails.suggestedTags.filter((tag: any) => tag._id == body.tagId)
+    if(!docId || !body.tagId || !body.tag){ throw new Error("All mandatory fields are missing")}
+    let docdetails:any = await documents.findById(docId)
+    if(!docdetails){ throw new Error("DocId is Invalid")}
+    let filteredDoc = docdetails.suggestedTags.filter((tag:any)=>tag._id == body.tagId && tag.tags.filter((eachTag: any)=>{eachTag.tag !=body.tag}))
     console.log(filteredDoc);
     // && tag.tags.map((eachtag:any)=>{return eachtag})==body.tag    
-    //   let doc = await documents.findByIdAndUpdate(docId,{
-    //      "$pull": { suggestedTags: { _id: tagId }
-    //     }  
-    //       // "$push": { tags: { "$each": body.tags  } }    
-    //   })
-    //  if(doc){
-    return {
-      sucess: true,
-      message: "Tag approved successfully"
-      //  }
-    }
+  //   let doc = await documents.findByIdAndUpdate(docId,{
+  //      "$pull": { suggestedTags: { _id: tagId }
+  //     }  
+  //       // "$push": { tags: { "$each": body.tags  } }    
+  //  
+  //  if(doc){
+     return {
+       sucess: true,
+       message:"Tag approved successfully"
+    //  }
+   }
   } catch (err) {
     throw err
   };
