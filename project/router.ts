@@ -4,7 +4,7 @@ import { createProject, editProject, projectList, city_code_status, add_tag, edi
     createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
-import { APIError } from "../utils/custom-error";
+import { APIError, FormattedAPIError } from "../utils/custom-error";
 const router = Router();
 
 //  Add Project
@@ -15,7 +15,7 @@ router.post("/create", async (req, res, next) => {
         if(err.code == 11000){
             err.message = `${err.message.substring(err.message.indexOf("{ :")+5,err.message.indexOf("}")-2)} already exists`
         }
-        next(new APIError(err.message));
+        next(new FormattedAPIError(err.message, false));
     }
 });
 
