@@ -145,6 +145,20 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
 }
 );
 
+// Get My shared list
+router.get("/all/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(
+      {docs: [...((await getDocList(`${req.protocol}://${req.get('host')}`) as any).docs),
+      ...(await sharedList(res.locals.user._id, `${req.protocol}://${req.get('host')}`)),
+      ...(await publishList(res.locals.user._id, `${req.protocol}://${req.get('host')}`))
+      ]});
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+}
+);
+
 // Get My list
 router.get("/me", authenticate, async (req, res, next: NextFunction) => {
   try {
@@ -181,15 +195,15 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
   }
 });
 
-router.post("/user-capabilities", authenticate, async (req, res, next)=>{
+router.post("/user-capabilities", authenticate, async (req, res, next) => {
   try {
     res.status(200).send(await checkCapabilitiesForUser(req.body))
   } catch (err) {
     next(new APIError(err.message));
-  };                 
+  };
 });
 
-router.post("/add-user-capabilities", authenticate, async (req, res, next)=>{
+router.post("/add-user-capabilities", authenticate, async (req, res, next) => {
   try {
     res.status(200).send(await shareDocForUsers(req.body.object))
   } catch (err) {
