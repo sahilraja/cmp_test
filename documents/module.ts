@@ -1163,7 +1163,8 @@ async function userData(folder: any, host: string) {
   try {
     let fileType = folder.doc_id.fileName ? (folder.doc_id.fileName.split(".")).pop() : ""
     const [tags, userRole, owner] = await Promise.all([
-      getTags(folder.doc_id.tags),
+      // getTags(folder.doc_id.tags),
+      getTags((folder.doc_id.tags && folder.doc_id.tags.length) ? folder.doc_id.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       userRoleAndScope(folder.doc_id.ownerId),
       userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     ])
