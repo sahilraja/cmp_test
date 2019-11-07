@@ -1,10 +1,8 @@
 import { APIError } from "./custom-error";
 
-export function processOtherServerErrors(error: any) {
+export function processMongooseErrors(error: any) {
     if (!error.errors) {
-        let s = error.message.split('-').pop()
-        error = JSON.parse(s)
-        return error.errors[0].error
+        return error
     }
     return Object.keys(error.errors).map(key => {
         if (error.errors[key].kind == 'enum') {
@@ -12,7 +10,7 @@ export function processOtherServerErrors(error: any) {
         }
         var keys: any = key.split(".").pop()
         if (!error.errors[key].errors) {
-            return new APIError(keys, error.errors[key].message || `Invalid ${keys}`)
+            return new APIError(error.errors[key].message || `Invalid ${keys}`)
         }
         // checking for innerSchema errors
         if (error.errors[key].errors) {
@@ -20,10 +18,10 @@ export function processOtherServerErrors(error: any) {
                 if (error.errors[key].errors[innerKey].kind == 'enum') {
                     error.errors[key].errors[innerKey].message = `Please enter valid data for ${innerKey}`
                 }
-                return new APIError(innerKey, error.errors[key].errors[innerKey].message)
+                return new APIError(error.errors[key].errors[innerKey].message)
             })
         }
-        return new APIError(key, error.errors[key].message)
+        return new APIError(error.errors[key].message)
     });
 }
 

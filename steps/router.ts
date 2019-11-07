@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { OK } from "http-status-codes";
 import { create, list, stepDetail, updateStep, getStepsByIds } from "./module";
+import { processMongooseErrors } from "../utils/error-handling-utils";
 const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
     try {
         res.status(OK).send(await create(res.locals.user._id, req.body))
     } catch (error) {
-        next(error)
+        next(processMongooseErrors(error)[0] || processMongooseErrors(error))
     }
 })
 
@@ -39,7 +40,7 @@ router.post(`/:id/edit`, async (req, res, next) => {
     try {
         res.status(OK).send(await updateStep(req.params.id, req.body))
     } catch (error) {
-        next(error)
+        next(processMongooseErrors(error)[0] || processMongooseErrors(error))        
     }
 })
 
