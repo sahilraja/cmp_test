@@ -4459,6 +4459,52 @@ paths:
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/steps/{id}/edit': *ref_8
+  /constants/add:
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: add constants
+      tags:
+        - SITE-CONSTANTS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                aboutMe:
+                  type: Number
+                  example: 300
+                docName:
+                  type: Number
+                  example: 30
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  aboutMe: 300
+                  docName: 30
+          description: Success
+  /constants/list:
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      tags:
+        - SITE-CONSTANTS
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  aboutMe: 300
+                  docName: 30
+          description: Success
 definitions:
   ErrorResponse:
     BadRequest:

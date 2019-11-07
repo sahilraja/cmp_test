@@ -13,6 +13,8 @@ import { createECDH } from "crypto";
 import { loginSchema } from "./login-model";
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { APIError } from "../utils/custom-error";
+import { constantSchema } from "../site-constants/model";
+
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -47,7 +49,7 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-
+        console.log(SITE_CONSTANTS);
         let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
 
         //  Sent Mail to User
@@ -88,8 +90,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!phoneNo(phoneNumber).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
-
-        if (aboutme.length > 200) {
+        let constantsList = await constantSchema.findOne().exec();
+        if (aboutme.length > constantsList.aboutMe) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
 
@@ -139,8 +141,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
         if (id != user._id && objBody.role) {
             userRole = await updateRole(id, objBody.updateRole, objBody.role);
         }
+        let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
-            if (objBody.aboutme.length > 200) {
+            if (objBody.aboutme.length > constantsList.aboutMe) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };

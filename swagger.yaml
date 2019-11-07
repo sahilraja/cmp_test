@@ -271,6 +271,11 @@ paths:
   /steps/{id}/edit:
     $ref: ./swagger/steps/paths.yaml/#/createStep
 
+  /constants/add:
+    $ref: ./swagger/siteConstants/paths.yaml/#/addConstant
+  /constants/list:
+    $ref: ./swagger/siteConstants/paths.yaml/#/constantsList
+
 definitions:
   # Error
   $ref: ./swagger/error.yaml
