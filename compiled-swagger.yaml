@@ -1772,7 +1772,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_3
+              schema: *ref_4
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/add-utilized-fund':
@@ -1805,7 +1805,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_3
+              schema: *ref_4
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/update-released-fund':
@@ -1840,7 +1840,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_3
+              schema: *ref_4
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/update-utilized-fund':
@@ -1875,7 +1875,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_3
+              schema: *ref_4
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /role/list:
@@ -4524,12 +4524,12 @@ paths:
           description: Success
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/steps/{id}/edit': *ref_8
+  '/steps/{id}/edit': *ref_9
   /constants/add:
     post:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
-      summary: add constants
+      summary: add constants and edit constants
       tags:
         - SITE-CONSTANTS
       requestBody:
@@ -4559,6 +4559,7 @@ paths:
     get:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: get constants list
       tags:
         - SITE-CONSTANTS
       responses:
