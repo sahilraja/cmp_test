@@ -1,7 +1,7 @@
-import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP } from "../utils/error_msg";
+import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
-import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify } from "../utils/utils";
+import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage} from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
@@ -9,12 +9,15 @@ import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, use
 import { ANGULAR_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
 import * as phoneNo from "phone";
+import * as request from "request";
 import { createECDH } from "crypto";
 import { loginSchema } from "./login-model";
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
 
+
+const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -49,7 +52,6 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        console.log(SITE_CONSTANTS);
         let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
 
         //  Sent Mail to User
@@ -90,7 +92,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!phoneNo(phoneNumber).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
-        let constantsList = await constantSchema.findOne().exec();
+        let constantsList: any = await constantSchema.findOne().exec();
         if (aboutme.length > constantsList.aboutMe) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
@@ -155,7 +157,6 @@ export async function edit_user(id: string, objBody: any, user: any) {
         let userInfo = await userEdit(id, objBody);
         userInfo.role = userRole;
         return userInfo
-
     } catch (err) {
         throw err;
     };
@@ -220,8 +221,9 @@ export async function user_status(id: string, user: any) {
 };
 
 //  User Login
-export async function user_login(objBody: any) {
+export async function user_login(req: any) {
     try {
+        let objBody = req.body;
         if (!objBody.email || !objBody.password) {
             throw Error(USER_ROUTER.MANDATORY);
         }
@@ -233,6 +235,9 @@ export async function user_login(objBody: any) {
                 throw Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
+
+        //await recaptchaValidation(req);
+        
         //  find User
         let userData: any = await userFindOne("email", objBody.email);
         if (!userData) throw new Error(USER_ROUTER.INVALID_USER);
@@ -240,8 +245,9 @@ export async function user_login(objBody: any) {
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
-
-        let templatInfo = await getTemplateBySubstitutions('userLogin', { fullName: userData.firstName });
+        
+        mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
+        let templatInfo = await getTemplateBySubstitutions('userLogin', {fullName:userData.firstName});
 
         await nodemail({
             email: userData.email,
@@ -336,7 +342,7 @@ export async function forgotPassword(objBody: any) {
         if (!userDetails) {
             throw new Error('Email ID is not registered')
         }
-        let { firstName, lastName, middleName } = userDetails;
+        let { firstName, lastName, middleName,countryCode,phone } = userDetails;
         let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
@@ -344,8 +350,9 @@ export async function forgotPassword(objBody: any) {
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userDetails._id });
-
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
+        
+        mobileSendOtp(countryCode+phone,SENDER_IDS.OTP);
+        let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
 
         let success = await nodemail({
             email: userDetails.email,
@@ -551,15 +558,22 @@ export async function getUsersForProject(search: string, userId: string) {
 export async function otpVerification(objBody: any) {
     try {
         if (!objBody.otp) {
-            throw new Error("Required otp field")
+            throw new Error("Required email otp field");
+        };
+        if (!objBody.mobileOtp) {
+            throw new Error("Required mobile otp field");
         };
         let userInfo: any = await userFindOne("email", objBody.email);
-        let token: any = await jwtOtpVerify(userInfo.otp_token)
+        let token: any = await jwtOtpVerify(userInfo.otp_token);
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
-        if ((objBody.otp) == Number(token.otp)) {
+        let validmobile:any
+        if(objBody.mobileOtp){
+            validmobile = await mobileVerifyOtp(userInfo.countryCode+userInfo.phone,objBody.mobileOtp);
+        }
+        if (validmobile && (objBody.otp) == Number(token.otp)) {
             let userData = await otpVerify(userInfo);
-            return userData
+            return userData;
         } else {
             throw new Error(INCORRECT_OTP);
         }
@@ -598,10 +612,11 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
-        let { firstName, lastName, middleName } = userInfo;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
+        let {firstName , lastName , middleName,countryCode,phone} = userInfo;
+        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
+        
+        mobileSendOtp(countryCode+phone,SENDER_IDS.OTP);
+        let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
 
         let success = await nodemail({
             email: objBody.email,
@@ -619,7 +634,10 @@ export async function profileOtpVerify(objBody: any, user: any) {
     try {
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
-        if (objBody.otp == token.otp) {
+        if(objBody.mobileOtp){
+            await mobileVerifyOtp(user.countryCode+user.phone,objBody.mobileOtp);
+        }
+        if (objBody.otp == token.otp){
             return await userEdit(user._id, { email: token.newEmail })
         }
         else {
@@ -641,4 +659,29 @@ export async function loginHistory(id: string) {
 export function validateEmail(email: string) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
+}
+export async function recaptchaValidation(req:any){
+    try{
+        if(!req.body['g-recaptcha-response']) {
+            throw new Error("Please select captcha");
+        }
+        // Put your secret key here.
+        // req.connection.remoteAddress will provide IP address of connected user.
+        var verificationUrl = "https://www.google.com/recaptcha/api/siteverify?secret=" + secretKey + "&response=" + req.body['g-recaptcha-response'] + "&remoteip=" + req.connection.remoteAddress;
+        // Hitting GET request to the URL, Google will respond with success or error scenario.
+        return await new Promise((resolve,reject)=>{
+            return request(verificationUrl,function(error,response,body) {
+                body = JSON.parse(body);
+                console.log(body);
+                // Success will be true or false depending upon captcha validation.
+                if(body.success !== undefined && !body.success) {
+                    reject(new Error("Failed captcha verification"));
+                }
+                resolve("success");
+            });
+        })
+    }
+    catch(err){
+        throw err;
+    }
 }
