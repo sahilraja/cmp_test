@@ -18,7 +18,7 @@ export async function list(userToken: string) {
     return pillars.map((pillar: any) => {
         const filteredTasks = (tasks as any).filter((task: any) => task.pillarId == pillar.id)
         return ({...pillar.toJSON(), 
-            progressPercentage: (filteredTasks.reduce((p:number,c:any) => p + (c.progressPercentage || 0) ,0)/filteredTasks.length).toFixed(2)
+            progressPercentage: filteredTasks.length ? (filteredTasks.reduce((p:number,c:any) => p + (c.progressPercentage || 0) ,0)/filteredTasks.length).toFixed(0) : 0
         })
     })
 }
