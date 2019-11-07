@@ -20,8 +20,14 @@ export const USER_ROUTER = {
     EMAIL_WRONG : "Given email id is invalid",
     GROUP_NOT_FOUND: "Please enter a valid group name",
     USER_ARRAY: "Users must be an Array.",
-    ABOUTME_LIMIT:"Aboutme shall not exceed 200 characters"
+    ABOUTME_LIMIT:"Aboutme shall not exceed 200 characters",
 };
+export const MOBILE_MESSAGES = {
+    VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
+    SEND_OTP : "Mobile Otp send successfully",
+    VALID_OTP: "Mobile otp is verified",
+    INVALID_OTP : "Mobile otp is invalid"
+}
 
 export const DOCUMENT_ROUTER = {
     MANDATORY: "All mandatory fields are required",
@@ -61,6 +67,12 @@ export const RESPONSE = {
     INACTIVE: "inactive",
     ADD_MEMBER: "Group member added",
     REMOVE_MEMBER: "Group member removed"
+}
+export const SENDER_IDS = {
+    OTP : "CMPOTP"
+}
+export const MOBILE_TEMPLATES = {
+    LOGIN : "Welcome to CMP"
 }
 
 export const GLOBAL_SCOPE = "global";

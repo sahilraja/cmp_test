@@ -2,13 +2,14 @@ import * as mongoose  from 'mongoose';
 import * as tunnel from 'tunnel-ssh';
 import { homedir } from 'os';
 import * as path from 'path';
-import { readFileSync } from "fs";
+import { readFileSync, constants } from "fs";
 import { USE_REMOTE_DB } from './urls';
-import { userInit, init } from './role_management';
+import { userInit, init, siteConstants } from './role_management';
 
 async function initializeDB() {
     try {
         await userInit();
+        await siteConstants();
         // await init();
     } catch (err) {
         console.error(err);

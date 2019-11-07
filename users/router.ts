@@ -1,6 +1,6 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject } from "./module";
-import { authenticate } from "../utils/utils";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, mobileVerification } from "./module";
+import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -12,6 +12,7 @@ import { FILES_SERVER_BASE } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { OK } from "http-status-codes";
 import { roles_list, role_list } from "../role/module";
+import { SENDER_IDS } from "../utils/error_msg";
 const router = Router();
 
 //  Invite User
@@ -99,7 +100,7 @@ router.put('/status/:id', authenticate, async (req: Request, res: Response, next
 //  login user
 router.post('/email/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await user_login(req.body));
+        res.status(200).send(await user_login(req));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -310,6 +311,31 @@ router.get("/login/history/:id", authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await loginHistory(req.params.id));
     } catch (error) {
+        next(new APIError(error.message));
+    }
+})
+router.get("/send/mobileOtp",async(req,res,next)=>{
+    try{
+        res.status(OK).send(await mobileSendOtp(req.query.phone,SENDER_IDS.OTP));
+    }
+    catch(error){
+        next(new APIError(error.message));
+    }
+})
+router.get("/resend/mobileOtp",async(req,res,next)=>{
+    try{
+        res.status(OK).send(await mobileRetryOtp(req.query.phone));
+    }
+    catch(error){
+        next(new APIError(error.message));
+    }
+})
+
+router.get("/mobile/verify",async(req,res,next)=>{
+    try{
+        res.status(OK).send(await mobileVerifyOtp(req.query.phone,req.query.otp));
+    }
+    catch(error){
         next(new APIError(error.message));
     }
 })

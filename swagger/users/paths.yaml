@@ -122,6 +122,8 @@
                 - lastName
                 - phone
                 - password
+                - countryCode
+                - mobileOtp
               properties:
                 firstName:
                   type: string
@@ -147,6 +149,9 @@
                 password:
                   type: string
                   example: password
+                mobileOtp:
+                  type: string
+                  example: "1234"
       responses:
         "200":
           description: success
@@ -677,10 +682,14 @@
               type: object
               required:
                 - otp
+                - mobileOtp
               properties:
                 otp:
-                  type: Number
-                  example: 1234
+                  type: string
+                  example: "1234"
+                mobileOtp:
+                  type: string
+                  example: "5678"
       responses:
         "200":
           content:
@@ -749,14 +758,17 @@
             schema:
               type: object
               required:
-                - password
+                - email
               properties:
                 email:
                   type: string
                   example: eswar@transerve.com
                 otp:
-                  type: number
-                  example: 2452
+                  type: string
+                  example: '2452'
+                mobileOtp:
+                  type: string
+                  example: '1234' 
 
       responses:
         "200":
@@ -829,5 +841,56 @@
                     example: [{}]
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
-
-
+  mobileOtp:
+    get:
+      summary: resend mobile otp
+      tags:
+        - USERS
+      parameters:
+          - in: query
+            name: phone
+            schema:
+              type: string
+            description: "phone number" 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messsge:
+                    type: string
+                    example: "Mobile otp is send successfully"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  mobileVerify:
+    get:
+      summary: verfiy mobile otp
+      tags:
+        - USERS
+      parameters:
+          - in: query
+            name: phone
+            schema:
+              type: string
+            description: "phone number"
+          - in: query
+            name: otp
+            schema:
+              type: string
+            description: "mobile otp"  
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Mobile otp is verified"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

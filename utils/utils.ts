@@ -1,15 +1,26 @@
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
-import { AUTHENTICATE_MSG } from './error_msg';
+import { AUTHENTICATE_MSG, MOBILE_MESSAGES } from './error_msg';
 import { userFindOne } from './users';
 import { userRoleAndScope } from '../role/module';
 import { APIError } from './custom-error';
 import { loginSchema } from '../users/login-model';
+import {promisify} from "util";
+import * as msg91 from "msg91";
+import * as SendOtp from "sendotp";
+import { httpRequest } from './role_management';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
 const SALTROUNDS = 10;
 const ACCESS_TOKEN_FOR_OTP = 30 * 60;
+const MSG_EXPIRE_OTP = "20"  
+const MSG_API_KEY = "301746A16myISu5dbc0bc7";//"9d67e9da3bXX"; //"301746A16myISu5dbc0bc7"; 
+const SENDER_ID = "CMPIND";//"INFOSM";
+const ROUTE_NO = "4";
+
+const msg = msg91(MSG_API_KEY,SENDER_ID,ROUTE_NO);
+const sendOtp = new SendOtp(MSG_API_KEY, 'Your Verification code is {{otp}}');
 
 // User Authentication 
 export async function authenticate(req: any, res: any, next: any) {
@@ -87,4 +98,62 @@ export async function jwtOtpToken(otp: any) {
 // verify token for otp
 export async function jwtOtpVerify(otp: any) {
     return await jwtVerify(otp, SECRET)
+}
+
+//sendOtp to mobile
+export function mobileSendOtp(mobileNo:String,senderId:String){
+    sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
+    sendOtp.send(mobileNo,senderId,function(err:any, response:any){
+        if(err){
+            console.log(err);
+        }
+        else{
+            console.log(response);
+        }
+    });
+    return {messsage:MOBILE_MESSAGES.SEND_OTP}
+    
+    // msg.send("+919347577153",MESSAGE, function(err:any, response:any){
+    //     console.log("err: ",err);
+    //     console.log("result :",response);
+    //  });
+
+    // msg91.sendOne(authkey,number,message,senderid,route,dialcode,function(response:any){
+    //     //Returns Message ID, If Sent Successfully or the appropriate Error Message
+    //     console.log(response);
+    // });
+
+}
+
+//verify Otp from mobile
+export async function mobileVerifyOtp(mobileNo:string,otp:string){
+    try{
+        return await new Promise((resolve, reject) => {
+            sendOtp.verify(mobileNo,otp, function(err:any, response:any){
+                if(response.type == 'success'){
+                    resolve({message:MOBILE_MESSAGES.VALID_OTP});
+                }
+                if(response.type == 'error'){
+                    reject(new APIError(MOBILE_MESSAGES.INVALID_OTP));
+                }
+            })
+        })
+    }
+    catch(err){
+        throw err
+    }
+}
+//resend otp 
+export function mobileRetryOtp(mobileNo:string){
+    sendOtp.retry(mobileNo, false, function (error:any, data:any) {
+        console.log(data);
+    });
+    return {message:MOBILE_MESSAGES.SEND_OTP}
+}
+
+export function mobileSendMessage(mobileNo:String,senderId:String){ 
+    msg.send(mobileNo,senderId, function(err:any, response:any){
+        console.log("err: ",err);
+        console.log("result :",response);
+     });
 }
