@@ -58,6 +58,8 @@ import { get as httpsGet } from "https";
 import { authenticate } from "../utils/utils";
 import { FILES_SERVER_BASE } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
+import { DOCUMENT_ROUTER } from "../utils/error_msg";
+import { checkRoleScope } from "../utils/role_management";
 
 const router = Router();
 
@@ -112,6 +114,8 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 //  Create Document new Api
 router.post("/create/new", authenticate, async (req, res, next: NextFunction) => {
   try {
+    const isEligible = await checkRoleScope(res.locals.user.role, "create-doc");
+    if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
     res.status(200).send(await createNewDoc(fileObj, res.locals.user._id));
   } catch (err) {

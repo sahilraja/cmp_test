@@ -42,26 +42,16 @@ export async function createNewDoc(body: any, userId: any) {
   try {
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
-    const isEligible = await checkRoleScope(userRole, "create-doc");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
-
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName.length > configLimit.name) {
-      throw new Error(DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.docName.length > configLimit.name) {  // add config query
+      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if (body.description.length > configLimit.description) {
+    if (body.description.length > configLimit.description) { // add config query
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() });
-    if (data.length) {
-      throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
-    }
-    body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
+    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+    //  Add user as Owner to this Document
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(doc.id);
@@ -74,18 +64,17 @@ export async function createNewDoc(body: any, userId: any) {
         $push: { doc_id: doc.id }
       })
     }
+    //  document create activity log
     return doc;
   } catch (err) {
     throw err
   };
 };
 
-
 //  Create Document
 export async function createDoc(body: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
-
     let userRole = userRoles.data.global[0];
     const isEligible = await checkRoleScope(userRole, "create-doc");
     if (!isEligible) {
@@ -135,12 +124,8 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 //  Get Document Public List
 export async function getDocList(host: string) {
   try {
-    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
-    const docList = await Promise.all(
-      data.map(async doc => {
-        return await docData(doc, host);
-      })
-    );
+    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
+    const docList = await Promise.all(data.map(async doc =>  docData(doc, host)));
     return { docs: docList };
   } catch (error) {
     console.error(error);
@@ -160,8 +145,8 @@ async function docData(docData: any, host: string) {
       ...docData.toJSON(),
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
-      owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
-      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A",
+      owner: await userFindOne("id", docData.ownerId, { name: 1 }),
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A"
     };
   } catch (err) {
     throw err;
@@ -985,13 +970,8 @@ export async function replaceDoc(docId: string, replaceDoc: string, userId: stri
 
 export async function publishList(userId: string, host: string) {
   try {
-    let docs = await documents
-      .find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
-    return await Promise.all(
-      docs.map(async (doc: any) => {
-        return await docData(doc, host);
-      })
-    );
+    let docs = await documents.find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
+    return await Promise.all(docs.map(async (doc: any) => docData(doc, host)));
   } catch (err) {
     throw err;
   }
