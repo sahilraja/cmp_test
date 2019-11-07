@@ -362,12 +362,13 @@ export async function searchByname(search:string) {
     };
 };
 
-export async function getTasksByIds(taskIds: string[]) {
+export async function getTasksByIds(taskIds: string[], token: string) {
     try {
         const options = {
-            uri: `${TASKS_URL}/tasks/getByIds`,
+            uri: `${TASKS_URL}/task/getByIds`,
             method:'POST',
             json: true,
+            headers: { 'Authorization': `Bearer ${token}` },
             body:{taskIds}
         }
         return await request(options)
