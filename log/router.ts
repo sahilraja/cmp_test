@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { OK } from "http-status-codes";
-import { paginatedList, create, list } from "./module";
+import { paginatedList, create, list, getTaskLogs } from "./module";
+import { APIError } from "../utils/custom-error";
 const router = Router()
 
 router.post('/create', async (req, res, next) => {
@@ -27,4 +28,11 @@ router.post(`/paginated-list`, async (req, res, next) => {
     }
 })
 
+router.get(`/get-task-logs`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getTaskLogs(req.query.taskId))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 export = router

@@ -1,6 +1,7 @@
 import * as request from "request-promise";
 import * as http from "http";
 import { MongooseDocument } from "mongoose";
+import { TASKS_URL } from "./urls";
 
 const USERS_URL = process.env.USERS_URL || "http://localhost:4000";
 const FILE_SERVICE_URL = process.env.FILE_SERVICE_URL || "http://localhost:4040";
@@ -361,3 +362,16 @@ export async function searchByname(search:string) {
     };
 };
 
+export async function getTasksByIds(taskIds: string[]) {
+    try {
+        const options = {
+            uri: `${TASKS_URL}/tasks/getByIds`,
+            method:'POST',
+            json: true,
+            body:{taskIds}
+        }
+        return await request(options)
+    } catch (error) {
+        throw error
+    }
+}
