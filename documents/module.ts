@@ -599,7 +599,7 @@ export async function getApprovalDoc(docId: string) {
   }
 }
 
-async function getTags(tagIds: any[]) {
+export async function getTags(tagIds: any[]) {
   try {
     return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 });
   } catch (err) {
@@ -607,6 +607,7 @@ async function getTags(tagIds: any[]) {
     throw err;
   }
 }
+
 
 async function getThemes(themeIds: any[]) {
   try {
