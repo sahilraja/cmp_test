@@ -2532,6 +2532,49 @@ paths:
                       - {}
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /tag/merge:
+    post:
+      security:
+        - token: []
+      summary: merge tags
+      tags:
+        - TAG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tag
+              properties:
+                tags:
+                  type: array
+                  example:
+                    - tag1234
+                    - tag1224
+                    - tsg3572
+                  description: Must be TagIds which need to be merged
+                mergeTag:
+                  type: string
+                  example: tag1233
+                  description: Must be Merge TagId
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  'status:':
+                    type: boolean
+                    example: true
+                  Message:
+                    type: string
+                    example: Tags Merged Successfully
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/theme/add:
     post:
       security:

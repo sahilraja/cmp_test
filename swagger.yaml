@@ -161,7 +161,9 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/countryCodes
   /user/login/history/{id}:
     $ref: ./swagger/users/paths.yaml/#/loginHistory
-
+  /tag/merge:
+     $ref: ./swagger/tags/paths.yaml/#/mergeTags
+    
 # Themes
   /project/theme/add:
     $ref: ./swagger/themes/paths.yaml/#/addThemeToProject
@@ -245,7 +247,8 @@ paths:
   /docs/{docId}/approve/tags:
     $ref: ./swagger/resources/paths.yaml/#/approveTags 
   /docs/{docId}/reject/tags:
-    $ref: ./swagger/resources/paths.yaml/#/rejectTags   
+    $ref: ./swagger/resources/paths.yaml/#/rejectTags
+     
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate
