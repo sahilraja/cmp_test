@@ -5,6 +5,16 @@ const SchemaDef = new Schema({
     activityBy: { type: String },
     taskId: { type: String },
     addedUserIds: { type: Array },
+    documentAddedUsers:[{
+        Id: {type: String},
+        type: {type: String}
+    }],
+    documentRemovedUsers:[{
+        Id: {type: String},
+        type: {type: String}
+    }],
+    tagsAdded:{ type: Array },
+    tagsRemoved:{ type: Array },
     removedUserIds: { type: Array },
     oldStepId: { type: Schema.Types.ObjectId, ref: 'steps' },
     stepId: { type: Schema.Types.ObjectId, ref: 'steps' },
