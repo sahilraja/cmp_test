@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
@@ -202,6 +202,46 @@ router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
 router.post(`/:id/link-task`, async (req, res, next) => {
     try {
         res.status(OK).send(await linkTask(req.params.id, req.body.taskId, (req as any).token))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/:id/finalcial-info`, async (req, res, next) =>  {
+    try {
+        res.status(OK).send(await getFinancialInfo(req.params.id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.post(`/:id/add-released-fund`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addFundReleased(req.params.id, req.body, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.post(`/:id/add-utilized-fund`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addFundsUtilized(req.params.id, req.body, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.put(`/:id/update-released-fund`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await updateReleasedFund(req.params.id, req.body, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.put(`/:id/update-utilized-fund`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await updateUtilizedFund(req.params.id, req.body, res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }

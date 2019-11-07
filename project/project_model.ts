@@ -15,49 +15,47 @@ const schema = new Schema({
     thirdParyAggrementDocument: [
         {
             document: { type: String },
-            created_at: { type: Date },
-            modified_at: { type: Date },
-            modified_by: { type: Schema.Types.ObjectId, ref: 'Users' }
+            createdAt: { type: Date },
+            modifiedAt: { type: Date },
+            modifiedBy: { type: String }
         }
     ],
     projectCost: [
         {
             cost: { type: Number },
-            created_at: { type: Date },
-            modified_at: { type: Date },
-            modified_by: { type: Schema.Types.ObjectId, ref: 'Users' }
+            createdAt: { type: Date },
+            modifiedAt: { type: Date },
+            modifiedBy: { type: String }
         }
     ],
     ciitiisGrants: [
         {
             cost: { type: Number },
-            created_at: { type: Date },
-            modified_at: { type: Date },
-            modified_by: { type: Schema.Types.ObjectId, ref: 'Users' }
+            createdAt: { type: Date },
+            modifiedAt: { type: Date },
+            modifiedBy: { type: String }
         }
     ],
     fundsReleased: [
         {
+            installment:{type:  Number},
+            subInstallment:{type:  Number},
+            document: {type: String},
             cost: { type: Number },
-            created_at: { type: Date },
-            modified_at: { type: Date },
-            modified_by: { type: Schema.Types.ObjectId, ref: 'Users' }
+            createdAt: { type: Date },
+            modifiedAt: { type: Date },
+            modifiedBy: { type: String }
         }
     ],
     fundsUtilised: [
         {
+            installment:{type:  Number},
+            subInstallment:{type:  Number},
+            document: {type: String},
             cost: { type: Number },
-            created_at: { type: Date },
-            modified_at: { type: Date },
-            modified_by: { type: Schema.Types.ObjectId, ref: 'Users' }
-        }
-    ],
-    fundsUtilisedDocuments: [
-        {
-            document: { type: String },
-            created_at: { type: Date },
-            modified_at: { type: Date },
-            modified_by: { type: Schema.Types.ObjectId, ref: 'Users' }
+            createdAt: { type: Date },
+            modifiedAt: { type: Date },
+            modifiedBy: { type: String }
         }
     ],
     themes: { type: Schema.Types.ObjectId, ref: 'themes' },

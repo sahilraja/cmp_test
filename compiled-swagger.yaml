@@ -1676,6 +1676,142 @@ paths:
                     type: string
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/add-released-fund':
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_3
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/add-utilized-fund':
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_3
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/update-released-fund':
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+                subInstallment:
+                  type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_3
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/update-utilized-fund':
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+                subInstallment:
+                  type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_3
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /role/list:
     get:
       security:

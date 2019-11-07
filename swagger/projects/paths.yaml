@@ -587,4 +587,144 @@
                     type: string
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  addUtilizedFund:
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/projectSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  addReleasedFund:
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/projectSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  updateUtilizedFund:
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+                subInstallment:
+                  type: number
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/projectSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  updateReleasedFund:
+    post:
+      security:
+        token: []
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                document:
+                  type: string
+                installment:
+                  type: number
+                subInstallment:
+                  type: number
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/projectSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
 
