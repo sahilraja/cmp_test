@@ -32,7 +32,7 @@ export async function roles_list() {
 export async function capabilities_list() {
     let capabilities: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
     let listcapabilities = capabilities.map(capability => {
-        return { capability: capability.capability, description: capability.description, scope: capability.scope, shortDescription: capability.shortDescription, }
+        return { capability: capability.capability, description: capability.description, scope: capability.scope, shortDescription: capability.shortDescription,category: capability.category}
     });
     return {
         status: true,
