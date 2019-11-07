@@ -17,7 +17,7 @@ import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
 
 
-const secretKey = "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
+const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {
@@ -52,7 +52,6 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        console.log(SITE_CONSTANTS);
         let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
 
         //  Sent Mail to User
@@ -93,7 +92,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!phoneNo(phoneNumber).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
-        let constantsList = await constantSchema.findOne().exec();
+        let constantsList: any = await constantSchema.findOne().exec();
         if (aboutme.length > constantsList.aboutMe) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
