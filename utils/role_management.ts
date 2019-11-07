@@ -5,6 +5,7 @@ import { hashPassword } from "./utils";
 import { addRole } from "./rbac";
 import { RBAC_URL } from "./urls";
 import { userList, createUser } from "./users";
+import { constantSchema } from "../site-constants/model";
 
 export async function init() {
   let removeOptions = {
@@ -77,6 +78,18 @@ export async function userInit() {
   }
   else {
     console.log(`${existingUserCount.length} existing users found in DB`);
+  }
+}
+export async function siteConstants() {
+  let existingConstantsCount = await constantSchema.find().count().exec();
+  if(!existingConstantsCount){
+    await constantSchema.create({
+      aboutMe:200
+    });
+    console.log(`site-constants created successfully`);
+  }
+  else{
+    console.log(`existing site-constants foun in DB`);
   }
 }
 export async function httpRequest(options: any) {
