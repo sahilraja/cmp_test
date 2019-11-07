@@ -1,5 +1,5 @@
-import { MISSING, PROJECT_ROUTER } from "../utils/error_msg";
-import { project as ProjectSchema, project } from "./project_model";
+import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG } from "../utils/error_msg";
+import { project as ProjectSchema } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
@@ -12,6 +12,7 @@ import { TASKS_URL } from "../utils/urls";
 import { getUserDetail } from "../users/module";
 import { userFindMany } from "../utils/users";
 import { APIError } from "../utils/custom-error";
+import { create as createLog } from "../log/module";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -29,7 +30,7 @@ export async function createProject(reqObject: any, user: any) {
     // });
     // if (!capability.status) throw new Error("Invalid User");
 
-    return await ProjectSchema.create({
+    const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
       reference: reqObject.reference,
@@ -38,6 +39,8 @@ export async function createProject(reqObject: any, user: any) {
       maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
     });
+    createLog({ activityType: ACTIVITY_LOG.PROJECT_CREATED, projectId: createdProject.id, activityBy: user._id })
+    return createdProject
   } catch (err) {
     console.error(err);
     throw err;
@@ -75,19 +78,26 @@ export async function editProject(id: any, reqObject: any, user: any) {
     if (reqObject.maturationStartDate) {
       obj.maturationStartDate = { date: reqObject.maturationStartDate, modifiedBy: user._id }
     }
-    return await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
+    const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set:obj }, { new: true }).exec();
+    return updatedProject
   } catch (err) {
     console.error(err);
     throw err;
   }
 }
 
-export async function manageProjectMembers(id: string, members: string[], loggedUserId: string) {
+
+export async function manageProjectMembers(id: string, members:string[], userId: string) {
   members = Array.from(new Set(members))
-  if (members.includes(loggedUserId)) {
+  if(members.includes(userId)){
     throw new APIError(`You are trying to add yourself as project member`)
   }
-  return await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+  const previousProjectData:any = await ProjectSchema.findById(id).exec()
+  const updatedProject:any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+  const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
+  const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
+  createLog({activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId:id, addedUserIds, removedUserIds})
+  return updatedProject
 }
 
 export async function getProjectMembers(id: string) {
@@ -306,7 +316,9 @@ export async function createTask(payload: any, projectId: string, userToken: str
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  return await httpRequest(options)
+  const createdTask:any = await httpRequest(options)
+  createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask.id, projectId, activityBy: userObj._id })
+  createdTask
 }
 
 async function formatTaskPayload(payload: any, projectId: string) {
@@ -365,11 +377,13 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  return await httpRequest(options)
+  const updatedTask = await httpRequest(options)
+  createLog({activityBy: userObj._id, activityType:ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
+  return updatedTask
 }
 
-export async function linkTask(projectId: string, taskId: string, userToken: string) {
-  if (!taskId) {
+export async function linkTask(projectId: string, taskId: string, userToken: string, userId: string) {
+  if(!taskId){
     throw new Error(PROJECT_ROUTER.TASK_REQUIRED_FOR_LINKING)
   }
   const options = {
@@ -379,7 +393,9 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  return await httpRequest(options)
+  const updatedTask:any = await httpRequest(options)  
+  createLog({activityBy: userId, activityType:ACTIVITY_LOG.TASK_LINKED_TO_PROJECT, taskId, projectId })
+  return updatedTask
 }
 
 export async function ganttChart(projectId: string, userToken: string) {
@@ -444,7 +460,9 @@ export async function addFundReleased(projectId: string, payload: any, userId: s
       createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
     }
   ]).sort((a: any, b: any) => a.installment - b.installment)}
-  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: userId})
+  return updatedFund
 }
 
 export async function addFundsUtilized(projectId: string, payload: any, userId: string) {
@@ -462,7 +480,9 @@ export async function addFundsUtilized(projectId: string, payload: any, userId: 
       createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
     }
   ]).sort((a: any, b: any) => a.installment - b.installment)}
-  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
+  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: userId})
+  return updatedProject
 }
 
 export async function updateReleasedFund(projectId: string, payload: any, userId: string) {
@@ -471,7 +491,9 @@ export async function updateReleasedFund(projectId: string, payload: any, userId
   updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  return await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
+  return updatedProject
   // if(!payload.installment || !payload.subInstallment){
   //   throw new APIError(`Installment is required`)
   // }
@@ -508,5 +530,7 @@ export async function updateUtilizedFund(projectId: string, payload: any, userId
   updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  return await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
+  return updatedProject
 }

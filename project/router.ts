@@ -201,7 +201,7 @@ router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
 
 router.post(`/:id/link-task`, async (req, res, next) => {
     try {
-        res.status(OK).send(await linkTask(req.params.id, req.body.taskId, (req as any).token))
+        res.status(OK).send(await linkTask(req.params.id, req.body.taskId, (req as any).token, res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }
