@@ -26,6 +26,7 @@ import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
+import { create } from "../log/module";
 
 enum STATUS {
   DRAFT = 0,
@@ -64,7 +65,7 @@ export async function createNewDoc(body: any, userId: any) {
         $push: { doc_id: doc.id }
       })
     }
-    //  document create activity log
+    await create({activityType: "Document Created", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id})
     return doc;
   } catch (err) {
     throw err
@@ -81,10 +82,10 @@ export async function createDoc(body: any, userId: string) {
       throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.name.length > configLimit.name) {
+    if (body.name.length > configLimit.name) { // added config
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if (body.description.length > configLimit.description) {
+    if (body.description.length > configLimit.description) { // added config
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let doc = await insertDOC(body, userId);
@@ -95,6 +96,7 @@ export async function createDoc(body: any, userId: string) {
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     let response: any = await insertDOC(body, userId);
+    await create({activityType: "Document Created", activityBy: userId, tagsAdded: body.tags || [], documentId: doc.id})
     return { doc_id: doc.id };
   } catch (error) {
     throw error;
@@ -181,7 +183,7 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
 
 export async function getDocumentListOfMeWithOutFolders(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
-    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).sort({ name: 1 })
+    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 })
     const docList = await Promise.all(docs.map((doc: any) =>  docData(doc, host)));
     if(pagination) return manualPagination(page, limit, docList);
     return docList
@@ -500,9 +502,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
 
 export async function approvalList(host: string) {
   try {
-    let docList = await documents
-      .find({ parentId: { $ne: null }, status: STATUS.PUBLISHED, isDeleted: false })
-      .sort({ name: 1 });
+    let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PUBLISHED, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let parentDocsIdsArray = docList.map((doc: any) => {
       return doc.parentId;
     });
@@ -1012,11 +1012,11 @@ export async function docFilter(search: string, userId: string, page: number = 1
       let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
       if (!tags.length) return [];
       let tagId = tags.map(tag => tag._id).pop().toString();
-      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).sort({ name: 1 });
+      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
+      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).collation({ locale: 'en' }).sort({ name: 1 });
     } else {
-      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ name: 1 });
+      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
+      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
     }
     // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
@@ -1106,9 +1106,7 @@ export async function moveToFolder(folderId: string, body: any, userId: string) 
 
 export async function listFolders(userId: String) {
   try {
-    let data = await folders
-      .find({ ownerId: userId, parentId: null })
-      .sort({ name: 1 });
+    let data = await folders.find({ ownerId: userId, parentId: null }).collation({ locale: 'en' }).sort({ name: 1 });
     let folderList = data.map((folder: any) => {
       return {
         folderId: folder._id,
@@ -1153,9 +1151,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
         }
       }
     ]).exec(),
-    folders
-      .find({ ownerId: userId, parentId: folderId })
-      .sort({ name: 1 }).exec()
+    folders.find({ ownerId: userId, parentId: folderId }).collation({ locale: 'en' }).sort({ name: 1 }).exec()
   ])
 
   let subFolderList = subfolders.map((folder: any) => {
@@ -1298,15 +1294,9 @@ export async function deleteDoc(docId: any, userId: string) {
 export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30, host: string) {
 
   const [foldersData, folderDocs, fetchedDoc] = await Promise.all([
-    folders
-      .find({ ownerId: userId, parentId: null })
-      .sort({ name: 1 }).exec(),
-    folders
-      .find({ ownerId: userId })
-      .sort({ name: 1 }).exec(),
-    documents
-      .find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } })
-      .sort({ name: 1 }).exec(),
+    folders.find({ ownerId: userId, parentId: null }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+    folders.find({ ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+    documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
   ])
   let folder_files = folderDocs.map((folder: any) => {
     return folder.doc_id
