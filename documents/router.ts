@@ -50,7 +50,12 @@ import {
   suggestTags,
   approveTags,
   rejectTags,
+<<<<<<< HEAD
   getAllTags
+=======
+  getTags,
+  allDocuments
+>>>>>>> modified doc lists response
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -127,7 +132,7 @@ router.post("/create/new", authenticate, async (req, res, next: NextFunction) =>
 //  Get Public List
 router.get("/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocList(`${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await getDocList(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -136,7 +141,7 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
 // Get My shared list
 router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await sharedList(res.locals.user._id, `${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await sharedList(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -145,7 +150,7 @@ router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
 // Get My shared list
 router.get("/publish/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await publishList(res.locals.user._id, `${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await publishList(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -155,11 +160,7 @@ router.get("/publish/list", authenticate, async (req, res, next: NextFunction) =
 // Get My shared list
 router.get("/all/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(
-      {docs: [...((await getDocList(`${req.protocol}://${req.get('host')}`) as any).docs),
-      ...(await sharedList(res.locals.user._id, `${req.protocol}://${req.get('host')}`)),
-      ...(await publishList(res.locals.user._id, `${req.protocol}://${req.get('host')}`))
-      ]});
+    res.status(200).send(await allDocuments(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -641,14 +642,14 @@ router.get("/all/me", authenticate, async (req, res, next: NextFunction) => {
 
 router.post("/:docId/suggest/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await suggestTags(req.params.docId,req.body,res.locals.user._id));
+    res.status(200).send(await suggestTags(req.params.docId, req.body, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
 });
 router.post("/:docId/approve/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await approveTags(req.params.docId,req.body,res.locals.user._id));
+    res.status(200).send(await approveTags(req.params.docId, req.body, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -656,7 +657,7 @@ router.post("/:docId/approve/tags", authenticate, async (req, res, next: NextFun
 
 router.post("/:docId/reject/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await rejectTags(req.params.docId,req.body,res.locals.user._id));
+    res.status(200).send(await rejectTags(req.params.docId, req.body, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

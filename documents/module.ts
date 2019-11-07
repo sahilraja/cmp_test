@@ -122,11 +122,12 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 }
 
 //  Get Document Public List
-export async function getDocList(host: string) {
+export async function getDocList(page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
     let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
-    const docList = await Promise.all(data.map(async doc =>  docData(doc, host)));
-    return { docs: docList };
+    const docList = await Promise.all(data.map(async doc => docData(doc, host)));
+    if (pagination) manualPagination(page, limit, docList)
+    return docList
   } catch (error) {
     console.error(error);
     throw error;
@@ -162,31 +163,32 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
     })
     var merged = [].concat.apply([], folder_files);
     let folderDocIds = JSON.parse(JSON.stringify(merged));
-    // let folder_file= folder_files.reduce((main:any,folder:any) => {
-    //   console.log(JSON.stringify(folder));
-    //   [...main, ...(JSON.stringify(folder))]
-    // },[])
-
-    // console.log(folder_file);
-
-    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).sort({ name: 1 })
+    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 })
     const docList = await Promise.all(docs.map((doc) => {
       return docData(doc, host);
-    })
-    );
+    }));
     var result = docList.filter((docs) => {
       return !folderDocIds.some((folderDocs: any) => {
         return docs._id == folderDocs;
       });
     })
-
-    const docsData = manualPagination(page, limit, result)
-    return { docsData };
+    return manualPagination(page, limit, result)
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
+
+export async function getDocumentListOfMeWithOutFolders(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
+  try {
+    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).sort({ name: 1 })
+    const docList = await Promise.all(docs.map((doc: any) =>  docData(doc, host)));
+    if(pagination) return manualPagination(page, limit, docList);
+    return docList
+  } catch (err) {
+    throw err
+  };
+};
 
 //  Create File
 export async function createFile(docId: string, file: any) {
@@ -707,7 +709,7 @@ export async function viewerList(docId: string) {
   }
 }
 
-export async function sharedList(userId: string, host: string) {
+export async function sharedList(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
     let docIds: any = []
     let groups = await userGroupsList(userId)
@@ -715,19 +717,31 @@ export async function sharedList(userId: string, host: string) {
     docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
-    return await Promise.all(
+    let data = await Promise.all(
       docs.map(async (doc: any) => {
         const filteredDocs = doc.suggestedTags.filter((tag: any) => tag.userId == userId)
-        // let users= await Promise.all(
-        // filteredDocs.map((suggestedTagsInfo: any)=>{
-        //   return userInfo(suggestedTagsInfo);
-        // }))
         doc.suggestedTags = filteredDocs
         return await docData(doc, host);
       })
     );
+    if (pagination) return manualPagination(page, limit, data);
+    return data
   } catch (err) {
     throw err;
+  }
+}
+
+export async function allDocuments(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
+  try {
+    let data = [
+      ...(await getDocList(page, limit, host, false)),
+      ...(await sharedList(userId, page, limit, host, false) as any),
+      ...(await getDocumentListOfMeWithOutFolders(userId, page, limit, host, false)as any),
+    ]
+    if(pagination) return manualPagination(page, limit, data)
+    return data
+  } catch (err) {
+    throw err
   }
 }
 
@@ -968,10 +982,12 @@ export async function replaceDoc(docId: string, replaceDoc: string, userId: stri
   };
 };
 
-export async function publishList(userId: string, host: string) {
+export async function publishList(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
     let docs = await documents.find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
-    return await Promise.all(docs.map(async (doc: any) => docData(doc, host)));
+    let data = await Promise.all(docs.map(async (doc: any) => docData(doc, host)));
+    if (pagination) return manualPagination(page, limit, data)
+    return data
   } catch (err) {
     throw err;
   }
@@ -1423,15 +1439,15 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     ])
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
-      let doc = await documents.findByIdAndUpdate(docId,{
-          suggestedTags: filteredDocs,
-          "$push":{tags: body.tagId }
-        })
-     if(doc){
-    return {
-      sucess: true,
-      message: "Tag approved successfully"
-       }
+    let doc = await documents.findByIdAndUpdate(docId, {
+      suggestedTags: filteredDocs,
+      "$push": { tags: body.tagId }
+    })
+    if (doc) {
+      return {
+        sucess: true,
+        message: "Tag approved successfully"
+      }
     }
   } catch (err) {
     throw err
@@ -1461,17 +1477,17 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     ])
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
-      let doc = await documents.findByIdAndUpdate(docId,{
-          suggestedTags: filteredDocs,
-            "$push": {
-              rejectedTags: { userId: body.userId, tags: body.tagId }
-            }
-        })
-     if(doc){
-    return {
-      sucess: true,
-      message: "Tag Rejected"
-       }
+    let doc = await documents.findByIdAndUpdate(docId, {
+      suggestedTags: filteredDocs,
+      "$push": {
+        rejectedTags: { userId: body.userId, tags: body.tagId }
+      }
+    })
+    if (doc) {
+      return {
+        sucess: true,
+        message: "Tag Rejected"
+      }
     }
   } catch (err) {
     throw err
