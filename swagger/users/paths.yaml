@@ -690,6 +690,12 @@
                 mobileOtp:
                   type: string
                   example: "5678"
+                countryCode:
+                  type: string
+                  example : "+91"
+                phone:
+                  type: string
+                  example : "1234567890"
       responses:
         "200":
           content:
@@ -892,5 +898,46 @@
                   message:
                     type: string
                     example: "Mobile otp is verified"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  changeMobile:
+    post:
+      summary: change mobile number
+      security:
+        - token: []
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPhone
+                - newCountryCode
+                - password
+              properties:
+                newCountryCode:
+                  type: string
+                  exmaple : +91
+                newPhone:
+                  type: string
+                  example: "1234567890"
+                password:
+                  type: string
+                  example: "*************"
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: success
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
