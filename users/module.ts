@@ -568,19 +568,20 @@ export async function otpVerification(objBody: any) {
             throw new Error("Required mobile otp field");
         };
         let userInfo: any = await userFindOne("email", objBody.email);
+        if(!userInfo){
+            throw new Error(USER_ROUTER.EMAIL_WRONG);
+        }
         let token: any = await jwtOtpVerify(userInfo.otp_token);
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
-        let validmobile:any
         if(objBody.mobileOtp){
-            validmobile = await mobileVerifyOtp(userInfo.countryCode+userInfo.phone,objBody.mobileOtp);
+            await mobileVerifyOtp(userInfo.countryCode+userInfo.phone,objBody.mobileOtp);
         }
-        if (validmobile && (objBody.otp) == Number(token.otp)) {
-            let userData = await otpVerify(userInfo);
-            return userData;
-        } else {
+        if((objBody.otp) != Number(token.otp)) {
             throw new Error(INCORRECT_OTP);
         }
+        let userData = await otpVerify(userInfo);
+        return userData;
     }
     catch (err) {
         throw err
@@ -641,12 +642,15 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if(objBody.mobileOtp){
             await mobileVerifyOtp(user.countryCode+user.phone,objBody.mobileOtp);
         }
-        if (objBody.otp == token.otp){
-            return await userEdit(user._id, { email: token.newEmail })
+        if (objBody.otp != token.otp){
+            throw new Error(USER_ROUTER.INVALID_OTP);
         }
-        else {
-            throw new Error("Enter Valid Otp.");
+        let temp:any = {};
+        if(objBody.phone && objBody.countryCode){
+            temp = {phone:objBody.phone,countryCode:objBody.countryCode}
         }
+        return await userEdit(user._id, { email: token.newEmail,...temp})
+        
     } catch (err) {
         throw err
     }
@@ -688,4 +692,32 @@ export async function recaptchaValidation(req:any){
     catch(err){
         throw err;
     }
+}
+
+export async function changeMobileNumber(objBody :any,userData:any) {
+        try{
+            let {newCountryCode,newPhone,password} = objBody;
+            if(newPhone && !password && !newCountryCode){
+                throw new APIError(USER_ROUTER.MANDATORY)
+            }
+            let { firstName, lastName, middleName, phone,countryCode } = userData;
+            let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+            if(newCountryCode+newPhone == phone+countryCode){
+                throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
+            }
+            if(!comparePassword(password,userData.password)){
+                throw new APIError(USER_ROUTER.INVALID_PASSWORD);
+            }
+            let authOtp = { "otp": generateOtp(4) }
+            let token = await jwtOtpToken(authOtp);
+            await userUpdate({ otp_token: token, id: userData._id });
+            
+            mobileSendOtp(phone,SENDER_IDS.OTP);
+            getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+            
+            return {message :"success"}
+        }
+        catch(err){
+            throw err
+        }
 }
