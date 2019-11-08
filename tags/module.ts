@@ -27,7 +27,7 @@ export async function mergeTags(body: any, token: string) {
       $pull: { tags: { $in: body.tags } }
     }, { multi: true });
     let updateDocsWithMergeTag = await documents.update({ _id: { "$in": docIds } }, {
-      $push: { tags: body.mergeTag }
+      $addToSet: { tags: body.mergeTag }
     }, { multi: true });
     let messageMergeTags = await mergeMessageTags(body, token)
     let taskMergeTags = await mergeTaskTags(body,token);
