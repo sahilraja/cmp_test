@@ -314,26 +314,26 @@ router.get("/login/history/:id", authenticate, async (req, res, next) => {
         next(new APIError(error.message));
     }
 })
-router.get("/send/mobileOtp",async(req,res,next)=>{
+router.post("/send/mobileOtp",async(req,res,next)=>{
     try{
-        res.status(OK).send(await mobileSendOtp(req.query.phone,SENDER_IDS.OTP));
+        res.status(OK).send(await mobileSendOtp(req.body.phone,SENDER_IDS.OTP));
     }
     catch(error){
         next(new APIError(error.message));
     }
 })
-router.get("/resend/mobileOtp",async(req,res,next)=>{
+router.post("/resend/mobileOtp",async(req,res,next)=>{
     try{
-        res.status(OK).send(await mobileRetryOtp(req.query.phone));
+        res.status(OK).send(await mobileRetryOtp(req.body.phone));
     }
     catch(error){
         next(new APIError(error.message));
     }
 })
 
-router.get("/mobile/verify",async(req,res,next)=>{
+router.post("/mobile/verify",async(req,res,next)=>{
     try{
-        res.status(OK).send(await mobileVerifyOtp(req.query.phone,req.query.otp));
+        res.status(OK).send(await mobileVerifyOtp(req.body.phone,req.body.otp));
     }
     catch(error){
         next(new APIError(error.message));

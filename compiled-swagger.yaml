@@ -802,16 +802,22 @@ paths:
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /user/resend/mobileOtp: &ref_1
-    get:
+    post:
       summary: resend mobile otp
       tags:
         - USERS
-      parameters:
-        - in: query
-          name: phone
-          schema:
-            type: string
-          description: phone number
+      required:
+        - phone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: '+919234567890'
       responses:
         '200':
           description: success
@@ -826,21 +832,26 @@ paths:
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /user/mobile/verify:
-    get:
+    post:
       summary: verfiy mobile otp
       tags:
         - USERS
-      parameters:
-        - in: query
-          name: phone
-          schema:
-            type: string
-          description: phone number
-        - in: query
-          name: otp
-          schema:
-            type: string
-          description: mobile otp
+      required:
+        - phone
+        - otp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example: '+919234567890'
+                otp:
+                  type: string
+                  example: '1234'
       responses:
         '200':
           description: success
