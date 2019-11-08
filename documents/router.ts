@@ -50,12 +50,8 @@ import {
   suggestTags,
   approveTags,
   rejectTags,
-<<<<<<< HEAD
-  getAllTags
-=======
   getTags,
   allDocuments
->>>>>>> modified doc lists response
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -506,37 +502,22 @@ router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) =
 });
 
 //  update exist doc
-router.put(
-  "/:id/unpublish",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      res.status(200).send(await unPublished(req.params.id, res.locals.user));
-    } catch (err) {
-      next(new APIError(err.message));
-    }
+router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await unPublished(req.params.id, res.locals.user));
+  } catch (err) {
+    next(new APIError(err.message));
   }
-);
+});
 
 //  update exist doc
-router.post(
-  "/:id/replace/:replaceDocId",
-  authenticate,
-  async (req, res, next: NextFunction) => {
-    try {
-      res
-        .status(200)
-        .send(
-          await replaceDoc(
-            req.params.id,
-            req.params.replaceDocId,
-            res.locals.user._id
-          )
-        );
-    } catch (err) {
-      next(new APIError(err.message));
-    }
+router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
   }
+}
 );
 
 
