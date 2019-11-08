@@ -7,11 +7,13 @@ const SchemaDef = new Schema({
     addedUserIds: { type: Array },
     documentAddedUsers:[{
         Id: {type: String},
-        type: {type: String}
+        type: {type: String},
+        role: {typr: String}
     }],
     documentRemovedUsers:[{
         Id: {type: String},
-        type: {type: String}
+        type: {type: String},
+        role: {typr: String}
     }],
     tagsAdded:{ type: Array },
     tagsRemoved:{ type: Array },

@@ -801,11 +801,16 @@ export async function invitePeople(docId: string, users: object[], role: string,
 
     if (!docId || !users.length || !role) throw new Error("Missing fields.");
     let doc: any = await documents.findById(docId);
+    let addUsers: any =[]
     await Promise.all(
       users.map(async (user: any) => {
-        if (doc.ownerId != user._id) return await invite(user, docId, role, doc)
+        if (doc.ownerId != user._id){
+          addUsers.push({id: user._id, type: user.type, role: role}) 
+          return await invite(user, docId, role, doc)
+        }
       })
     );
+    await create({activityType: `Document shared as ${role}`, activityBy: userId, documentId: docId, documentAddedUsers: addUsers}) 
     return { message: "Shared successfully." };
   } catch (err) {
     throw err;
@@ -818,6 +823,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
+    await create({activityType: `Modified ${type} shared as ${role}`, activityBy: userId, documentId: docId, documentAddedUsers: [{id: userId, type: type, role: role}]})
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
