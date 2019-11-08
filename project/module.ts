@@ -477,7 +477,9 @@ export async function getFinancialInfo(projectId: string) {
   const documents = await documentsList(documentIds)
   const fundsReleasedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
     const {installmentType, percentage, phase} = getPercentageByInstallment(fund)
-    const items = fundsReleased.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment)).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
+    const items = fundsReleased.filter((fundReleased: any) => 
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
     return {
       phase,
       installment: installmentType,
@@ -489,7 +491,9 @@ export async function getFinancialInfo(projectId: string) {
   })
   const fundsUtilisedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
     const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
-    const items = fundsUtilised.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment))
+    const items = fundsUtilised.filter((fundReleased: any) => 
+      (!fundReleased.deleted &&  fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
     return {
       phase,
       installment: installmentType,
@@ -500,6 +504,8 @@ export async function getFinancialInfo(projectId: string) {
     }
   })
   return { 
+    projectCost:200000000,
+    citiisGrants: 100000000,
     fundsReleased: {
       info:fundsReleasedData,
       total: fundsReleasedData.reduce((p:number,c: any) => p + c.installmentLevelTotal ,0)
