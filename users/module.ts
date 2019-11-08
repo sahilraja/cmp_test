@@ -491,8 +491,11 @@ export async function addMember(id: string, users: any[], userObj: any) {
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
+        let existUsers = await groupUserList(data._id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async (user: any) => { if (data.createdBy._id != user) { await addUserToGroup(user, id) } }))
+        users = users.filter(user=> !existUsers.includes(user) && data.createdBy._id != user)
+        if(!users.length) throw new APIError("Invalid Action");
+        await Promise.all(users.map((user: any) => { if (data.createdBy._id != user) { addUserToGroup(user, id) } }))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -503,16 +506,16 @@ export async function addMember(id: string, users: any[], userObj: any) {
 export async function removeMembers(id: string, users: any[], userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let isEligible = await checkRoleScope(userObj.role, "edit-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if(!users.includes(userObj._id)){
+            let isEligible = await checkRoleScope(userObj.role, "edit-group");
+            if (!isEligible) throw new APIError("Unauthorized Action.", 403); 
+        }
         if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
+        if(data.createdBy._id == userObj._id && users.includes(userObj._id)) throw new APIError("Unauthorized Action.")
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async (user: any) => {
-            if (userObj._id != user) throw new Error("Only this Action Performed By Group Admin.")
-            await removeUserToGroup(user, id)
-        }))
+        await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
         throw err
