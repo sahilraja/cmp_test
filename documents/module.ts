@@ -1413,6 +1413,7 @@ async function userInfo(docData: any) {
       ...docData,
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       user: await userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
+      role: ((await userRoleAndScope(docData.userId)) as any).data.global[0]
     };
   } catch (err) {
     throw err;
