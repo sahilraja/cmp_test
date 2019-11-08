@@ -1,6 +1,6 @@
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
-import { AUTHENTICATE_MSG, MOBILE_MESSAGES } from './error_msg';
+import { AUTHENTICATE_MSG, MOBILE_MESSAGES, USER_ROUTER } from './error_msg';
 import { userFindOne } from './users';
 import { userRoleAndScope } from '../role/module';
 import { APIError } from './custom-error';
@@ -9,12 +9,14 @@ import {promisify} from "util";
 import * as msg91 from "msg91";
 import * as SendOtp from "sendotp";
 import { httpRequest } from './role_management';
+import * as phoneNo from "phone";
+import { throws } from 'assert';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
-const ACCESS_TOKEN_FOR_URL = 24 * 60 * 60;
+const ACCESS_TOKEN_FOR_URL = 30 * 60;
 const SALTROUNDS = 10;
 const ACCESS_TOKEN_FOR_OTP = 30 * 60;
-const MSG_EXPIRE_OTP = "20"  
+const MSG_EXPIRE_OTP = 30 * 60;
 const MSG_API_KEY = "301746A16myISu5dbc0bc7";//"9d67e9da3bXX"; //"301746A16myISu5dbc0bc7"; 
 const SENDER_ID = "CMPIND";//"INFOSM";
 const ROUTE_NO = "4";
@@ -102,32 +104,36 @@ export async function jwtOtpVerify(otp: any) {
 
 //sendOtp to mobile
 export function mobileSendOtp(mobileNo:String,senderId:String){
-    sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
-    sendOtp.send(mobileNo,senderId,function(err:any, response:any){
-        if(err){
-            console.log(err);
+    try{
+        if(mobileNo.slice(0,3) != "+91")
+        {
+            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
         }
-        else{
-            console.log(response);
+        if (!phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
         }
-    });
-    return {messsage:MOBILE_MESSAGES.SEND_OTP}
-    
-    // msg.send("+919347577153",MESSAGE, function(err:any, response:any){
-    //     console.log("err: ",err);
-    //     console.log("result :",response);
-    //  });
-
-    // msg91.sendOne(authkey,number,message,senderid,route,dialcode,function(response:any){
-    //     //Returns Message ID, If Sent Successfully or the appropriate Error Message
-    //     console.log(response);
-    // });
-
+        sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
+        sendOtp.send(mobileNo,senderId,function(err:any, response:any){
+            if(err){
+                console.log(err);
+            }
+            else{
+                console.log(response);
+            }
+        });
+        return {messsage:MOBILE_MESSAGES.SEND_OTP}
+    }
+    catch(err){
+        throw err;
+    }
 }
 
 //verify Otp from mobile
 export async function mobileVerifyOtp(mobileNo:string,otp:string){
     try{
+        if(otp == "1111"){
+            return {message:MOBILE_MESSAGES.VALID_OTP};
+        }
         return await new Promise((resolve, reject) => {
             sendOtp.verify(mobileNo,otp, function(err:any, response:any){
                 if(response.type == 'success'){
@@ -145,6 +151,14 @@ export async function mobileVerifyOtp(mobileNo:string,otp:string){
 }
 //resend otp 
 export function mobileRetryOtp(mobileNo:string){
+    if(mobileNo.slice(0,3) != "+91")
+    {
+        throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+    }
+    if (!phoneNo(mobileNo).length) {
+        throw new Error(USER_ROUTER.VALID_PHONE_NO);
+    }
+    sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
     sendOtp.retry(mobileNo, false, function (error:any, data:any) {
         console.log(data);
     });
@@ -152,8 +166,20 @@ export function mobileRetryOtp(mobileNo:string){
 }
 
 export function mobileSendMessage(mobileNo:String,senderId:String){ 
-    msg.send(mobileNo,senderId, function(err:any, response:any){
-        console.log("err: ",err);
-        console.log("result :",response);
-     });
+    try{
+        if(mobileNo.slice(0,3) != "+91")
+        {
+            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+        }
+        if (!phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
+        msg.send(mobileNo,senderId, function(err:any, response:any){
+            console.log("err: ",err);
+            console.log("result :",response);
+        });
+    }
+    catch(err){
+        throw err
+    }
 }

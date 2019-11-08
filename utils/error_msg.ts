@@ -21,6 +21,10 @@ export const USER_ROUTER = {
     GROUP_NOT_FOUND: "Please enter a valid group name",
     USER_ARRAY: "Users must be an Array.",
     ABOUTME_LIMIT:"Aboutme shall not exceed 200 characters",
+    SIMILAR_MOBILE:"Old mobile number and new mobile number is similar",
+    INVALID_PASSWORD: "Given password is invalid",
+    INVALID_OTP: "Given email otp is invalid",
+    INVALID_COUNTRYCODE:"Given country code is invalid" 
 };
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",

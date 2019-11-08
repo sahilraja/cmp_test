@@ -13,6 +13,7 @@ import { getUserDetail } from "../users/module";
 import { userFindMany } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
+import { documentsList } from "../documents/module";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -442,41 +443,77 @@ export async function getTaskDetail(projectId: string, id: string, userId: strin
 }
 
 function getPercentageByInstallment(installment: number) {
-  let percentage = 10
+  let percentage = 10, installmentType, phase
   switch (installment) {
     case 1:
-      percentage = 10
+    percentage = 10
+    installmentType = `1st Installment`
+    phase = `Maturation`
     break;
     case 2:
-      percentage = 40
+    phase = `Implementation`
+    percentage = 40
+    installmentType = `2nd Installment`
     break;
     case 3:
-      percentage = 40
+    phase = `Implementation`
+    percentage = 40
+    installmentType = `3rd Installment`
     break;
     case 4:
-      percentage = 10
+    percentage = 10
+    phase = `Implementation`
+    installmentType = `4th Installment`
     break;
     default:
     break;
   }
-  return percentage
+  return {percentage, installmentType, phase}
 }
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased, fundsUtilised }:any = projectDetail
+  const documentIds = fundsReleased.map((fund: any) => fund.document).concat(fundsUtilised.map((fund: any) => fund.document)).filter((v: any) => !!v)
+  const documents = await documentsList(documentIds)
+  const fundsReleasedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
+    const {installmentType, percentage, phase} = getPercentageByInstallment(fund)
+    const items = fundsReleased.filter((fundReleased: any) => 
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
+    return {
+      phase,
+      installment: installmentType,
+      percentage,
+      // Filter empty data
+      items,
+      installmentLevelTotal: items.reduce((p:number,item: any) => p + (item.cost || 0) ,0)
+    }
+  })
+  const fundsUtilisedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
+    const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
+    const items = fundsUtilised.filter((fundReleased: any) => 
+      (!fundReleased.deleted &&  fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
+    return {
+      phase,
+      installment: installmentType,
+      percentage,
+      // Filter empty data
+      items,
+      installmentLevelTotal: items.reduce((p:number,item: any) => p + (item.cost || 0) ,0)
+    }
+  })
   return { 
-    fundsReleased: [1,2,3,4].map((fund: any) => ({
-      installment: fund,
-      percentage: getPercentageByInstallment(fund),
-      // Filter empty data
-      items: fundsReleased.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment))
-    })), 
-    fundsUtilised: [1,2,3,5].map((fund: any) => ({
-      installment: fund,
-      percentage: getPercentageByInstallment(fund),
-      // Filter empty data
-      items: fundsUtilised.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment))
-    })) 
+    projectCost:200000000,
+    citiisGrants: 100000000,
+    fundsReleased: {
+      info:fundsReleasedData,
+      total: fundsReleasedData.reduce((p:number,c: any) => p + c.installmentLevelTotal ,0)
+    }, 
+    fundsUtilised: {
+      info: fundsUtilisedData,
+      total: fundsUtilisedData.reduce((p:number,c: any) => p + c.installmentLevelTotal ,0)
+    }
   }
 }
 
@@ -568,5 +605,25 @@ export async function updateUtilizedFund(projectId: string, payload: any, userId
   updates['fundsReleased.$.cost'] = cost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
   createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
+  return updatedProject
+}
+
+export async function deleteReleasedFund(projectId: string, payload: any, userId: string) {
+  const {document, cost, _id} = payload
+  let updates:any = {}
+  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  updates['fundsReleased.$.deleted'] = true
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
+  return updatedProject
+}
+
+export async function deleteUtilizedFund(projectId: string, payload: any, userId: string) {
+  const {document, cost, _id} = payload
+  let updates:any = {}
+  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  updates['fundsReleased.$.deleted'] = true
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
   return updatedProject
 }

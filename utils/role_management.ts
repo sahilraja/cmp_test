@@ -71,6 +71,7 @@ export async function userInit() {
       "aboutme": "Technology lead for CITIIS Project",
       "password": "Citiis@123",
       "phone": "7989238348",
+      "countryCode": "+91",
       "is_active":true
     })
     let grants = await addRole(user._id, "technology-lead")
@@ -89,7 +90,7 @@ export async function siteConstants() {
     console.log(`site-constants created successfully`);
   }
   else{
-    console.log(`existing site-constants foun in DB`);
+    console.log(`existing site-constants found in DB`);
   }
 }
 export async function httpRequest(options: any) {

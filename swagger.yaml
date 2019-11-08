@@ -70,7 +70,11 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/mobileVerify
   /user/send/mobileOtp:
     $ref: ./swagger/users/paths.yaml/#/mobileOtp
-    # Groups APIs
+  /user/change/mobile:
+    $ref: ./swagger/users/paths.yaml/#/changeMobile
+
+
+# Groups APIs
   /user/group/create:
     $ref: ./swagger/groups/paths.yaml/#/createGroup
   /user/group/{id}/edit:
@@ -119,6 +123,10 @@ paths:
   /project/{id}/add-released-fund:
     $ref: ./swagger/projects/paths.yaml/#/addReleasedFund
   /project/{id}/add-utilized-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addUtilizedFund
+  /project/{id}/delete-released-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addReleasedFund
+  /project/{id}/delete-utilized-fund:
     $ref: ./swagger/projects/paths.yaml/#/addUtilizedFund
   /project/{id}/update-released-fund:
     $ref: ./swagger/projects/paths.yaml/#/updateReleasedFund
