@@ -171,7 +171,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
         }));
         let rolesBody: any = await role_list();
-        data.map((user) => {
+        data.map((user: any) => {
             rolesBody.roles.forEach((roleInfo: any) => {
                 if (roleInfo.role == user.role) {
                     user.role = roleInfo.roleName;
@@ -471,8 +471,12 @@ export async function groupDetail(id: string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let data: any = await groupFindOne("id", id)
-        if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND)
-        return { ...data, users: await userList({ _id: { $in: await groupUserList(data._id) } }, { name: 1, email: 1 }) }
+        if (!data) throw new APIError(USER_ROUTER.GROUP_NOT_FOUND)
+        let users = await userList({ _id: { $in: await groupUserList(data._id) } }, {});
+        users = await Promise.all(users.map(async(user: any) => {
+            return { ...user, role: ((await userRoleAndScope(user._id) as any).data.global || [""])[0] }
+        }))
+        return { ...data, users: users }
     } catch (err) {
         throw err;
     };
@@ -669,7 +673,7 @@ export async function recaptchaValidation(req:any){
         // req.connection.remoteAddress will provide IP address of connected user.
         var verificationUrl = "https://www.google.com/recaptcha/api/siteverify?secret=" + secretKey + "&response=" + req.body['g-recaptcha-response'] + "&remoteip=" + req.connection.remoteAddress;
         // Hitting GET request to the URL, Google will respond with success or error scenario.
-        return await new Promise((resolve,reject)=>{
+        return await new Promise((resolve: any,reject: any)=>{
             return request(verificationUrl,function(error,response,body) {
                 body = JSON.parse(body);
                 console.log(body);
