@@ -27,6 +27,7 @@ import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
+import { userCapabilities } from "../users/module";
 
 enum STATUS {
   DRAFT = 0,
@@ -834,6 +835,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
+    await create({activityType: `Removed ${type} from document`, activityBy: userId, documentId: docId, documentRemovedUsers: [{id: userId, type: type, role: role}]})
     return { message: "Revoke share successfully." };
   } catch (err) {
     throw err;
@@ -918,6 +920,7 @@ export async function published(body: any, docId: string, userObj: any) {
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
+    await create({activityType: `Doucment Published`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId})
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
@@ -956,7 +959,9 @@ export async function unPublished(docId: string, userObj: any) {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
     let isEligible = await checkRoleScope(userObj.role, "unpublish-document");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    return await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
+    let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
+    await create({activityType: `Doucment unPublished`, activityBy: userObj._id, documentId: docId})
+    return success
   } catch (err) {
     throw err;
   };
@@ -1335,19 +1340,23 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
 }
 
 
-export async function checkCapabilitiesForUser(objBody: any) {
+export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds)))
-    return obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
+    let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
+    let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
+    let noAccessDocs = docIds.filter(docid=> !Object.keys(mainObj).includes(docid))
+    return Object.assign(mainObj, {noAccessDocuments: noAccessDocs})  
   } catch (err) {
     throw err
   };
 };
 
-async function loopUsersAndFetchData(docId: string, userIds: string[]) {
+async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
   const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
+  let userCapabilities: any = documnetCapabilities(docId, userId)
+  if(["no_access", "viewer"].includes(userCapabilities[0])) return {}
   return {
     [docId]: s.map((s1, i) => {
       if (s1.includes('no_access')) {
@@ -1361,6 +1370,7 @@ async function loopUsersAndFetchData(docId: string, userIds: string[]) {
 export async function shareDocForUsers(obj: any) {
   try {
     if (Object.keys(obj).length) {
+      delete obj.noAccessDocuments
       await Promise.all((Object.keys(obj)).map((docId: string) => loopForAddCapability(docId, obj[docId])))
     }
     return { message: "shared successfully" }

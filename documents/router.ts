@@ -205,7 +205,7 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 
 router.post("/user-capabilities", authenticate, async (req, res, next) => {
   try {
-    res.status(200).send(await checkCapabilitiesForUser(req.body))
+    res.status(200).send(await checkCapabilitiesForUser(req.body, res.locals.user._id))
   } catch (err) {
     next(new APIError(err.message));
   };
@@ -497,15 +497,13 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 );
 
 //  update exist doc
-router.post(
-  "/:id/publish", authenticate, async (req, res, next: NextFunction) => {
-    try {
-      res.status(200).send(await published(req.body, req.params.id, res.locals.user));
-    } catch (err) {
-      next(new APIError(err.message));
-    }
+router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await published(req.body, req.params.id, res.locals.user));
+  } catch (err) {
+    next(new APIError(err.message));
   }
-);
+});
 
 //  update exist doc
 router.put(
