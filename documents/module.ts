@@ -453,6 +453,14 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
   };
 };
 
+export async function cancelUpdate(docId: string, userId: string){
+  try {
+    await create({ activityType: `Cancel Updated`, activityBy: userId, documentId: docId})
+  } catch (err) {
+    throw err;
+  };
+};
+
 export async function updateDocNew(objBody: any, docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);

@@ -51,7 +51,8 @@ import {
   approveTags,
   rejectTags,
   getAllTags,
-  allDocuments
+  allDocuments,
+  cancelUpdate
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -535,6 +536,15 @@ router.post("/:id/new", authenticate, ensureCanEditDocument, async (req, res, ne
   try {
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
     res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+//  update exist doc
+router.post("/:id/cancle", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await cancelUpdate(req.params.id, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
