@@ -246,7 +246,7 @@ export async function user_login(req: any) {
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         
-        mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
+        //mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
         let templatInfo = await getTemplateBySubstitutions('userLogin', {fullName:userData.firstName});
 
         await nodemail({
