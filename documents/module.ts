@@ -461,7 +461,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     let obj: any = {};
     if (objBody.docName) {
       if (objBody.docName.length > configLimit.name) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
-      let data = (await documents.find({ isDeleted: false, parentId: null, ßownerId: userId, name: objBody.docName.toLowerCase() })).filter(({ _id: id }) => docId != id)
+      let data = (await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() })).filter(({ _id: id }) => docId != id)
       if (data.length) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
@@ -491,8 +491,18 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
         fileId: objBody.id || parent.fileId,
         fileName: objBody.name || parent.fileName
       });
+      await create({ activityType: `Document Updated`, activityBy: userId, documentId: docId})
+
     } else {
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags })
+      let addtags = obj.tags.filter((tag: string)=>  !child[child.length - 1].tags.includes(tag) )
+      if(addtags.length){
+        await create({ activityType: `Tags Added`, activityBy: userId, documentId: docId, tagsAdded: addtags})
+      }
+      let removedtags = child[child.length - 1].tags.filter((tag: string)=>  !obj.tags.includes(tag) )
+      if(addtags.length){
+        await create({ activityType: `Tags Removed`, activityBy: userId, documentId: docId, tagsRemoved: removedtags})
+      }
     }
     return parent;
   } catch (err) {
@@ -1280,6 +1290,7 @@ export async function deleteDoc(docId: any, userId: string) {
       throw new Error("File Id is Invalid")
     }
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
+    await create({ activityType: "Document Deleted", activityBy: userId, documentId: docId })
     if (deletedDoc) {
       return {
         success: true,
