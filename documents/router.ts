@@ -50,7 +50,7 @@ import {
   suggestTags,
   approveTags,
   rejectTags,
-  getTags,
+  getAllTags,
   allDocuments
 } from "./module";
 
