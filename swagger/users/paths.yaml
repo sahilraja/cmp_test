@@ -863,7 +863,7 @@
               properties:
                 phone:
                   type: string
-                  example : 1234567890
+                  example : "+919234567890"
       
       responses:
         "200":
@@ -895,10 +895,10 @@
               properties:
                 phone:
                   type: string
-                  example : 1234567890
+                  example : "+919234567890"
                 otp:
                   type: string
-                  example: 1234
+                  example: "1234"
       responses:
         "200":
           description: success
