@@ -848,16 +848,23 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   mobileOtp:
-    get:
+    post:
       summary: resend mobile otp
       tags:
         - USERS
-      parameters:
-          - in: query
-            name: phone
+      required:
+        - phone
+      requestBody:
+        required: true
+        content:
+          application/json:
             schema:
-              type: string
-            description: "phone number" 
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example : 1234567890
+      
       responses:
         "200":
           description: success
@@ -872,21 +879,26 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   mobileVerify:
-    get:
+    post:
       summary: verfiy mobile otp
       tags:
         - USERS
-      parameters:
-          - in: query
-            name: phone
+      required:
+        - phone
+        - otp 
+      requestBody:
+        required: true
+        content:
+          application/json:
             schema:
-              type: string
-            description: "phone number"
-          - in: query
-            name: otp
-            schema:
-              type: string
-            description: "mobile otp"  
+              type: object
+              properties:
+                phone:
+                  type: string
+                  example : 1234567890
+                otp:
+                  type: string
+                  example: 1234
       responses:
         "200":
           description: success
