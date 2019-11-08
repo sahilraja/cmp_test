@@ -948,6 +948,7 @@ export async function published(body: any, docId: string, userObj: any, withAuth
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc)
+    mailAllCmpUsers("publishDocument", publishedDoc)
     return publishedDoc
   } catch (err) {
     throw err;
@@ -981,7 +982,8 @@ export async function unPublished(docId: string, userObj: any) {
     let isEligible = await checkRoleScope(userObj.role, "unpublish-document");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
-    await create({ activityType: `Doucment unPublished`, activityBy: userObj._id, documentId: docId })
+    await create({ activityType: `Doucment unPublished`, activityBy: userObj._id, documentId: docId });
+    mailAllCmpUsers("unPublishDocument", success)
     return success
   } catch (err) {
     throw err;
@@ -996,6 +998,7 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
     documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true }).exec()]);
     let success = await published({...doc, versionNum: 1,status: STATUS.PUBLISHED, ownerId: userObj._id}, doc._id, userObj, false)
     await create({ activityType: `Doucment Replaced`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id})
+    mailAllCmpUsers("replaceDocument", success)
     return success
   } catch (err) {
     throw err;
@@ -1509,3 +1512,28 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     throw err
   };
 };
+
+async function mailAllCmpUsers(type: string, docDetails: any){
+  try {
+    let users = await userList({is_active: true, emailVerified: true},{email: true, firstName: true, middleName: true, lastName: true})
+    let allMailContent = await Promise.all(users.map(async(user: any)=>{
+      let userName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
+      return Object.assign({...(await getTemplateBySubstitutions(type, {
+        fullName: userName,
+        documentName: docDetails.name,
+        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`
+      }))},{email: user.email })
+    }));
+    await Promise.all(allMailContent.map((content: any)=>{
+      return nodemail({
+        email: content.email,
+        subject: content.subject,
+        html: content.content
+      });
+    }))
+    return true
+  } catch (err) {
+    throw err;
+  };
+};
+ 
