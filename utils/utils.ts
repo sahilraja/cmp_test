@@ -105,6 +105,10 @@ export async function jwtOtpVerify(otp: any) {
 //sendOtp to mobile
 export function mobileSendOtp(mobileNo:String,senderId:String){
     try{
+        if(mobileNo.slice(0,3) != "+91")
+        {
+            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+        }
         if (!phoneNo(mobileNo).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO);
         }
@@ -147,6 +151,10 @@ export async function mobileVerifyOtp(mobileNo:string,otp:string){
 }
 //resend otp 
 export function mobileRetryOtp(mobileNo:string){
+    if(mobileNo.slice(0,3) != "+91")
+    {
+        throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+    }
     if (!phoneNo(mobileNo).length) {
         throw new Error(USER_ROUTER.VALID_PHONE_NO);
     }
@@ -159,6 +167,10 @@ export function mobileRetryOtp(mobileNo:string){
 
 export function mobileSendMessage(mobileNo:String,senderId:String){ 
     try{
+        if(mobileNo.slice(0,3) != "+91")
+        {
+            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+        }
         if (!phoneNo(mobileNo).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO);
         }
