@@ -120,6 +120,10 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/addReleasedFund
   /project/{id}/add-utilized-fund:
     $ref: ./swagger/projects/paths.yaml/#/addUtilizedFund
+  /project/{id}/delete-released-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addReleasedFund
+  /project/{id}/delete-utilized-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addUtilizedFund
   /project/{id}/update-released-fund:
     $ref: ./swagger/projects/paths.yaml/#/updateReleasedFund
   /project/{id}/update-utilized-fund:

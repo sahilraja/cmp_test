@@ -601,3 +601,23 @@ export async function updateUtilizedFund(projectId: string, payload: any, userId
   createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
   return updatedProject
 }
+
+export async function deleteReleasedFund(projectId: string, payload: any, userId: string) {
+  const {document, cost, _id} = payload
+  let updates:any = {}
+  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  updates['fundsReleased.$.deleted'] = true
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
+  return updatedProject
+}
+
+export async function deleteUtilizedFund(projectId: string, payload: any, userId: string) {
+  const {document, cost, _id} = payload
+  let updates:any = {}
+  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  updates['fundsReleased.$.deleted'] = true
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
+  return updatedProject
+}

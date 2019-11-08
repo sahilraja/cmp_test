@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
 const router = Router();
-
+import * as complianceRouter from "./compliances/router";
 //  Add Project
 router.post("/create", async (req, res, next) => {
     try {
@@ -242,6 +242,22 @@ router.put(`/:id/update-released-fund`, async (req, res, next) => {
 router.put(`/:id/update-utilized-fund`, async (req, res, next) => {
     try {
         res.status(OK).send(await updateUtilizedFund(req.params.id, req.body, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.put(`/:id/delete-released-fund`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await deleteReleasedFund(req.params.id, req.body, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.put(`/:id/delete-utilized-fund`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await deleteUtilizedFund(req.params.id, req.body, res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }
