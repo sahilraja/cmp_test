@@ -443,29 +443,32 @@ export async function getTaskDetail(projectId: string, id: string, userId: strin
 }
 
 function getPercentageByInstallment(installment: number) {
-  let percentage = 10
-  let installmentType
+  let percentage = 10, installmentType, phase
   switch (installment) {
     case 1:
     percentage = 10
     installmentType = `1st Installment`
+    phase = `Maturation`
     break;
     case 2:
+    phase = `Implementation`
     percentage = 40
     installmentType = `2nd Installment`
     break;
     case 3:
+    phase = `Implementation`
     percentage = 40
     installmentType = `3rd Installment`
     break;
     case 4:
     percentage = 10
+    phase = `Implementation`
     installmentType = `4th Installment`
     break;
     default:
     break;
   }
-  return {percentage, installmentType}
+  return {percentage, installmentType, phase}
 }
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
@@ -473,9 +476,10 @@ export async function getFinancialInfo(projectId: string) {
   const documentIds = fundsReleased.map((fund: any) => fund.document).concat(fundsUtilised.map((fund: any) => fund.document)).filter((v: any) => !!v)
   const documents = await documentsList(documentIds)
   const fundsReleasedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
-    const {installmentType, percentage} = getPercentageByInstallment(fund)
-    const items = fundsReleased.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment)).map((item: any) => ({...item, document: documents.find((d:any) => d.id == item.document)}))
+    const {installmentType, percentage, phase} = getPercentageByInstallment(fund)
+    const items = fundsReleased.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment)).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
     return {
+      phase,
       installment: installmentType,
       percentage,
       // Filter empty data
@@ -484,9 +488,10 @@ export async function getFinancialInfo(projectId: string) {
     }
   })
   const fundsUtilisedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
-    const { installmentType, percentage } = getPercentageByInstallment(fund)
+    const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
     const items = fundsUtilised.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment))
     return {
+      phase,
       installment: installmentType,
       percentage,
       // Filter empty data
