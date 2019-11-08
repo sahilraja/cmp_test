@@ -38,6 +38,8 @@ export async function createProject(reqObject: any, user: any) {
       summary: reqObject.description || "N/A",
       maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
+      fundsReleased: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
+      fundsUtilised: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
     });
     createLog({ activityType: ACTIVITY_LOG.PROJECT_CREATED, projectId: createdProject.id, activityBy: user._id })
     return createdProject
@@ -439,10 +441,43 @@ export async function getTaskDetail(projectId: string, id: string, userId: strin
   return await httpRequest(options)
 }
 
+function getPercentageByInstallment(installment: number) {
+  let percentage = 10
+  switch (installment) {
+    case 1:
+      percentage = 10
+    break;
+    case 2:
+      percentage = 40
+    break;
+    case 3:
+      percentage = 40
+    break;
+    case 4:
+      percentage = 10
+    break;
+    default:
+    break;
+  }
+  return percentage
+}
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased, fundsUtilised }:any = projectDetail
-  return { fundsReleased, fundsUtilised }
+  return { 
+    fundsReleased: [1,2,3,4].map((fund: any) => ({
+      installment: fund,
+      percentage: getPercentageByInstallment(fund),
+      // Filter empty data
+      items: fundsReleased.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment))
+    })), 
+    fundsUtilised: [1,2,3,5].map((fund: any) => ({
+      installment: fund,
+      percentage: getPercentageByInstallment(fund),
+      // Filter empty data
+      items: fundsUtilised.filter((fundReleased: any) => fundReleased.subInstallment && (fund == fundReleased.installment))
+    })) 
+  }
 }
 
 export async function addFundReleased(projectId: string, payload: any, userId: string) {
@@ -453,9 +488,10 @@ export async function addFundReleased(projectId: string, payload: any, userId: s
   const { fundsReleased } = fund
   const otherFunds = fundsReleased.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsReleased.filter((fund: any) => fund.installment == payload.installment)
-  const updates = {fundsReleased: otherFunds.concat(matchedFunds).concat([
+  let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].cost ? [] : matchedFunds
+  const updates = {fundsReleased: otherFunds.concat(matchedFundsWithData).concat([
     {
-      subInstallment:matchedFunds.length + 1,
+      subInstallment:matchedFundsWithData.length + 1,
       installment: payload.installment, document: payload.document, cost: payload.cost, 
       createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
     }

@@ -35,7 +35,7 @@ export async function getTaskLogs(taskId: string, token: string) {
     return activities.map((activity: any) => ({...activity.toJSON(),
         subTask: subTasks.find((subTask: any) => subTask._id == activity.subTask),
         activityBy: usersInfo.find((user: any) => user._id == activity.activityBy),
-        addedUserIds: (activity.addedUserIds || []).map((userId: string) => usersInfo.filter((s: any) => s._id == userId)),
-        removedUserIds: (activity.removedUserIds || []).map((userId: string) => usersInfo.filter((s: any) => s._id == userId))
+        addedUserIds: usersInfo.filter((s: any) => (activity.addedUserIds || []).includes(s._id)),
+        removedUserIds: usersInfo.filter((s: any) => (activity.removedUserIds || []).includes(s._id)),
     }))
 }
