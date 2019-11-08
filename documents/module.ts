@@ -601,17 +601,17 @@ export async function getApprovalDoc(docId: string) {
 
 async function getTags(tagIds: any[]) {
   try {
-    return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 });
+    return await Tags.find({ _id: { $in: tagIds }, deleted:false }, { tag: 1 });
   } catch (err) {
     console.error(err);
     throw err;
   }
 }
 
-export async function getAllTags(tags: any[]) {
+export async function getAllTags(tags: any) {
   try {
     let tagIds =(tags && tags.length) ? tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []
-    return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 });
+    return await Tags.find({ _id: { $in: tagIds,deleted:false } }, { tag: 1 });
   } catch (err) {
     console.error(err);
     throw err;
