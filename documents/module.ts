@@ -456,6 +456,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
 export async function cancelUpdate(docId: string, userId: string){
   try {
     await create({ activityType: `Cancel Updated`, activityBy: userId, documentId: docId})
+    return {success: true}
   } catch (err) {
     throw err;
   };

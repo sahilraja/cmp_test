@@ -132,6 +132,7 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/updateReleasedFund
   /project/{id}/update-utilized-fund:
     $ref: ./swagger/projects/paths.yaml/#/updateUtilizedFund
+
 # Roles
   /role/list:
     $ref: ./swagger/roles/paths.yaml/#/getRoles
@@ -151,11 +152,13 @@ paths:
     $ref: ./swagger/roles/paths.yaml/#/addRole 
   /role/{role}/edit:
     $ref: ./swagger/roles/paths.yaml/#/editRole   
+
 # Comments
   /comments/add:
     $ref: ./swagger/comments/paths.yaml/#/addComment  
   /comments/list/{doc_id}:
     $ref: ./swagger/comments/paths.yaml/#/getCommets 
+
 # Tags
   /project/tag/add:
     $ref: ./swagger/tags/paths.yaml/#/addTagToProject
@@ -181,6 +184,8 @@ paths:
     $ref: ./swagger/themes/paths.yaml/#/activeOrInactiveTheme
   /project/theme/list:
     $ref: ./swagger/themes/paths.yaml/#/getThemeList
+
+# document
   /docs/create:
     $ref: ./swagger/resources/paths.yaml/#/createDoc
   /docs/create/new:
@@ -197,7 +202,6 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/downloadFile
   /docs/{id}:
     $ref: ./swagger/resources/paths.yaml/#/docDetail
-
   /docs/{id}/collaborator/add:
     $ref: ./swagger/resources/paths.yaml/#/addCollaboratorToDoc
   /docs/{id}/collaborator/remove:
@@ -256,7 +260,13 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/approveTags 
   /docs/{docId}/reject/tags:
     $ref: ./swagger/resources/paths.yaml/#/rejectTags
-     
+  /docs/user-capabilities:
+    $ref: ./swagger/resources/paths.yaml/#/userCapabilities 
+  /docs/add-user-capabilities:
+    $ref: ./swagger/resources/paths.yaml/#/adduserCapabilities
+  /docs/{Id}/cancel:
+    $ref: ./swagger/resources/paths.yaml/#/cancelDocUpdate
+
 #Templates
   /template/create:
     $ref: ./swagger/templates/paths.yaml/#/templateCreate

@@ -542,7 +542,7 @@ router.post("/:id/new", authenticate, ensureCanEditDocument, async (req, res, ne
 });
 
 //  update exist doc
-router.post("/:id/cancle", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.get("/:id/cancle", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await cancelUpdate(req.params.id, res.locals.user._id));
   } catch (err) {

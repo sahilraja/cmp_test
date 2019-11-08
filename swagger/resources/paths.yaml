@@ -1679,6 +1679,122 @@
 
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  userCapabilities:
+    post:
+      security:
+        - token: []
+      summary: get User Capabilities 
+      tags:
+        - RESOURCES    
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                docIds: 
+                  type: array
+                  items: 
+                    type: string 
+                userIds: 
+                  type: array
+                  items: 
+                    type: string 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docId123: 
+                    type: array
+                    items: 
+                      type: string
+                  docId132: 
+                    type: array
+                    items: 
+                      type: string  
+                  noAccessDocuments:
+                    type: array
+                    items: 
+                      type: string 
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  adduserCapabilities:
+    post:
+      security:
+        - token: []
+      summary: add User capabilities
+      tags:
+        - RESOURCES   
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                object:
+                  type: object
+                  properties:
+                    docId123: 
+                    type: array
+                    items: 
+                      type: string
+                    docId132: 
+                      type: array
+                      items: 
+                        type: string  
+                    noAccessDocuments:
+                      type: array
+                      items: 
+                        type: string      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully shared
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  cancelDocUpdate:
+    get:
+      security:
+        - token: []
+      summary: Reject suggested tags
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: DocumentId     
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
          
            
           
