@@ -38,6 +38,7 @@ const schema = new Schema({
     ],
     fundsReleased: [
         {
+            deleted:{type:Boolean, default: false},
             installment:{type:  Number},
             subInstallment:{type:  Number},
             document: {type: String},
@@ -49,6 +50,7 @@ const schema = new Schema({
     ],
     fundsUtilised: [
         {
+            deleted:{type:Boolean, default: false},
             installment:{type:  Number},
             subInstallment:{type:  Number},
             document: {type: String},

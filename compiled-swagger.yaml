@@ -1742,7 +1742,7 @@ paths:
                     type: string
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/add-released-fund':
+  '/project/{id}/add-released-fund': &ref_5
     post:
       security:
         token: []
@@ -1775,7 +1775,7 @@ paths:
               schema: *ref_4
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/add-utilized-fund':
+  '/project/{id}/add-utilized-fund': &ref_6
     post:
       security:
         token: []
@@ -1808,6 +1808,8 @@ paths:
               schema: *ref_4
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/delete-released-fund': *ref_5
+  '/project/{id}/delete-utilized-fund': *ref_6
   '/project/{id}/update-released-fund':
     post:
       security:
@@ -4300,7 +4302,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_5
+                  - &ref_7
                     type: object
                     properties:
                       content:
@@ -4331,7 +4333,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_5
+                items: *ref_7
   '/template/edit/{id}':
     post:
       '400':
@@ -4372,7 +4374,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_5
+                  - *ref_7
                   - type: object
                     properties:
                       id:
@@ -4429,7 +4431,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_5
+                  - *ref_7
                   - type: object
                     properties:
                       id:
@@ -4437,7 +4439,7 @@ paths:
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
           description: Success
-  /pillars/create: &ref_7
+  /pillars/create: &ref_9
     post:
       security:
         - token: []
@@ -4447,7 +4449,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_6
+            schema: &ref_8
               type: object
               properties:
                 name:
@@ -4466,7 +4468,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_6
+                    - *ref_8
                     - type: object
                     - properties:
                         id:
@@ -4486,15 +4488,15 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_6
+                  - *ref_8
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/pillars/{id}/edit': *ref_7
-  /steps/create: &ref_9
+  '/pillars/{id}/edit': *ref_9
+  /steps/create: &ref_11
     post:
       security:
         - token: []
@@ -4504,7 +4506,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_8
+            schema: &ref_10
               type: object
               properties:
                 name:
@@ -4538,7 +4540,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_8
+                    - *ref_10
                     - type: object
                     - properties:
                         id:
@@ -4558,7 +4560,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_8
+                  - *ref_10
                   - type: object
                   - properties:
                       id:
@@ -4567,7 +4569,7 @@ paths:
           description: Success
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/steps/{id}/edit': *ref_9
+  '/steps/{id}/edit': *ref_11
   /constants/add:
     post:
       '400':
@@ -4621,14 +4623,14 @@ definitions:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_10
+          schema: &ref_12
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_10
+    Error: *ref_12
 components:
   securitySchemes:
     token:
@@ -4649,7 +4651,7 @@ components:
     projectSchema: *ref_4
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'
-    pillarSchema: *ref_6
-    stepSchema: *ref_8
+    pillarSchema: *ref_8
+    stepSchema: *ref_10
     groupSchema: *ref_3
 
