@@ -50,7 +50,7 @@ import {
   suggestTags,
   approveTags,
   rejectTags,
-  getTags
+  getAllTags
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -660,7 +660,7 @@ router.post("/:docId/reject/tags", authenticate, async (req, res, next: NextFunc
 
 router.post("/get/tags", async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getTags(req.body.tags));
+    res.status(200).send(await getAllTags(req.body.tags));
   } catch (err) {
     next(new APIError(err.message));
   }

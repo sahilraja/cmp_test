@@ -599,7 +599,7 @@ export async function getApprovalDoc(docId: string) {
   }
 }
 
-export async function getTags(tagIds: any[]) {
+async function getTags(tagIds: any[]) {
   try {
     return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 });
   } catch (err) {
@@ -608,6 +608,15 @@ export async function getTags(tagIds: any[]) {
   }
 }
 
+export async function getAllTags(tags: any[]) {
+  try {
+    let tagIds =(tags && tags.length) ? tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []
+    return await Tags.find({ _id: { $in: tagIds } }, { tag: 1 });
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
 
 async function getThemes(themeIds: any[]) {
   try {
