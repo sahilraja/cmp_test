@@ -2604,8 +2604,6 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - tag
               properties:
                 tags:
                   type: array
