@@ -513,7 +513,7 @@ router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) 
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user._id));
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user));
   } catch (err) {
     next(new APIError(err.message));
   }

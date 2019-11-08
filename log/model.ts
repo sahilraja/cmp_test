@@ -16,6 +16,7 @@ const SchemaDef = new Schema({
         role: { typr: String }
     }],
     fromPublished: { type: Schema.Types.ObjectId, ref: 'documents' },
+    replaceDoc: { type: Schema.Types.ObjectId, ref: 'documents' },
     tagsAdded: { type: Array },
     tagsRemoved: { type: Array },
     removedUserIds: { type: Array },
