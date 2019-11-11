@@ -34,7 +34,7 @@ export async function capabilities_list() {
     let listcapabilities = capabilities.map(capability => {
         return { capability: capability.capability, description: capability.description, scope: capability.scope, shortDescription: capability.shortDescription,category: capability.category}
     });
-let result = listcapabilities.reduce(function (response, capability) {
+let result = listcapabilities.reduce((response, capability) =>{
     response[capability.category] = response[capability.category] || [];
     response[capability.category].push(capability);
         return response;
