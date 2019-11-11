@@ -1,7 +1,7 @@
 import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
-import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage} from "../utils/utils";
+import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
@@ -237,7 +237,7 @@ export async function user_login(req: any) {
         }
 
         //await recaptchaValidation(req);
-        
+
         //  find User
         let userData: any = await userFindOne("email", objBody.email);
         if (!userData) throw new Error(USER_ROUTER.INVALID_USER);
@@ -245,9 +245,9 @@ export async function user_login(req: any) {
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
-        
+
         //mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
-        let templatInfo = await getTemplateBySubstitutions('userLogin', {fullName:userData.firstName});
+        let templatInfo = await getTemplateBySubstitutions('userLogin', { fullName: userData.firstName });
 
         await nodemail({
             email: userData.email,
@@ -342,7 +342,7 @@ export async function forgotPassword(objBody: any) {
         if (!userDetails) {
             throw new Error('Email ID is not registered')
         }
-        let { firstName, lastName, middleName,countryCode,phone } = userDetails;
+        let { firstName, lastName, middleName, countryCode, phone } = userDetails;
         let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
@@ -350,9 +350,9 @@ export async function forgotPassword(objBody: any) {
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userDetails._id });
-        
-        mobileSendOtp(countryCode+phone,SENDER_IDS.OTP);
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+
+        mobileSendOtp(countryCode + phone, SENDER_IDS.OTP);
+        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
 
         let success = await nodemail({
             email: userDetails.email,
@@ -456,10 +456,10 @@ export async function groupList(userId: string) {
     try {
         let groupIds = await userGroupsList(userId)
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, {}, {}, {}, "updatedAt")
-        let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
-        let groups = [...meCreatedGroup, ...sharedGroup]
-        return await Promise.all(groups.map(async (group: any) => {
-            return { ...group, users: ((await groupUserList(group._id)) as any).length }
+        // let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
+        // let groups = [...meCreatedGroup, ...sharedGroup]
+        return await Promise.all(meCreatedGroup.map(async (group: any) => {
+            return { ...group, users: (await groupUserList(group._id) as any).length }
         }));
     } catch (err) {
         throw err;
@@ -473,7 +473,7 @@ export async function groupDetail(id: string) {
         let data: any = await groupFindOne("id", id)
         if (!data) throw new APIError(USER_ROUTER.GROUP_NOT_FOUND)
         let users = await userList({ _id: { $in: await groupUserList(data._id) } }, {});
-        users = await Promise.all(users.map(async(user: any) => {
+        users = await Promise.all(users.map(async (user: any) => {
             return { ...user, role: ((await userRoleAndScope(user._id) as any).data.global || [""])[0] }
         }))
         return { ...data, users: users }
@@ -488,14 +488,14 @@ export async function addMember(id: string, users: any[], userObj: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
+        if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         let existUsers = await groupUserList(data._id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        users = users.filter(user=> !existUsers.includes(user) && data.createdBy._id != user)
-        if(!users.length) throw new APIError("Invalid Action");
-        await Promise.all(users.map((user: any) => { if (data.createdBy._id != user) { addUserToGroup(user, id) } }))
+        users = users.filter(user => !existUsers.includes(user))
+        if (!users.length) throw new APIError("Invalid Action");
+        await Promise.all(users.map((user: any) => addUserToGroup(user, id)))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -506,14 +506,11 @@ export async function addMember(id: string, users: any[], userObj: any) {
 export async function removeMembers(id: string, users: any[], userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        if(!users.includes(userObj._id)){
-            let isEligible = await checkRoleScope(userObj.role, "edit-group");
-            if (!isEligible) throw new APIError("Unauthorized Action.", 403); 
-        }
-        if (!id || !users) throw new Error(USER_ROUTER.MANDATORY);
+        let isEligible = await checkRoleScope(userObj.role, "edit-group");
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
-        if(data.createdBy._id == userObj._id && users.includes(userObj._id)) throw new APIError("Unauthorized Action.")
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
         return { message: RESPONSE.REMOVE_MEMBER }
@@ -523,9 +520,10 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
 };
 
 //  user and group suggestion
-export async function userSuggestions(search: string, userId: string) {
+export async function userSuggestions(search: string, userId: string, searchKeys: string = "") {
     try {
         search = search.trim()
+        let searchKeyArray = searchKeys.split(",")
         let groupIds = await userGroupsList(userId)
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
@@ -551,6 +549,7 @@ export async function userSuggestions(search: string, userId: string) {
             return user
         })
         groups = groups.map(group => { return { ...group, type: "group" } })
+        if(searchKeyArray.length) return [...users, ...groups].filter(user=> searchKeyArray.includes(user.type))
         return [...users, ...groups]
     } catch (err) {
         throw err
@@ -571,16 +570,16 @@ export async function otpVerification(objBody: any) {
             throw new Error("Required mobile otp field");
         };
         let userInfo: any = await userFindOne("email", objBody.email);
-        if(!userInfo){
+        if (!userInfo) {
             throw new Error(USER_ROUTER.EMAIL_WRONG);
         }
         let token: any = await jwtOtpVerify(userInfo.otp_token);
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
-        if(objBody.mobileOtp){
-            await mobileVerifyOtp(userInfo.countryCode+userInfo.phone,objBody.mobileOtp);
+        if (objBody.mobileOtp) {
+            await mobileVerifyOtp(userInfo.countryCode + userInfo.phone, objBody.mobileOtp);
         }
-        if((objBody.otp) != Number(token.otp)) {
+        if ((objBody.otp) != Number(token.otp)) {
             throw new Error(INCORRECT_OTP);
         }
         let userData = await otpVerify(userInfo);
@@ -620,11 +619,11 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
-        let {firstName , lastName , middleName,countryCode,phone} = userInfo;
-        let fullName = (firstName ? firstName + " " :"") + (middleName ? middleName+" " :"")+(lastName ? lastName:"");
-        
-        mobileSendOtp(countryCode+phone,SENDER_IDS.OTP);
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+        let { firstName, lastName, middleName, countryCode, phone } = userInfo;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+
+        mobileSendOtp(countryCode + phone, SENDER_IDS.OTP);
+        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
 
         let success = await nodemail({
             email: objBody.email,
@@ -642,18 +641,18 @@ export async function profileOtpVerify(objBody: any, user: any) {
     try {
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
-        if(objBody.mobileOtp){
-            await mobileVerifyOtp(user.countryCode+user.phone,objBody.mobileOtp);
+        if (objBody.mobileOtp) {
+            await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
         }
-        if (objBody.otp != token.otp){
+        if (objBody.otp != token.otp) {
             throw new Error(USER_ROUTER.INVALID_OTP);
         }
-        let temp:any = {};
-        if(objBody.phone && objBody.countryCode){
-            temp = {phone:objBody.phone,countryCode:objBody.countryCode}
+        let temp: any = {};
+        if (objBody.phone && objBody.countryCode) {
+            temp = { phone: objBody.phone, countryCode: objBody.countryCode }
         }
-        return await userEdit(user._id, { email: token.newEmail,...temp})
-        
+        return await userEdit(user._id, { email: token.newEmail, ...temp })
+
     } catch (err) {
         throw err
     }
@@ -671,56 +670,56 @@ export function validateEmail(email: string) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
-export async function recaptchaValidation(req:any){
-    try{
-        if(!req.body['g-recaptcha-response']) {
+export async function recaptchaValidation(req: any) {
+    try {
+        if (!req.body['g-recaptcha-response']) {
             throw new Error("Please select captcha");
         }
         // Put your secret key here.
         // req.connection.remoteAddress will provide IP address of connected user.
         var verificationUrl = "https://www.google.com/recaptcha/api/siteverify?secret=" + secretKey + "&response=" + req.body['g-recaptcha-response'] + "&remoteip=" + req.connection.remoteAddress;
         // Hitting GET request to the URL, Google will respond with success or error scenario.
-        return await new Promise((resolve: any,reject: any)=>{
-            return request(verificationUrl,function(error,response,body) {
+        return await new Promise((resolve: any, reject: any) => {
+            return request(verificationUrl, function (error, response, body) {
                 body = JSON.parse(body);
                 console.log(body);
                 // Success will be true or false depending upon captcha validation.
-                if(body.success !== undefined && !body.success) {
+                if (body.success !== undefined && !body.success) {
                     reject(new Error("Failed captcha verification"));
                 }
                 resolve("success");
             });
         })
     }
-    catch(err){
+    catch (err) {
         throw err;
     }
 }
 
-export async function changeMobileNumber(objBody :any,userData:any) {
-        try{
-            let {newCountryCode,newPhone,password} = objBody;
-            if(newPhone && !password && !newCountryCode){
-                throw new APIError(USER_ROUTER.MANDATORY)
-            }
-            let { firstName, lastName, middleName, phone,countryCode } = userData;
-            let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-            if(newCountryCode+newPhone == phone+countryCode){
-                throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
-            }
-            if(!comparePassword(password,userData.password)){
-                throw new APIError(USER_ROUTER.INVALID_PASSWORD);
-            }
-            let authOtp = { "otp": generateOtp(4) }
-            let token = await jwtOtpToken(authOtp);
-            await userUpdate({ otp_token: token, id: userData._id });
-            
-            mobileSendOtp(phone,SENDER_IDS.OTP);
-            getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
-            
-            return {message :"success"}
+export async function changeMobileNumber(objBody: any, userData: any) {
+    try {
+        let { newCountryCode, newPhone, password } = objBody;
+        if (newPhone && !password && !newCountryCode) {
+            throw new APIError(USER_ROUTER.MANDATORY)
         }
-        catch(err){
-            throw err
+        let { firstName, lastName, middleName, phone, countryCode } = userData;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        if (newCountryCode + newPhone == phone + countryCode) {
+            throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
         }
+        if (!comparePassword(password, userData.password)) {
+            throw new APIError(USER_ROUTER.INVALID_PASSWORD);
+        }
+        let authOtp = { "otp": generateOtp(4) }
+        let token = await jwtOtpToken(authOtp);
+        await userUpdate({ otp_token: token, id: userData._id });
+
+        mobileSendOtp(phone, SENDER_IDS.OTP);
+        getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
+
+        return { message: "success" }
+    }
+    catch (err) {
+        throw err
+    }
 }

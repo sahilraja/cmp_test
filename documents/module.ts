@@ -26,6 +26,8 @@ import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
+import { create } from "../log/module";
+import { userCapabilities } from "../users/module";
 
 enum STATUS {
   DRAFT = 0,
@@ -42,26 +44,16 @@ export async function createNewDoc(body: any, userId: any) {
   try {
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
-    const isEligible = await checkRoleScope(userRole, "create-doc");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
-
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName.length > configLimit.name) {
-      throw new Error(DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.docName.length > configLimit.name) {  // add config query
+      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if (body.description.length > configLimit.description) {
+    if (body.description.length > configLimit.description) { // add config query
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() });
-    if (data.length) {
-      throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
-    }
-    body.tags = Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []
+    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+    //  Add user as Owner to this Document
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(doc.id);
@@ -74,28 +66,27 @@ export async function createNewDoc(body: any, userId: any) {
         $push: { doc_id: doc.id }
       })
     }
+    await create({ activityType: "Document Created", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
     return doc;
   } catch (err) {
     throw err
   };
 };
 
-
 //  Create Document
 export async function createDoc(body: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
-
     let userRole = userRoles.data.global[0];
     const isEligible = await checkRoleScope(userRole, "create-doc");
     if (!isEligible) {
       throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.name.length > configLimit.name) {
+    if (body.name.length > configLimit.name) { // added config
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if (body.description.length > configLimit.description) {
+    if (body.description.length > configLimit.description) { // added config
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let doc = await insertDOC(body, userId);
@@ -106,6 +97,7 @@ export async function createDoc(body: any, userId: string) {
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     let response: any = await insertDOC(body, userId);
+    await create({ activityType: "Document Created", activityBy: userId, tagsAdded: body.tags || [], documentId: doc.id })
     return { doc_id: doc.id };
   } catch (error) {
     throw error;
@@ -133,15 +125,12 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 }
 
 //  Get Document Public List
-export async function getDocList(host: string) {
+export async function getDocList(page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
-    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
-    const docList = await Promise.all(
-      data.map(async doc => {
-        return await docData(doc, host);
-      })
-    );
-    return { docs: docList };
+    let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
+    const docList = await Promise.all(data.map(async doc => docData(doc, host)));
+    if (pagination) manualPagination(page, limit, docList)
+    return docList
   } catch (error) {
     console.error(error);
     throw error;
@@ -160,8 +149,8 @@ async function docData(docData: any, host: string) {
       ...docData.toJSON(),
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
-      owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
-      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A",
+      owner: await userFindOne("id", docData.ownerId, { name: 1 }),
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A"
     };
   } catch (err) {
     throw err;
@@ -177,31 +166,32 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
     })
     var merged = [].concat.apply([], folder_files);
     let folderDocIds = JSON.parse(JSON.stringify(merged));
-    // let folder_file= folder_files.reduce((main:any,folder:any) => {
-    //   console.log(JSON.stringify(folder));
-    //   [...main, ...(JSON.stringify(folder))]
-    // },[])
-
-    // console.log(folder_file);
-
-    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).sort({ name: 1 })
+    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 })
     const docList = await Promise.all(docs.map((doc) => {
       return docData(doc, host);
-    })
-    );
+    }));
     var result = docList.filter((docs) => {
       return !folderDocIds.some((folderDocs: any) => {
         return docs._id == folderDocs;
       });
     })
-
-    const docsData = manualPagination(page, limit, result)
-    return { docsData };
+    return manualPagination(page, limit, result)
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
+
+export async function getDocumentListOfMeWithOutFolders(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
+  try {
+    let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 })
+    const docList = await Promise.all(docs.map((doc: any) => docData(doc, host)));
+    if (pagination) return manualPagination(page, limit, docList);
+    return docList
+  } catch (err) {
+    throw err
+  };
+};
 
 //  Create File
 export async function createFile(docId: string, file: any) {
@@ -463,6 +453,15 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
   };
 };
 
+export async function cancelUpdate(docId: string, userId: string){
+  try {
+    await create({ activityType: `Cancel Updated`, activityBy: userId, documentId: docId})
+    return {success: true}
+  } catch (err) {
+    throw err;
+  };
+};
+
 export async function updateDocNew(objBody: any, docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
@@ -471,7 +470,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     let obj: any = {};
     if (objBody.docName) {
       if (objBody.docName.length > configLimit.name) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
-      let data = (await documents.find({ isDeleted: false, parentId: null, ßownerId: userId, name: objBody.docName.toLowerCase() })).filter(({ _id: id }) => docId != id)
+      let data = (await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() })).filter(({ _id: id }) => docId != id)
       if (data.length) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
@@ -501,8 +500,18 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
         fileId: objBody.id || parent.fileId,
         fileName: objBody.name || parent.fileName
       });
+      await create({ activityType: `Document Updated`, activityBy: userId, documentId: docId})
+
     } else {
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags })
+      let addtags = obj.tags.filter((tag: string)=>  !child[child.length - 1].tags.includes(tag) )
+      if(addtags.length){
+        await create({ activityType: `Tags Added`, activityBy: userId, documentId: docId, tagsAdded: addtags})
+      }
+      let removedtags = child[child.length - 1].tags.filter((tag: string)=>  !obj.tags.includes(tag) )
+      if(addtags.length){
+        await create({ activityType: `Tags Removed`, activityBy: userId, documentId: docId, tagsRemoved: removedtags})
+      }
     }
     return parent;
   } catch (err) {
@@ -513,9 +522,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
 
 export async function approvalList(host: string) {
   try {
-    let docList = await documents
-      .find({ parentId: { $ne: null }, status: STATUS.PUBLISHED, isDeleted: false })
-      .sort({ name: 1 });
+    let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PUBLISHED, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let parentDocsIdsArray = docList.map((doc: any) => {
       return doc.parentId;
     });
@@ -722,7 +729,7 @@ export async function viewerList(docId: string) {
   }
 }
 
-export async function sharedList(userId: string, host: string) {
+export async function sharedList(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
     let docIds: any = []
     let groups = await userGroupsList(userId)
@@ -730,19 +737,31 @@ export async function sharedList(userId: string, host: string) {
     docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
-    return await Promise.all(
+    let data = await Promise.all(
       docs.map(async (doc: any) => {
         const filteredDocs = doc.suggestedTags.filter((tag: any) => tag.userId == userId)
-        // let users= await Promise.all(
-        // filteredDocs.map((suggestedTagsInfo: any)=>{
-        //   return userInfo(suggestedTagsInfo);
-        // }))
         doc.suggestedTags = filteredDocs
         return await docData(doc, host);
       })
     );
+    if (pagination) return manualPagination(page, limit, data);
+    return data
   } catch (err) {
     throw err;
+  }
+}
+
+export async function allDocuments(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
+  try {
+    let data = [
+      ...(await getDocList(page, limit, host, false)),
+      ...(await sharedList(userId, page, limit, host, false) as any),
+      ...(await getDocumentListOfMeWithOutFolders(userId, page, limit, host, false) as any),
+    ]
+    if (pagination) return manualPagination(page, limit, data)
+    return data
+  } catch (err) {
+    throw err
   }
 }
 
@@ -802,11 +821,16 @@ export async function invitePeople(docId: string, users: object[], role: string,
 
     if (!docId || !users.length || !role) throw new Error("Missing fields.");
     let doc: any = await documents.findById(docId);
+    let addUsers: any = []
     await Promise.all(
       users.map(async (user: any) => {
-        if (doc.ownerId != user._id) return await invite(user, docId, role, doc)
+        if (doc.ownerId != user._id) {
+          addUsers.push({ id: user._id, type: user.type, role: role })
+          return await invite(user, docId, role, doc)
+        }
       })
     );
+    await create({ activityType: `Document shared as ${role}`, activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     return { message: "Shared successfully." };
   } catch (err) {
     throw err;
@@ -819,6 +843,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
+    await create({ activityType: `Modified ${type} shared as ${role}`, activityBy: userId, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
@@ -829,6 +854,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
+    await create({ activityType: `Removed ${type} from document`, activityBy: userId, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Revoke share successfully." };
   } catch (err) {
     throw err;
@@ -905,20 +931,24 @@ export async function docCapabilities(docId: string, userId: string) {
   }
 }
 
-export async function published(body: any, docId: string, userObj: any) {
+export async function published(body: any, docId: string, userObj: any, withAuth: boolean = true) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Given Id is Not Valid")
-    let admin_scope = await checkRoleScope(userObj.role, "publish-document");
-    if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+    if (withAuth) {
+      let admin_scope = await checkRoleScope(userObj.role, "publish-document");
+      if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+    };
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
+    await create({ activityType: `Doucment Published`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc)
+    mailAllCmpUsers("publishDocument", publishedDoc)
     return publishedDoc
   } catch (err) {
     throw err;
@@ -951,47 +981,36 @@ export async function unPublished(docId: string, userObj: any) {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
     let isEligible = await checkRoleScope(userObj.role, "unpublish-document");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    return await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
+    let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
+    await create({ activityType: `Doucment unPublished`, activityBy: userObj._id, documentId: docId });
+    mailAllCmpUsers("unPublishDocument", success)
+    return success
   } catch (err) {
     throw err;
   };
 };
 
-export async function replaceDoc(docId: string, replaceDoc: string, userId: string) {
+export async function replaceDoc(docId: string, replaceDoc: string, userObj: any) {
   try {
-    let [doc, unPublished]: any = await Promise.all([
-      documents.findById(replaceDoc).exec(),
-      documents
-        .findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true })
-        .exec()
-    ]);
-
-    return await documents.create({
-      name: doc.name,
-      description: doc.description,
-      themes: doc.themes,
-      tags: doc.tags,
-      versionNum: 1,
-      status: STATUS.PUBLISHED,
-      ownerId: userId,
-      parentId: doc.parentId,
-      fileName: doc.fileName,
-      fileId: doc.fileId
-    });
+    let admin_scope = await checkRoleScope(userObj.role, "replace-document");
+      if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+    let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
+    documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true }).exec()]);
+    let success = await published({...doc, versionNum: 1,status: STATUS.PUBLISHED, ownerId: userObj._id}, doc._id, userObj, false)
+    await create({ activityType: `Doucment Replaced`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id})
+    mailAllCmpUsers("replaceDocument", success)
+    return success
   } catch (err) {
     throw err;
   };
 };
 
-export async function publishList(userId: string, host: string) {
+export async function publishList(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
-    let docs = await documents
-      .find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
-    return await Promise.all(
-      docs.map(async (doc: any) => {
-        return await docData(doc, host);
-      })
-    );
+    let docs = await documents.find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
+    let data = await Promise.all(docs.map(async (doc: any) => docData(doc, host)));
+    if (pagination) return manualPagination(page, limit, data)
+    return data
   } catch (err) {
     throw err;
   }
@@ -1016,11 +1035,11 @@ export async function docFilter(search: string, userId: string, page: number = 1
       let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
       if (!tags.length) return [];
       let tagId = tags.map(tag => tag._id).pop().toString();
-      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).sort({ name: 1 });
+      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
+      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).collation({ locale: 'en' }).sort({ name: 1 });
     } else {
-      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).sort({ name: 1 });
+      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
+      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
     }
     // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
@@ -1110,9 +1129,7 @@ export async function moveToFolder(folderId: string, body: any, userId: string) 
 
 export async function listFolders(userId: String) {
   try {
-    let data = await folders
-      .find({ ownerId: userId, parentId: null })
-      .sort({ name: 1 });
+    let data = await folders.find({ ownerId: userId, parentId: null }).collation({ locale: 'en' }).sort({ name: 1 });
     let folderList = data.map((folder: any) => {
       return {
         folderId: folder._id,
@@ -1157,9 +1174,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
         }
       }
     ]).exec(),
-    folders
-      .find({ ownerId: userId, parentId: folderId })
-      .sort({ name: 1 }).exec()
+    folders.find({ ownerId: userId, parentId: folderId }).collation({ locale: 'en' }).sort({ name: 1 }).exec()
   ])
 
   let subFolderList = subfolders.map((folder: any) => {
@@ -1287,6 +1302,7 @@ export async function deleteDoc(docId: any, userId: string) {
       throw new Error("File Id is Invalid")
     }
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
+    await create({ activityType: "Document Deleted", activityBy: userId, documentId: docId })
     if (deletedDoc) {
       return {
         success: true,
@@ -1302,15 +1318,9 @@ export async function deleteDoc(docId: any, userId: string) {
 export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30, host: string) {
 
   const [foldersData, folderDocs, fetchedDoc] = await Promise.all([
-    folders
-      .find({ ownerId: userId, parentId: null })
-      .sort({ name: 1 }).exec(),
-    folders
-      .find({ ownerId: userId })
-      .sort({ name: 1 }).exec(),
-    documents
-      .find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } })
-      .sort({ name: 1 }).exec(),
+    folders.find({ ownerId: userId, parentId: null }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+    folders.find({ ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+    documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
   ])
   let folder_files = folderDocs.map((folder: any) => {
     return folder.doc_id
@@ -1343,19 +1353,23 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
 }
 
 
-export async function checkCapabilitiesForUser(objBody: any) {
+export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds)))
-    return obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
+    let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
+    let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
+    let noAccessDocs = docIds.filter(docid => !Object.keys(mainObj).includes(docid))
+    return Object.assign(mainObj, { noAccessDocuments: noAccessDocs })
   } catch (err) {
     throw err
   };
 };
 
-async function loopUsersAndFetchData(docId: string, userIds: string[]) {
+async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
   const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
+  let userCapabilities: any = documnetCapabilities(docId, userId)
+  if (["no_access", "viewer"].includes(userCapabilities[0])) return {}
   return {
     [docId]: s.map((s1, i) => {
       if (s1.includes('no_access')) {
@@ -1369,6 +1383,7 @@ async function loopUsersAndFetchData(docId: string, userIds: string[]) {
 export async function shareDocForUsers(obj: any) {
   try {
     if (Object.keys(obj).length) {
+      delete obj.noAccessDocuments
       await Promise.all((Object.keys(obj)).map((docId: string) => loopForAddCapability(docId, obj[docId])))
     }
     return { message: "shared successfully" }
@@ -1443,15 +1458,15 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     ])
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
-      let doc = await documents.findByIdAndUpdate(docId,{
-          suggestedTags: filteredDocs,
-          "$push":{tags: body.tagId }
-        })
-     if(doc){
-    return {
-      sucess: true,
-      message: "Tag approved successfully"
-       }
+    let doc = await documents.findByIdAndUpdate(docId, {
+      suggestedTags: filteredDocs,
+      "$push": { tags: body.tagId }
+    })
+    if (doc) {
+      return {
+        sucess: true,
+        message: "Tag approved successfully"
+      }
     }
   } catch (err) {
     throw err
@@ -1481,19 +1496,44 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     ])
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
-      let doc = await documents.findByIdAndUpdate(docId,{
-          suggestedTags: filteredDocs,
-            "$push": {
-              rejectedTags: { userId: body.userId, tags: body.tagId }
-            }
-        })
-     if(doc){
-    return {
-      sucess: true,
-      message: "Tag Rejected"
-       }
+    let doc = await documents.findByIdAndUpdate(docId, {
+      suggestedTags: filteredDocs,
+      "$push": {
+        rejectedTags: { userId: body.userId, tags: body.tagId }
+      }
+    })
+    if (doc) {
+      return {
+        sucess: true,
+        message: "Tag Rejected"
+      }
     }
   } catch (err) {
     throw err
   };
 };
+
+async function mailAllCmpUsers(type: string, docDetails: any){
+  try {
+    let users = await userList({is_active: true, emailVerified: true},{email: true, firstName: true, middleName: true, lastName: true})
+    let allMailContent = await Promise.all(users.map(async(user: any)=>{
+      let userName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
+      return Object.assign({...(await getTemplateBySubstitutions(type, {
+        fullName: userName,
+        documentName: docDetails.name,
+        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`
+      }))},{email: user.email })
+    }));
+    await Promise.all(allMailContent.map((content: any)=>{
+      return nodemail({
+        email: content.email,
+        subject: content.subject,
+        html: content.content
+      });
+    }))
+    return true
+  } catch (err) {
+    throw err;
+  };
+};
+ 

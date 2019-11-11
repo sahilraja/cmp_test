@@ -206,21 +206,28 @@
           "capability":"create-group",
           "shortDescription":"create group",
           "description":"create group",
-          "category": "User Management",
+          "category": "Group Management",
           "scope":"global"
         },
         {
           "capability":"edit-group",
           "shortDescription":"edit group",
           "description":"edit group",
-          "category": "User Management",
+          "category": "Group Management",
           "scope":"global"
         },
         {
           "capability":"project-add-core-team",
           "shortDescription":"add core team",
           "description":"add core team",
-          "category": "User Management",
+          "category": "Project Management",
+          "scope":"global"
+        },
+        {
+          "capability":"replace-document",
+          "shortDescription":"Replace Document",
+          "description":"Replace Document",
+          "category": "Document Management",
           "scope":"global"
         }
   ]
