@@ -520,9 +520,10 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
 };
 
 //  user and group suggestion
-export async function userSuggestions(search: string, userId: string) {
+export async function userSuggestions(search: string, userId: string, searchKeys: string = "") {
     try {
         search = search.trim()
+        let searchKeyArray = searchKeys.split(",")
         let groupIds = await userGroupsList(userId)
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
@@ -548,6 +549,7 @@ export async function userSuggestions(search: string, userId: string) {
             return user
         })
         groups = groups.map(group => { return { ...group, type: "group" } })
+        if(searchKeyArray.length) return [...users, ...groups].filter(user=> searchKeyArray.includes(user.type))
         return [...users, ...groups]
     } catch (err) {
         throw err
