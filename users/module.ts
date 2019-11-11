@@ -518,15 +518,18 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
 };
 
 //  user and group suggestion
-export async function userSuggestions(search: string, userId: string, searchKeys: string = "") {
+export async function userSuggestions(search: string, userId: string, role: string, searchKeys: string = "") {
     try {
         search = search.trim()
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
         let groupIds = await userGroupsList(userId)
         let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId }).exec();
-        let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
-        let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
-        let groups = [...meCreatedGroup, ...sharedGroup]
+        let publicGroups: any = await checkRoleScope(role, "create-group");
+        if(publicGroups){
+            publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
+        }else{
+            publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
+        }
         const searchQuery = search ? {
             $or: [{
                 firstName: new RegExp(search, "i")
@@ -547,17 +550,17 @@ export async function userSuggestions(search: string, userId: string, searchKeys
             });
             return user
         })
-        myPrivateGroups = myPrivateGroups.map((privateGroup: any) => {return {...privateGroup, type: "private-group"}})
-        groups = groups.map(group => { return { ...group, type: "group" } })
-        if (searchKeyArray.length) return [...users, ...groups, ...myPrivateGroups].filter(user => searchKeyArray.includes(user.type))
-        return [...users, ...groups, ...myPrivateGroups]
+        myPrivateGroups = myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup, type: "private-group" } })
+        publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
+        if (searchKeyArray.length) return [...users, ...publicGroups, ...myPrivateGroups].filter(user => searchKeyArray.includes(user.type))
+        return [...users, ...publicGroups, ...myPrivateGroups]
     } catch (err) {
         throw err
     };
 };
 
-export async function getUsersForProject(search: string, userId: string) {
-    const data = await userSuggestions(search, userId)
+export async function getUsersForProject(search: string, userId: string, role: string) {
+    const data = await userSuggestions(search, userId, role)
     return data.filter(data1 => data1.type == 'group').concat(data.filter(data1 => data1.nonDisplaybleRole && (data1.nonDisplaybleRole != 'program-coordinator')))
 }
 
@@ -696,39 +699,39 @@ export async function recaptchaValidation(req: any) {
     }
 }
 
-export async function changeMobileNumber(objBody :any,userData:any) {
-        try{
-            let {newCountryCode,newPhone,password} = objBody;
-            if(!newPhone && !password && !newCountryCode){
-                throw new APIError(USER_ROUTER.MANDATORY)
-            }
-            let { firstName, lastName, middleName, phone,countryCode } = userData;
-            let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-            if(newCountryCode+newPhone == phone+countryCode){
-                throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
-            }
-            if(!comparePassword(password,userData.password)){
-                throw new APIError(USER_ROUTER.INVALID_PASSWORD);
-            }
-            let authOtp = { "otp": generateOtp(4) }
-            let token = await jwtOtpToken(authOtp);
-            await userUpdate({ otp_token: token, id: userData._id });
-            
-            let phoneNo:any = phone+countryCode;
-            if(newCountryCode && newPhone){
-                phoneNo = newCountryCode+newPhone
-            }
-            mobileSendOtp(phoneNo,SENDER_IDS.OTP);
-
-            let templateInfo:any = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
-            await nodemail({
-                email: userData.email,
-                subject: templateInfo.subject,
-                html: templateInfo.content
-            })
-
-            return {message :"success"}
+export async function changeMobileNumber(objBody: any, userData: any) {
+    try {
+        let { newCountryCode, newPhone, password } = objBody;
+        if (!newPhone && !password && !newCountryCode) {
+            throw new APIError(USER_ROUTER.MANDATORY)
         }
+        let { firstName, lastName, middleName, phone, countryCode } = userData;
+        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        if (newCountryCode + newPhone == phone + countryCode) {
+            throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
+        }
+        if (!comparePassword(password, userData.password)) {
+            throw new APIError(USER_ROUTER.INVALID_PASSWORD);
+        }
+        let authOtp = { "otp": generateOtp(4) }
+        let token = await jwtOtpToken(authOtp);
+        await userUpdate({ otp_token: token, id: userData._id });
+
+        let phoneNo: any = phone + countryCode;
+        if (newCountryCode && newPhone) {
+            phoneNo = newCountryCode + newPhone
+        }
+        mobileSendOtp(phoneNo, SENDER_IDS.OTP);
+
+        let templateInfo: any = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
+        await nodemail({
+            email: userData.email,
+            subject: templateInfo.subject,
+            html: templateInfo.content
+        })
+
+        return { message: "success" }
+    }
     catch (err) {
         throw err
     }

@@ -238,7 +238,7 @@ router.post("/group/:id/member/remove", authenticate, async (req: Request, res: 
 //  Get User suggestion
 router.get("/suggestion", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await userSuggestions(req.query.search, res.locals.user._id, req.query.searchKeys));
+        res.status(200).send(await userSuggestions(req.query.search, res.locals.user._id, res.locals.user.role, req.query.searchKeys));
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -246,7 +246,7 @@ router.get("/suggestion", authenticate, async (req: Request, res: Response, next
 
 router.get(`/getUsersForProject`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await getUsersForProject(req.query.search, res.locals.user._id))
+        res.status(OK).send(await getUsersForProject(req.query.search, res.locals.user._id, res.locals.user.role))
     } catch (error) {
         next(new APIError(error.message))
     }
