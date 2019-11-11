@@ -523,7 +523,7 @@ export async function userSuggestions(search: string, userId: string, searchKeys
         search = search.trim()
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
         let groupIds = await userGroupsList(userId)
-        let myPrivateGroups = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId }).exec();
+        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId }).exec();
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
@@ -547,9 +547,10 @@ export async function userSuggestions(search: string, userId: string, searchKeys
             });
             return user
         })
+        myPrivateGroups = myPrivateGroups.map((privateGroup: any) => {return {...privateGroup, type: "private-group"}})
         groups = groups.map(group => { return { ...group, type: "group" } })
-        if (searchKeyArray.length) return [...users, ...groups].filter(user => searchKeyArray.includes(user.type))
-        return [...users, ...groups]
+        if (searchKeyArray.length) return [...users, ...groups, ...myPrivateGroups].filter(user => searchKeyArray.includes(user.type))
+        return [...users, ...groups, ...myPrivateGroups]
     } catch (err) {
         throw err
     };
