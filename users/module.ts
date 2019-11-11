@@ -696,29 +696,33 @@ export async function recaptchaValidation(req: any) {
     }
 }
 
-export async function changeMobileNumber(objBody: any, userData: any) {
-    try {
-        let { newCountryCode, newPhone, password } = objBody;
-        if (newPhone && !password && !newCountryCode) {
-            throw new APIError(USER_ROUTER.MANDATORY)
+export async function changeMobileNumber(objBody :any,userData:any) {
+        try{
+            let {newCountryCode,newPhone,password} = objBody;
+            if(!newPhone && !password && !newCountryCode){
+                throw new APIError(USER_ROUTER.MANDATORY)
+            }
+            let { firstName, lastName, middleName, phone,countryCode } = userData;
+            let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+            if(newCountryCode+newPhone == phone+countryCode){
+                throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
+            }
+            if(!comparePassword(password,userData.password)){
+                throw new APIError(USER_ROUTER.INVALID_PASSWORD);
+            }
+            let authOtp = { "otp": generateOtp(4) }
+            let token = await jwtOtpToken(authOtp);
+            await userUpdate({ otp_token: token, id: userData._id });
+            
+            let phoneNo:any = phone+countryCode;
+            if(newCountryCode && newPhone){
+                phoneNo = newCountryCode+newPhone
+            }
+            mobileSendOtp(phoneNo,SENDER_IDS.OTP);
+            getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+            
+            return {message :"success"}
         }
-        let { firstName, lastName, middleName, phone, countryCode } = userData;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-        if (newCountryCode + newPhone == phone + countryCode) {
-            throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
-        }
-        if (!comparePassword(password, userData.password)) {
-            throw new APIError(USER_ROUTER.INVALID_PASSWORD);
-        }
-        let authOtp = { "otp": generateOtp(4) }
-        let token = await jwtOtpToken(authOtp);
-        await userUpdate({ otp_token: token, id: userData._id });
-
-        mobileSendOtp(phone, SENDER_IDS.OTP);
-        getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
-
-        return { message: "success" }
-    }
     catch (err) {
         throw err
     }
