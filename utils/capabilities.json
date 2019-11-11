@@ -49,6 +49,34 @@
           "scope": "global"
         },
         {
+          "capability": "reply-message",
+          "shortDescription": "Reply To Message",
+          "description": "Ability to reply to message",
+          "category": "Message Management",
+          "scope": "global"
+        },
+        {
+          "capability": "replyAll-message",
+          "shortDescription": "Reply All Message",
+          "description": "Ability to Reply All a message",
+          "category": "Message Management",
+          "scope": "global"
+        },
+        {
+          "capability": "forward-message",
+          "shortDescription": "Forward Message",
+          "description": "Ability to forward a message",
+          "category": "Message Management",
+          "scope": "global"
+        },
+        {
+          "capability": "create-message",
+          "shortDescription": "Create Message",
+          "description": "Ability to create a message",
+          "category": "Message Management",
+          "scope": "global"
+        },
+        {
           "capability": "view-all-cmp-messages",
           "shortDescription": "View All Cmp Messages",
           "description": "Ability to view all cmp message",
