@@ -452,7 +452,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
 export async function groupList(userId: string) {
     try {
         let groupIds = await userGroupsList(userId)
-        let meCreatedGroup = await groupPatternMatch({ is_active: true }, {}, {}, {}, "updatedAt")
+        let meCreatedGroup = await groupPatternMatch({}, {}, {}, {}, "updatedAt")
         // let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
         // let groups = [...meCreatedGroup, ...sharedGroup]
         return await Promise.all(meCreatedGroup.map(async (group: any) => {
