@@ -19,6 +19,7 @@ import * as stepRouter from "./steps/router";
 import * as privateGroup from "./private-groups/router";
 import * as activityRouter from "./log/router";
 import * as constantsRouter from "./site-constants/router";
+import * as phaseRouter from "./phase/router";
 
 // implement multer
 import * as multer from "multer";
@@ -62,6 +63,7 @@ app.use(`/steps`, authenticate, stepRouter)
 app.use(`/private-group`, privateGroup)
 app.use(`/activity`, activityRouter)
 app.use('/constants', constantsRouter);
+app.use('/phases',phaseRouter);
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

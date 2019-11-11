@@ -1,0 +1,142 @@
+# template create
+  createPhase:
+    post:
+      summary: create Phase
+      tags:
+        - Phases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phaseName
+                - colorCode
+              properties:
+                phaseName:
+                  type: string
+                  example: first
+                colorCode:
+                  type: string
+                  example: '#FF00FF'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "phase Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  phaseList:
+    get:
+      tags:
+        - Phases
+      summary: phase list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
+
+  # Add Grants        
+  phaseEdit:
+    put:
+      summary: edit phase
+      tags:
+        - Phases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phaseName
+                - colorCode
+              properties:
+                phaseName:
+                  type: string
+                  example: first
+                colorCode:
+                  type: string
+                  example: '#FF00FF'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                message:
+                  type: string
+                  example: success
+          description: Success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"         
+      
+  phaseGet:
+    get:
+      summary: Get phase
+      tags:
+        - Phases
+      parameters:
+        - in: query
+          name: phaseName
+          schema:
+            type: string
+          required: true
+          description: phase name
+
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "phase Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  phaseDelete:
+    get:
+      summary: delete phase
+      tags:
+        - Phases
+      parameters:
+        - in: query
+          name: phaseName
+          schema:
+            type: string
+          required: true
+          description: phase name
+
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully deleted phase
+          description: Success
+  
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
