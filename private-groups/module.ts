@@ -1,15 +1,15 @@
 import { privateGroupSchema } from "./model";
-import * as mongoose from "mongoose";
 import { RESPONSE } from "../utils/error_msg";
 import { userFindMany, userFindOne } from "../utils/users";
 
-export interface privateGroup extends mongoose.Document {
+export interface privateGroup {
     name: string;
     description: number;
     members: string[];
     createdBy: string;
     is_active: boolean
 };
+
 //  create Private Group 
 export async function createPrivateGroup(body: privateGroup, userId: string): Promise<object> {
     try {
@@ -65,9 +65,10 @@ export async function privateGroupDetails(groupId: string): Promise<any> {
 };
 
 //  Get Group Detail
-export async function privateGroupList(): Promise<any[]> {
+export async function privateGroupList(search?: string): Promise<any[]> {
     try {
-        let groupList = await privateGroupSchema.find({}).exec()
+        let searchQuery = search ? { name: new RegExp(search, "i") } : {}
+        let groupList = await privateGroupSchema.find(searchQuery).exec()
         return await Promise.all(groupList.map((group: any) => {
             return {
                 ...group,
