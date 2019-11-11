@@ -180,7 +180,7 @@ export async function groupUserList(groupId: string): Promise<string[]> {
             method: "GET",
             json: true
         }
-        return ((await request(Options) as any).users || []).concat([(await groupFindOne("id", groupId) as any).createdBy._id]);
+        return (await request(Options) as any).users;
     } catch (err) {
         throw err;
     };
