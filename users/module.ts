@@ -15,6 +15,7 @@ import { loginSchema } from "./login-model";
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
+import { privateGroupSchema } from "../private-groups/model";
 
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
@@ -520,8 +521,9 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
 export async function userSuggestions(search: string, userId: string, searchKeys: string = "") {
     try {
         search = search.trim()
-        let searchKeyArray = searchKeys.length? searchKeys.split(","): []
+        let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
         let groupIds = await userGroupsList(userId)
+        let myPrivateGroups = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId }).exec();
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         let groups = [...meCreatedGroup, ...sharedGroup]
@@ -546,7 +548,7 @@ export async function userSuggestions(search: string, userId: string, searchKeys
             return user
         })
         groups = groups.map(group => { return { ...group, type: "group" } })
-        if(searchKeyArray.length) return [...users, ...groups].filter(user=> searchKeyArray.includes(user.type))
+        if (searchKeyArray.length) return [...users, ...groups].filter(user => searchKeyArray.includes(user.type))
         return [...users, ...groups]
     } catch (err) {
         throw err

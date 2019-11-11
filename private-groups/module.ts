@@ -1,6 +1,8 @@
 import { privateGroupSchema } from "./model";
 import { RESPONSE } from "../utils/error_msg";
 import { userFindMany, userFindOne } from "../utils/users";
+import { checkRoleScope } from "../utils/role_management";
+import { APIError } from "../utils/custom-error";
 
 export interface privateGroup {
     name: string;
@@ -11,10 +13,12 @@ export interface privateGroup {
 };
 
 //  create Private Group 
-export async function createPrivateGroup(body: privateGroup, userId: string): Promise<object> {
+export async function createPrivateGroup(body: privateGroup, userObj: any): Promise<object> {
     try {
+        const isEligible = await checkRoleScope(userObj.role, "create-private-group");
+        if (!isEligible) throw new APIError("Unautherized Action.", 403);
         if (!body.name || !Array.isArray(body.members)) throw new Error("Missing Required Fields.");
-        return privateGroupSchema.create({ ...body, createdBy: userId })
+        return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
     };
@@ -65,10 +69,10 @@ export async function privateGroupDetails(groupId: string): Promise<any> {
 };
 
 //  Get Group Detail
-export async function privateGroupList(search?: string): Promise<any[]> {
+export async function privateGroupList(userId: string, search?: string): Promise<any[]> {
     try {
-        let searchQuery = search ? { name: new RegExp(search, "i") } : {}
-        let groupList = await privateGroupSchema.find(searchQuery).exec()
+        let searchQuery = search ? { name: new RegExp(search, "i"), createdBy: userId } : { createdBy: userId }
+        let groupList = await privateGroupSchema.find({ ...searchQuery }).exec()
         return await Promise.all(groupList.map((group: any) => {
             return {
                 ...group,
@@ -76,7 +80,6 @@ export async function privateGroupList(search?: string): Promise<any[]> {
                 members: userFindMany('_id', group.members, { firstName: 1, lastName: 1, middleName: 1, email: 1 })
             }
         }))
-
     } catch (err) {
         throw err;
     };
