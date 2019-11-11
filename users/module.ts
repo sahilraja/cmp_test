@@ -523,7 +523,7 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
 export async function userSuggestions(search: string, userId: string, searchKeys: string = "") {
     try {
         search = search.trim()
-        let searchKeyArray = searchKeys.split(",")
+        let searchKeyArray = searchKeys.length? searchKeys.split(","): []
         let groupIds = await userGroupsList(userId)
         let meCreatedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { createdBy: userId }, {}, "updatedAt")
         let sharedGroup = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")

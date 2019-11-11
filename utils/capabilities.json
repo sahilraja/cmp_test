@@ -229,6 +229,20 @@
           "description":"Replace Document",
           "category": "Document Management",
           "scope":"global"
+        },
+        {
+          "capability":"create-private-group",
+          "shortDescription":"Create Private Group",
+          "description":"Create Private Group",
+          "category": "Private Group Management",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-private-group",
+          "shortDescription":"Edit Private Group",
+          "description":"Edit Private Group",
+          "category": "Private Group Management",
+          "scope":"global"
         }
   ]
   
