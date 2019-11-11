@@ -1,4 +1,4 @@
-import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG } from "../utils/error_msg";
+import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR } from "../utils/error_msg";
 import { project as ProjectSchema } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
@@ -14,6 +14,9 @@ import { userFindMany } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
 import { documentsList } from "../documents/module";
+import { unlinkSync } from "fs";
+import { extname } from "path";
+import * as xlsx from "xlsx";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -626,4 +629,122 @@ export async function deleteUtilizedFund(projectId: string, payload: any, userId
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
   return updatedProject
+}
+
+export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj:any) {
+  if (!['.xlsx', ".csv"].includes(extname(filePath))) {
+      unlinkSync(filePath);
+      throw new APIError(`please upload valid xlsx/csv file`)
+  }
+  let workBook = xlsx.readFile(filePath);
+  xlsx.writeFile(workBook, filePath)
+  unlinkSync(filePath);
+  if (!workBook.SheetNames) { throw new APIError("not a valid sheet") }
+  var excelFormattedData: any[] = xlsx.utils.sheet_to_json(workBook.Sheets[workBook.SheetNames[0]]);
+  const roleData: any = await role_list()
+  const roleNames = roleData.roles.map((role: any) => role.roleName)
+  const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
+  const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
+  await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, ``, ``)))
+}
+
+async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
+  const [projectData, memberRoles] = await Promise.all([
+    ProjectSchema.findById(projectId).exec(),
+    projectMembers(projectId)
+  ])
+  if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
+    throw new APIError(TASK_ERROR.INVALID_ARRAY);
+  }
+  const approverIds = memberRoles.filter((memberRole: any) => taskObj.approvers.includes(memberRole.key)).map(val => val.key)
+  const endorserIds = memberRoles.filter((memberRole: any) => taskObj.endorsers.includes(memberRole.key)).map(val => val.key)
+  const viewerIds = memberRoles.filter((memberRole: any) => taskObj.viewers.includes(memberRole.key)).map(val => val.key)
+  const assigneeId = memberRoles.filter((memberRole: any) => [taskObj.assignee].includes(memberRole.key)).map(val => val.key)
+
+  if(approverIds.length != taskObj.approvers.length){
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+  }
+  if(endorserIds.length != taskObj.endorsers.length){
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)    
+  }
+  if(viewerIds.length != taskObj.viewers.length){
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+  }
+  if(!assigneeId){
+    throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
+  }
+  taskObj = {...taskObj, 
+    projectId,
+    assignee:assigneeId,
+    approvers:approverIds,
+    endorsers:endorserIds,
+    viewers:viewerIds,
+  }
+  const {assignee, approvers, endorsers} = taskObj
+  if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {
+    throw new APIError(TASK_ERROR.DUPLICATE_APPROVERS_FOUND)
+  }
+  if (Array.from(new Set(taskObj.endorsers || [])).length != (taskObj.endorsers || []).length) {
+    throw new APIError(TASK_ERROR.DUPLICATE_ENDORSERS_FOUND)
+  }
+  if (assignee && ((taskObj.approvers || []).concat(taskObj.endorsers || [])).includes(assignee)) {
+    throw new APIError(TASK_ERROR.ASSIGNEE_ERROR)
+  }
+  if ((taskObj.approvers || []).some((approver:any) => (taskObj.endorsers || []).includes(approver))) {
+    throw new APIError(TASK_ERROR.APPROVERS_EXISTS)
+  }
+  return taskObj
+}
+
+function validateObject(data: any, roleNames: any, projectMembersData?: any) {
+  let errorRole
+  if(!data.name || !data.name.trim().length){
+    throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
+  }
+  if(!data.assignee || !data.assignee.trim().length){
+    throw new APIError(`Assignee is required for task ${data.name}`) 
+  }
+  const approvers = data.approvers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
+  const endorsers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
+  const viewers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
+  if(!roleNames.includes(data.assignee.trim())){
+    throw new APIError(`Assignee not exists for task ${data.name}`) 
+  }
+  // Validate Approvers
+  if(approvers.some((approver: string) => {
+    errorRole = approver
+    return !roleNames.includes(approver)
+  })){
+    throw new APIError(`Approver ${errorRole} not exists in the system at task ${data.name}`)
+  }
+  // Validate Endorsers  
+  if(endorsers.some((endorser: string) => {
+    errorRole = endorser
+    return !roleNames.includes(endorser)
+  })){
+    throw new APIError(`Endorser ${errorRole} not exists in the system at task ${data.name}`)
+  }
+  // Validate Viewers
+  if(viewers.some((viewer: string) => {
+    errorRole = viewer
+    return !roleNames.includes(viewer)
+  })){
+    throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
+  }
+  return {
+    name:data.name,
+    description: data.description,
+    initialStartDate: data.initialStartDate,
+    initialDueDate: data.initialDueDate,
+    // Validate ids
+    // tags: data.tags,
+    assignee:data.assignee,
+    viewers: data.viewers,
+    approvers: data.approvers,
+    endorsers: data.endorsers,
+    stepId: data.stepId,
+    pillarId: data.pillarId,
+    isFromExcel:  true,
+    documents: data.documents
+  }
 }
