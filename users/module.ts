@@ -439,9 +439,6 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         let group: any = await groupFindOne("id", id);
         const { name, description } = objBody
         let obj: any = {}
-        if (name) {
-            obj.name = name;
-        };
         if (description) {
             obj.description = description;
         };
