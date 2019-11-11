@@ -719,8 +719,14 @@ export async function changeMobileNumber(objBody :any,userData:any) {
                 phoneNo = newCountryCode+newPhone
             }
             mobileSendOtp(phoneNo,SENDER_IDS.OTP);
-            getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
-            
+
+            let templateInfo:any = await getTemplateBySubstitutions('otpVerification', {fullName,otp:authOtp.otp});
+            await nodemail({
+                email: userData.email,
+                subject: templateInfo.subject,
+                html: templateInfo.content
+            })
+
             return {message :"success"}
         }
     catch (err) {
