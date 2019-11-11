@@ -1,0 +1,107 @@
+  updateNotification:
+    post:
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+        - templateName
+        - email
+        - mobile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+                templateName:
+                  type: string
+                  example: invite
+                email:
+                  type: boolean
+                  example: false
+                mobile:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message : success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  getNotification:
+    get:
+      tags:
+        - NOTIFICATIONS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schema.yaml/#/responses/schemas/notificationsSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  addRoleNotification:
+    post:
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/notificationsSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  addTemplateNotification:
+    post:
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - templateName
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateName:
+                  type: string
+                  example: technology-lead
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/notificationsSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  

@@ -17,6 +17,7 @@ import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
+import { notificationSchema } from "../notifications/model";
 
 import { httpRequest } from "../utils/role_management";
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -50,6 +51,7 @@ export async function inviteUser(objBody: any, user: any) {
             }
         }
         //  Check User Capability
+
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({

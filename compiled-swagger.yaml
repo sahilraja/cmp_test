@@ -5424,7 +5424,127 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_16
+                items: *ref_15
+  /notifications/update:
+    post:
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+        - templateName
+        - email
+        - mobile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+                templateName:
+                  type: string
+                  example: invite
+                email:
+                  type: boolean
+                  example: false
+                mobile:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: success
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /notifications/list:
+    get:
+      tags:
+        - NOTIFICATIONS
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: &ref_16
+                  type: object
+                  properties:
+                    role:
+                      type: string
+                      example: technology-lead
+                    templates:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          templateName:
+                            type: string
+                            example: invite
+                          email:
+                            type: boolean
+                            example: 'yes'
+                          mobile:
+                            type: boolean
+                            example: 'yes'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /notifications/role/add:
+    post:
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_16
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /notifications/template/add:
+    post:
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - templateName
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateName:
+                  type: string
+                  example: technology-lead
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_16
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
 definitions:
   ErrorResponse:
     BadRequest:

@@ -6,6 +6,9 @@ import { addRole } from "./rbac";
 import { RBAC_URL } from "./urls";
 import { userList, createUser } from "./users";
 import { constantSchema } from "../site-constants/model";
+import { notificationSchema } from "../notifications/model";
+import { role_list } from "../role/module";
+import { TemplateSchema } from "../email-templates/model";
 
 export async function init() {
   let removeOptions = {
@@ -94,6 +97,38 @@ export async function siteConstants() {
     console.log(`existing site-constants found in DB`);
   }
 }
+export async function notifications(){
+  let existingNotificationsCount = await notificationSchema.find().count().exec();
+  if(!existingNotificationsCount){
+      let {roles}:any= await role_list();
+      let templateList:any = await TemplateSchema.find({}).exec();
+      // let NotificationsList :object[] = [];
+      // let notificationObject :any= {
+      //   role:
+      // }
+
+      let notificationsList = roles.map((user:any)=>{
+        let templates: object[] = []; 
+        templateList.forEach((template:any)=> {
+            templates.push({
+              templateName:template.templateName,
+              email:false,
+              mobile:false
+            })
+        });
+        return{
+          role:user.role,
+          templates
+        }
+      })
+      await notificationSchema.create(notificationsList);
+      console.log(`notifications created successfully`);
+    }
+    else{
+      console.log(`existing notifications found in DB`);
+    }
+}
+
 export async function httpRequest(options: any) {
   return new Promise((resolve, reject) => {
       request({ ...options, json: true }, function (err: Error, response: any, body: any) {

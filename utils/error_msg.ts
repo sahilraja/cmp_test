@@ -24,7 +24,9 @@ export const USER_ROUTER = {
     SIMILAR_MOBILE:"Old mobile number and new mobile number is similar",
     INVALID_PASSWORD: "Given password is invalid",
     INVALID_OTP: "Given email otp is invalid",
-    INVALID_COUNTRYCODE:"Given country code is invalid" 
+    INVALID_COUNTRYCODE:"Given country code is invalid",
+    CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
+    ADD_NOTIFICATION_FAIL : "Failed to add template to notification"
 };
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",

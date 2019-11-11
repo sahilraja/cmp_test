@@ -20,6 +20,7 @@ import * as privateGroup from "./private-groups/router";
 import * as activityRouter from "./log/router";
 import * as constantsRouter from "./site-constants/router";
 import * as phaseRouter from "./phase/router";
+import * as notificationsRouter from "./notifications/router";
 
 // implement multer
 import * as multer from "multer";

@@ -353,6 +353,16 @@ paths:
 
 
 
+
+#notifications
+  /notifications/update:
+    $ref: ./swagger/notifications/paths.yaml/#/updateNotification
+  /notifications/list:
+    $ref: ./swagger/notifications/paths.yaml/#/getNotification
+  /notifications/role/add:
+    $ref: ./swagger/notifications/paths.yaml/#/addRoleNotification
+  /notifications/template/add:
+    $ref: ./swagger/notifications/paths.yaml/#/addTemplateNotification
 definitions:
   # Error
   $ref: ./swagger/error.yaml
