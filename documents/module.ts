@@ -1408,12 +1408,22 @@ async function loopForAddCapability(docId: string, users: any[]) {
 export async function suggestTags(docId: string, body: any, userId: string) {
   try {
     if (!body.tags) { throw new Error("Tags is required field") }
+    let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
+    if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+
     let doc = await documents.findByIdAndUpdate(docId, {
       "$push": {
         suggestedTags: { userId: userId, tags: body.tags }
       }
       // "$push": { tags: { "$each": body.tags  } }    
     })
+
+    await documents.findByIdAndUpdate(child[child.length - 1]._id, {
+      "$push": {
+        suggestedTags: { userId: userId, tags: body.tags }
+      }
+    })
+
     if (doc) {
       return {
         sucess: true,
