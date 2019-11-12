@@ -484,6 +484,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
+
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     if (objBody.description || objBody.docName || objBody.id) obj.versionNum = Number(child[0].versionNum) + 1
@@ -498,7 +499,8 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
         ownerId: userId,
         parentId: parent.id,
         fileId: objBody.id || parent.fileId,
-        fileName: objBody.name || parent.fileName
+        fileName: objBody.name || parent.fileName,
+        suggestedTags: parent.suggestedTags 
       });
       await create({ activityType: `Document Updated`, activityBy: userId, documentId: docId })
 
