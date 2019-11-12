@@ -6,7 +6,7 @@ import { constantsList, addConstants } from "./module";
 const router = Router();
 
 
-router.post("/add", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/update", async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(OK).send(await addConstants(req.body));
     } catch (err) {
