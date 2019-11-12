@@ -39,11 +39,12 @@
           content:
             application/json:
               schema:
-                type: object
+                type: array
                 example:
-                  aboutMe: 300
-                  docName: 30                   
-                  
+                - key: aboutMe
+                  value: 300
+                - key: docName
+                  value: 30      
           description: Success
       "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
