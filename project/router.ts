@@ -262,10 +262,9 @@ router.put(`/:id/delete-utilized-fund`, async (req, res, next) => {
         next(new APIError(error.message))
     }
 })
-import * as multer from "multer";
-
 router.use(`/:id/compliance`, complianceRouter)
 
+import * as multer from "multer";
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         console.log("Dest");

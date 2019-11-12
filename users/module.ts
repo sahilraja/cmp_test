@@ -16,9 +16,26 @@ import { getTemplateBySubstitutions } from "../email-templates/module";
 import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
 import { privateGroupSchema } from "../private-groups/model";
+import { importExcelAndFormatData } from "../project/module";
 
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
+
+export async function bulkInvite(filePath: string, userId: string) {
+    const excelFormattedData = importExcelAndFormatData(filePath)
+    const roleData: any = await role_list()
+    const formattedDataWithRoles = excelFormattedData.map(data => ({...data, role: roleData.roles.find((role: any) => role.name == data.role)}))  
+    if(formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)){
+        throw new APIError(`Category, Role and Email are mandatory for all`)
+    }
+    formattedDataWithRoles.forEach((role: any) => {
+        if(!validateEmail(role.email)){
+            throw new APIError(`${role.email} is invalid`)
+        }
+    })
+    await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
+}
+
 //  Create User
 export async function inviteUser(objBody: any, user: any) {
     try {

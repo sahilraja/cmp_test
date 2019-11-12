@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, mobileVerification, changeMobileNumber } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, mobileVerification, changeMobileNumber, bulkInvite } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -19,6 +19,14 @@ const router = Router();
 router.post('/create', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).send(await inviteUser(req.body, res.locals.user));
+    } catch (err) {
+        next(new APIError(err.message));
+    };
+});
+
+router.post(`/bulk-invite`, authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).send(await bulkInvite(res.locals.user, req.body));
     } catch (err) {
         next(new APIError(err.message));
     };
