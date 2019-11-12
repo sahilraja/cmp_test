@@ -210,7 +210,7 @@ router.post("/user-capabilities", authenticate, async (req, res, next) => {
 
 router.post("/add-user-capabilities", authenticate, async (req, res, next) => {
   try {
-    res.status(200).send(await shareDocForUsers(req.body.object))
+    res.status(200).send(await shareDocForUsers(req.body))
   } catch (err) {
     next(new APIError(err.message));
   };

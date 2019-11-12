@@ -1384,6 +1384,7 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
 
 export async function shareDocForUsers(obj: any) {
   try {
+    if(!obj) throw new Error("Missing data.")
     if (Object.keys(obj).length) {
       if (obj.noAccessDocuments) delete obj.noAccessDocuments
       if (obj.documents) delete obj.documents
