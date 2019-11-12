@@ -86,7 +86,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.maturationStartDate = { date: reqObject.maturationStartDate, modifiedBy: user._id }
     }
     if(reqObject.phase){
-      obj.phase = reqObject.phaseId
+      obj.phase = reqObject.phase
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set:obj }, { new: true }).exec();
     return updatedProject
