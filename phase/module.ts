@@ -51,7 +51,7 @@ export async function deletePhase(phaseId:string) {
 }
 export async function listPhase() {
     try{
-        return await phaseSchema.find().exec();
+        return await phaseSchema.find({}).exec();
     }
     catch(err){
         throw err

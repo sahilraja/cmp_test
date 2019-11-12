@@ -282,9 +282,10 @@ export async function getProjectsList(userId: any, userToken: string) {
   try {
     // let userProjects: any = await userRoleAndScope(userId);
     // if (!userProjects) throw new Error("user have no projects");
-    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
-    const projectIds = (list || []).map((_list) => _list.id)
-    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages }
+    //const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
+    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] },{populate:"phase"})
+    const projectIds = (list || []).map((_list) => _list.id);
+    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
     throw error;
