@@ -631,21 +631,26 @@ export async function deleteUtilizedFund(projectId: string, payload: any, userId
   return updatedProject
 }
 
-export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj:any) {
+export function importExcelAndFormatData(filePath: string) {
   if (!['.xlsx', ".csv"].includes(extname(filePath))) {
-      unlinkSync(filePath);
-      throw new APIError(`please upload valid xlsx/csv file`)
+    unlinkSync(filePath);
+    throw new APIError(`please upload valid xlsx/csv file`)
   }
   let workBook = xlsx.readFile(filePath);
   xlsx.writeFile(workBook, filePath)
   unlinkSync(filePath);
   if (!workBook.SheetNames) { throw new APIError("not a valid sheet") }
   var excelFormattedData: any[] = xlsx.utils.sheet_to_json(workBook.Sheets[workBook.SheetNames[0]]);
+  return excelFormattedData
+}
+
+export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj:any) {
   const roleData: any = await role_list()
   const roleNames = roleData.roles.map((role: any) => role.roleName)
+  const excelFormattedData = importExcelAndFormatData(filePath)
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
-  await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, ``, ``)))
+  await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
 }
 
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
