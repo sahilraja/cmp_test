@@ -3,13 +3,15 @@ import { APIError } from "../utils/custom-error";
 import { USER_ROUTER, ROLE_NOT_EXIST } from "../utils/error_msg";
 import { role_list } from "../role/module";
 import { TemplateSchema } from "../email-templates/model";
+import { getRoles } from "../utils/rbac";
+import { userDetails } from "../users/module";
 
 export async function notificationsUpdate(reqObject: any) {
     try {
         let { role, templateName, email, mobile } = reqObject;
         let updatedData = await notificationSchema.update({ 'role': role, "templates.templateName": templateName },
-            { $set: { 'templates.$.mobile': email, 'templates.$.email': mobile } })
-        return updatedData
+            { $set: { 'templates.$.mobile': mobile, 'templates.$.email': email } })
+        return { message: "success" }
     }
     catch (err) {
         throw err
@@ -53,6 +55,44 @@ export async function addTemplateNotification(templateName: any) {
         //     throw new APIError("Template is not found in email templates");
         // }
         return await notificationSchema.update({}, { "$push": { templates: { templateName, email: false, mobile: false } } })
+    }
+    catch (err) {
+        throw err
+    }
+}
+
+export async function getRoleNotification(roleName: string, templateName: string) {
+    try {
+        //let notificationInfo:any = await notificationSchema.aggregate([{$match:{ role: roleName}},{$unwind : "$templates"},{ $replaceRoot: { newRoot:{ $mergeObjects: [ { email: "$email", mobile:"$mobile",role:"$role"}, "$templates" ] }} }])
+        let notificationInfo: any = await notificationSchema.findOne({ role: roleName }).exec();
+        let [getNotification]: any = notificationInfo.templates.filter((notif: any) => {
+            return notif.templateName == templateName
+        })
+        return {role:roleName,...getNotification}
+    }
+    catch (err) {
+        throw err
+    }
+}
+
+
+export async function userRolesNotification(userId: any, templateName: string) {
+    try {
+        let { data } = await getRoles(userId);
+        let roleInfo: any = await Promise.all(data.map(async (user: any) => {
+            return await getRoleNotification(user.role, templateName);
+        }))
+        //return roleInfo
+        let notificationResult: any = roleInfo.reduce((acc: any, roleObj: any) => {
+            if (roleObj.email == true) {
+                acc['email'] = true
+            }
+            if (roleObj.email == true) {
+                acc['mobile'] = true
+            }
+            return acc
+        }, { email: false, mobile: false });
+        return notificationResult;
     }
     catch (err) {
         throw err

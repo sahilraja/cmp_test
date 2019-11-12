@@ -38,7 +38,7 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
 
-  getNotification:
+  getNotificationList:
     get:
       tags:
         - NOTIFICATIONS
@@ -104,4 +104,36 @@
                 $ref: ./schema.yaml/#/responses/schemas/notificationsSchema
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
-  
+  getNotificationInfo:
+    get:
+      tags:
+        - NOTIFICATIONS
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: role
+        - in: query
+          name: templateName
+          schema:
+            type: string
+          required: true
+          description: template name
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  role: "technology-lead"
+                  _id: "5dc97713fab0cd2189498e47"
+                  templateName: "invite"
+                  email: true
+                  mobile: false
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

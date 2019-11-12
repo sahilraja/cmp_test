@@ -18,6 +18,7 @@ import { constantSchema } from "../site-constants/model";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
 import { notificationSchema } from "../notifications/model";
+import { getRoleNotification, userRolesNotification } from "../notifications/module";
 
 import { httpRequest } from "../utils/role_management";
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -74,14 +75,17 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
-
+        let userNotification = await userRolesNotification(user._id,"invite");
+        if(userNotification.email){
+            let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
+            let mailStatus = await nodemail({
+                email: userData.email,
+                subject: templatInfo.subject,
+                html: templatInfo.content
+            })
+        }
         //  Sent Mail to User
-        let mailStatus = await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -268,14 +272,18 @@ export async function user_login(req: any) {
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
 
-        //mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
-        let templatInfo = await getTemplateBySubstitutions('userLogin', { fullName: userData.firstName });
-
-        await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        let userNotification= await userRolesNotification(userData._id,"userLogin");
+        if(userNotification.mobile){
+            //mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
+        }
+        if(userNotification.email){
+            let templatInfo = await getTemplateBySubstitutions('userLogin', { fullName: userData.firstName });
+            await nodemail({
+                email: userData.email,
+                subject: templatInfo.subject,
+                html: templatInfo.content
+            })
+        }
         return response
     } catch (err) {
         throw err;
