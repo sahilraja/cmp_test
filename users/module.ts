@@ -522,14 +522,11 @@ export async function userSuggestions(search: string, userId: string, role: stri
     try {
         search = search.trim()
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
-        let groupIds = await userGroupsList(userId)
+        // let groupIds = await userGroupsList(userId)
         let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId }).exec();
-        let publicGroups: any = await checkRoleScope(role, "create-group");
-        if(publicGroups){
-            publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
-        }else{
-            publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
-        }
+        // let publicGroups: any = await checkRoleScope(role, "create-group");
+        let publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
+        // publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         const searchQuery = search ? {
             $or: [{
                 firstName: new RegExp(search, "i")
