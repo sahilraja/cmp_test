@@ -6,7 +6,7 @@ const schema = new Schema({
     description: { type: String, trim: true },
     members: { type: Array },
     createdBy: { type: String, required: true },
-    is_active: { type: Date, default: new Date() }
+    is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 
 schema.plugin(mongoosePagination);

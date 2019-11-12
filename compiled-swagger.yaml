@@ -1106,6 +1106,154 @@ paths:
                 items: *ref_3
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /private-group/create:
+    post:
+      security:
+        - token: []
+      summary: Create Private Group
+      tags:
+        - PRIVATE GROUPS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+              properties:
+                name:
+                  type: string
+                  example: Private Group Name
+                description:
+                  type: string
+                  example: Private Project Description
+                members:
+                  type: array
+                  example: []
+      responses:
+        '200': &ref_4
+          description: Private group
+          content:
+            application/json:
+              schema: &ref_5
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: transerve
+                  description:
+                    type: string
+                    example: this group for transerve team
+                  createdBy:
+                    type: string
+                    example: 9uiewjf9023jfo39ur39
+                  members:
+                    type: array
+                    items:
+                      type: string
+                  is_active:
+                    type: boolean
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/private-group/{id}/edit':
+    post:
+      security:
+        - token: []
+      summary: Edit Private Group
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Private Group Name
+                description:
+                  type: string
+                  example: Private Project Description
+                members:
+                  type: array
+                  example: []
+      responses:
+        '200': *ref_4
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/private-group/{id}/status':
+    put:
+      security:
+        - token: []
+      summary: Change Private Group Status
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/private-group/{id}/details':
+    get:
+      security:
+        - token: []
+      summary: Private Group Details
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        '200': *ref_4
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /private-group/list:
+    get:
+      security:
+        - token: []
+      summary: Private Group List
+      tags:
+        - PRIVATE GROUPS
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_5
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/create:
     post:
       security:
@@ -1175,7 +1323,7 @@ paths:
                     type: number
                   docs:
                     type: array
-                    items: &ref_4
+                    items: &ref_6
                       type: object
                       properties:
                         name:
@@ -1499,7 +1647,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_4
+              schema: *ref_6
   '/project/{id}/members':
     get:
       security:
@@ -1666,7 +1814,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_4
+                  - *ref_6
                   - type: object
                     properties:
                       tasks:
@@ -1799,7 +1947,7 @@ paths:
                     type: string
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/add-released-fund': &ref_5
+  '/project/{id}/add-released-fund': &ref_7
     post:
       security:
         token: []
@@ -1829,10 +1977,10 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_4
+              schema: *ref_6
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/add-utilized-fund': &ref_6
+  '/project/{id}/add-utilized-fund': &ref_8
     post:
       security:
         token: []
@@ -1862,11 +2010,11 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_4
+              schema: *ref_6
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/delete-released-fund': *ref_5
-  '/project/{id}/delete-utilized-fund': *ref_6
+  '/project/{id}/delete-released-fund': *ref_7
+  '/project/{id}/delete-utilized-fund': *ref_8
   '/project/{id}/update-released-fund':
     post:
       security:
@@ -1899,7 +2047,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_4
+              schema: *ref_6
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/update-utilized-fund':
@@ -1934,7 +2082,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_4
+              schema: *ref_6
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /role/list:
@@ -4469,7 +4617,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_7
+                  - &ref_9
                     type: object
                     properties:
                       content:
@@ -4500,7 +4648,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_7
+                items: *ref_9
   '/template/edit/{id}':
     post:
       '400':
@@ -4541,7 +4689,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_7
+                  - *ref_9
                   - type: object
                     properties:
                       id:
@@ -4598,7 +4746,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_7
+                  - *ref_9
                   - type: object
                     properties:
                       id:
@@ -4606,7 +4754,7 @@ paths:
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
           description: Success
-  /pillars/create: &ref_9
+  /pillars/create: &ref_11
     post:
       security:
         - token: []
@@ -4616,7 +4764,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_8
+            schema: &ref_10
               type: object
               properties:
                 name:
@@ -4635,7 +4783,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_8
+                    - *ref_10
                     - type: object
                     - properties:
                         id:
@@ -4655,15 +4803,15 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_8
+                  - *ref_10
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/pillars/{id}/edit': *ref_9
-  /steps/create: &ref_11
+  '/pillars/{id}/edit': *ref_11
+  /steps/create: &ref_13
     post:
       security:
         - token: []
@@ -4673,7 +4821,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_10
+            schema: &ref_12
               type: object
               properties:
                 name:
@@ -4707,7 +4855,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_10
+                    - *ref_12
                     - type: object
                     - properties:
                         id:
@@ -4727,7 +4875,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_10
+                  - *ref_12
                   - type: object
                   - properties:
                       id:
@@ -4736,7 +4884,7 @@ paths:
           description: Success
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/steps/{id}/edit': *ref_11
+  '/steps/{id}/edit': *ref_13
   /constants/add:
     post:
       '400':
@@ -4790,14 +4938,14 @@ definitions:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_12
+          schema: &ref_14
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_12
+    Error: *ref_14
 components:
   securitySchemes:
     token:
@@ -4813,12 +4961,12 @@ components:
       required:
         - error
     userME: *ref_0
-    project: *ref_4
+    project: *ref_6
     userSchema: *ref_0
-    projectSchema: *ref_4
+    projectSchema: *ref_6
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'
-    pillarSchema: *ref_8
-    stepSchema: *ref_10
+    pillarSchema: *ref_10
+    stepSchema: *ref_12
     groupSchema: *ref_3
 

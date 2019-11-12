@@ -90,6 +90,19 @@ paths:
   /user/group/list:
     $ref: ./swagger/groups/paths.yaml/#/groupList
 
+
+# Private Groups APIs
+  /private-group/create:
+    $ref: ./swagger/private-groups/paths.yaml/#/createPrivateGroup
+  /private-group/{id}/edit:
+    $ref: ./swagger/private-groups/paths.yaml/#/editPrivateGroup
+  /private-group/{id}/status:
+    $ref: ./swagger/private-groups/paths.yaml/#/privateGroupStatus
+  /private-group/{id}/details:
+    $ref: ./swagger/private-groups/paths.yaml/#/privateGroupDetails
+  /private-group/list:
+    $ref: ./swagger/private-groups/paths.yaml/#/PrivateGroupList
+
     
 # Project APIs
   /project/create:

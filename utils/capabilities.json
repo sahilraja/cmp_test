@@ -236,13 +236,6 @@
           "description":"Create Private Group",
           "category": "Private Group Management",
           "scope":"global"
-        },
-        {
-          "capability":"edit-private-group",
-          "shortDescription":"Edit Private Group",
-          "description":"Edit Private Group",
-          "category": "Private Group Management",
-          "scope":"global"
         }
   ]
   

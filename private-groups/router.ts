@@ -20,7 +20,7 @@ router.param("id", async (req, res, next, value) => {
 //  Create Private Group 
 router.post("/create", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await createPrivateGroup(req.body, res.locals.user._id))
+        res.status(OK).send(await createPrivateGroup(req.body, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -47,7 +47,7 @@ router.put("/:id/status", authenticate, async (req: Request, res: Response, next
 //  Get List Private Group Deatils
 router.get("/list", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await privateGroupList())
+        res.status(OK).send(await privateGroupList(res.locals.user._id, req.query.search))
     } catch (err) {
         next(new APIError(err.message));
     };
