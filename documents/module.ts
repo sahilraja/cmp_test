@@ -453,10 +453,10 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
   };
 };
 
-export async function cancelUpdate(docId: string, userId: string){
+export async function cancelUpdate(docId: string, userId: string) {
   try {
-    await create({ activityType: `Cancel Updated`, activityBy: userId, documentId: docId})
-    return {success: true}
+    await create({ activityType: `Cancel Updated`, activityBy: userId, documentId: docId })
+    return { success: true }
   } catch (err) {
     throw err;
   };
@@ -500,17 +500,17 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
         fileId: objBody.id || parent.fileId,
         fileName: objBody.name || parent.fileName
       });
-      await create({ activityType: `Document Updated`, activityBy: userId, documentId: docId})
+      await create({ activityType: `Document Updated`, activityBy: userId, documentId: docId })
 
     } else {
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags })
-      let addtags = obj.tags.filter((tag: string)=>  !child[child.length - 1].tags.includes(tag) )
-      if(addtags.length){
-        await create({ activityType: `Tags Added`, activityBy: userId, documentId: docId, tagsAdded: addtags})
+      let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
+      if (addtags.length) {
+        await create({ activityType: `Tags Added`, activityBy: userId, documentId: docId, tagsAdded: addtags })
       }
-      let removedtags = child[child.length - 1].tags.filter((tag: string)=>  !obj.tags.includes(tag) )
-      if(addtags.length){
-        await create({ activityType: `Tags Removed`, activityBy: userId, documentId: docId, tagsRemoved: removedtags})
+      let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
+      if (addtags.length) {
+        await create({ activityType: `Tags Removed`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
     }
     return parent;
@@ -608,7 +608,7 @@ export async function getApprovalDoc(docId: string) {
 
 async function getTags(tagIds: any[]) {
   try {
-    return await Tags.find({ _id: { $in: tagIds }, deleted:false }, { tag: 1 });
+    return await Tags.find({ _id: { $in: tagIds }, deleted: false }, { tag: 1 });
   } catch (err) {
     console.error(err);
     throw err;
@@ -993,11 +993,11 @@ export async function unPublished(docId: string, userObj: any) {
 export async function replaceDoc(docId: string, replaceDoc: string, userObj: any) {
   try {
     let admin_scope = await checkRoleScope(userObj.role, "replace-document");
-      if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+    if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
     let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
     documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true }).exec()]);
-    let success = await published({...doc, versionNum: 1,status: STATUS.PUBLISHED, ownerId: userObj._id}, doc._id, userObj, false)
-    await create({ activityType: `Doucment Replaced`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id})
+    let success = await published({ ...doc, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
+    await create({ activityType: `Doucment Replaced`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
     mailAllCmpUsers("replaceDocument", success)
     return success
   } catch (err) {
@@ -1360,7 +1360,7 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
     let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
     let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
     let noAccessDocs = docIds.filter(docid => !Object.keys(mainObj).includes(docid))
-    return Object.assign(mainObj, { noAccessDocuments: noAccessDocs })
+    return Object.assign(mainObj, { noAccessDocuments: noAccessDocs, documents: await documents.find({ _id: { $in: Object.keys(mainObj).concat(noAccessDocs) } }) })
   } catch (err) {
     throw err
   };
@@ -1383,7 +1383,8 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
 export async function shareDocForUsers(obj: any) {
   try {
     if (Object.keys(obj).length) {
-      delete obj.noAccessDocuments
+      if (obj.noAccessDocuments) delete obj.noAccessDocuments
+      if (obj.documents) delete obj.documents
       await Promise.all((Object.keys(obj)).map((docId: string) => loopForAddCapability(docId, obj[docId])))
     }
     return { message: "shared successfully" }
@@ -1513,18 +1514,20 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
   };
 };
 
-async function mailAllCmpUsers(type: string, docDetails: any){
+async function mailAllCmpUsers(type: string, docDetails: any) {
   try {
-    let users = await userList({is_active: true, emailVerified: true},{email: true, firstName: true, middleName: true, lastName: true})
-    let allMailContent = await Promise.all(users.map(async(user: any)=>{
+    let users = await userList({ is_active: true, emailVerified: true }, { email: true, firstName: true, middleName: true, lastName: true })
+    let allMailContent = await Promise.all(users.map(async (user: any) => {
       let userName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
-      return Object.assign({...(await getTemplateBySubstitutions(type, {
-        fullName: userName,
-        documentName: docDetails.name,
-        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`
-      }))},{email: user.email })
+      return Object.assign({
+        ...(await getTemplateBySubstitutions(type, {
+          fullName: userName,
+          documentName: docDetails.name,
+          documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`
+        }))
+      }, { email: user.email })
     }));
-    await Promise.all(allMailContent.map((content: any)=>{
+    await Promise.all(allMailContent.map((content: any) => {
       return nodemail({
         email: content.email,
         subject: content.subject,
@@ -1536,4 +1539,3 @@ async function mailAllCmpUsers(type: string, docDetails: any){
     throw err;
   };
 };
- 

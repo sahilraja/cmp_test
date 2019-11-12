@@ -87,7 +87,7 @@ export async function GetDocIdsForUser(userId: string, type?:string): Promise<an
         let userType = type || "user"
         if(userType == "group"){
             let group: any = await groupFindOne("id", userId);
-            if(!group.is_active) return []
+            if(!group || group.is_active) return []
         }
         let policies = await groupsPolicyFilter(`${userType}/${userId}`, 0, "p")
         let users = policies.data.filter((policy: string[]) => {

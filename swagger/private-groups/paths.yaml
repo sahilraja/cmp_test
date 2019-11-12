@@ -1,0 +1,142 @@
+# Create Private Groups
+  createPrivateGroup:
+    post:
+      security:
+        - token: []
+      summary: Create Private Group
+      tags:
+        - PRIVATE GROUPS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+              properties:
+                name:
+                  type: string
+                  example: Private Group Name
+                description:
+                  type: string
+                  example: Private Project Description
+                members:
+                  type: array
+                  example: []
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/privateGroup"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Edit Private Groups
+  editPrivateGroup:
+    post:
+      security:
+        - token: []
+      summary: Edit Private Group
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Private Group Name
+                description:
+                  type: string
+                  example: Private Project Description
+                members:
+                  type: array
+                  example: []                
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/privateGroup"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Private Group Status
+  privateGroupStatus:
+    put:
+      security:
+        - token: []
+      summary: Change Private Group Status
+      tags:
+        - PRIVATE GROUPS
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Private Group Details
+  privateGroupDetails:
+    get:
+      security:
+        - token: []
+      summary: Private Group Details
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: success
+          $ref: "./schema.yaml/#/responses/privateGroup"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Private Group List
+  PrivateGroupList:
+    get:
+      security:
+        - token: []
+      summary: Private Group List
+      tags:
+        - PRIVATE GROUPS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./schema.yaml/#/responses/schemas/groupSchema"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
