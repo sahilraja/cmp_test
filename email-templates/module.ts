@@ -8,7 +8,6 @@ export async function templateCreate(body: any) {
         if(!body.content || !body.templateName){
             throw new Error(USER_ROUTER.MANDATORY);
         }
-
         let templateCreate  = await TemplateSchema.create(body);
         return templateCreate;
     } catch (err) {
@@ -27,7 +26,7 @@ export async function templateEdit(body: any,id:string) {
             objBody.content=body.content;
         }
         if(body.templateName){
-            objBody.templateName = body.templateName; 
+            delete body.templateName
         }
         if(body.subject){
             objBody.subject = body.subject;
