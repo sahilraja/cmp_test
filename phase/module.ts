@@ -6,38 +6,43 @@ import { USER_ROUTER } from "../utils/error_msg";
 
 export async function createPhase(payload: any) {
     try{
-        if(!payload.phaseName && !payload.colorCode){
+        if(!payload.phaseName && !payload.colorCode && !payload.createdBy){
             throw new APIError(USER_ROUTER.MANDATORY)
         }
-        return await phaseSchema.create(payload);
+        let phaseInfo:any = await phaseSchema.create(payload);
+        let {disable,...phaseResult} =phaseInfo.toObject();
+        return phaseResult
     }
     catch(err){
         throw err
     }
 }
 
-export async function editPhase(phaseName: string,colorCode: string) {
+export async function editPhase(phaseId: string,body: any) {
     try{
-        await phaseSchema.update({phaseName:phaseName}, { $set: {colorCode:colorCode}},{new:true}).exec()
-        return {messsage : "success"}
+        let phaseInfo:any = await phaseSchema.findByIdAndUpdate(phaseId, { $set: {phaseName:body.phaseName,colorCode:body.colorCode}},{new:true}).exec()
+        let {disable,...phaseResult} =phaseInfo.toObject();
+        return phaseResult
     }
     catch(err){
         throw err
     }
 }
 
-export async function getPhase(phaseName:string) {
+export async function getPhase(phaseId:string) {
     try{
-        return await phaseSchema.findOne({phaseName}).exec();
+        let phaseInfo:any = await phaseSchema.findById(phaseId).exec();
+        let {disable,...phaseResult} =phaseInfo.toObject();
+        return phaseResult
     }
     catch(err){
         throw err
     }
 }
 
-export async function deletePhase(phaseName:string) {
+export async function deletePhase(phaseId:string) {
     try{
-        await phaseSchema.deleteOne({phaseName}).exec();
+        await phaseSchema.findByIdAndUpdate(phaseId,{disable:true}).exec();
         return {messsage : "successfully deleted phase"}
     }
     catch(err){
@@ -47,6 +52,14 @@ export async function deletePhase(phaseName:string) {
 export async function listPhase() {
     try{
         return await phaseSchema.find().exec();
+    }
+    catch(err){
+        throw err
+    }
+}
+export async function userListPhase(userId:string){
+    try{
+        return await phaseSchema.findById({createdBy:userId}).exec();
     }
     catch(err){
         throw err

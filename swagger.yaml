@@ -325,11 +325,11 @@ paths:
 #Phases
   /phases/create:
     $ref: ./swagger/phases/paths.yaml/#/createPhase
-  /phases/edit:
+  /phases/edit/{id}:
     $ref: ./swagger/phases/paths.yaml/#/phaseEdit
-  /phases/getPhase:
+  /phases/getPhase/{id}:
     $ref: ./swagger/phases/paths.yaml/#/phaseGet
-  /phases/deletePhase:
+  /phases/deletePhase/{id}:
     $ref: ./swagger/phases/paths.yaml/#/phaseDelete
   /phases/list:
     $ref: ./swagger/phases/paths.yaml/#/phaseList

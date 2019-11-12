@@ -13,6 +13,7 @@
               required:
                 - phaseName
                 - colorCode
+                - createdBy
               properties:
                 phaseName:
                   type: string
@@ -20,6 +21,9 @@
                 colorCode:
                   type: string
                   example: '#FF00FF'
+                createdBy:
+                  type: string
+                  example: "5da9a8ef5d2b870f984d05ed"
       responses:
         "200":
           content:
@@ -48,7 +52,7 @@
               schema:
                 type: array
                 items:
-                  $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
+                  $ref: "./schema.yaml/#/responses/schemas/phaseSchema"
 
   # Add Grants        
   phaseEdit:
@@ -56,6 +60,14 @@
       summary: edit phase
       tags:
         - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      
       requestBody:
         required: true
         content:
@@ -77,11 +89,16 @@
           content:
             application/json:
               schema:
-                message:
-                  type: string
-                  example: success
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "phase Id"
           description: Success
-        "400":
+      "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"         
       
   phaseGet:
@@ -90,12 +107,12 @@
       tags:
         - Phases
       parameters:
-        - in: query
-          name: phaseName
+        - in: path
+          name: id
           schema:
             type: string
           required: true
-          description: phase name
+          description: phase id
 
       responses:
         "200":
@@ -114,17 +131,17 @@
       "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   phaseDelete:
-    get:
+    post:
       summary: delete phase
       tags:
         - Phases
       parameters:
-        - in: query
-          name: phaseName
+        - in: path
+          name: id
           schema:
             type: string
           required: true
-          description: phase name
+          description: phase id
 
       responses:
         "200":
