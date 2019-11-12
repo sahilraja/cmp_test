@@ -429,6 +429,7 @@ export async function createGroup(objBody: any, userObj: any) {
             description: description,
             createdBy: userObj._id
         });
+        // member add call
     } catch (err) {
         throw err;
     };
