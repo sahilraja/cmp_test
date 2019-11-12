@@ -6,7 +6,7 @@ import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
-import { ANGULAR_URL } from "../utils/urls";
+import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
@@ -18,6 +18,8 @@ import { constantSchema } from "../site-constants/model";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
 
+import { httpRequest } from "../utils/role_management";
+const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
 
@@ -749,4 +751,22 @@ export async function changeMobileNumber(objBody: any, userData: any) {
     catch (err) {
         throw err
     }
+}
+
+export async function replaceUser(userId: string, replaceTo: string, userToken: string){
+    await Promise.all([
+        httpRequest({
+            url: `${MESSAGE_URL}/v1/replace-user`,
+            body:{oldUser:userId, updatedUser: replaceTo},
+            method:'POST',
+            headers:{'Authorization': `Bearer ${userToken}`}
+        }),
+        httpRequest({
+            url: `${TASKS_URL}/replace-user`,
+            body:{oldUser:userId, updatedUser: replaceTo},
+            method:'POST',
+            headers:{'Authorization': `Bearer ${userToken}`}
+        })
+        // Documents & Roles to be updated
+    ]) 
 }
