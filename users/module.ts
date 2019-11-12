@@ -25,6 +25,7 @@ import { readFileSync } from "fs"
 import { any } from "bluebird";
 import { create } from "../log/module";
 import { getConstantsAndValues } from "../site-constants/module";
+import { promises } from "fs";
 
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
@@ -93,11 +94,16 @@ export async function inviteUser(objBody: any, user: any) {
         })
         let { fullName } = getFullNameAndMobile(userData);
         //  Add Role to User
-        let RoleStatus = await addRole(userData._id, objBody.role)
-        if (!RoleStatus.status) {
-            await userDelete(userData.id)
-            throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+        if (objBody.role && objBody.role.length) {
+            for (let role of objBody.role) {
+                let RoleStatus = await addRole(userData._id, role)
+                if (!RoleStatus.status) {
+                    await userDelete(userData.id)
+                    throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+                }
+            }
         }
+
         //  Create 24hr Token
         let token = await jwt_for_url({
             id: userData._id,
@@ -369,8 +375,9 @@ export async function userRoles(id: any) {
             role_list()
         ])
         if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
-        const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
-        return { roles: formattedRole ? formattedRole.roleName : role.data[0].role }
+        // const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
+        // return { roles: formattedRole ? formattedRole.roleName : role.data[0].role }
+        return { roles: role.data[0] }
     } catch (err) {
         throw err
     };
@@ -385,14 +392,39 @@ export async function userCapabilities(id: any) {
         if (!roles.data.length) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
         //  Get Capabilities of User
         // if (roles.data[0].role == "program-coordinator") return { roles: ["create-user", "create-task", "create-subtask", "attach-documents-to-task", "link-task", "create-message", "view-all-cmp-messages", "create-doc", "project-view", "attach-documents", "publish-documents", "create-folder", "delete-doc", "edit-task-progress-dates", "create-project", "display-role-management", "create-project", "edit-project", "create-tag", "edit-tag", "project-create-task", "project-edit-task", "publish-document", "unpublish-document", "create-group", "edit-group", "project-add-core-team"] }
-        let success = await roleCapabilitylist(roles.data[0].role)
-        if (!success.status) throw new Error(USER_ROUTER.CAPABILITIES_NOT_FOUND);
-        return { roles: success.data }
+
+        return await Promise.all(
+            roles.data[0].map(async (eachRole: any) => {
+                return await roleData(eachRole);
+            })
+        );
+        // let response = Promise.all([
+        //     roles.data[0].map(async (eachRole: any) => {
+        //         return await roleCapabilitylist(eachRole.role)
+        //         //    if (!success.status) throw new Error(USER_ROUTER.CAPABILITIES_NOT_FOUND);
+        //         //    return success;
+        //     })
+        // ])
+
+        // return { roles: data }
     } catch (err) {
         throw err;
     };
 };
 
+async function roleData(eachRole: any) {
+    try {
+        let role = eachRole.role
+       
+          let resp =await roleCapabilitylist(eachRole.role)
+          return {
+              role: role,
+              capabilities:resp.data
+        };
+    } catch (err) {
+        throw err;
+    }
+}
 //  Forgot Password
 export async function forgotPassword(objBody: any) {
     try {
