@@ -505,7 +505,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
       await create({ activityType: `Document Updated`, activityBy: userId, documentId: docId })
 
     } else {
-      await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags })
+      await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags,suggestedTags: parent.suggestedTags  })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
       if (addtags.length) {
         await create({ activityType: `Tags Added`, activityBy: userId, documentId: docId, tagsAdded: addtags })
