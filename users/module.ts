@@ -28,6 +28,11 @@ export async function bulkInvite(filePath: string, userId: string) {
     if(formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)){
         throw new APIError(`Category, Role and Email are mandatory for all`)
     }
+    formattedDataWithRoles.forEach((role: any) => {
+        if(!validateEmail(role.email)){
+            throw new APIError(`${role.email} is invalid`)
+        }
+    })
     await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
 }
 
