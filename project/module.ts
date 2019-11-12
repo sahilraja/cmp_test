@@ -631,17 +631,10 @@ export async function deleteUtilizedFund(projectId: string, payload: any, userId
   return updatedProject
 }
 
-<<<<<<< HEAD
 export function importExcelAndFormatData(filePath: string) {
   if (!['.xlsx', ".csv"].includes(extname(filePath))) {
     unlinkSync(filePath);
     throw new APIError(`please upload valid xlsx/csv file`)
-=======
-export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj:any) {
-  if (!['.xlsx', ".csv"].includes(extname(filePath))) {
-      unlinkSync(filePath);
-      throw new APIError(`please upload valid xlsx/csv file`)
->>>>>>> tasks upload from excel
   }
   let workBook = xlsx.readFile(filePath);
   xlsx.writeFile(workBook, filePath)
