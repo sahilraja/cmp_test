@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
 const schema = new Schema(
   {
@@ -9,7 +9,7 @@ const schema = new Schema(
     fileId: { type: String },
     versionNum: { type: String },
     status: { type: String, enum: [0, 1, 2, 3] },
-    parentId: { type: String },
+    parentId: { type: Types.ObjectId, ref: "documents" },
     ownerId: { type: String },
     fileName: { type: String },
     collaborator: { type: Array },
