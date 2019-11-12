@@ -1,0 +1,54 @@
+createCompliance:
+  post:
+    security:
+      - token: []
+    tags:
+      - COMPLIANCES
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ./schema.yaml/#/schemas/complianceSchema
+    responses:
+      "200":
+        description: success
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/complianceSchema
+getCompliances:
+  get:
+    security:
+      - token: []
+    tags:
+      - COMPLIANCES
+    responses:
+      "200":
+        content:
+          application/json: 
+            schema:
+              type: array
+              items:
+                $ref: ./schema.yaml/#/schemas/complianceSchema
+editCompliance:
+  put:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+    tags:
+      - COMPLIANCES
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ./schema.yaml/#/schemas/complianceSchema
+    responses:
+      200:
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/complianceSchema

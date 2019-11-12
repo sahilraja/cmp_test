@@ -96,6 +96,11 @@ export const PROJECT_ROUTER = {
     PROJECT_NOT_EXISTS: `No such project exists`
 }
 
+export const COMPLIANCES = {
+    UNAUTHORIZED_TO_CREATE:`Unauthorized to create compliance`,
+    UNAUTHORIZED_TO_EDIT:`Unauthorized to edit compliance`
+}
+
 export const ACTIVITY_LOG = {
     TASK_DATES_UPDATED: `TASK_DATES_UPDATED`,
     CREATE_TASK_FROM_PROJECT: `CREATE_TASK_FROM_PROJECT`,

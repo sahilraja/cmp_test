@@ -263,4 +263,6 @@ router.put(`/:id/delete-utilized-fund`, async (req, res, next) => {
     }
 })
 
+
+router.use(`/:id/compliance`, complianceRouter)
 export = router;
