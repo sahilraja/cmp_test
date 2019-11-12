@@ -311,7 +311,7 @@ paths:
   /steps/{id}/edit:
     $ref: ./swagger/steps/paths.yaml/#/createStep
 
-  /constants/add:
+  /constants/update:
     $ref: ./swagger/siteConstants/paths.yaml/#/addConstant
   /constants/list:
     $ref: ./swagger/siteConstants/paths.yaml/#/constantsList

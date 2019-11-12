@@ -4885,7 +4885,7 @@ paths:
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/steps/{id}/edit': *ref_13
-  /constants/add:
+  /constants/update:
     post:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
