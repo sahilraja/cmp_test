@@ -9,7 +9,11 @@ const schema = new Schema(
     fileId: { type: String },
     versionNum: { type: String },
     status: { type: String, enum: [0, 1, 2, 3] },
+<<<<<<< HEAD
     parentId: { type: String},
+=======
+    parentId: { type: Types.ObjectId, ref: "documents" },
+>>>>>>> 38e4919a90d7e7625a864df8d8da1f483599e63e
     ownerId: { type: String },
     fileName: { type: String },
     collaborator: { type: Array },
