@@ -97,41 +97,11 @@ responses:
                 example: 12343567890
                 description: user id
         projectCost:
-            type: array
-            items:
-              type: object
-              properties:
-                date: 
-                  type: number
-                  example: 1000
-                created_at: 
-                  type: string
-                  example: 10-1-2019
-                modified_at: 
-                  type: string
-                  example: 15-1-2019 
-                modified_by:
-                  type: string
-                  example: 12343567890
-                  description: user id
-        ciitiisGrants:
-            type: array
-            items:
-              type: object
-              properties:
-                date: 
-                  type: number
-                  example: 1000
-                created_at: 
-                  type: string
-                  example: 10-1-2019
-                modified_at: 
-                  type: string
-                  example: 15-1-2019 
-                modified_by:
-                  type: string
-                  example: 12343567890
-                  description: user id
+          type: number
+          example: 12343
+        citiisGrants:
+          type: number
+          example: 12343
         fundsReleased:
             type: array
             items:
