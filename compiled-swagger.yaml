@@ -4694,9 +4694,6 @@ paths:
                 content:
                   type: string
                   example: subject
-                templateName:
-                  type: string
-                  example: information
                 subject:
                   type: string
                   example: subject
