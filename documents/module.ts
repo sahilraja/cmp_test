@@ -512,7 +512,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
         await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
       }
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
-      if (addtags.length) {
+      if (removedtags.length) {
         await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
     }
