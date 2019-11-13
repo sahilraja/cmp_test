@@ -1422,41 +1422,11 @@ paths:
                                 example: 12343567890
                                 description: user id
                         projectCost:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              date:
-                                type: number
-                                example: 1000
-                              created_at:
-                                type: string
-                                example: 10-1-2019
-                              modified_at:
-                                type: string
-                                example: 15-1-2019
-                              modified_by:
-                                type: string
-                                example: 12343567890
-                                description: user id
+                          type: number
+                          example: 12343
                         ciitiisGrants:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              date:
-                                type: number
-                                example: 1000
-                              created_at:
-                                type: string
-                                example: 10-1-2019
-                              modified_at:
-                                type: string
-                                example: 15-1-2019
-                              modified_by:
-                                type: string
-                                example: 12343567890
-                                description: user id
+                          type: number
+                          example: 12343
                         fundsReleased:
                           type: array
                           items:
@@ -2094,6 +2064,70 @@ paths:
                   type: number
                 subInstallment:
                   type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_6
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/project-cost':
+    put:
+      security:
+        - token: []
+      summary: update project cost
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectCost:
+                  type: number
+                  example: 12345
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_6
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/ciitiis-grants':
+    put:
+      security:
+        - token: []
+      summary: update Citiis-Grants
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ciitiisGrants:
+                  type: number
+                  example: 12345
       responses:
         '200':
           description: success

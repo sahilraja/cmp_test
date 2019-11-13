@@ -85,10 +85,10 @@ export async function editProject(id: any, reqObject: any, user: any) {
     if (reqObject.maturationStartDate) {
       obj.maturationStartDate = { date: reqObject.maturationStartDate, modifiedBy: user._id }
     }
-    if(reqObject.phase){
+    if (reqObject.phase) {
       obj.phase = reqObject.phase
     }
-    const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set:obj }, { new: true }).exec();
+    const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
     return updatedProject
   } catch (err) {
     console.error(err);
@@ -97,16 +97,16 @@ export async function editProject(id: any, reqObject: any, user: any) {
 }
 
 
-export async function manageProjectMembers(id: string, members:string[], userId: string) {
+export async function manageProjectMembers(id: string, members: string[], userId: string) {
   members = Array.from(new Set(members))
-  if(members.includes(userId)){
+  if (members.includes(userId)) {
     throw new APIError(`You are trying to add yourself as project member`)
   }
-  const previousProjectData:any = await ProjectSchema.findById(id).exec()
-  const updatedProject:any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+  const previousProjectData: any = await ProjectSchema.findById(id).exec()
+  const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
   const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
   const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
-  createLog({activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId:id, addedUserIds, removedUserIds})
+  createLog({ activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId: id, addedUserIds, removedUserIds })
   return updatedProject
 }
 
@@ -283,7 +283,7 @@ export async function getProjectsList(userId: any, userToken: string) {
     // let userProjects: any = await userRoleAndScope(userId);
     // if (!userProjects) throw new Error("user have no projects");
     //const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
-    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] },{populate:"phase"})
+    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] }, { populate: "phase" })
     const projectIds = (list || []).map((_list) => _list.id);
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
@@ -327,7 +327,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  const createdTask:any = await httpRequest(options)
+  const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask.id, projectId, activityBy: userObj._id })
   createdTask
 }
@@ -389,12 +389,12 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
     json: true
   }
   const updatedTask = await httpRequest(options)
-  createLog({activityBy: userObj._id, activityType:ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
+  createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
 }
 
 export async function linkTask(projectId: string, taskId: string, userToken: string, userId: string) {
-  if(!taskId){
+  if (!taskId) {
     throw new Error(PROJECT_ROUTER.TASK_REQUIRED_FOR_LINKING)
   }
   const options = {
@@ -404,8 +404,8 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  const updatedTask:any = await httpRequest(options)  
-  createLog({activityBy: userId, activityType:ACTIVITY_LOG.TASK_LINKED_TO_PROJECT, taskId, projectId })
+  const updatedTask: any = await httpRequest(options)
+  createLog({ activityBy: userId, activityType: ACTIVITY_LOG.TASK_LINKED_TO_PROJECT, taskId, projectId })
   return updatedTask
 }
 
@@ -454,79 +454,79 @@ function getPercentageByInstallment(installment: number) {
   let percentage = 10, installmentType, phase
   switch (installment) {
     case 1:
-    percentage = 10
-    installmentType = `1st Installment`
-    phase = `Maturation`
-    break;
+      percentage = 10
+      installmentType = `1st Installment`
+      phase = `Maturation`
+      break;
     case 2:
-    phase = `Implementation`
-    percentage = 40
-    installmentType = `2nd Installment`
-    break;
+      phase = `Implementation`
+      percentage = 40
+      installmentType = `2nd Installment`
+      break;
     case 3:
-    phase = `Implementation`
-    percentage = 40
-    installmentType = `3rd Installment`
-    break;
+      phase = `Implementation`
+      percentage = 40
+      installmentType = `3rd Installment`
+      break;
     case 4:
-    percentage = 10
-    phase = `Implementation`
-    installmentType = `4th Installment`
-    break;
+      percentage = 10
+      phase = `Implementation`
+      installmentType = `4th Installment`
+      break;
     default:
-    break;
+      break;
   }
-  return {percentage, installmentType, phase}
+  return { percentage, installmentType, phase }
 }
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
-  const { fundsReleased, fundsUtilised }:any = projectDetail
+  const { fundsReleased, fundsUtilised, projectCost, ciitiisGrants }: any = projectDetail
   const documentIds = fundsReleased.map((fund: any) => fund.document).concat(fundsUtilised.map((fund: any) => fund.document)).filter((v: any) => !!v)
   const documents = await documentsList(documentIds)
-  const fundsReleasedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
-    const {installmentType, percentage, phase} = getPercentageByInstallment(fund)
-    const items = fundsReleased.filter((fundReleased: any) => 
-      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
-      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
-    return {
-      phase,
-      installment: installmentType,
-      percentage,
-      // Filter empty data
-      items,
-      installmentLevelTotal: items.reduce((p:number,item: any) => p + (item.cost || 0) ,0)
-    }
-  })
-  const fundsUtilisedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
+  const fundsReleasedData = Array(4).fill(0).map((it, index) => index + 1).map((fund: any) => {
     const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
-    const items = fundsUtilised.filter((fundReleased: any) => 
-      (!fundReleased.deleted &&  fundReleased.subInstallment && (fund == fundReleased.installment)
-      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
+    const items = fundsReleased.filter((fundReleased: any) =>
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
     return {
       phase,
       installment: installmentType,
       percentage,
       // Filter empty data
       items,
-      installmentLevelTotal: items.reduce((p:number,item: any) => p + (item.cost || 0) ,0)
+      installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
     }
   })
-  return { 
-    projectCost:200000000,
-    citiisGrants: 100000000,
+  const fundsUtilisedData = Array(4).fill(0).map((it, index) => index + 1).map((fund: any) => {
+    const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
+    const items = fundsUtilised.filter((fundReleased: any) =>
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
+    return {
+      phase,
+      installment: installmentType,
+      percentage,
+      // Filter empty data
+      items,
+      installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
+    }
+  })
+  return {
+    projectCost: projectCost,
+    citiisGrants: ciitiisGrants,
     fundsReleased: {
-      info:fundsReleasedData,
-      total: fundsReleasedData.reduce((p:number,c: any) => p + c.installmentLevelTotal ,0)
-    }, 
+      info: fundsReleasedData,
+      total: fundsReleasedData.reduce((p: number, c: any) => p + c.installmentLevelTotal, 0)
+    },
     fundsUtilised: {
       info: fundsUtilisedData,
-      total: fundsUtilisedData.reduce((p:number,c: any) => p + c.installmentLevelTotal ,0)
+      total: fundsUtilisedData.reduce((p: number, c: any) => p + c.installmentLevelTotal, 0)
     }
   }
 }
 
 export async function addFundReleased(projectId: string, payload: any, userId: string) {
-  if(!payload.installment){
+  if (!payload.installment) {
     throw new APIError(`Installment is required`)
   }
   const fund: any = await ProjectSchema.findById(projectId).exec()
@@ -534,46 +534,50 @@ export async function addFundReleased(projectId: string, payload: any, userId: s
   const otherFunds = fundsReleased.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsReleased.filter((fund: any) => fund.installment == payload.installment)
   let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].cost ? [] : matchedFunds
-  const updates = {fundsReleased: otherFunds.concat(matchedFundsWithData).concat([
-    {
-      subInstallment:matchedFundsWithData.length + 1,
-      installment: payload.installment, document: payload.document, cost: payload.cost, 
-      createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
-    }
-  ]).sort((a: any, b: any) => a.installment - b.installment)}
-  const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
-  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: userId})
+  const updates = {
+    fundsReleased: otherFunds.concat(matchedFundsWithData).concat([
+      {
+        subInstallment: matchedFundsWithData.length + 1,
+        installment: payload.installment, document: payload.document, cost: payload.cost,
+        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
+      }
+    ]).sort((a: any, b: any) => a.installment - b.installment)
+  }
+  const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
+  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: userId })
   return updatedFund
 }
 
 export async function addFundsUtilized(projectId: string, payload: any, userId: string) {
-  if(!payload.installment){
+  if (!payload.installment) {
     throw new Error(`Installment is required`)
   }
   const project: any = await ProjectSchema.findById(projectId).exec()
   const { fundsUtilised } = project
   const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsUtilised.filter((fund: any) => fund.installment == payload.installment)
-  const updates = {fundsUtilised: otherFunds.concat(matchedFunds).concat([
-    {
-      subInstallment: matchedFunds.length + 1,
-      installment: payload.installment, document: payload.document, cost: payload.cost, 
-      createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
-    }
-  ]).sort((a: any, b: any) => a.installment - b.installment)}
-  const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
-  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: userId})
+  const updates = {
+    fundsUtilised: otherFunds.concat(matchedFunds).concat([
+      {
+        subInstallment: matchedFunds.length + 1,
+        installment: payload.installment, document: payload.document, cost: payload.cost,
+        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
+      }
+    ]).sort((a: any, b: any) => a.installment - b.installment)
+  }
+  const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
+  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: userId })
   return updatedProject
 }
 
 export async function updateReleasedFund(projectId: string, payload: any, userId: string) {
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
-  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId })
   return updatedProject
   // if(!payload.installment || !payload.subInstallment){
   //   throw new APIError(`Installment is required`)
@@ -606,32 +610,32 @@ export async function updateUtilizedFund(projectId: string, payload: any, userId
   //   }
   // ]).sort((a: any, b: any) => a.installment - b.installment)}
   // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
-  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId })
   return updatedProject
 }
 
 export async function deleteReleasedFund(projectId: string, payload: any, userId: string) {
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
   updates['fundsReleased.$.deleted'] = true
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
   return updatedProject
 }
 
 export async function deleteUtilizedFund(projectId: string, payload: any, userId: string) {
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
   updates['fundsReleased.$.deleted'] = true
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
   return updatedProject
 }
@@ -649,7 +653,7 @@ export function importExcelAndFormatData(filePath: string) {
   return excelFormattedData
 }
 
-export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj:any) {
+export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any) {
   const roleData: any = await role_list()
   const roleNames = roleData.roles.map((role: any) => role.roleName)
   const excelFormattedData = importExcelAndFormatData(filePath)
@@ -671,26 +675,27 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   const viewerIds = memberRoles.filter((memberRole: any) => taskObj.viewers.includes(memberRole.key)).map(val => val.key)
   const assigneeId = memberRoles.filter((memberRole: any) => [taskObj.assignee].includes(memberRole.key)).map(val => val.key)
 
-  if(approverIds.length != taskObj.approvers.length){
+  if (approverIds.length != taskObj.approvers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
   }
-  if(endorserIds.length != taskObj.endorsers.length){
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)    
-  }
-  if(viewerIds.length != taskObj.viewers.length){
+  if (endorserIds.length != taskObj.endorsers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
   }
-  if(!assigneeId){
+  if (viewerIds.length != taskObj.viewers.length) {
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+  }
+  if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
-  taskObj = {...taskObj, 
+  taskObj = {
+    ...taskObj,
     projectId,
-    assignee:assigneeId,
-    approvers:approverIds,
-    endorsers:endorserIds,
-    viewers:viewerIds,
+    assignee: assigneeId,
+    approvers: approverIds,
+    endorsers: endorserIds,
+    viewers: viewerIds,
   }
-  const {assignee, approvers, endorsers} = taskObj
+  const { assignee, approvers, endorsers } = taskObj
   if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {
     throw new APIError(TASK_ERROR.DUPLICATE_APPROVERS_FOUND)
   }
@@ -700,7 +705,7 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   if (assignee && ((taskObj.approvers || []).concat(taskObj.endorsers || [])).includes(assignee)) {
     throw new APIError(TASK_ERROR.ASSIGNEE_ERROR)
   }
-  if ((taskObj.approvers || []).some((approver:any) => (taskObj.endorsers || []).includes(approver))) {
+  if ((taskObj.approvers || []).some((approver: any) => (taskObj.endorsers || []).includes(approver))) {
     throw new APIError(TASK_ERROR.APPROVERS_EXISTS)
   }
   return taskObj
@@ -708,53 +713,71 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
 
 function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   let errorRole
-  if(!data.name || !data.name.trim().length){
+  if (!data.name || !data.name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }
-  if(!data.assignee || !data.assignee.trim().length){
-    throw new APIError(`Assignee is required for task ${data.name}`) 
+  if (!data.assignee || !data.assignee.trim().length) {
+    throw new APIError(`Assignee is required for task ${data.name}`)
   }
   const approvers = data.approvers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   const endorsers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   const viewers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
-  if(!roleNames.includes(data.assignee.trim())){
-    throw new APIError(`Assignee not exists for task ${data.name}`) 
+  if (!roleNames.includes(data.assignee.trim())) {
+    throw new APIError(`Assignee not exists for task ${data.name}`)
   }
   // Validate Approvers
-  if(approvers.some((approver: string) => {
+  if (approvers.some((approver: string) => {
     errorRole = approver
     return !roleNames.includes(approver)
-  })){
+  })) {
     throw new APIError(`Approver ${errorRole} not exists in the system at task ${data.name}`)
   }
   // Validate Endorsers  
-  if(endorsers.some((endorser: string) => {
+  if (endorsers.some((endorser: string) => {
     errorRole = endorser
     return !roleNames.includes(endorser)
-  })){
+  })) {
     throw new APIError(`Endorser ${errorRole} not exists in the system at task ${data.name}`)
   }
   // Validate Viewers
-  if(viewers.some((viewer: string) => {
+  if (viewers.some((viewer: string) => {
     errorRole = viewer
     return !roleNames.includes(viewer)
-  })){
+  })) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
   return {
-    name:data.name,
+    name: data.name,
     description: data.description,
     initialStartDate: data.initialStartDate,
     initialDueDate: data.initialDueDate,
     // Validate ids
     // tags: data.tags,
-    assignee:data.assignee,
+    assignee: data.assignee,
     viewers: data.viewers,
     approvers: data.approvers,
     endorsers: data.endorsers,
     stepId: data.stepId,
     pillarId: data.pillarId,
-    isFromExcel:  true,
+    isFromExcel: true,
     documents: data.documents
+  }
+}
+
+export async function projectCostInfo(projectId: string, projectCost: number) {
+  try {
+    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }, { new: true })
+  }
+  catch (err) {
+    throw err
+  }
+}
+
+export async function ciitiisGrantsInfo(projectId: string, ciitiisGrants: number) {
+  try {
+    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { ciitiisGrants } }, { new: true })
+  }
+  catch (err) {
+    throw err
   }
 }
