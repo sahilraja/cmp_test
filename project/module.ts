@@ -44,6 +44,7 @@ export async function createProject(reqObject: any, user: any) {
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
       fundsReleased: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
       fundsUtilised: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
+      phase: reqObject.phase
     });
     createLog({ activityType: ACTIVITY_LOG.PROJECT_CREATED, projectId: createdProject.id, activityBy: user._id })
     return createdProject
@@ -83,6 +84,9 @@ export async function editProject(id: any, reqObject: any, user: any) {
     }
     if (reqObject.maturationStartDate) {
       obj.maturationStartDate = { date: reqObject.maturationStartDate, modifiedBy: user._id }
+    }
+    if(reqObject.phase){
+      obj.phase = reqObject.phase
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set:obj }, { new: true }).exec();
     return updatedProject
@@ -278,9 +282,10 @@ export async function getProjectsList(userId: any, userToken: string) {
   try {
     // let userProjects: any = await userRoleAndScope(userId);
     // if (!userProjects) throw new Error("user have no projects");
-    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
-    const projectIds = (list || []).map((_list) => _list.id)
-    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages }
+    //const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
+    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] },{populate:"phase"})
+    const projectIds = (list || []).map((_list) => _list.id);
+    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
     throw error;

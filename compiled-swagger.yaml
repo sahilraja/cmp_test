@@ -1270,6 +1270,7 @@ paths:
               required:
                 - reference
                 - name
+                - phase
               properties:
                 reference:
                   type: string
@@ -1280,6 +1281,9 @@ paths:
                 description:
                   type: string
                   example: project for develop schools
+                phase:
+                  type: string
+                  example: phase id
       responses:
         '200':
           description: success
@@ -1300,6 +1304,9 @@ paths:
                       summary:
                         type: string
                         example: project for develop schools
+                      phase:
+                        type: string
+                        example: phase id
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/list:
@@ -1511,6 +1518,9 @@ paths:
                         is_active:
                           type: boolean
                           example: true
+                        phase:
+                          type: string
+                          example: phase id
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/detail':
@@ -1583,6 +1593,7 @@ paths:
               required:
                 - reference
                 - name
+                - phase
               properties:
                 reference:
                   type: string
@@ -1593,6 +1604,9 @@ paths:
                 description:
                   type: string
                   example: project for develop schools
+                phase:
+                  type: string
+                  example: phase id
       responses:
         '200':
           description: success
@@ -1613,6 +1627,9 @@ paths:
                       summary:
                         type: string
                         example: project for develop schoolss
+                      phase:
+                        type: string
+                        example: phase id
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/manage-members':
@@ -4993,20 +5010,177 @@ paths:
           content:
             application/json:
               schema: *ref_14
+  /phases/create:
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: create Phase
+      tags:
+        - Phases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phaseName
+                - colorCode
+              properties:
+                phaseName:
+                  type: string
+                  example: first
+                colorCode:
+                  type: string
+                  example: '#FF00FF'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - &ref_15
+                    type: object
+                    properties:
+                      phaseName:
+                        type: string
+                        example: first
+                      colorCode:
+                        type: string
+                        example: '#FF00FF'
+                      createdBy:
+                        type: string
+                        example: user id
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: phase Id
+          description: Success
+  '/phases/edit/{id}':
+    put:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: edit phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phaseName
+                - colorCode
+              properties:
+                phaseName:
+                  type: string
+                  example: first
+                colorCode:
+                  type: string
+                  example: '#FF00FF'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_15
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: phase Id
+          description: Success
+  '/phases/getPhase/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: Get phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_15
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: phase Id
+          description: Success
+  '/phases/deletePhase/{id}':
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: delete phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully deleted phase
+          description: Success
+  /phases/list:
+    get:
+      tags:
+        - Phases
+      summary: phase list
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_15
 definitions:
   ErrorResponse:
     BadRequest:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_15
+          schema: &ref_16
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_15
+    Error: *ref_16
 components:
   securitySchemes:
     token:
@@ -5030,4 +5204,5 @@ components:
     pillarSchema: *ref_10
     stepSchema: *ref_12
     groupSchema: *ref_3
+    phaseSchema: *ref_15
 
