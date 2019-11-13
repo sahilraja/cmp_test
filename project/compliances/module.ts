@@ -3,10 +3,13 @@ import { checkRoleScope } from "../../utils/role_management";
 import { APIError } from "../../utils/custom-error";
 import { COMPLIANCES } from "../../utils/error_msg";
 
-export async function createCompliance(payload: object, userObj: any) {
+export async function createCompliance(payload: any, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, 'create-compliance')
     if(!isEligible){
         throw new APIError(COMPLIANCES.UNAUTHORIZED_TO_CREATE)
+    }
+    if(!payload.document && !payload.taskId){
+        throw new APIError(COMPLIANCES.REQUIRED_DOCUEMNT_OR_TASK)
     }
     return await ComplianceSchema.create({...payload, createdBy: userObj._id})
 }

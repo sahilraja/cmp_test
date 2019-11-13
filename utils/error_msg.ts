@@ -113,10 +113,12 @@ export const PROJECT_ROUTER = {
     MORE_THAN_ONE_RESULT_FOUND: `More than one result found for specified role`,
     TASK_REQUIRED_FOR_LINKING: `Task ID is required to link task to a project`,
     NOT_MEMBER_OF_PROJECT: `User is not a member of this project`,
-    PROJECT_NOT_EXISTS: `No such project exists`
+    PROJECT_NOT_EXISTS: `No such project exists`,
+    UNAUTHORIZED_ACCESS: `Unauthorized to perform this action`
 }
 
 export const COMPLIANCES = {
+    REQUIRED_DOCUEMNT_OR_TASK: `Document or task ID is required to create compliance`,
     UNAUTHORIZED_TO_CREATE:`Unauthorized to create compliance`,
     UNAUTHORIZED_TO_EDIT:`Unauthorized to edit compliance`
 }

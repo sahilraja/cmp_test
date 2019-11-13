@@ -31,7 +31,7 @@ export async function getTaskLogs(taskId: string, token: string) {
         ], []).filter((v: string) => v)
     const subTaskIds = activities.map((activity: any) => activity.subTask).filter(v => !!v)
     const [usersInfo, subTasks] = await Promise.all([
-        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1 }),
+        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic:1 }),
         getTasksByIds(subTaskIds, token)
     ])
     return activities.map((activity: any) => ({
@@ -57,7 +57,7 @@ export async function getDocumentsLogs(DocID: string, token: string) {
 
 async function activityFetchDetails(activity: any) {
     const userIds = (activity.documentAddedUsers || []).concat(activity.documentRemovedUsers || []).reduce((main: string[], curr: any) => main.concat(curr.Id), [])
-    const usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1 });
+    const usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 });
     const tagIds = (activity.tagsAdded || []).concat(activity.tagsRemoved || [])
     const tagsData = await tags.find({ _id: { $in: tagIds } })
     try {
