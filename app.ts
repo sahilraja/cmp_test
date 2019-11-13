@@ -62,7 +62,7 @@ app.use(`/pillars`, authenticate, pillarRouter)
 app.use(`/steps`, authenticate, stepRouter)
 app.use(`/private-group`, privateGroup)
 app.use(`/activity`, activityRouter)
-app.use('/constants', constantsRouter);
+app.use('/constants', authenticate, constantsRouter);
 app.use('/phases',authenticate,phaseRouter);
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
