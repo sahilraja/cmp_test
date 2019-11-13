@@ -240,7 +240,7 @@
         {
           "capability":"create-private-group",
           "shortDescription":"Create Private Group",
-          "description":"Create Private Group",
+          "description":"Create Private Group ",
           "category": "Private Group Management",
           "scope":"global"
         }
