@@ -1794,6 +1794,49 @@
                     type: boolean
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  deleteSuggestedTags:
+  # "/docs/{docId}/delete/suggested/tags":
+    post:
+      security:
+        - token: []
+      summary: delete suggested tags before approving
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: docId
+          schema:
+            type: string
+          required: true
+          description: DocumentId     
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tagId:
+                  type: string
+                  example: tag1234 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: Tag deleted Successfully
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
 
          
            

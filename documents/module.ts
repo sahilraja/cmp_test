@@ -1552,3 +1552,40 @@ async function mailAllCmpUsers(type: string, docDetails: any) {
     throw err;
   };
 };
+
+export async function deleteSuggestedTag(docId: string, body: any, userId: string, ) {
+  try {
+    if (!docId  || !body.tagId) { throw new Error("All mandatory fields are missing") }
+    let docdetails: any = await documents.findById(docId)
+    if (!docdetails) { throw new Error("DocId is Invalid") }
+    let [filteredDoc, filteredDoc1]: any = await Promise.all([
+      docdetails.suggestedTags.filter((tag: any) => tag.userId == userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags.filter((tag: any) => tag != body.tagId)
+          }
+        }),
+      docdetails.suggestedTags.filter((tag: any) => tag.userId != userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags
+          }
+        })
+    ])
+    let filteredDocs = [...filteredDoc, ...filteredDoc1]
+
+    let doc = await documents.findByIdAndUpdate(docId, {
+      suggestedTags: filteredDocs
+    })
+    if (doc) {
+      return {
+        sucess: true,
+        message: "Tag deleted Successfully"
+      }
+    }
+  } catch (err) {
+    throw err
+  };
+};

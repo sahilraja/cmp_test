@@ -52,7 +52,8 @@ import {
   rejectTags,
   getAllTags,
   allDocuments,
-  cancelUpdate
+  cancelUpdate,
+  deleteSuggestedTag
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -655,6 +656,14 @@ router.post("/:docId/reject/tags", authenticate, async (req, res, next: NextFunc
 router.post("/get/tags", async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getAllTags(req.body.tags));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:docId/delete/suggested/tags", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await deleteSuggestedTag(req.params.docId, req.body, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

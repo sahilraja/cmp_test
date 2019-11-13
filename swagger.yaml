@@ -279,6 +279,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/adduserCapabilities
   /docs/{Id}/cancel:
     $ref: ./swagger/resources/paths.yaml/#/cancelDocUpdate
+  /docs/{docId}/delete/suggested/tags:
+    $ref: ./swagger/resources/paths.yaml/#/deleteSuggestedTags
 
 #Templates
   /template/create:
