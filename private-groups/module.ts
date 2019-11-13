@@ -15,8 +15,8 @@ export interface privateGroup {
 //  create Private Group 
 export async function createPrivateGroup(body: privateGroup, userObj: any): Promise<object> {
     try {
-        // const isEligible = await checkRoleScope(userObj.role, "create-private-group");
-        // if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
+        if (!isEligible) throw new APIError("Unautherized Action.", 403);
         if (!body.name || !Array.isArray(body.members)) throw new Error("Missing Required Fields.");
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
@@ -77,10 +77,11 @@ export async function privateGroupList(userId: string, search?: string): Promise
 
 async function groupDetails(group: any) {
     try {
+        let userData = await userFindMany('_id', group.members.concat([group.createdBy]), { firstName: 1, lastName: 1, middleName: 1, email: 1 })
         return {
             ...group.toJSON(),
-            createdBy: await userFindOne("id", group.createdBy, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
-            members: await userFindMany('_id', group.members, { firstName: 1, lastName: 1, middleName: 1, email: 1 })
+            createdBy: userData.find((user: any)=> user._id == group.createdBy),
+            members: userData.filter((user: any)=> group.members.includes(user._id))
         }
     } catch (err) {
         throw err;

@@ -217,6 +217,13 @@
           "scope":"global"
         },
         {
+          "capability":"deactivate-group",
+          "shortDescription":"deactivate group",
+          "description":"deactivate group",
+          "category": "Group Management",
+          "scope":"global"
+        },
+        {
           "capability":"project-add-core-team",
           "shortDescription":"add core team",
           "description":"add core team",
@@ -238,7 +245,7 @@
           "scope":"global"
         },
         {
-          "capability":"create-private-group",
+          "capability":"manage-private-group",
           "shortDescription":"Create Private Group",
           "description":"Create Private Group ",
           "category": "Private Group Management",
