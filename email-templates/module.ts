@@ -5,7 +5,7 @@ import { SUBSTITUTIONS } from "./substitutions";
 
 export async function templateCreate(body: any) {
     try {
-        if(!body.content || !body.templateName){
+        if(!body.content || !body.templateName || !body.displayName){
             throw new Error(USER_ROUTER.MANDATORY);
         }
         let templateCreate  = await TemplateSchema.create(body);
@@ -24,6 +24,9 @@ export async function templateEdit(body: any,id:string) {
         let objBody: any={};
         if(body.content){
             objBody.content=body.content;
+        }
+        if(body.displayName){
+            objBody.displayName = body.displayName;
         }
         if(body.subject){
             objBody.subject = body.subject;

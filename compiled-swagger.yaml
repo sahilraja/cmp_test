@@ -4618,13 +4618,17 @@ paths:
               required:
                 - templateName
                 - content
+                - subject
               properties:
                 content:
                   type: string
-                  example: subject
+                  example: content
                 templateName:
                   type: string
                   example: information
+                displayName:
+                  type: string
+                  example: Display Name
                 subject:
                   type: string
                   example: subject
@@ -4646,6 +4650,9 @@ paths:
                       subject:
                         type: string
                         example: subject
+                      displayName:
+                        type: string
+                        example: Display Name
                   - type: object
                     properties:
                       id:
@@ -4688,8 +4695,6 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - templateName
               properties:
                 content:
                   type: string
@@ -4697,6 +4702,9 @@ paths:
                 subject:
                   type: string
                   example: subject
+                displayName:
+                  type: string
+                  example: Display Name
       responses:
         '200':
           content:
