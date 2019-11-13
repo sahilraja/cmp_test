@@ -100,7 +100,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
 export async function createDoc(body: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
+    let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "create-doc");
     if (!isEligible) {
       throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
@@ -396,7 +396,7 @@ export async function getDocDetails(docId: any, userId: string) {
     let users = await Promise.all(userData.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
     docList.suggestedTags = users
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
-      docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
+      docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
     docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     return docList;
   } catch (err) {
@@ -431,7 +431,7 @@ export async function getDocWithVersion(docId: any, versionId: any) {
     docList.tags = await getTags(docList.tags);
     docList.themes = await getThemes(docList.themes);
     let role: any = await userRoleAndScope(docList.ownerId);
-    docList.role = role.data.global[0];
+    docList.role = role.data[0];
     return docList;
   } catch (err) {
     console.error(err);
@@ -643,12 +643,12 @@ export async function getApprovalDoc(docId: string) {
     parentDoc.tags = await getTags(parentDoc.tags);
     parentDoc.themes = await getThemes(parentDoc.themes);
     let parentRole: any = await userRoleAndScope(parentDoc.ownerId);
-    parentDoc.role = parentRole.data.global[0];
+    parentDoc.role = parentRole.data[0];
     const modifiedDoc = pendingDoc[0].toJSON();
     modifiedDoc.tags = await getTags(modifiedDoc.tags);
     modifiedDoc.themes = await getThemes(modifiedDoc.themes);
     let modifiedRole: any = await userRoleAndScope(parentDoc.ownerId);
-    parentDoc.role = modifiedRole.data.global[0];
+    parentDoc.role = modifiedRole.data[0];
   } catch (err) {
     console.error(err);
     throw err;
@@ -970,7 +970,7 @@ export async function invitePeopleList(docId: string) {
             lastName: user.lastName,
             type: "user",
             email: user.email,
-            role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0],
+            role: (((await userRoleAndScope(user._id)) as any).data || [""])[0],
             docRole: (((await getRoleOfDoc(user._id, docId)) as any) || Array(2))[2]
           };
         })
@@ -1151,7 +1151,7 @@ export function manualPagination(page: number, limit: number, docs: any[]) {
 export async function createFolder(body: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
+    let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "create-folder");
     if (!isEligible) {
       throw new APIError(DOCUMENT_ROUTER.NO_FOLDER_PERMISSION, 403);
@@ -1297,7 +1297,7 @@ async function userData(folder: any, host: string) {
       name: folder.doc_id.name,
       description: folder.doc_id.description,
       tags,
-      role: ((userRole as any).data.global || [""])[0],
+      role: ((userRole as any).data || [""])[0],
       owner,
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${folder.doc_id.fileId}` : "N/A",
       date: folder.doc_id.createdAt,
@@ -1369,7 +1369,7 @@ export async function removeFromFolder(folderId: string, body: any, userId: stri
 export async function deleteDoc(docId: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
+    let userRole = userRoles.data[0];
 
     const isEligible = await checkRoleScope(userRole, "delete-doc");
     if (!isEligible) {

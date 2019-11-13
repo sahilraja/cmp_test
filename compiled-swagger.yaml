@@ -570,6 +570,20 @@ paths:
                 email:
                   type: string
                   example: Jeevan.balla@transerve.com
+                addRole:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - role1
+                    - role2
+                revokeRole:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - role1
+                    - role2
       responses:
         '200':
           description: success

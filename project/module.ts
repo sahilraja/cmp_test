@@ -124,6 +124,7 @@ export async function getProjectMembers(id: string) {
     ...(users.find((_user: any) => _user._id == user)),
     role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles)
   }))
+  // return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
 }
 
 function formatUserRole(role: string, formattedRoleObjs: any) {
@@ -370,7 +371,7 @@ async function formatTaskPayload(payload: any, projectId: string) {
   let supporters = []
   let assignee
   if (payload.assignee && !Types.ObjectId.isValid(payload.assignee)) {
-    const filteredAssignees = memberRoles.filter((role: any) => (role.data.global[0] == payload.assignee))
+    const filteredAssignees = memberRoles.filter((role: any) => (role.data[0] == payload.assignee))
     if (filteredAssignees.length > 1) {
       throw new APIError(PROJECT_ROUTER.MORE_THAN_ONE_RESULT_FOUND)
     } else {
@@ -458,7 +459,7 @@ export async function projectMembers(id: string) {
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
     value: user,
-    key: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles)
+    key: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles)
   }))
 }
 
