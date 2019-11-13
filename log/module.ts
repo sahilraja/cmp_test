@@ -64,8 +64,8 @@ async function activityFetchDetails(activity: any) {
         return {
             ...activity.toJSON(),
             activityBy: usersData.find((users: any)=> activity.activityBy == users._id),
-            documentAddedUsers: usersData.filter((obj: any) => (activity.documentAddedUsers || []).map((d: any) => d.Id).includes(obj._id)),
-            documentRemovedUsers: usersData.filter((obj: any) => (activity.documentRemovedUsers || []).map((d: any) => d.Id).includes(obj._id)),
+            documentAddedUsers: usersData.filter((obj: any) => (activity.documentAddedUsers || []).map((d: any) => d.Id).includes(obj.id)),
+            documentRemovedUsers: usersData.filter((obj: any) => (activity.documentRemovedUsers || []).map((d: any) => d.Id).includes(obj.id)),
             tagsAdded: tagsData.filter((obj: any) => (activity.tagsAdded || []).includes(obj.id)),
             tagsRemoved: tagsData.filter((obj: any) => (activity.tagsRemoved || []).includes(obj.id))
         }
