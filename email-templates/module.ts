@@ -25,9 +25,6 @@ export async function templateEdit(body: any,id:string) {
         if(body.content){
             objBody.content=body.content;
         }
-        if(body.templateName){
-            delete body.templateName
-        }
         if(body.subject){
             objBody.subject = body.subject;
         }
