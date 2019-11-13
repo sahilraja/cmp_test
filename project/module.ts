@@ -480,7 +480,7 @@ function getPercentageByInstallment(installment: number) {
 }
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
-  const { fundsReleased, fundsUtilised, projectCost, ciitiisGrants }: any = projectDetail
+  const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
   const documentIds = fundsReleased.map((fund: any) => fund.document).concat(fundsUtilised.map((fund: any) => fund.document)).filter((v: any) => !!v)
   const documents = await documentsList(documentIds)
   const fundsReleasedData = Array(4).fill(0).map((it, index) => index + 1).map((fund: any) => {
@@ -513,7 +513,7 @@ export async function getFinancialInfo(projectId: string) {
   })
   return {
     projectCost: projectCost,
-    citiisGrants: ciitiisGrants,
+    citiisGrants: citiisGrants,
     fundsReleased: {
       info: fundsReleasedData,
       total: fundsReleasedData.reduce((p: number, c: any) => p + c.installmentLevelTotal, 0)
@@ -773,9 +773,9 @@ export async function projectCostInfo(projectId: string, projectCost: number) {
   }
 }
 
-export async function ciitiisGrantsInfo(projectId: string, ciitiisGrants: number) {
+export async function citiisGrantsInfo(projectId: string, citiisGrants: number) {
   try {
-    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { ciitiisGrants } }, { new: true })
+    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true })
   }
   catch (err) {
     throw err

@@ -780,7 +780,7 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
 
 
-  ciitiisGrants:
+  citiisGrants:
     put:
       security:
         - token: []
@@ -803,7 +803,7 @@
             schema:
               type: object
               properties:
-                ciitiisGrants:
+                citiisGrants:
                   type: number
                   example: 12345     
       

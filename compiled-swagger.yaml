@@ -1424,7 +1424,7 @@ paths:
                         projectCost:
                           type: number
                           example: 12343
-                        ciitiisGrants:
+                        citiisGrants:
                           type: number
                           example: 12343
                         fundsReleased:
@@ -2104,7 +2104,7 @@ paths:
               schema: *ref_6
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/ciitiis-grants':
+  '/project/{id}/citiis-grants':
     put:
       security:
         - token: []
@@ -2125,7 +2125,7 @@ paths:
             schema:
               type: object
               properties:
-                ciitiisGrants:
+                citiisGrants:
                   type: number
                   example: 12345
       responses:

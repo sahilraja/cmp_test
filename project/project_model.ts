@@ -21,7 +21,7 @@ const schema = new Schema({
         }
     ],
     projectCost: { type: Number ,default:0},
-    ciitiisGrants: { type: Number , default:0},
+    citiisGrants: { type: Number , default:0},
     fundsReleased: [
         {
             deleted:{type:Boolean, default: false},

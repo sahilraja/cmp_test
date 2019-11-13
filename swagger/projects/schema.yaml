@@ -99,7 +99,7 @@ responses:
         projectCost:
           type: number
           example: 12343
-        ciitiisGrants:
+        citiisGrants:
           type: number
           example: 12343
         fundsReleased:

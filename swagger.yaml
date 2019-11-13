@@ -147,8 +147,8 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/updateUtilizedFund
   /project/{id}/project-cost:
     $ref: ./swagger/projects/paths.yaml/#/projectCost
-  /project/{id}/ciitiis-grants:
-    $ref: ./swagger/projects/paths.yaml/#/ciitiisGrants
+  /project/{id}/citiis-grants:
+    $ref: ./swagger/projects/paths.yaml/#/citiisGrants
 
 # Roles
   /role/list:
