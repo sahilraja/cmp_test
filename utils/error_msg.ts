@@ -90,11 +90,36 @@ export const ROLE_NOT_EXIST = "Role not Exist"
 
 export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 
+export const TASK_ERROR = {
+    TASK_NAME_REQUIRED: `Name is mandatory for all tasks`,
+    UNAUTHORIZED: `Unauthorized to create task`,
+    SUBTASK_UNAUTHORIZED : `Unauthorized to create subtask`,
+    ALL_MANDATORY: `Required all mandatory fields.`,
+    INVALID_ARRAY: `tags, approvers, viewers and supporters must be an Array.`,
+    ASSIGNEE_REQUIRED: `Assignee is required`,
+    ASSIGNEE_ERROR: `Assignee cant be approver or endorser`,
+    APPROVERS_EXISTS: `Approvers and endorsers must be different`,
+    DUPLICATE_APPROVERS_FOUND: `Duplicate approvers found`,
+    DUPLICATE_ENDORSERS_FOUND: `Duplicate endorsers found`,
+    USER_NOT_PART_OF_PROJECT:`User not found in project members list`,
+    WFM_CREATION_FAILED: `Fail to create WFM.`,
+    INVALID_WFM_BY_USER: `Unauthorized to perform this action`,
+    INVALID_ACTION_PERFORMED : `Invalid action performed`,
+    LINKING_SAME_TASK: `Should not add/link same task`,
+    PENDING_SUBTASKS_EXISTS : `All the subtasks to be completed first`,
+    CANNOT_REMOVE_APPROVERS: `Some of the approvers or endorsers already approved the task, so they cant be removed`
+}
+
 export const PROJECT_ROUTER = {
     MORE_THAN_ONE_RESULT_FOUND: `More than one result found for specified role`,
     TASK_REQUIRED_FOR_LINKING: `Task ID is required to link task to a project`,
     NOT_MEMBER_OF_PROJECT: `User is not a member of this project`,
     PROJECT_NOT_EXISTS: `No such project exists`
+}
+
+export const COMPLIANCES = {
+    UNAUTHORIZED_TO_CREATE:`Unauthorized to create compliance`,
+    UNAUTHORIZED_TO_EDIT:`Unauthorized to edit compliance`
 }
 
 export const ACTIVITY_LOG = {

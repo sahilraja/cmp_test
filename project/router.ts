@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
@@ -262,5 +262,25 @@ router.put(`/:id/delete-utilized-fund`, async (req, res, next) => {
         next(new APIError(error.message))
     }
 })
+router.use(`/:id/compliance`, complianceRouter)
 
+import * as multer from "multer";
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        console.log("Dest");
+        cb(null, (__dirname + '/uploads/'))
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now()+file.originalname)
+    }
+});
+const upload = multer({storage})
+
+router.post(`/:id/upload-task-excel`, upload.single('upfile'), async (req, res, next) => {
+    try {
+        res.status(OK).send(await uploadTasksExcel(req.file.path, req.params.id, (req as any).token, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 export = router;

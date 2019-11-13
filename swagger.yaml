@@ -311,10 +311,16 @@ paths:
   /steps/{id}/edit:
     $ref: ./swagger/steps/paths.yaml/#/createStep
 
-  /constants/add:
+  /constants/update:
     $ref: ./swagger/siteConstants/paths.yaml/#/addConstant
   /constants/list:
     $ref: ./swagger/siteConstants/paths.yaml/#/constantsList
+  /compliances/create:
+    $ref: ./swagger/compliances/paths.yaml/#/createCompliance
+  /compliances/list:
+    $ref: ./swagger/compliances/paths.yaml/#/getCompliances
+  /compliances/{id}/edit:
+    $ref: ./swagger/compliances/paths.yaml/#/editCompliance
 
 definitions:
   # Error

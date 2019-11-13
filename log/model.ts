@@ -34,7 +34,9 @@ const SchemaDef = new Schema({
     oldCost: { type: Number, default: null },
     updatedCost: { type: Number, default: null },
     projectId: { type: Schema.Types.ObjectId, ref: 'project' },
-    documentId: { type: Schema.Types.ObjectId, ref: 'documents' }
+    documentId: { type: Schema.Types.ObjectId, ref: 'documents' },
+    addedDocIds:[{type:Schema.Types.ObjectId, ref:'documents'}],
+    removedDocIds:[{type:Schema.Types.ObjectId, ref:'documents'}],
 }, { timestamps: true })
 
 SchemaDef.index({ projectId: 1 })

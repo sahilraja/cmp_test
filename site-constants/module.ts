@@ -3,8 +3,9 @@ import { constants } from "perf_hooks";
 
 export async function addConstants(objBody:any) {
     try{
-        let constantsData = await constantSchema.findOneAndUpdate({},{$set:objBody},{new:true}).exec();
-        return constantsData
+        let constantsData:any = await constantSchema.findOneAndUpdate({},{$set:objBody},{new:true}).exec();
+        let {createdAt,updatedAt,__v,_id,...constantResult} = constantsData.toObject();
+        return constantResult
     }
     catch(err){
         throw err
@@ -13,8 +14,15 @@ export async function addConstants(objBody:any) {
 }
 export async function constantsList() {
     try{
-        let constantsData = await constantSchema.findOne().exec()
-        return constantsData
+        let constantsData :any= await constantSchema.findOne().exec()
+        let {createdAt,updatedAt,__v,_id,...constantResult} = constantsData.toObject();
+        return Object.keys(constantResult).map((ele)=>{
+            return {
+                key:ele,
+                value:constantResult[ele]
+            }
+        })
+        
     }
     catch(err){
         throw err

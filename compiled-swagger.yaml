@@ -4899,7 +4899,7 @@ paths:
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/steps/{id}/edit': *ref_13
-  /constants/add:
+  /constants/update:
     post:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
@@ -4941,25 +4941,86 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                type: array
                 example:
-                  aboutMe: 300
-                  docName: 30
+                  - key: aboutMe
+                    value: 300
+                  - key: docName
+                    value: 30
           description: Success
+  /compliances/create:
+    post:
+      security:
+        - token: []
+      tags:
+        - COMPLIANCES
+      requestBody:
+        content:
+          application/json:
+            schema: &ref_14
+              type: object
+              properties:
+                name:
+                  type: string
+                documentNeeded:
+                  type: boolean
+                taskId:
+                  type: string
+                document:
+                  type: string
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_14
+  /compliances/list:
+    get:
+      security:
+        - token: []
+      tags:
+        - COMPLIANCES
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_14
+  '/compliances/{id}/edit':
+    put:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - COMPLIANCES
+      requestBody:
+        content:
+          application/json:
+            schema: *ref_14
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: *ref_14
 definitions:
   ErrorResponse:
     BadRequest:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_14
+          schema: &ref_15
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_14
+    Error: *ref_15
 components:
   securitySchemes:
     token:
