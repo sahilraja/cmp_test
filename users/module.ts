@@ -4,7 +4,7 @@ import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOt
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
-import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
+import { addRole, getRoles, roleCapabilitylist, updateRole,revokeRole } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
@@ -146,10 +146,37 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
         };
-        let userRole;
+        let userRole=[];
         if (id != user._id && objBody.role) {
-            userRole = await updateRole(id, objBody.updateRole, objBody.role);
+           let updatedRole = await updateRole(id, objBody.updateRole, objBody.role);
+           userRole.push(updatedRole);
         }
+        if(id != user._id && objBody.addRole){
+             //  Add Role to User
+        if (objBody.addRole.length) {
+            for (let role of objBody.addRole) {
+                let RoleStatus = await addRole(id, role)
+                if (!RoleStatus.status) {
+                    throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+                }
+            }
+        }
+            // let addRole = await addRole(id,role);
+        }
+
+        if(id != user._id && objBody.revokeRole){
+            //  Delete Role of User
+       if (objBody.revokeRole.length) {
+           for (let role of objBody.revokeRole) {
+               let RoleStatus = await revokeRole(id, role)
+               if (!RoleStatus.status) {
+                   throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+               }
+           }
+       }
+           // let addRole = await addRole(id,role);
+       }
+
         let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
             if (objBody.aboutme.length > constantsList.aboutMe) {
@@ -175,7 +202,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
         const data = await Promise.all(docs.map(async doc => {
-            return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
+            return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data || [""])[0] }
         }));
         let rolesBody: any = await role_list();
         data.map((user: any) => {
@@ -195,7 +222,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
 export async function getUserDetail(userId: string) {
     try {
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
-        return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data.global || [""])[0] }
+        return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data || [""])[0] }
     } catch (err) {
         throw err;
     };
@@ -504,7 +531,7 @@ export async function groupDetail(id: string) {
         if (!data) throw new APIError(USER_ROUTER.GROUP_NOT_FOUND)
         let users = await userList({ _id: { $in: await groupUserList(data._id) } }, {});
         users = await Promise.all(users.map(async (user: any) => {
-            return { ...user, role: ((await userRoleAndScope(user._id) as any).data.global || [""])[0] }
+            return { ...user, role: ((await userRoleAndScope(user._id) as any).data || [""])[0] }
         }))
         return { ...data, users: users }
     } catch (err) {
@@ -567,7 +594,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         let users: any = search ?
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
-        users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
+        users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data || [""])[0] } }))
         let rolesBody: any = await role_list();
         users.map((user: any) => {
             rolesBody.roles.forEach((roleInfo: any) => {

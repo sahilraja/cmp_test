@@ -47,8 +47,8 @@ export async function addComment(body: any, userId: string) {
             comment:commentData.comment,
             type: commentData.type,
             createdAt: commentData.createdAt,
-            role:(await userRoleAndScope(commentData.user_id)),
-             user:await userFindOne("id", commentData.user_id, { firstName: 1,middleName:1,lastName:1,email:1 }
+            role:(((await userRoleAndScope(commentData.user_id)) as any).data || [""])[0],
+            user:await userFindOne("id", commentData.user_id, { firstName: 1,middleName:1,lastName:1,email:1 }
         )}])
   return data[0]
      
