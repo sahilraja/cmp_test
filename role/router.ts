@@ -51,7 +51,7 @@ router.get('/all/capabilities/list', authenticate, async (req: Request, res: Res
 router.post('/capability/add', authenticate, async (req: Request, res: Response, next: Handler) => {
     try {
         let scope = 'global'
-        res.status(200).send(await addCapability(req.body.role, scope, req.body.capability));
+        res.status(200).send(await addCapability(req.body.role, scope, req.body.capability, res.locals.user._id));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
@@ -60,7 +60,7 @@ router.post('/capability/add', authenticate, async (req: Request, res: Response,
 router.put('/capability/remove', authenticate, async (req: Request, res: Response, next: Handler) => {
     try {
         let scope = 'global'
-        res.status(200).send(await removeCapability(req.body.role, scope, req.body.capability));
+        res.status(200).send(await removeCapability(req.body.role, scope, req.body.capability, res.locals.user._id));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
@@ -68,7 +68,7 @@ router.put('/capability/remove', authenticate, async (req: Request, res: Respons
 
 router.put('/:role/edit', authenticate, async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await updaterole(req.params.role, req.body));
+        res.status(200).send(await updaterole(req.params.role, req.body,res.locals.user._id));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
