@@ -512,6 +512,7 @@ export async function addMember(id: string, users: any[], userObj: any) {
         let existUsers = await groupUserList(data._id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         users = users.filter(user => !existUsers.includes(user))
+        if(!users.length && users.some(user=> existUsers.includes(user))) throw new Error("User already exist.")
         if (!users.length) throw new APIError("Invalid Action");
         await Promise.all(users.map((user: any) => addUserToGroup(user, id)))
         return { message: RESPONSE.ADD_MEMBER }
