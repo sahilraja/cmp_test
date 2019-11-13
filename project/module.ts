@@ -667,9 +667,10 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     ProjectSchema.findById(projectId).exec(),
     projectMembers(projectId)
   ])
-  if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
-    throw new APIError(TASK_ERROR.INVALID_ARRAY);
-  }
+  // if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
+  //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
+  // }
+  taskObj.approvers = Object.keys(taskObj).filter(key => key == `approver`)
   const approverIds = memberRoles.filter((memberRole: any) => taskObj.approvers.includes(memberRole.key)).map(val => val.key)
   const endorserIds = memberRoles.filter((memberRole: any) => taskObj.endorsers.includes(memberRole.key)).map(val => val.key)
   const viewerIds = memberRoles.filter((memberRole: any) => taskObj.viewers.includes(memberRole.key)).map(val => val.key)
@@ -716,6 +717,9 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   if (!data.name || !data.name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }
+  data.approvers = Object.keys(data).filter(key => ['approver1',`approver2`, `approver3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
+  data.endorsers = Object.keys(data).filter(key => ['endorser1',`endorser2`, `endorser3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
+  data.viewers = Object.keys(data).filter(key => ['viewer1',`viewer2`, `viewer3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
   if (!data.assignee || !data.assignee.trim().length) {
     throw new APIError(`Assignee is required for task ${data.name}`)
   }
