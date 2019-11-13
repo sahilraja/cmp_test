@@ -4,12 +4,12 @@ import { userDetails } from "../users/module";
 import { USER_ROUTER } from "../utils/error_msg";
 
 
-export async function createPhase(payload: any) {
+export async function createPhase(payload: any,createdBy:string) {
     try{
-        if(!payload.phaseName && !payload.colorCode && !payload.createdBy){
+        if(!payload.phaseName && !payload.colorCode){
             throw new APIError(USER_ROUTER.MANDATORY)
         }
-        let phaseInfo:any = await phaseSchema.create(payload);
+        let phaseInfo:any = await phaseSchema.create({...payload,createdBy});
         let {disable,...phaseResult} =phaseInfo.toObject();
         return phaseResult
     }

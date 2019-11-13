@@ -5026,7 +5026,6 @@ paths:
               required:
                 - phaseName
                 - colorCode
-                - createdBy
               properties:
                 phaseName:
                   type: string
@@ -5034,9 +5033,6 @@ paths:
                 colorCode:
                   type: string
                   example: '#FF00FF'
-                createdBy:
-                  type: string
-                  example: 5da9a8ef5d2b870f984d05ed
       responses:
         '200':
           content:
