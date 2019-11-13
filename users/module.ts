@@ -429,7 +429,7 @@ export async function createGroup(objBody: any, userObj: any) {
             description: description,
             createdBy: userObj._id
         });
-        await addMember(group.id, users, userObj)
+        await addMember(group._id, users, userObj)
         return group
     } catch (err) {
         throw err;
