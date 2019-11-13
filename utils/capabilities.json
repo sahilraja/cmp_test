@@ -224,6 +224,13 @@
           "scope":"global"
         },
         {
+          "capability":"suggest-tag",
+          "shortDescription":"Suggest Tag",
+          "description":"Ability to suggest Tag",
+          "category": "Document Management",
+          "scope":"global"
+        },
+        {
           "capability":"replace-document",
           "shortDescription":"Replace Document",
           "description":"Replace Document",

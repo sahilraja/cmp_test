@@ -1409,6 +1409,12 @@ async function loopForAddCapability(docId: string, users: any[]) {
 
 export async function suggestTags(docId: string, body: any, userId: string) {
   try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "suggest-tag");
+    if (!isEligible) {
+      throw new APIError("Unauthorized Access", 403);
+    }
     if (!body.tags) { throw new Error("Tags is required field") }
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
