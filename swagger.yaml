@@ -324,6 +324,21 @@ paths:
   /compliances/{id}/edit:
     $ref: ./swagger/compliances/paths.yaml/#/editCompliance
 
+#Phases
+  /phases/create:
+    $ref: ./swagger/phases/paths.yaml/#/createPhase
+  /phases/edit/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseEdit
+  /phases/getPhase/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseGet
+  /phases/deletePhase/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseDelete
+  /phases/list:
+    $ref: ./swagger/phases/paths.yaml/#/phaseList
+
+
+
+
 definitions:
   # Error
   $ref: ./swagger/error.yaml
@@ -354,4 +369,6 @@ components:
       $ref: ./swagger/steps/schema.yaml/#/responses/schemas/stepSchema
     groupSchema:
       $ref: ./swagger/groups/schema.yaml/#/responses/schemas/groupSchema
+    phaseSchema:
+      $ref: ./swagger/phases/schema.yaml/#/responses/schemas/phaseSchema      
 

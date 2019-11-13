@@ -45,7 +45,8 @@ export async function getTaskLogs(taskId: string, token: string) {
 
 export async function getDocumentsLogs(DocID: string, token: string) {
     try {
-        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(DocID) }).populate([{ path: 'fromPublished' }, { path: 'fromPublished' }, { path: "documentId" }]).exec()
+        const select = {name: true, description: true}
+        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(DocID) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
         return await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
@@ -56,16 +57,17 @@ export async function getDocumentsLogs(DocID: string, token: string) {
 
 async function activityFetchDetails(activity: any) {
     const userIds = (activity.documentAddedUsers || []).concat(activity.documentRemovedUsers || []).reduce((main: string[], curr: any) => main.concat(curr.Id), [])
-    const usersData = await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1 });
+    const usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1 });
     const tagIds = (activity.tagsAdded || []).concat(activity.tagsRemoved || [])
     const tagsData = await tags.find({ _id: { $in: tagIds } })
     try {
         return {
-            ...activity,
-            documentAddedUsers: usersData.filter((obj: any) => (activity.documentAddedUsers || []).map((d: any) => d.Id).includes(obj._id)),
-            documentRemovedUsers: usersData.filter((obj: any) => (activity.documentRemovedUsers || []).map((d: any) => d.Id).includes(obj._id)),
-            tagsAdded: tagsData.filter((obj: any) => (activity.tagsAdded || []).includes(obj._id)),
-            tagsRemoved: tagsData.filter((obj: any) => (activity.tagsRemoved || []).includes(obj._id))
+            ...activity.toJSON(),
+            activityBy: usersData.find((users: any)=> activity.activityBy == users._id),
+            documentAddedUsers: usersData.filter((obj: any) => (activity.documentAddedUsers || []).map((d: any) => d.Id).includes(obj.id)),
+            documentRemovedUsers: usersData.filter((obj: any) => (activity.documentRemovedUsers || []).map((d: any) => d.Id).includes(obj.id)),
+            tagsAdded: tagsData.filter((obj: any) => (activity.tagsAdded || []).includes(obj.id)),
+            tagsRemoved: tagsData.filter((obj: any) => (activity.tagsRemoved || []).includes(obj.id))
         }
     } catch (err) {
         throw err

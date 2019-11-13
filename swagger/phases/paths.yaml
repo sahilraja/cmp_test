@@ -1,11 +1,9 @@
 # template create
-  templateCreate:
+  createPhase:
     post:
-      security:
-        - token: []
-      summary: create template
+      summary: create Phase
       tags:
-        - Templates
+        - Phases
       requestBody:
         required: true
         content:
@@ -13,44 +11,36 @@
             schema:
               type: object
               required:
-                - templateName
-                - content
-                - subject
+                - phaseName
+                - colorCode
               properties:
-                content:
+                phaseName:
                   type: string
-                  example: content
-                templateName:
+                  example: first
+                colorCode:
                   type: string
-                  example: information
-                displayName:
-                  type: string
-                  example: Display Name
-                subject:
-                  type: string
-                  example: subject
+                  example: '#FF00FF'
       responses:
         "200":
           content:
             application/json:
               schema:
                 allOf: 
-                  - $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
+                  - $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
                   - type: object
                     properties:
                       id: 
                         type: string
                         example: "5d68875cc006bf53125ec36d"
-                        description: "Record Id"
+                        description: "phase Id"
           description: Success
       "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
-  templateList:
+  phaseList:
     get:
       tags:
-        - Templates
-      security:
-        - token: []
+        - Phases
+      summary: phase list
       responses:
         "200":
           content:
@@ -58,101 +48,97 @@
               schema:
                 type: array
                 items:
-                  $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
+                  $ref: "./schema.yaml/#/responses/schemas/phaseSchema"
 
   # Add Grants        
-  templateEdit:
-    post:
-      security:
-        - token: []
-      summary: edit template
+  phaseEdit:
+    put:
+      summary: edit phase
       tags:
-        - Templates
+        - Phases
       parameters:
-          - in: path
-            name: id
-            schema:
-              type: string
-            required: true
-            description: template id
-
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - phaseName
+                - colorCode
               properties:
-                content:
+                phaseName:
                   type: string
-                  example: subject
-                subject:
+                  example: first
+                colorCode:
                   type: string
-                  example: subject
-                displayName:
-                  type: string
-                  example: Display Name
+                  example: '#FF00FF'
       responses:
         "200":
           content:
             application/json:
               schema:
                 allOf: 
-                  - $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
+                  - $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
                   - type: object
                     properties:
                       id: 
                         type: string
                         example: "5d68875cc006bf53125ec36d"
-                        description: "Record Id"
+                        description: "phase Id"
           description: Success
       "400":
-          $ref: "#/definitions/ErrorResponse/BadRequest"
-  templateGet:
-    get:
-      security:
-        - token: []
-      summary: Invite users
-      tags:
-        - Templates
-      parameters:
-          - in: path
-            name: id
-            schema:
-              type: string
-            required: true
-            description: template id
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                allOf: 
-                  - $ref: "./schema.yaml/#/responses/schemas/templateSchema" 
-                  - type: object
-                    properties:
-                      id: 
-                        type: string
-                        example: "5d68875cc006bf53125ec36d"
-                        description: "Record Id"
-          description: Success
-      "400":
-          $ref: "#/definitions/ErrorResponse/BadRequest"
-  templateDelete:
-    get:
-      security:
-        - token: []
-      summary: Invite users
-      tags:
-        - Templates
-      parameters:
-          - in: path
-            name: id
-            schema:
-              type: string
-            required: true
-            description: template id
+          $ref: "#/definitions/ErrorResponse/BadRequest"         
       
+  phaseGet:
+    get:
+      summary: Get phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/phaseSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "phase Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  phaseDelete:
+    post:
+      summary: delete phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+
       responses:
         "200":
           content:
@@ -162,7 +148,7 @@
                 properties:
                   message:
                     type: string
-                    example: successfully deleted template
+                    example: successfully deleted phase
           description: Success
   
       "400":

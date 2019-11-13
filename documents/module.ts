@@ -28,6 +28,7 @@ import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
 import { userCapabilities } from "../users/module";
+import { docRequestModel } from "./document-request-model";
 
 enum STATUS {
   DRAFT = 0,
@@ -500,18 +501,18 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
         parentId: parent.id,
         fileId: objBody.id || parent.fileId,
         fileName: objBody.name || parent.fileName,
-        suggestedTags: parent.suggestedTags 
+        suggestedTags: parent.suggestedTags
       });
       await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId })
 
     } else {
-      await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags,suggestedTags: parent.suggestedTags  })
+      await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
       if (addtags.length) {
         await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
       }
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
-      if (addtags.length) {
+      if (removedtags.length) {
         await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
     }
@@ -1589,3 +1590,49 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
     throw err
   };
 };
+export async function getAllRequest(docId: string) {
+  try {
+    if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
+    let requestData =  await docRequestModel.find({ docId: Types.ObjectId(docId), isDelete: false }).populate(docId)
+    return await Promise.all(requestData.map((request: any)=>{return{...request, requestedBy: userFindOne("id", request.requestedBy, {})}}))
+  } catch (err) {
+    throw err;
+  };
+};
+
+export async function requestAccept(requestId: string) {
+  try {
+    if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
+    let requestDetails: any = await docRequestModel.findById(requestId).exec();
+    let capability: any[] = await documnetCapabilities(requestDetails.docId, requestDetails.requestedBy);
+    if (capability.includes("no_access")) {
+      await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId, "viewer")
+    } else if (capability.includes("viewer")) {
+      await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId, "viewer");
+      await groupsAddPolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId, "collaborator");
+    } else {
+      throw new Error("Invalid Action Performed.")
+    }
+    return { message: "Shared successfully." }
+  } catch (err) {
+    throw err;
+  };
+};
+
+export async function requestDenied(requestId: string) {
+  try {
+    if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
+    return await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function requestRaise(docId: string, userId: string) {
+  try {
+    if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id."); 
+    return await docRequestModel.create({requestId: userId, docId: docId})
+  } catch (err) {
+    throw err;
+  }
+}

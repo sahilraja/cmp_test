@@ -1,0 +1,20 @@
+responses:
+  phaseStructure:
+    description: phase schema
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/phaseSchema"
+  schemas:
+    phaseSchema:
+      type: object
+      properties:
+        phaseName:
+          type: string
+          example: first
+        colorCode:
+          type: string
+          example: '#FF00FF'
+        createdBy:
+          type: string
+          example: user id

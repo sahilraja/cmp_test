@@ -193,3 +193,6 @@ responses:
         is_active: 
           type: boolean
           example: true
+        phase:
+          type: string
+          example: phase id
