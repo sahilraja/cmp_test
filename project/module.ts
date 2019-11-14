@@ -525,9 +525,13 @@ export async function getFinancialInfo(projectId: string) {
   }
 }
 
-export async function addFundReleased(projectId: string, payload: any, userId: string) {
+export async function addFundReleased(projectId: string, payload: any, user: any) {
   if (!payload.installment) {
     throw new APIError(`Installment is required`)
+  }
+  const isEligible = checkRoleScope(user.role, `manage-project-released-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const fund: any = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased } = fund
@@ -539,16 +543,20 @@ export async function addFundReleased(projectId: string, payload: any, userId: s
       {
         subInstallment: matchedFundsWithData.length + 1,
         installment: payload.installment, document: payload.document, cost: payload.cost,
-        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
+        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id
       }
     ]).sort((a: any, b: any) => a.installment - b.installment)
   }
   const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
-  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: userId })
+  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: user._id })
   return updatedFund
 }
 
-export async function addFundsUtilized(projectId: string, payload: any, userId: string) {
+export async function addFundsUtilized(projectId: string, payload: any, user: any) {
+  const isEligible = checkRoleScope(user.role, `manage-project-utilized-fund`)  
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   if (!payload.installment) {
     throw new Error(`Installment is required`)
   }
@@ -561,23 +569,27 @@ export async function addFundsUtilized(projectId: string, payload: any, userId: 
       {
         subInstallment: matchedFunds.length + 1,
         installment: payload.installment, document: payload.document, cost: payload.cost,
-        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
+        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id
       }
     ]).sort((a: any, b: any) => a.installment - b.installment)
   }
   const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
-  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: userId })
+  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: user._id })
   return updatedProject
 }
 
-export async function updateReleasedFund(projectId: string, payload: any, userId: string) {
+export async function updateReleasedFund(projectId: string, payload: any, user: any) {
+  const isEligible = checkRoleScope(user.role, `manage-project-released-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   const { document, cost, _id } = payload
   let updates: any = {}
-  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId })
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id })
   return updatedProject
   // if(!payload.installment || !payload.subInstallment){
   //   throw new APIError(`Installment is required`)
@@ -595,7 +607,11 @@ export async function updateReleasedFund(projectId: string, payload: any, userId
   // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
 }
 
-export async function updateUtilizedFund(projectId: string, payload: any, userId: string) {
+export async function updateUtilizedFund(projectId: string, payload: any, user: any) {
+  const isEligible = checkRoleScope(user.role, `manage-project-utilized-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   // if(!payload.installment || !payload.subInstallment){
   //   throw new Error(`Installment is required`)
   // }
@@ -612,28 +628,36 @@ export async function updateUtilizedFund(projectId: string, payload: any, userId
   // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
   const { document, cost, _id } = payload
   let updates: any = {}
-  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId })
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id })
   return updatedProject
 }
 
-export async function deleteReleasedFund(projectId: string, payload: any, userId: string) {
+export async function deleteReleasedFund(projectId: string, payload: any, user: any) {
+  const isEligible = checkRoleScope(user.role, `manage-project-released-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   const { document, cost, _id } = payload
   let updates: any = {}
-  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
   updates['fundsReleased.$.deleted'] = true
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
   return updatedProject
 }
 
-export async function deleteUtilizedFund(projectId: string, payload: any, userId: string) {
+export async function deleteUtilizedFund(projectId: string, payload: any, user: any) {
+  const isEligible = checkRoleScope(user.role, `manage-project-utilized-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   const { document, cost, _id } = payload
   let updates: any = {}
-  updates = { ...updates, modifiedAt: new Date(), modifiedBy: userId }
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
   updates['fundsReleased.$.deleted'] = true
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})

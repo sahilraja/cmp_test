@@ -243,6 +243,20 @@
           "description":"Create Private Group ",
           "category": "Private Group Management",
           "scope":"global"
+        },
+        {
+          "capability":"manage-project-released-fund",
+          "shortDescription":"Manage Funds Released",
+          "category":"Project Management",
+          "description":"Manage Funds Released",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-project-utilized-fund",
+          "shortDescription":"Manage Funds Utilized",
+          "category":"Project Management",
+          "description":"Manage Funds Released",
+          "scope":"global"
         }
   ]
   

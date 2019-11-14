@@ -217,7 +217,7 @@ router.get(`/:id/finalcial-info`, async (req, res, next) =>  {
 
 router.post(`/:id/add-released-fund`, async (req, res, next) => {
     try {
-        res.status(OK).send(await addFundReleased(req.params.id, req.body, res.locals.user._id))
+        res.status(OK).send(await addFundReleased(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -225,7 +225,7 @@ router.post(`/:id/add-released-fund`, async (req, res, next) => {
 
 router.post(`/:id/add-utilized-fund`, async (req, res, next) => {
     try {
-        res.status(OK).send(await addFundsUtilized(req.params.id, req.body, res.locals.user._id))
+        res.status(OK).send(await addFundsUtilized(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
