@@ -329,7 +329,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
   }
   const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask.id, projectId, activityBy: userObj._id })
-  createdTask
+  return createdTask
 }
 
 async function formatTaskPayload(payload: any, projectId: string) {

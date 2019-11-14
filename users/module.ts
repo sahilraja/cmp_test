@@ -288,7 +288,7 @@ export async function userInviteResend(id: string, role: any) {
         let userData: any = await userFindOne("id", id)
         if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
-        let token = await jwt_for_url({ user: id, role: role });
+        let token = await jwt_for_url({ user: id, role: role, email: userData.email });
 
         let { firstName, lastName, middleName } = userData;
         let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");

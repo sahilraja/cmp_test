@@ -25,7 +25,7 @@ export async function listCompliances(userToken: string, projectId: string) {
         headers: { 'Authorization': `Bearer ${userToken}` },
         json: true
     })
-    return compliances.map((compliance: any) => ({ ...compliance.toJSON(), taskStatus: tasks.find((task: any) => task._id == compliance.task).status }))
+    return compliances.map((compliance: any) => ({ ...compliance.toJSON(), taskStatus: tasks.find((task: any) => task._id == compliance.taskId).status }))
 }
 
 export async function editCompliance(id: string, updates: any, userObj: any) {
