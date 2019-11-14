@@ -85,7 +85,8 @@ export async function siteConstants() {
   let existingConstantsCount = await constantSchema.find().count().exec();
   if(!existingConstantsCount){
     await constantSchema.create({
-      aboutMe:200
+      aboutMe:200,
+      documentName: 30
     });
     console.log(`site-constants created successfully`);
   }
