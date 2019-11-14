@@ -1700,3 +1700,22 @@ export async function requestRaise(docId: string, userId: string) {
     throw err;
   }
 }
+
+//  Get All Cmp Documents List
+export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: string,userId:string, pagination: boolean = true) {
+  try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
+    if (!isEligible) {
+      throw new APIError("Unauthorized access", 403);
+    }
+    let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT} }).sort({ updatedAt: -1 });
+    const docList = await Promise.all(data.map(async doc => docData(doc, host)));
+    if (pagination) return manualPagination(page, limit, docList)
+    return docList
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

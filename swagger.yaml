@@ -285,6 +285,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/cancelDocUpdate
   /docs/{docId}/delete/suggested/tags:
     $ref: ./swagger/resources/paths.yaml/#/deleteSuggestedTags
+  /docs/allcmp/list:
+    $ref: ./swagger/resources/paths.yaml/#/allCmpDocsList  
 
 #Templates
   /template/create:
