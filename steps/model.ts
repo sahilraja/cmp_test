@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-const plugin = require("mongoose-transform");
+import plugin from "mongoose-transform";
 const SchemaDef = new Schema({
     name: { type: String, trim: true, required: 'Name is required' },
     createdBy:{ type: String },
