@@ -97,3 +97,63 @@ export function userState(body: any){
         throw err;
     };
 }
+
+export function suggestTagNotification(body: any) {
+    try {
+        const text = `
+        Hi,<br/></br>
+        <br/>
+        <b>${body.userName}</b> suggested a tag.<br/>
+        <br/>
+        You can click this <a href="${body.documentUrl}">link</a> to view it. <br/>
+        Please ignore if you think this is not intended for you. <br/>
+        <br/>
+        Best Regards,<br/>
+        CITIIS Management Platform Team
+        `
+        return text;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    };
+};
+
+export function approveTagNotification(body: any) {
+    try {
+        const text = `
+        Hi,<br/></br>
+        <br/>
+        <b>${body.fullName}</b>has been approved a tag suggested by you.<br/>
+        <br/>
+        You can click this <a href="${body.documentUrl}">link</a> to view it.<br/>
+        Please ignore if you think this is not intended for you. <br/>
+        <br/>
+        Best Regards,<br/>
+        CITIIS Management Platform Team
+        `
+        return text;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    };
+};
+
+export function rejectTagNotification(body: any) {
+    try {
+        const text = `
+        Hi,<br/></br>
+        <br/>
+        <b>${body.fullName}</b> has neen rejected a tag suggested by you.<br/>
+        <br/>
+        You can click this <a href="${body.documentUrl}">link</a> to view it.<br/>
+        Please ignore if you think this is not intended for you. <br/>
+        <br/>
+        Best Regards,<br/>
+        CITIIS Management Platform Team
+        `
+        return text;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    };
+};
