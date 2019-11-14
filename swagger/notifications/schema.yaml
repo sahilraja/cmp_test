@@ -17,6 +17,9 @@ responses:
           items:
             type: object
             properties:
+              displayName:
+                type: string
+                example: Invite User
               templateName:
                 type: string
                 example: invite

@@ -33,7 +33,7 @@ router.post("/role/add",async(req,res,next)=>{
 })
 router.post("/template/add",async(req,res,next)=>{
     try{
-        res.status(OK).send(await addTemplateNotification(req.body.templateName));
+        res.status(OK).send(await addTemplateNotification(req.body));
     }
     catch(error){
         next(new APIError(error.message));

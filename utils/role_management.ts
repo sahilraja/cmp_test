@@ -9,6 +9,7 @@ import { constantSchema } from "../site-constants/model";
 import { notificationSchema } from "../notifications/model";
 import { role_list } from "../role/module";
 import { TemplateSchema } from "../email-templates/model";
+import { readFileSync } from "fs";
 
 export async function init() {
   let removeOptions = {
@@ -123,6 +124,16 @@ export async function notifications(){
     }
     else{
       console.log(`existing notifications found in DB`);
+    }
+}
+export async function templates(){
+  let existingTemplatesCount:any = await TemplateSchema.find().count().exec();
+  if(!existingTemplatesCount){
+    await TemplateSchema.create(JSON.parse(readFileSync(join(__dirname,"email_template.json"), "utf8")));
+      console.log(`templates created successfully`);
+    }
+    else{
+      console.log(`existing templates found in DB`);
     }
 }
 

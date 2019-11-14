@@ -5444,9 +5444,9 @@ paths:
                 role:
                   type: string
                   example: technology-lead
-                templateName:
+                displayName:
                   type: string
-                  example: invite
+                  example: Invite User
                 email:
                   type: boolean
                   example: false
@@ -5486,6 +5486,9 @@ paths:
                       items:
                         type: object
                         properties:
+                          displayName:
+                            type: string
+                            example: Invite User
                           templateName:
                             type: string
                             example: invite
@@ -5537,6 +5540,9 @@ paths:
                 templateName:
                   type: string
                   example: technology-lead
+                displayName:
+                  type: string
+                  example: Invite User
       responses:
         '200':
           description: success
@@ -5575,6 +5581,7 @@ paths:
                   templateName: invite
                   email: true
                   mobile: false
+                  displayName: Invite User
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
 definitions:

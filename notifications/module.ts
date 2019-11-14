@@ -8,9 +8,9 @@ import { userDetails } from "../users/module";
 
 export async function notificationsUpdate(reqObject: any) {
     try {
-        let { role, templateName, email, mobile } = reqObject;
+        let { role, templateName, displayName, email, mobile } = reqObject;
         let updatedData = await notificationSchema.update({ 'role': role, "templates.templateName": templateName },
-            { $set: { 'templates.$.mobile': mobile, 'templates.$.email': email } })
+            { $set: { 'templates.$.displayName': displayName, 'templates.$.mobile': mobile, 'templates.$.email': email } })
         return { message: "success" }
     }
     catch (err) {
@@ -37,6 +37,7 @@ export async function addRoleNotification(roleName: any) {
         templateList.forEach((template: any) => {
             templates.push({
                 templateName: template.templateName,
+                displayName: template.displayName,
                 email: false,
                 mobile: false
             })
@@ -48,13 +49,14 @@ export async function addRoleNotification(roleName: any) {
         throw err
     }
 }
-export async function addTemplateNotification(templateName: any) {
+export async function addTemplateNotification(objBody: any) {
     try {
+        const {templateName,displayName} = objBody;
         // let templateList: any = await TemplateSchema.find({ templateName }).exec();
         // if (!templateList) {
         //     throw new APIError("Template is not found in email templates");
         // }
-        return await notificationSchema.update({}, { "$push": { templates: { templateName, email: false, mobile: false } } })
+        return await notificationSchema.update({}, { "$push": { templates: { templateName, displayName, email: false, mobile: false } } })
     }
     catch (err) {
         throw err
@@ -68,7 +70,7 @@ export async function getRoleNotification(roleName: string, templateName: string
         let [getNotification]: any = notificationInfo.templates.filter((notif: any) => {
             return notif.templateName == templateName
         })
-        return {role:roleName,...getNotification}
+        return { role: roleName, ...getNotification }
     }
     catch (err) {
         throw err

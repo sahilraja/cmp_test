@@ -19,7 +19,11 @@ import {
 } from "../utils/groups";
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
+<<<<<<< HEAD
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
+=======
+import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
+>>>>>>> added json email template
 import { userFindOne, userFindMany, userList, listGroup, searchByname } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
@@ -29,6 +33,8 @@ import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
 import { userCapabilities } from "../users/module";
 import { docRequestModel } from "./document-request-model";
+import { userRolesNotification } from "../notifications/module";
+import { mobileSendMessage } from "../utils/utils";
 
 enum STATUS {
   DRAFT = 0,
@@ -803,17 +809,23 @@ async function invite(user: any, docId: any, role: any, doc: any) {
     let userData: any = await userFindOne("id", user._id);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
 
-    let templatInfo = await getTemplateBySubstitutions('inviteForDocument', {
-      fullName: userName,
-      documentName: doc.name,
-      documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`
-    });
 
-    return nodemail({
-      email: userData.email,
-      subject: templatInfo.subject,
-      html: templatInfo.content
-    });
+    let userNotification = await userRolesNotification(userData._id, "inviteForDocument");
+    if (userNotification.mobile) {
+      //mobileSendMessage(userData.countryCode + userData.phone, MOBILE_TEMPLATES.INVITE_FOR_DOCUMENT);
+    }
+    if (userNotification.email) {
+      let templatInfo = await getTemplateBySubstitutions('inviteForDocument', {
+        fullName: userName,
+        documentName: doc.name,
+        documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`
+      });
+      return nodemail({
+        email: userData.email,
+        subject: templatInfo.subject,
+        html: templatInfo.content
+      });
+    }
   };
 };
 
@@ -1445,18 +1457,22 @@ export async function suggestTags(docId: string, body: any, userId: string) {
 
 
     if (doc) {
-      let templatInfo = suggestTagNotification({
-        fullName: ownerName,
-        userName: userName,
-        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
-      });
-
-      let status = nodemail({
-        email: ownerDetails.email,
-        subject: "Message from cmp",
-        html: templatInfo
-      });
-
+      let userNotification = await userRolesNotification(userId, "suggestTagNotification");
+      if (userNotification.mobile) {
+        //mobileSendMessage(ownerDetails.countryCode + ownerDetails.phone, MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION);
+      }
+      if (userNotification.email) {
+        let templatInfo = await getTemplateBySubstitutions('suggestTagNotification', {
+          fullName: ownerName,
+          userName: userName,
+          documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
+        });
+        nodemail({
+          email: ownerDetails.email,
+          subject: templatInfo.subject,
+          html: templatInfo
+        });
+      }
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -1514,20 +1530,25 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       "$push": { tags: body.tagId }
     })
     if (doc) {
-      let templatInfo = approveTagNotification({
-        fullName: ownerName,
-        userName: userName,
-        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
-      });
-
-      let status = nodemail({
-        email: userDetails.email,
-        subject: "Message from cmp",
-        html: templatInfo
-      });
-      return {
-        sucess: true,
-        message: "Tag approved successfully"
+      let userNotification = await userRolesNotification(userId, "approveTagNotification");
+      if (userNotification.mobile) {
+        //mobileSendMessage(ownerDetails.countryCode + ownerDetails.phone, MOBILE_TEMPLATES.APPROVE_TAG_NOTIFICATION);
+      }
+      if (userNotification.email) {
+        let templatInfo = await getTemplateBySubstitutions('approveTagNotification', {
+          fullName: ownerName,
+          userName: userName,
+          documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
+        });
+        nodemail({
+          email: userDetails.email,
+          subject: "Message from cmp",
+          html: templatInfo
+        });
+        return {
+          sucess: true,
+          message: "Tag approved successfully"
+        }
       }
     }
   } catch (err) {
@@ -1570,18 +1591,23 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       }
     })
     if (doc) {
-      let templatInfo = rejectTagNotification({
-        fullName: ownerName,
-        userName: userName,
-        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
-      });
+      let userNotification = await userRolesNotification(userId, "rejectTagNotification");
+      if (userNotification.mobile) {
+         mobileSendMessage(userDetails.countryCode + userDetails.phone, MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION);
+      }
+      if (userNotification.email) {
+        let templatInfo :any = await getTemplateBySubstitutions('rejectTagNotification', {
+          fullName: ownerName,
+          userName: userName,
+          documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
+        });
 
-      let status = nodemail({
-        email: userDetails.email,
-        subject: "Message from cmp",
-        html: templatInfo
-      });
-
+        nodemail({
+          email: userDetails.email,
+          subject: templatInfo.subject,
+          html: templatInfo
+        });
+      }
       return {
         sucess: true,
         message: "Tag Rejected"

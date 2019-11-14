@@ -82,7 +82,11 @@ export const SENDER_IDS = {
 }
 export const MOBILE_TEMPLATES = {
     LOGIN : "Welcome to CMP",
-    STATE: "STATE"
+    STATE: "STATE",
+    SUGGEST_TAG_NOTIFICATION:"Suggest Tag Notification",
+    INVITE_FOR_DOCUMENT:"Invite for Document ",
+    APPROVE_TAG_NOTIFICATION: "Approve tag notification",
+    REJECT_TAG_NOTIFICATION: "Reject tag notification",
 }
 
 export const GLOBAL_SCOPE = "global";
