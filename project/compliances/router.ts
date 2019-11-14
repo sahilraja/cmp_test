@@ -6,7 +6,7 @@ const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
     try {
-        res.status(OK).send(await createCompliance(req.body, res.locals.user))
+        res.status(OK).send(await createCompliance(req.body, req.params.id, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))        
     }
@@ -14,15 +14,15 @@ router.post(`/create`, async (req, res, next) => {
 
 router.get(`/list`, async (req, res, next) => {
     try {
-        res.status(OK).send(await listCompliances((req as any).token))
+        res.status(OK).send(await listCompliances((req as any).token, req.params.id))
     } catch (error) {
         next(new APIError(error.message))
     }
 })
 
-router.put(`/:id/edit`, async (req, res, next) => {
+router.put(`/:compliance_id/edit`, async (req, res, next) => {
     try {
-        res.status(OK).send(await editCompliance(req.params.id, req.body, res.locals.user))
+        res.status(OK).send(await editCompliance(req.params.compliance_id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }

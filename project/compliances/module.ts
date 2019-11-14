@@ -4,7 +4,7 @@ import { APIError } from "../../utils/custom-error";
 import { COMPLIANCES } from "../../utils/error_msg";
 import { TASKS_URL } from "../../utils/urls";
 
-export async function createCompliance(payload: any, userObj: any) {
+export async function createCompliance(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, 'create-compliance')
     if(!isEligible){
         throw new APIError(COMPLIANCES.UNAUTHORIZED_TO_CREATE)
@@ -12,11 +12,11 @@ export async function createCompliance(payload: any, userObj: any) {
     if(!payload.taskId){
         throw new APIError(COMPLIANCES.REQUIRED_TASK)
     }
-    return await ComplianceSchema.create({...payload, createdBy: userObj._id})
+    return await ComplianceSchema.create({...payload, projectId, createdBy: userObj._id})
 }
 
-export async function listCompliances(userToken: string) {
-    const compliances = await ComplianceSchema.find({}).exec()
+export async function listCompliances(userToken: string, projectId: string) {
+    const compliances = await ComplianceSchema.find({projectId}).exec()
     const taskIds = compliances.map((compliance: any) => compliance.taskId).filter(v => !!v)
     const tasks: any = await httpRequest({
         url: `${TASKS_URL}/task/getByIds`,
