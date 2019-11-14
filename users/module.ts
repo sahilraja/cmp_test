@@ -26,12 +26,12 @@ const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5F
 export async function bulkInvite(filePath: string, userId: string) {
     const excelFormattedData = importExcelAndFormatData(filePath)
     const roleData: any = await role_list()
-    const formattedDataWithRoles = excelFormattedData.map(data => ({...data, role: roleData.roles.find((role: any) => role.name == data.role)}))  
-    if(formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)){
+    const formattedDataWithRoles = excelFormattedData.map(data => ({ ...data, role: roleData.roles.find((role: any) => role.name == data.role) }))
+    if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
         throw new APIError(`Category, Role and Email are mandatory for all`)
     }
     formattedDataWithRoles.forEach((role: any) => {
-        if(!validateEmail(role.email)){
+        if (!validateEmail(role.email)) {
             throw new APIError(`${role.email} is invalid`)
         }
     })
@@ -422,14 +422,15 @@ export async function createGroup(objBody: any, userObj: any) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "create-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        const { name, description } = objBody
-        if (!name) throw new Error(USER_ROUTER.MANDATORY);
-        return await groupCreate({
+        const { name, description, users } = objBody
+        if (!name || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
+        let group: any = await groupCreate({
             name: name,
             description: description,
             createdBy: userObj._id
         });
-        // member add call
+        await addMember(group._id, users, userObj)
+        return group
     } catch (err) {
         throw err;
     };
@@ -439,7 +440,7 @@ export async function createGroup(objBody: any, userObj: any) {
 export async function groupStatus(id: any, userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let isEligible = await checkRoleScope(userObj.role, "edit-group");
+        let isEligible = await checkRoleScope(userObj.role, "deactivate-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
@@ -457,7 +458,6 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        let group: any = await groupFindOne("id", id);
         const { name, description } = objBody
         let obj: any = {}
         if (description) {
@@ -472,7 +472,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
 //  Get group List
 export async function groupList(userId: string) {
     try {
-        let groupIds = await userGroupsList(userId)
+        // let groupIds = await userGroupsList(userId)
         let meCreatedGroup = await groupPatternMatch({}, {}, {}, {}, "updatedAt")
         // let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
         // let groups = [...meCreatedGroup, ...sharedGroup]
@@ -512,6 +512,7 @@ export async function addMember(id: string, users: any[], userObj: any) {
         let existUsers = await groupUserList(data._id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         users = users.filter(user => !existUsers.includes(user))
+        if(!users.length && users.some(user=> existUsers.includes(user))) throw new Error("User already exist.")
         if (!users.length) throw new APIError("Invalid Action");
         await Promise.all(users.map((user: any) => addUserToGroup(user, id)))
         return { message: RESPONSE.ADD_MEMBER }
@@ -664,8 +665,7 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (objBody.mobileOtp) {
             await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
         }
-        if(objBody.otp != "1111")
-        {
+        if (objBody.otp != "1111") {
             if (objBody.otp != token.otp) {
                 throw new Error(USER_ROUTER.INVALID_OTP);
             }
@@ -757,20 +757,20 @@ export async function changeMobileNumber(objBody: any, userData: any) {
     }
 }
 
-export async function replaceUser(userId: string, replaceTo: string, userToken: string){
+export async function replaceUser(userId: string, replaceTo: string, userToken: string) {
     await Promise.all([
         httpRequest({
             url: `${MESSAGE_URL}/v1/replace-user`,
-            body:{oldUser:userId, updatedUser: replaceTo},
-            method:'POST',
-            headers:{'Authorization': `Bearer ${userToken}`}
+            body: { oldUser: userId, updatedUser: replaceTo },
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${userToken}` }
         }),
         httpRequest({
             url: `${TASKS_URL}/replace-user`,
-            body:{oldUser:userId, updatedUser: replaceTo},
-            method:'POST',
-            headers:{'Authorization': `Bearer ${userToken}`}
+            body: { oldUser: userId, updatedUser: replaceTo },
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${userToken}` }
         })
         // Documents & Roles to be updated
-    ]) 
+    ])
 }

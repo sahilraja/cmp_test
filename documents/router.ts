@@ -53,7 +53,11 @@ import {
   getAllTags,
   allDocuments,
   cancelUpdate,
-  deleteSuggestedTag
+  deleteSuggestedTag,
+  getAllRequest,
+  requestAccept,
+  requestDenied,
+  requestRaise
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -653,7 +657,7 @@ router.post("/:docId/reject/tags", authenticate, async (req, res, next: NextFunc
   }
 });
 
-router.post("/get/tags", async (req, res, next: NextFunction) => {
+router.post("/get/tags",authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getAllTags(req.body.tags));
   } catch (err) {
@@ -668,4 +672,37 @@ router.post("/:docId/delete/suggested/tags", authenticate, async (req, res, next
     next(new APIError(err.message));
   }
 });
+
+router.get("/:id/requests/list",authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getAllRequest(req.params.id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:id/requests/accept",authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await requestAccept(req.params.id, res.locals.user));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:id/requests/denied",authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await requestDenied(req.params.id, res.locals.user));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:docid/requests/raise",authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await requestRaise(req.params.docid, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
 export = router;

@@ -9,5 +9,6 @@ const schema = new Schema({
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
 
+schema.index({ name: 1, createdBy: 1 }, { unique: true })
 schema.plugin(mongoosePagination);
 export const privateGroupSchema = model("private_group", schema);
