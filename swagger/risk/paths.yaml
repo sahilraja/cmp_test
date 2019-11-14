@@ -1,0 +1,100 @@
+createRisk:
+  post:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+    tags:
+      - RISK
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ./schema.yaml/#/schemas/riskSchema
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/riskSchema
+listRisks:
+  get:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+    tags:
+      - RISK
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ./schema.yaml/#/schemas/riskSchema
+editRisk:
+  put:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+      - in: path
+        name: risk_id
+        schema:
+          type: string
+    tags:
+      - RISK
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ./schema.yaml/#/schemas/riskSchema
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/riskSchema
+deleteRisk:
+  delete:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+      - in: path
+        name: risk_id
+        schema:
+          type: string
+    tags:
+      - RISK
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: boolean
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/riskSchema

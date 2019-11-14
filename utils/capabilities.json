@@ -271,6 +271,13 @@
           "category":"Compliances",
           "description":"Manage Compliances",
           "scope":"global"
+        },
+        {
+          "capability":"manage-risk",
+          "shortDescription":"Risk Management",
+          "category":"Risk Management",
+          "description":"Risk Management",
+          "scope":"global"
         }
   ]
   
