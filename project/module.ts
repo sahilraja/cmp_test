@@ -329,7 +329,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
   }
   const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask.id, projectId, activityBy: userObj._id })
-  createdTask
+  return createdTask
 }
 
 async function formatTaskPayload(payload: any, projectId: string) {
@@ -529,7 +529,7 @@ export async function addFundReleased(projectId: string, payload: any, user: any
   if (!payload.installment) {
     throw new APIError(`Installment is required`)
   }
-  const isEligible = checkRoleScope(user.role, `manage-project-released-fund`)
+  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
   if(!isEligible){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
@@ -553,7 +553,7 @@ export async function addFundReleased(projectId: string, payload: any, user: any
 }
 
 export async function addFundsUtilized(projectId: string, payload: any, user: any) {
-  const isEligible = checkRoleScope(user.role, `manage-project-utilized-fund`)  
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)  
   if(!isEligible){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
@@ -579,7 +579,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
 }
 
 export async function updateReleasedFund(projectId: string, payload: any, user: any) {
-  const isEligible = checkRoleScope(user.role, `manage-project-released-fund`)
+  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
   if(!isEligible){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
@@ -608,7 +608,7 @@ export async function updateReleasedFund(projectId: string, payload: any, user: 
 }
 
 export async function updateUtilizedFund(projectId: string, payload: any, user: any) {
-  const isEligible = checkRoleScope(user.role, `manage-project-utilized-fund`)
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
   if(!isEligible){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
@@ -637,7 +637,7 @@ export async function updateUtilizedFund(projectId: string, payload: any, user: 
 }
 
 export async function deleteReleasedFund(projectId: string, payload: any, user: any) {
-  const isEligible = checkRoleScope(user.role, `manage-project-released-fund`)
+  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
   if(!isEligible){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
@@ -651,7 +651,7 @@ export async function deleteReleasedFund(projectId: string, payload: any, user: 
 }
 
 export async function deleteUtilizedFund(projectId: string, payload: any, user: any) {
-  const isEligible = checkRoleScope(user.role, `manage-project-utilized-fund`)
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
   if(!isEligible){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }

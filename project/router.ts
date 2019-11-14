@@ -7,6 +7,7 @@ import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
 const router = Router();
 import * as complianceRouter from "./compliances/router";
+import * as riskRouter from "../risks/router";
 //  Add Project
 router.post("/create", async (req, res, next) => {
     try {
@@ -263,6 +264,7 @@ router.put(`/:id/delete-utilized-fund`, async (req, res, next) => {
     }
 })
 router.use(`/:id/compliance`, complianceRouter)
+router.use(`/:id/risk`, riskRouter)
 
 import * as multer from "multer";
 const storage = multer.diskStorage({

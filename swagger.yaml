@@ -323,12 +323,20 @@ paths:
     $ref: ./swagger/siteConstants/paths.yaml/#/addConstant
   /constants/list:
     $ref: ./swagger/siteConstants/paths.yaml/#/constantsList
-  /compliances/create:
+  /project/{id}/compliance/create:
     $ref: ./swagger/compliances/paths.yaml/#/createCompliance
-  /compliances/list:
+  /project/{id}/compliance/list:
     $ref: ./swagger/compliances/paths.yaml/#/getCompliances
-  /compliances/{id}/edit:
+  /project/{id}/compliance/{id}/edit:
     $ref: ./swagger/compliances/paths.yaml/#/editCompliance
+  /project/{id}/risk/create:
+    $ref: ./swagger/risk/paths.yaml/#/createRisk
+  /project/{id}/risk/list:
+    $ref: ./swagger/risk/paths.yaml/#/listRisks
+  /project/{id}/risk/{id}/edit:
+    $ref: ./swagger/risk/paths.yaml/#/editRisk
+  /project/{id}/risk/{id}/delete:
+    $ref: ./swagger/risk/paths.yaml/#/deleteRisk
 
 #Phases
   /phases/create:

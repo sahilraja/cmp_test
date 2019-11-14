@@ -5078,10 +5078,15 @@ paths:
                   - key: docName
                     value: 30
           description: Success
-  /compliances/create:
+  '/project/{id}/compliance/create':
     post:
       security:
         - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
       tags:
         - COMPLIANCES
       requestBody:
@@ -5104,10 +5109,15 @@ paths:
           content:
             application/json:
               schema: *ref_14
-  /compliances/list:
+  '/project/{id}/compliance/list':
     get:
       security:
         - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
       tags:
         - COMPLIANCES
       responses:
@@ -5117,13 +5127,17 @@ paths:
               schema:
                 type: array
                 items: *ref_14
-  '/compliances/{id}/edit':
+  '/project/{id}/compliance/{id}/edit':
     put:
       security:
         - token: []
       parameters:
         - in: path
           name: id
+          schema:
+            type: string
+        - in: path
+          name: compliance_id
           schema:
             type: string
       tags:
@@ -5137,6 +5151,123 @@ paths:
           content:
             application/json:
               schema: *ref_14
+  '/project/{id}/risk/create':
+    post:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - RISK
+      requestBody:
+        content:
+          application/json:
+            schema: &ref_15
+              type: object
+              properties:
+                riskFamily:
+                  type: string
+                description:
+                  type: string
+                phase:
+                  type: string
+                impact:
+                  type: number
+                probability:
+                  type: number
+                actions:
+                  type: string
+                comments:
+                  type: string
+                riskProvision:
+                  type: number
+                riskOwner:
+                  type: string
+                status:
+                  type: string
+                previousTrend: null
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_15
+  '/project/{id}/risk/list':
+    get:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - RISK
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_15
+  '/project/{id}/risk/{id}/edit':
+    put:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: risk_id
+          schema:
+            type: string
+      tags:
+        - RISK
+      requestBody:
+        content:
+          application/json:
+            schema: *ref_15
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_15
+  '/project/{id}/risk/{id}/delete':
+    delete:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: risk_id
+          schema:
+            type: string
+      tags:
+        - RISK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deleted:
+                  type: boolean
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_15
   /phases/create:
     post:
       '400':
@@ -5166,7 +5297,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_15
+                  - &ref_16
                     type: object
                     properties:
                       phaseName:
@@ -5221,7 +5352,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_15
+                  - *ref_16
                   - type: object
                     properties:
                       id:
@@ -5249,7 +5380,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_15
+                  - *ref_16
                   - type: object
                     properties:
                       id:
@@ -5293,21 +5424,21 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_15
+                items: *ref_16
 definitions:
   ErrorResponse:
     BadRequest:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_16
+          schema: &ref_17
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_16
+    Error: *ref_17
 components:
   securitySchemes:
     token:
@@ -5331,5 +5462,5 @@ components:
     pillarSchema: *ref_10
     stepSchema: *ref_12
     groupSchema: *ref_3
-    phaseSchema: *ref_15
+    phaseSchema: *ref_16
 
