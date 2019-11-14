@@ -8,7 +8,7 @@ import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
-const phoneNo = require("phone")
+import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
 import { loginSchema } from "./login-model";
