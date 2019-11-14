@@ -98,13 +98,6 @@
           "scope": "global"
         },
         {
-          "capability": "attach-documents",
-          "shortDescription": "Attach Documents",
-          "description": "Ability to attach documents to a task",
-          "category": "Task Management",
-          "scope": "global"
-        },
-        {
           "capability": "create-folder",
           "shortDescription": "Create Folder",
           "description": "Ability to create a folder",
@@ -242,6 +235,34 @@
           "shortDescription":"Create Private Group",
           "description":"Create Private Group ",
           "category": "Private Group Management",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-project-released-fund",
+          "shortDescription":"Manage Funds Released",
+          "category":"Project Management",
+          "description":"Manage Funds Released",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-project-utilized-fund",
+          "shortDescription":"Manage Funds Utilized",
+          "category":"Project Management",
+          "description":"Manage Funds Released",
+          "scope":"global"
+        },
+        {
+          "capability":"create-compliance",
+          "shortDescription":"Create Compliance",
+          "category":"Compliances",
+          "description":"Manage Compliances",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-compliance",
+          "shortDescription":"Edit Compliance",
+          "category":"Compliances",
+          "description":"Manage Compliances",
           "scope":"global"
         }
   ]
