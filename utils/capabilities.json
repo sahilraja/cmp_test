@@ -105,13 +105,6 @@
           "scope": "global"
         },
         {
-          "capability": "publish-documents",
-          "shortDescription": "Publish Documents",
-          "description": "Publish Documents",
-          "category": "Document Management",
-          "scope": "global"
-        },
-        {
           "capability": "create-folder",
           "shortDescription": "Create Folder",
           "description": "Ability to create a folder",
@@ -217,6 +210,13 @@
           "scope":"global"
         },
         {
+          "capability":"deactivate-group",
+          "shortDescription":"deactivate group",
+          "description":"deactivate group",
+          "category": "Group Management",
+          "scope":"global"
+        },
+        {
           "capability":"project-add-core-team",
           "shortDescription":"add core team",
           "description":"add core team",
@@ -238,7 +238,7 @@
           "scope":"global"
         },
         {
-          "capability":"create-private-group",
+          "capability":"manage-private-group",
           "shortDescription":"Create Private Group",
           "description":"Create Private Group ",
           "category": "Private Group Management",

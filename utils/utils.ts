@@ -4,13 +4,9 @@ import { AUTHENTICATE_MSG, MOBILE_MESSAGES, USER_ROUTER } from './error_msg';
 import { userFindOne } from './users';
 import { userRoleAndScope } from '../role/module';
 import { APIError } from './custom-error';
-import { loginSchema } from '../users/login-model';
-import {promisify} from "util";
-import * as msg91 from "msg91";
-import * as SendOtp from "sendotp";
-import { httpRequest } from './role_management';
-import * as phoneNo from "phone";
-import { throws } from 'assert';
+const msg91 = require("msg91");
+const SendOtp = require("sendotp");
+const phoneNo = require("phone")
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 30 * 60;

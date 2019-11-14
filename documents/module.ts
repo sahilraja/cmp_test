@@ -1661,10 +1661,11 @@ export async function getAllRequest(docId: string) {
   };
 };
 
-export async function requestAccept(requestId: string) {
+export async function requestAccept(requestId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
-    let requestDetails: any = await docRequestModel.findById(requestId).exec();
+    let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
+    if(userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
     let capability: any[] = await documnetCapabilities(requestDetails.docId, requestDetails.requestedBy);
     if (capability.includes("no_access")) {
       await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId, "viewer")
@@ -1680,9 +1681,11 @@ export async function requestAccept(requestId: string) {
   };
 };
 
-export async function requestDenied(requestId: string) {
+export async function requestDenied(requestId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
+    let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
+    if(userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
     return await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
   } catch (err) {
     throw err;

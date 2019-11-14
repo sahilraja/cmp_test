@@ -20,22 +20,8 @@ const schema = new Schema({
             modifiedBy: { type: String }
         }
     ],
-    projectCost: [
-        {
-            cost: { type: Number },
-            createdAt: { type: Date },
-            modifiedAt: { type: Date },
-            modifiedBy: { type: String }
-        }
-    ],
-    ciitiisGrants: [
-        {
-            cost: { type: Number },
-            createdAt: { type: Date },
-            modifiedAt: { type: Date },
-            modifiedBy: { type: String }
-        }
-    ],
+    projectCost: { type: Number ,default:0},
+    citiisGrants: { type: Number , default:0},
     fundsReleased: [
         {
             deleted:{type:Boolean, default: false},

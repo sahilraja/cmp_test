@@ -145,6 +145,10 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/updateReleasedFund
   /project/{id}/update-utilized-fund:
     $ref: ./swagger/projects/paths.yaml/#/updateUtilizedFund
+  /project/{id}/project-cost:
+    $ref: ./swagger/projects/paths.yaml/#/projectCost
+  /project/{id}/citiis-grants:
+    $ref: ./swagger/projects/paths.yaml/#/citiisGrants
 
 # Roles
   /role/list:
