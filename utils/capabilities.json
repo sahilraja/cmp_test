@@ -243,6 +243,20 @@
           "description":"Create Private Group ",
           "category": "Private Group Management",
           "scope":"global"
+        },
+        {
+          "capability":"delete-message",
+          "shortDescription":"Delete Message",
+          "description":"Ability to delete a message ",
+          "category": "Message Management",
+          "scope":"global"
+        },
+        {
+          "capability":"view-all-cmp-documents",
+          "shortDescription":"View All CMP Documents",
+          "description":"Ability to view all cmp documents ",
+          "category": "Document Management",
+          "scope":"global"
         }
   ]
   

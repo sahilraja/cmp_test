@@ -57,7 +57,8 @@ import {
   getAllRequest,
   requestAccept,
   requestDenied,
-  requestRaise
+  requestRaise,
+  getAllCmpDocs
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -700,6 +701,15 @@ router.post("/:id/requests/denied",authenticate, async (req, res, next: NextFunc
 router.post("/:docid/requests/raise",authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await requestRaise(req.params.docid, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+//  Get All Cmp Docs List
+router.get("/allcmp/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getAllCmpDocs(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`,res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

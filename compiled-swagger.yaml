@@ -4674,6 +4674,54 @@ paths:
                     example: Tag deleted Successfully
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /docs/allcmp/list:
+    get:
+      security:
+        - token: []
+      summary: list of All CMP documents
+      tags:
+        - RESOURCES
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        uploadBy:
+                          type: string
+                          example: jeevan
+                        role:
+                          type: string
+                          example: project manager
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - tagId1234
+                            - tagId5432
+                        date:
+                          type: string
+                          example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /template/create:
     post:
       '400':
