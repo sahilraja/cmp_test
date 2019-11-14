@@ -18,7 +18,7 @@ import {
   userGroupsList
 } from "../utils/groups";
 import { nodemail } from "../utils/email";
-import { docInvitePeople,suggestTagNotification,approveTagNotification,rejectTagNotification } from "../utils/email_template";
+import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { userFindOne, userFindMany, userList, listGroup, searchByname } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
@@ -162,9 +162,7 @@ async function docData(docData: any, host: string) {
 export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
     let folderList = await folders.find({ ownerId: userId, isDeleted: false }, { _id: 0, doc_id: 1 })
-    let folder_files = folderList.map((folder: any) => {
-      return folder.doc_id
-    })
+    let folder_files = folderList.map(({ doc_id }: any) => doc_id)
     var merged = [].concat.apply([], folder_files);
     let folderDocIds = JSON.parse(JSON.stringify(merged));
     let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 })
@@ -1360,6 +1358,11 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    if(objBody.unique){
+      if(userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))){
+        throw new Error("Invalid User Data.")
+      }
+    };
     let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
     let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
     let noAccessDocs = docIds.filter(docid => !Object.keys(mainObj).includes(docid))
@@ -1415,10 +1418,10 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     if (!isEligible) {
       throw new APIError("Unauthorized Access", 403);
     }
-    
+
     if (!body.tags) { throw new Error("Tags is required field") }
-    let docData:any = await documents.findById(docId);
-    if(!docData) throw new Error("Doc not found");
+    let docData: any = await documents.findById(docId);
+    if (!docData) throw new Error("Doc not found");
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     console.log(docData.ownerId);
@@ -1439,21 +1442,21 @@ export async function suggestTags(docId: string, body: any, userId: string) {
         suggestedTags: { userId: userId, tags: body.tags }
       }
     })
-  
-   
+
+
     if (doc) {
       let templatInfo = suggestTagNotification({
         fullName: ownerName,
         userName: userName,
         documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
       });
-  
+
       let status = nodemail({
         email: ownerDetails.email,
         subject: "Message from cmp",
         html: templatInfo
       });
-    
+
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -1516,7 +1519,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
         userName: userName,
         documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
       });
-  
+
       let status = nodemail({
         email: userDetails.email,
         subject: "Message from cmp",
@@ -1572,7 +1575,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
         userName: userName,
         documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
       });
-  
+
       let status = nodemail({
         email: userDetails.email,
         subject: "Message from cmp",
@@ -1617,7 +1620,7 @@ async function mailAllCmpUsers(type: string, docDetails: any) {
 
 export async function deleteSuggestedTag(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId  || !body.tagId) { throw new Error("All mandatory fields are missing") }
+    if (!docId || !body.tagId) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
@@ -1654,8 +1657,8 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
 export async function getAllRequest(docId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
-    let requestData =  await docRequestModel.find({ docId: Types.ObjectId(docId), isDelete: false }).populate(docId)
-    return await Promise.all(requestData.map((request: any)=>{return{...request, requestedBy: userFindOne("id", request.requestedBy, {})}}))
+    let requestData = await docRequestModel.find({ docId: Types.ObjectId(docId), isDelete: false }).populate(docId)
+    return await Promise.all(requestData.map((request: any) => { return { ...request, requestedBy: userFindOne("id", request.requestedBy, {}) } }))
   } catch (err) {
     throw err;
   };
@@ -1665,7 +1668,7 @@ export async function requestAccept(requestId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
-    if(userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
+    if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
     let capability: any[] = await documnetCapabilities(requestDetails.docId, requestDetails.requestedBy);
     if (capability.includes("no_access")) {
       await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId, "viewer")
@@ -1685,7 +1688,7 @@ export async function requestDenied(requestId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
-    if(userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
+    if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
     return await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
   } catch (err) {
     throw err;
@@ -1694,8 +1697,8 @@ export async function requestDenied(requestId: string, userObj: any) {
 
 export async function requestRaise(docId: string, userId: string) {
   try {
-    if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id."); 
-    return await docRequestModel.create({requestId: userId, docId: docId})
+    if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id.");
+    return await docRequestModel.create({ requestId: userId, docId: docId })
   } catch (err) {
     throw err;
   }
@@ -1719,3 +1722,68 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
     throw error;
   }
 }
+
+export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any) {
+  try {
+    let sharedDocIds = await GetDocIdsForUser(ownerId)
+    let [mydocs, sharedDocs]: any = await Promise.all([
+      documents.find({ ownerId: ownerId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).exec(),
+      documents.find({ _id: { $in: sharedDocIds }, isDeleted: false }).exec()
+    ])
+    await Promise.all([
+      mydocs.map((doc: any) => changeOwnerShip(doc, ownerId, newOwnerId, userObj)),
+      sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)),
+    ])
+
+  } catch (err) {
+    throw err;
+  };
+};
+async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, userObj: any) {
+  try {
+    let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
+    if (["no_access", "publish"].includes(capability[0])) {
+      let [document, capability] = await Promise.all([
+        documents.findByIdAndUpdate(doc._id, { $set: { ownerId: newOwnerId } }),
+        groupsRemovePolicy(`user/${ownerId}`, doc._id, "owner")
+      ])
+    } else if (["collaborator", "viewer"].includes(capability[0])) {
+      let [document, ownerCapability, newOwnerCapability] = await Promise.all([
+        documents.findByIdAndUpdate(doc._id, { $set: { ownerId: newOwnerId } }),
+        groupsRemovePolicy(`user/${ownerId}`, doc._id, "owner"),
+        groupsRemovePolicy(`user/${ownerId}`, doc._id, capability[0])
+      ])
+    }
+    await Promise.all([
+      groupsAddPolicy(`user/${newOwnerId}`, doc._id, "owner"),
+      documents.updateMany({ parentId: doc._id }, { $set: { ownerId: newOwnerId } }).exec()
+    ])
+    await create({
+      activityType: "CHANGE_OWNERSHIP",
+      activityBy: userObj._id,
+      documentId: doc._id,
+      documentAddedUsers: [{ id: newOwnerId, type: "user", role: "owner" }],
+      documentRemovedUsers: [{ id: ownerId, type: "user", role: "owner" }]
+    })
+    return { success: true, doc: doc._id }
+  } catch (err) {
+    throw err
+  };
+};
+
+async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: string, userObj: any) {
+  try {
+    let capability: any[] = await documnetCapabilities(doc._id, newOwnerId);
+  
+  } catch (err) {
+    throw err;
+  };
+};
+
+/*
+owner -- access to newowner
+  #if newowner capability remove
+
+shared with owner ---
+          change to shared with new owner #if newOwnew Capability is low
+*/

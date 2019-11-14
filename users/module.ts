@@ -458,7 +458,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        if(objBody.name) throw new Error("Group Name not Modified") 
+        if (objBody.name) throw new Error("Group Name not Modified")
         return await groupEdit(id, objBody);
     } catch (err) {
         throw err;
@@ -507,10 +507,10 @@ export async function addMember(id: string, users: any[], userObj: any) {
         let data: any = await groupFindOne("id", id)
         let existUsers = await groupUserList(data._id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        users = users.filter(user => !existUsers.includes(user))
-        if(!users.length && users.some(user=> existUsers.includes(user))) throw new Error("User already exist.")
-        if (!users.length) throw new APIError("Invalid Action");
-        await Promise.all(users.map((user: any) => addUserToGroup(user, id)))
+        let filteredUsers = users.filter(user => !existUsers.includes(user))
+        if (!filteredUsers.length && users.some(user => existUsers.includes(user))) throw new Error("User already exist.")
+        if (!filteredUsers.length) throw new APIError("Invalid Action");
+        await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
