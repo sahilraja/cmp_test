@@ -1,27 +1,40 @@
 import { ComplianceSchema } from "./compliance-model";
-import { checkRoleScope } from "../../utils/role_management";
+import { checkRoleScope, httpRequest } from "../../utils/role_management";
 import { APIError } from "../../utils/custom-error";
 import { COMPLIANCES } from "../../utils/error_msg";
+import { TASKS_URL } from "../../utils/urls";
 
 export async function createCompliance(payload: any, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, 'create-compliance')
     if(!isEligible){
         throw new APIError(COMPLIANCES.UNAUTHORIZED_TO_CREATE)
     }
-    if(!payload.document && !payload.taskId){
-        throw new APIError(COMPLIANCES.REQUIRED_DOCUEMNT_OR_TASK)
+    if(!payload.taskId){
+        throw new APIError(COMPLIANCES.REQUIRED_TASK)
     }
     return await ComplianceSchema.create({...payload, createdBy: userObj._id})
 }
 
-export async function listCompliances() {
-    return await ComplianceSchema.find({}).exec()
+export async function listCompliances(userToken: string) {
+    const compliances = await ComplianceSchema.find({}).exec()
+    const taskIds = compliances.map((compliance: any) => compliance.taskId).filter(v => !!v)
+    const tasks: any = await httpRequest({
+        url: `${TASKS_URL}/task/getByIds`,
+        method: 'POST',
+        body: { taskIds },
+        headers: { 'Authorization': `Bearer ${userToken}` },
+        json: true
+    })
+    return compliances.map((compliance: any) => ({ ...compliance.toJSON(), taskStatus: tasks.find((task: any) => task._id == compliance.task).status }))
 }
 
-export async function editCompliance(id: string, updates: object, userObj: any) {
+export async function editCompliance(id: string, updates: any, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, 'edit-compliance')
     if(!isEligible){
         throw new APIError(COMPLIANCES.UNAUTHORIZED_TO_EDIT)
+    }
+    if(Object.keys(updates).includes('taskId') && !updates.taskId){
+        throw new APIError(COMPLIANCES.REQUIRED_TASK)
     }
     // Need to handle task case
     return await ComplianceSchema.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec()

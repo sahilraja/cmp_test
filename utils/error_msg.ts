@@ -118,7 +118,7 @@ export const PROJECT_ROUTER = {
 }
 
 export const COMPLIANCES = {
-    REQUIRED_DOCUEMNT_OR_TASK: `Document or task ID is required to create compliance`,
+    REQUIRED_TASK: `task ID is required to create compliance`,
     UNAUTHORIZED_TO_CREATE:`Unauthorized to create compliance`,
     UNAUTHORIZED_TO_EDIT:`Unauthorized to edit compliance`
 }
