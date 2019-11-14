@@ -663,7 +663,12 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
         if (objBody.mobileOtp) {
-            await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
+            if(objBody.countryCode && objBody.phone){
+                await mobileVerifyOtp(objBody.countryCode + objBody.phone, objBody.mobileOtp);
+            }
+            else{
+                await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
+            }
         }
         if (objBody.otp != "1111") {
             if (objBody.otp != token.otp) {
