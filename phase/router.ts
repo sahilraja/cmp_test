@@ -7,7 +7,7 @@ const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
     try {
-        res.status(OK).send(await createPhase(req.body,res.locals.user._id)
+        res.status(OK).send(await createPhase(req.body,res.locals.user._id));
     } catch (error) {
         if (error.code == 11000) {
             error.message = `Phase already exists`
