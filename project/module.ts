@@ -9,7 +9,7 @@ import { workflowModel } from "./workflow_model";
 import { checkCapability } from "../utils/rbac";
 import { httpRequest, checkRoleScope } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
-import { getUserDetail } from "../users/module";
+import { getUserDetail, userDetails } from "../users/module";
 import { userFindMany } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
@@ -17,6 +17,9 @@ import { documentsList } from "../documents/module";
 import { unlinkSync } from "fs";
 import { extname } from "path";
 import * as xlsx from "xlsx";
+import { userRolesNotification } from "../notifications/module";
+import { nodemail } from "../utils/email";
+import { getTemplateBySubstitutions } from "../email-templates/module";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -163,6 +166,20 @@ export async function add_tag(reqObject: any, userObj: any) {
     }
     let isEligible = await checkRoleScope(userObj.role, "create-tag");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    let { firstName, lastName, middleName, countryCode, phone } = userObj;
+    let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+    
+    let userNotification = await userRolesNotification(userObj._id,"tagAdd");
+    
+    if(userNotification.email){
+      let templatInfo = await getTemplateBySubstitutions('tagAdd', { fullName, otp: authOtp.otp });
+      nodemail({
+        email: userObj.email,
+        subject: templatInfo.subject,
+        html: templatInfo.content
+      })
+    }
+
     return await tags.create({
       tag: reqObject.tag,
       description: reqObject.description || "N/A"

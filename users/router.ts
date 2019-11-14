@@ -48,7 +48,7 @@ router.post("/register/:token", async (req: Request, res: Response, next: NextFu
 router.get('/invite/resend/:role/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { role, id } = req.params
-        res.status(200).send(await userInviteResend(id, role));
+        res.status(200).send(await userInviteResend(id, role,res.locals.user));
     } catch (err) {
         next(new APIError(err.message));
     };

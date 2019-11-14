@@ -102,18 +102,15 @@ export async function notifications(){
   if(!existingNotificationsCount){
       let {roles}:any= await role_list();
       let templateList:any = await TemplateSchema.find({}).exec();
-      // let NotificationsList :object[] = [];
-      // let notificationObject :any= {
-      //   role:
-      // }
 
       let notificationsList = roles.map((user:any)=>{
         let templates: object[] = []; 
         templateList.forEach((template:any)=> {
             templates.push({
               templateName:template.templateName,
-              email:false,
-              mobile:false
+              displayName:template.displayName,
+              email:true,
+              mobile:true,
             })
         });
         return{

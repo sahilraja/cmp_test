@@ -75,10 +75,14 @@ export const RESPONSE = {
     REMOVE_MEMBER: "Group member removed"
 }
 export const SENDER_IDS = {
-    OTP : "CMPOTP"
+    OTP : "CMPOTP",
+    FORGOT_OTP:"CMPOTP",
+    CHANGE_MOBILE_OTP:"CMPOTP",
+    CHANGE_EMAIL_OTP: "CMPOTP"
 }
 export const MOBILE_TEMPLATES = {
-    LOGIN : "Welcome to CMP"
+    LOGIN : "Welcome to CMP",
+    STATE: "STATE"
 }
 
 export const GLOBAL_SCOPE = "global";
