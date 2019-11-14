@@ -458,12 +458,8 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        const { name, description } = objBody
-        let obj: any = {}
-        if (description) {
-            obj.description = description;
-        };
-        return await groupEdit(id, obj);
+        if(objBody.name) throw new Error("Group Name not Modified") 
+        return await groupEdit(id, objBody);
     } catch (err) {
         throw err;
     };
