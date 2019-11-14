@@ -18,7 +18,7 @@ import {
   userGroupsList
 } from "../utils/groups";
 import { nodemail } from "../utils/email";
-import { docInvitePeople } from "../utils/email_template";
+import { docInvitePeople,suggestTagNotification,approveTagNotification,rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { userFindOne, userFindMany, userList, listGroup, searchByname } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
@@ -1415,9 +1415,17 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     if (!isEligible) {
       throw new APIError("Unauthorized Access", 403);
     }
+    
     if (!body.tags) { throw new Error("Tags is required field") }
+    let docData:any = await documents.findById(docId);
+    if(!docData) throw new Error("Doc not found");
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    console.log(docData.ownerId);
+    let ownerDetails = await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
+    let userDetails = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
 
     let doc = await documents.findByIdAndUpdate(docId, {
       "$push": {
@@ -1431,8 +1439,21 @@ export async function suggestTags(docId: string, body: any, userId: string) {
         suggestedTags: { userId: userId, tags: body.tags }
       }
     })
-
+  
+   
     if (doc) {
+      let templatInfo = suggestTagNotification({
+        fullName: ownerName,
+        userName: userName,
+        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
+      });
+  
+      let status = nodemail({
+        email: ownerDetails.email,
+        subject: "Message from cmp",
+        html: templatInfo
+      });
+    
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -1461,6 +1482,12 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
+
+    let ownerDetails = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
+    let userDetails = await userFindOne("id", body.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
       docdetails.suggestedTags.filter((tag: any) => tag.userId == body.userId).map(
         (_respdata: any) => {
@@ -1484,6 +1511,17 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       "$push": { tags: body.tagId }
     })
     if (doc) {
+      let templatInfo = approveTagNotification({
+        fullName: ownerName,
+        userName: userName,
+        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
+      });
+  
+      let status = nodemail({
+        email: userDetails.email,
+        subject: "Message from cmp",
+        html: templatInfo
+      });
       return {
         sucess: true,
         message: "Tag approved successfully"
@@ -1499,6 +1537,11 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
+    let ownerDetails = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
+    let userDetails = await userFindOne("id", body.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
       docdetails.suggestedTags.filter((tag: any) => tag.userId == body.userId).map(
         (_respdata: any) => {
@@ -1524,6 +1567,18 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       }
     })
     if (doc) {
+      let templatInfo = rejectTagNotification({
+        fullName: ownerName,
+        userName: userName,
+        documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`
+      });
+  
+      let status = nodemail({
+        email: userDetails.email,
+        subject: "Message from cmp",
+        html: templatInfo
+      });
+
       return {
         sucess: true,
         message: "Tag Rejected"
