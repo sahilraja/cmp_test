@@ -102,7 +102,7 @@ paths:
     $ref: ./swagger/private-groups/paths.yaml/#/privateGroupDetails
   /private-group/list:
     $ref: ./swagger/private-groups/paths.yaml/#/PrivateGroupList
-  /private-group/{id}/menber/remove:
+  /private-group/{id}/member/remove:
     $ref: ./swagger/private-groups/paths.yaml/#/RemovePrivateGroupMember
 
     

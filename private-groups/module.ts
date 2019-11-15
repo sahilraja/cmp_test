@@ -30,7 +30,7 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
         if (!groupDetails) throw new Error("Group Not Found.");
         if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
-        if (body.members ||(!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.")
+        if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.")
         body.members = [...new Set(groupDetails.members.concat(body.members))]
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
