@@ -168,13 +168,6 @@
           "scope":"global"
         },
         {
-          "capability":"project-edit-task",
-          "shortDescription":"project edit task",
-          "description":"project edit task",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
           "capability":"publish-document",
           "shortDescription":"published documents",
           "description":"published documents",
@@ -277,6 +270,13 @@
           "shortDescription":"Edit Compliance",
           "category":"Compliances",
           "description":"Manage Compliances",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-risk",
+          "shortDescription":"Risk Management",
+          "category":"Risk Management",
+          "description":"Risk Management",
           "scope":"global"
         }
   ]

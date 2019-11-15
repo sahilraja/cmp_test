@@ -20,6 +20,7 @@ import * as privateGroup from "./private-groups/router";
 import * as activityRouter from "./log/router";
 import * as constantsRouter from "./site-constants/router";
 import * as phaseRouter from "./phase/router";
+import * as notificationsRouter from "./notifications/router";
 
 // implement multer
 import * as multer from "multer";
@@ -64,6 +65,7 @@ app.use(`/private-group`, privateGroup)
 app.use(`/activity`, activityRouter)
 app.use('/constants', authenticate, constantsRouter);
 app.use('/phases',authenticate,phaseRouter);
+app.use('/notifications/',authenticate,notificationsRouter);
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

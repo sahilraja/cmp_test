@@ -1,0 +1,31 @@
+responses:
+  notifications:
+    description: project
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/notificationsSchema"
+  schemas:
+    notificationsSchema:
+      type: object
+      properties:
+        role: 
+          type: string
+          example: technology-lead
+        templates:
+          type: array
+          items:
+            type: object
+            properties:
+              displayName:
+                type: string
+                example: Invite User
+              templateName:
+                type: string
+                example: invite
+              email:
+                type: boolean
+                example: yes
+              mobile:
+                type: boolean
+                example: yes

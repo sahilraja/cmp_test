@@ -6,6 +6,10 @@ import { addRole } from "./rbac";
 import { RBAC_URL } from "./urls";
 import { userList, createUser } from "./users";
 import { constantSchema } from "../site-constants/model";
+import { notificationSchema } from "../notifications/model";
+import { role_list } from "../role/module";
+import { TemplateSchema } from "../email-templates/model";
+import { readFileSync } from "fs";
 
 export async function init() {
   let removeOptions = {
@@ -85,7 +89,8 @@ export async function siteConstants() {
   let existingConstantsCount = await constantSchema.find().count().exec();
   if(!existingConstantsCount){
     await constantSchema.create({
-      aboutMe:200
+      aboutMe:200,
+      documentName: 30
     });
     console.log(`site-constants created successfully`);
   }
@@ -93,6 +98,48 @@ export async function siteConstants() {
     console.log(`existing site-constants found in DB`);
   }
 }
+export async function notifications(){
+  let existingNotificationsCount = await notificationSchema.find().count().exec();
+  if(!existingNotificationsCount){
+      let {roles}:any= await role_list();
+      let templateList:any = await TemplateSchema.find({}).exec();
+
+      let notificationsList = roles.map((user:any)=>{
+        let templates: object[] = []; 
+        templateList.forEach((template:any)=> {
+          let removeTemplates = ['changeMobileOTP','changeEmailOTP','forgotPasswordOTP'];
+          if(!removeTemplates.includes(template.templateName)){
+            templates.push({
+              templateName:template.templateName,
+              displayName:template.displayName || template.templateName,
+              email:true,
+              mobile:true,
+            })
+          }
+        });
+        return{
+          role:user.role,
+          templates
+        }
+      })
+      await notificationSchema.create(notificationsList);
+      console.log(`notifications created successfully`);
+    }
+    else{
+      console.log(`existing notifications found in DB`);
+    }
+}
+export async function templates(){
+  let existingTemplatesCount:any = await TemplateSchema.find().count().exec();
+  if(!existingTemplatesCount){
+    await TemplateSchema.create(JSON.parse(readFileSync(join(__dirname,"email_template.json"), "utf8")));
+      console.log(`templates created successfully`);
+    }
+    else{
+      console.log(`existing templates found in DB`);
+    }
+}
+
 export async function httpRequest(options: any) {
   return new Promise((resolve, reject) => {
       request({ ...options, json: true }, function (err: Error, response: any, body: any) {
