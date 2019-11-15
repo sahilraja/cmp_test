@@ -1386,7 +1386,7 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
 };
 
 async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
-  let userCapabilities: any = documnetCapabilities(docId, userId)
+  let userCapabilities: any = await documnetCapabilities(docId, userId)
   if (["no_access", "viewer"].includes(userCapabilities[0])) return {}
   const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
   let users = await userFindMany("_id", userIds)
