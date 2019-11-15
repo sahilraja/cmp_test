@@ -18,6 +18,7 @@ export async function createPrivateGroup(body: privateGroup, userObj: any): Prom
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
         if (!body.name || !Array.isArray(body.members)) throw new Error("Missing Required Fields.");
+        if(body.members.includes(userObj._id)) throw new Error("Owner can't group member.")
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
@@ -32,6 +33,7 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.")
         body.members = [...new Set(groupDetails.members.concat(body.members))]
+        if(body.members.includes(userId)) throw new Error("Owner can't group member.")
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
         throw err
