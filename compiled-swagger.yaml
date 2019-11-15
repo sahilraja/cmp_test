@@ -5427,6 +5427,8 @@ paths:
                 items: *ref_15
   /notifications/update:
     post:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       requierd:
@@ -5444,6 +5446,9 @@ paths:
                 role:
                   type: string
                   example: technology-lead
+                templateName:
+                  type: string
+                  example: invite
                 displayName:
                   type: string
                   example: Invite User
@@ -5466,6 +5471,8 @@ paths:
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/list:
     get:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       responses:
@@ -5526,6 +5533,8 @@ paths:
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/template/add:
     post:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       requierd:
@@ -5553,6 +5562,8 @@ paths:
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/getNotification:
     get:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       parameters:

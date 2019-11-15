@@ -1,5 +1,7 @@
   updateNotification:
     post:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       requierd:
@@ -17,6 +19,9 @@
                 role:
                   type: string
                   example: technology-lead
+                templateName:
+                  type: string
+                  example: invite
                 displayName:
                   type: string
                   example: Invite User
@@ -40,6 +45,8 @@
 
   getNotificationList:
     get:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       responses:
@@ -81,6 +88,8 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   addTemplateNotification:
     post:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       requierd:
@@ -109,6 +118,8 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   getNotificationInfo:
     get:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       parameters:
