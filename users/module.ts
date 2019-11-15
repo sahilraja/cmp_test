@@ -587,7 +587,9 @@ export async function userSuggestions(search: string, userId: string, role: stri
             });
             return user
         })
-        myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: usersWithType(privateGroup.members), type: "private-group" } }))
+        let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any)=> main.concat(curr.members) ,[]))]
+        let privateUsersObj = await usersWithType(privateGroupUser)
+        myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any)=> privateGroup.members.includes(user._id)) , type: "private-group" } }))
         publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
         if (searchKeyArray.length) return [...users, ...publicGroups, ...myPrivateGroups].filter(user => searchKeyArray.includes(user.type))
         return [...users, ...publicGroups, ...myPrivateGroups]
