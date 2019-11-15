@@ -169,16 +169,16 @@ export async function add_tag(reqObject: any, userObj: any) {
     let { firstName, lastName, middleName, countryCode, phone } = userObj;
     let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
     
-    let userNotification = await userRolesNotification(userObj._id,"tagAdd");
+    // let userNotification = await userRolesNotification(userObj._id,"tagAdd");
     
-    if(userNotification.email){
-      let templatInfo = await getTemplateBySubstitutions('tagAdd', { fullName, otp: authOtp.otp });
-      nodemail({
-        email: userObj.email,
-        subject: templatInfo.subject,
-        html: templatInfo.content
-      })
-    }
+    // if(userNotification.email){
+    //   let templatInfo = await getTemplateBySubstitutions('tagAdd', { fullName, otp: authOtp.otp });
+    //   nodemail({
+    //     email: userObj.email,
+    //     subject: templatInfo.subject,
+    //     html: templatInfo.content
+    //   })
+    // }
 
     return await tags.create({
       tag: reqObject.tag,
