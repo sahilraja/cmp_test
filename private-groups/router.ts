@@ -35,6 +35,15 @@ router.post("/:id/edit", authenticate, async (req: Request, res: Response, next:
     };
 });
 
+//  Remove Private Group Details
+router.post("/:id/menber/remove", authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(OK).send(await editPrivateGroup(req.params.id, req.body, res.locals.user._id))
+    } catch (err) {
+        next(new APIError(err.message));
+    };
+});
+
 //  Change Status of the Private Group
 router.put("/:id/status", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
