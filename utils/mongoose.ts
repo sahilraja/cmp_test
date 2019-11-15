@@ -11,8 +11,8 @@ async function initializeDB() {
     try {
         await userInit();
         await siteConstants();
-        await notifications();
         await templates();
+        await notifications();
         // await init();
     } catch (err) {
         console.error(err);
