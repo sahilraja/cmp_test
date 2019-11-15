@@ -5424,7 +5424,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_15
+                items: *ref_16
   /notifications/update:
     post:
       security:
@@ -5482,7 +5482,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &ref_16
+                items: &ref_17
                   type: object
                   properties:
                     role:
@@ -5528,7 +5528,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_16
+              schema: *ref_17
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/template/add:
@@ -5557,7 +5557,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_16
+              schema: *ref_17
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/getNotification:
@@ -5601,14 +5601,14 @@ definitions:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_17
+          schema: &ref_18
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_17
+    Error: *ref_18
 components:
   securitySchemes:
     token:
