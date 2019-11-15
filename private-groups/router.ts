@@ -22,6 +22,9 @@ router.post("/create", authenticate, async (req: Request, res: Response, next: N
     try {
         res.status(OK).send(await createPrivateGroup(req.body, res.locals.user))
     } catch (err) {
+        if(err.code = 1100){
+            err.message = `Group Name already exist.`
+        }
         next(new APIError(err.message));
     };
 });

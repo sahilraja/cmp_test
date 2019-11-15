@@ -79,7 +79,7 @@ export async function privateGroupDetails(groupId: string): Promise<any> {
 //  Get Group Detail
 export async function privateGroupList(userId: string, search?: string): Promise<any[]> {
     try {
-        let searchQuery = search ? { name: new RegExp(search, "i"), createdBy: userId } : { createdBy: userId }
+        let searchQuery = search ? { name: new RegExp(search, "i"), createdBy: userId, is_active: true } : { createdBy: userId, is_active: true }
         let groupList = await privateGroupSchema.find({ ...searchQuery }).exec()
         return await Promise.all(groupList.map((group: any) => groupDetails(group)))
     } catch (err) {
