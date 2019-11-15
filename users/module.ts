@@ -97,9 +97,13 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             throw new Error(USER_ROUTER.TOKEN_MISSING)
         }
         //  Verify Token
-        let token: any = await jwt_Verify(verifyToken)
-        if (!token) throw new Error(USER_ROUTER.TOKEN_INVALID)
-
+        let token: any = await jwt_Verify(verifyToken);
+        if(token == "TokenExpiredError"){
+            throw new Error(USER_ROUTER.TOKEN_EXPIRED)   
+        }
+        if (token == "JsonWebTokenError") {
+            throw new Error(USER_ROUTER.TOKEN_INVALID)
+        }
         let user: any = await userFindOne("id", token.id)
         if (!user) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
@@ -274,8 +278,8 @@ export async function user_login(req: any) {
         if (!userData) throw new Error(USER_ROUTER.INVALID_USER);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
-        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
+        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
 
         let userNotification = await userRolesNotification(userData._id, "userLogin");
@@ -614,6 +618,11 @@ export async function getUsersForProject(search: string, userId: string, role: s
 
 export async function otpVerification(objBody: any) {
     try {
+        let mobile_flag: number = 0
+        let email_flag: number = 0
+        if (!objBody.otp && !objBody.mobileOtp) {
+            throw new APIError(USER_ROUTER.MANDATORY)
+        }
         if (!objBody.otp) {
             throw new Error("Required email otp field");
         };
@@ -628,10 +637,22 @@ export async function otpVerification(objBody: any) {
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if (objBody.mobileOtp) {
-            await mobileVerifyOtp(userInfo.countryCode + userInfo.phone, objBody.mobileOtp);
+            let result = await mobileVerifyOtp(userInfo.countryCode + userInfo.phone, objBody.mobileOtp);
+            if(!result){
+                mobile_flag = 1
+            }
         }
         if ((objBody.otp) != Number(token.otp)) {
-            throw new Error(INCORRECT_OTP);
+            email_flag = 1
+        }
+        if (email_flag == 1 && mobile_flag == 1) {
+            throw new APIError(MOBILE_MESSAGES.BOTH_INVALID);
+        }
+        if (email_flag == 1) {
+            throw new APIError(USER_ROUTER.INVALID_OTP);
+        }
+        if (mobile_flag == 1) {
+            throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
         }
         let userData = await otpVerify(userInfo);
         return userData;
@@ -670,21 +691,11 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
-        let { firstName, lastName, middleName, countryCode, phone } = userInfo;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        let { fullName, mobileNo } = getFullNameAndMobile(userInfo);
 
-        let userNotification = await userRolesNotification(user._id, "changeEmailOTP");
-        if (userNotification.mobile) {
-            mobileSendOtp(countryCode + phone, SENDER_IDS.CHANGE_EMAIL_OTP);
-        }
-        if (userNotification.email) {
-            let templatInfo = await getTemplateBySubstitutions('changeEmailOTP', { fullName, otp: authOtp.otp });
-            await nodemail({
-                email: objBody.email,
-                subject: templatInfo.subject,
-                html: templatInfo.content
-            });
-        }
+        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, templateName: "changeEmailMessage", mobileMessage: MOBILE_TEMPLATES.CHANGE_EMAIL })
+        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, templateName: "changeEmailOTP", mobileOtp:SENDER_IDS.CHANGE_EMAIL_OTP });
+
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
     catch (err) {
@@ -694,20 +705,37 @@ export async function changeEmailInfo(objBody: any, user: any) {
 
 export async function profileOtpVerify(objBody: any, user: any) {
     try {
+        let mobile_flag: number = 0
+        let email_flag: number = 0
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
         if (objBody.mobileOtp) {
             if (objBody.countryCode && objBody.phone) {
-                await mobileVerifyOtp(objBody.countryCode + objBody.phone, objBody.mobileOtp);
+                let result = await mobileVerifyOtp(objBody.countryCode + objBody.phone, objBody.mobileOtp);
+                if (!result) {
+                    mobile_flag = 1
+                }
             }
             else {
-                await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
+                let result = await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
+                if (!result) {
+                    mobile_flag = 1
+                }
             }
         }
         if (objBody.otp != "1111") {
             if (objBody.otp != token.otp) {
-                throw new Error(USER_ROUTER.INVALID_OTP);
+                email_flag = 1
             }
+        }
+        if (email_flag == 1 && mobile_flag == 1) {
+            throw new APIError(MOBILE_MESSAGES.BOTH_INVALID);
+        }
+        if (email_flag == 1) {
+            throw new APIError(USER_ROUTER.INVALID_OTP);
+        }
+        if (mobile_flag == 1) {
+            throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
         }
         let temp: any = {};
         if (objBody.phone && objBody.countryCode) {
@@ -764,19 +792,20 @@ export async function changeMobileNumber(objBody: any, userData: any) {
         if (!newPhone && !password && !newCountryCode) {
             throw new APIError(USER_ROUTER.MANDATORY)
         }
-        let { firstName, lastName, middleName, phone, countryCode } = userData;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-        if (newCountryCode + newPhone == phone + countryCode) {
+        let { fullName, mobileNo } = getFullNameAndMobile(userData);
+
+        if (newCountryCode + newPhone == mobileNo) {
             throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
         }
         if (!comparePassword(password, userData.password)) {
+            invalidPasswordNotification({ id: userData._id, fullName, email: userData.email, mobileNo })
             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
         }
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userData._id });
 
-        let phoneNo: any = phone + countryCode;
+        let phoneNo: any = mobileNo;
         if (newCountryCode && newPhone) {
             phoneNo = newCountryCode + newPhone
         }
@@ -823,4 +852,19 @@ export function getFullNameAndMobile(userObj: any) {
     let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
     let mobileNo = countryCode + phone;
     return { fullName, mobileNo }
+}
+export async function invalidPasswordNotification(objBody: any) {
+    const { id, fullName, email, mobileNo } = objBody;
+    let userNotification = await userRolesNotification(id, "invalidPassword");
+    if (userNotification.mobile) {
+        //mobileSendMessage(mobileNo,MOBILE_TEMPLATES.INVALID_PASSWORD);
+    }
+    if (userNotification.email) {
+        let templatInfo = await getTemplateBySubstitutions('invalidPassword', { fullName });
+        nodemail({
+            email: email,
+            subject: templatInfo.subject,
+            html: templatInfo.content
+        })
+    }
 }
