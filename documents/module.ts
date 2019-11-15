@@ -55,7 +55,7 @@ export async function createNewDoc(body: any, userId: any) {
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
-      if (data) {
+      if (data.length) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
 
