@@ -1254,7 +1254,7 @@ paths:
                 items: *ref_5
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/private-group/{id}//menber/remove':
+  '/private-group/{id}/menber/remove':
     post:
       security:
         - token: []
