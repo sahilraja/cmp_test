@@ -19,11 +19,7 @@ import {
 } from "../utils/groups";
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
-<<<<<<< HEAD
-import { DOCUMENT_ROUTER } from "../utils/error_msg";
-=======
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
->>>>>>> added json email template
 import { userFindOne, userFindMany, userList, listGroup, searchByname } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
