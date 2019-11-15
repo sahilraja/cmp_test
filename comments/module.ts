@@ -11,6 +11,8 @@ import { comments } from "./model";
 export async function addComment(body: any, userId: string) {
     try {
       if(!body.type || !body.comment || !body.entity_id) throw new Error("All mandatory fields are required")
+      
+      
       return await comments.create({
         type: body.type,
         comment: body.comment,

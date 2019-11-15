@@ -17,8 +17,10 @@ import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
+import { notificationSchema } from "../notifications/model";
 
 import { httpRequest } from "../utils/role_management";
+import { userRolesNotification } from "../notifications/module";
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
@@ -50,6 +52,7 @@ export async function inviteUser(objBody: any, user: any) {
             }
         }
         //  Check User Capability
+
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({
@@ -58,8 +61,7 @@ export async function inviteUser(objBody: any, user: any) {
             lastName: objBody.lastName,
             middleName: objBody.middleName
         })
-        let { firstName, lastName, middleName } = userData;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        let {fullName} = getFullNameAndMobile(userData);
         //  Add Role to User
         let RoleStatus = await addRole(userData._id, objBody.role)
         if (!RoleStatus.status) {
@@ -72,14 +74,16 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
-
-        //  Sent Mail to User
-        let mailStatus = await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        
+        let userNotification = await userRolesNotification(user._id,"invite");
+        if(userNotification.email){
+            let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
+            nodemail({
+                email: userData.email,
+                subject: templatInfo.subject,
+                html: templatInfo.content
+            })
+        }
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -228,12 +232,19 @@ export async function user_status(id: string, user: any) {
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated"
-        let templatInfo = await getTemplateBySubstitutions('userState', { state });
-        await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        
+        let userNotification = await userRolesNotification(user._id,"userState");
+        if(userNotification.mobile){
+            //mobileSendMessage(data.countryCode+data.phone,MOBILE_TEMPLATES.STATE);
+        }
+        if(userNotification.email){
+            let templatInfo = await getTemplateBySubstitutions('userState', { state });
+            nodemail({
+                email: userData.email,
+                subject: templatInfo.subject,
+                html: templatInfo.content
+            })
+        }
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
         throw err;
@@ -265,15 +276,20 @@ export async function user_login(req: any) {
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
+        let {fullName,mobileNo} = getFullNameAndMobile(userData);
 
-        //mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
-        let templatInfo = await getTemplateBySubstitutions('userLogin', { fullName: userData.firstName });
-
-        await nodemail({
+        let userNotification= await userRolesNotification(userData._id,"userLogin");
+        if(userNotification.mobile){
+            //mobileSendMessage(mobileNo,MOBILE_TEMPLATES.LOGIN);
+        }
+        if(userNotification.email){
+            let templatInfo = await getTemplateBySubstitutions('userLogin', {fullName});
+            nodemail({
             email: userData.email,
             subject: templatInfo.subject,
             html: templatInfo.content
         })
+    }
         return response
     } catch (err) {
         throw err;
@@ -281,26 +297,25 @@ export async function user_login(req: any) {
 };
 
 //  Resend invite link
-export async function userInviteResend(id: string, role: any) {
+export async function userInviteResend(id: string, role: any,user:any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
 
         let userData: any = await userFindOne("id", id)
         if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
-        let token = await jwt_for_url({ id, role, email: userData.email });
-
-        let { firstName, lastName, middleName } = userData;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-
-        //  mail sent user
-        let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role, link: `${ANGULAR_URL}/user/register/${token}` });
-        //  Sent Mail to User
-        let mailStatus = await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        let token = await jwt_for_url({ user: id, role: role });
+        let {fullName,mobileNo} = getFullNameAndMobile(userData);
+        
+        let userNotification = await userRolesNotification(user._id,"invite");
+        if(userNotification.email){
+            let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role, link: `${ANGULAR_URL}/user/register/${token}` });
+            nodemail({
+                email: userData.email,
+                subject: templatInfo.subject,
+                html: templatInfo.content
+            })
+        }
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
         throw err;
@@ -362,8 +377,8 @@ export async function forgotPassword(objBody: any) {
         if (!userDetails) {
             throw new Error('Email ID is not registered')
         }
-        let { firstName, lastName, middleName, countryCode, phone } = userDetails;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        let {fullName,mobileNo} = getFullNameAndMobile(userDetails);
+
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         //  Create Token
@@ -371,14 +386,18 @@ export async function forgotPassword(objBody: any) {
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userDetails._id });
 
-        mobileSendOtp(countryCode + phone, SENDER_IDS.OTP);
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
-
-        let success = await nodemail({
+        let userNotification = await userRolesNotification(userDetails._id,"forgotPasswordOTP");
+        if(userNotification.mobile){
+            mobileSendOtp(mobileNo, SENDER_IDS.FORGOT_OTP);
+        }
+        if(userNotification.email){
+        let templatInfo = await getTemplateBySubstitutions('forgotPasswordOTP', { fullName, otp: authOtp.otp });
+        nodemail({
             email: userDetails.email,
             subject: templatInfo.subject,
             html: templatInfo.content
         })
+    }
         let tokenId = await jwt_for_url({ "id": userDetails._id });
         return { message: RESPONSE.SUCCESS_EMAIL, email: userDetails.email, id: tokenId }
     } catch (err) {
@@ -639,14 +658,18 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let { firstName, lastName, middleName, countryCode, phone } = userInfo;
         let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
 
-        mobileSendOtp(countryCode + phone, SENDER_IDS.OTP);
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
-
-        let success = await nodemail({
+        let userNotification = await userRolesNotification(user._id,"changeEmailOTP");
+        if(userNotification.mobile){
+            mobileSendOtp(countryCode + phone, SENDER_IDS.CHANGE_EMAIL_OTP);
+        }
+        if(userNotification.email){
+            let templatInfo = await getTemplateBySubstitutions('changeEmailOTP', { fullName, otp: authOtp.otp });
+            await nodemail({
             email: objBody.email,
             subject: templatInfo.subject,
             html: templatInfo.content
-        });
+            });
+        }
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
     catch (err) {
@@ -742,15 +765,20 @@ export async function changeMobileNumber(objBody: any, userData: any) {
         if (newCountryCode && newPhone) {
             phoneNo = newCountryCode + newPhone
         }
-        mobileSendOtp(phoneNo, SENDER_IDS.OTP);
-
-        let templateInfo: any = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
-        await nodemail({
-            email: userData.email,
-            subject: templateInfo.subject,
-            html: templateInfo.content
-        })
-
+        
+        let userNotification = await userRolesNotification(userData._id,"changeMobileOTP");
+        if(userNotification.mobile){
+            mobileSendOtp(phoneNo, SENDER_IDS.CHANGE_MOBILE_OTP);
+        }
+        
+        if(userNotification.email){
+            let templateInfo: any = await getTemplateBySubstitutions('changeMobileOTP', { fullName, otp: authOtp.otp });
+            nodemail({
+                email: userData.email,
+                subject: templateInfo.subject,
+                html: templateInfo.content
+            })
+        }
         return { message: "success" }
     }
     catch (err) {
@@ -773,5 +801,11 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
             headers: { 'Authorization': `Bearer ${userToken}` }
         })
         // Documents & Roles to be updated
-    ])
+    ]) 
+}
+export function  getFullNameAndMobile(userObj:any){
+    let { firstName, lastName, middleName, countryCode, phone } = userObj;
+    let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+    let mobileNo = countryCode+phone;
+    return {fullName,mobileNo}   
 }

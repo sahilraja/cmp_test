@@ -1,0 +1,74 @@
+[
+    {
+        "content" : "Hi <b>[fullName]</b>, <br/>You are invited by an Administrator of CMP platform to join for the role of [role].</b><br/><br/>You can proceed with your registration by accepting invitation by clicking on the following <a href=[link]>link</a>.<br/><br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "invite",
+        "displayName" : "Invite User",
+        "subject" : "Invitation from CITIIS Management "
+    },
+    {
+        "content" : "Your account has been [state] | CMP",
+        "templateName" : "userState",
+        "displayName" : "user State",
+        "subject" : "Your account has been [state] | CMP"
+    },
+    {
+        "content" : "Welcome to <h>CMP<h>",
+        "templateName" : "userLogin",
+        "subject" : "Login into CMP",
+        "displayName" : "user login"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>You are invited by an user of CMP to collaborate on the document <b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "inviteForDocument",
+        "displayName" : "invite for document",
+        "subject" : "Invitation for [documentName] document"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>You have received a new message on CMP. Here is an excerpt.<br/>[content] <br/><br/><a href=[link]>Click here to view the full message.</a>.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "inboxMessage",
+        "displayName" : "inbox message",
+        "subject" : "CMP message | [subject]"
+    },
+    {
+        "content" : "Task udpated",
+        "templateName" : "taskUpdate",
+        "subject" : "Task Updated",
+        "displayName" : "task updated"
+    },
+    {
+        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to activate your CMP account.<br/><br/>Best Regards,<br/>CMP Support.",
+        "templateName" : "changeMobileOTP",
+        "displayName" : "change mobile otp",
+        "subject" : "CMP change mobile instructions"
+    },
+    {
+        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to activate your CMP account.<br/><br/>Best Regards,<br/>CMP Support.",
+        "templateName" : "changeEmailOTP",
+        "displayName" : "change email otp",
+        "subject" : "CMP change email instructions"
+    },
+    {
+        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to activate your CMP account.<br/><br/>Best Regards,<br/>CMP Support.",
+        "templateName" : "forgotPasswordOTP",
+        "displayName" : "forgot password otp",
+        "subject" : "CMP forgot Password instructions"
+    },
+    {
+        "content" : "Hi,<br/></br><br/><b>[userName]</b> suggested a tag.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "suggestTagNotification",
+        "displayName" : "suggest Tag notification",
+        "subject" : "Message from cmp"
+    },
+    {
+        "content" : "Hi,<br/></br><br/><b>[fullName]</b> suggested a tag.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "approveTagNotification",
+        "displayName" : "approve tag notification",
+        "subject" : "Message from cmp"
+    },
+    {
+        "content" : "Hi,<br/></br><br/><b>[fullName]</b> suggested a tag.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "rejectTagNotification",
+        "displayName" : "reject tag notification",
+        "subject" : "Message from cmp"
+    }
+]

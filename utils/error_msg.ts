@@ -24,7 +24,9 @@ export const USER_ROUTER = {
     SIMILAR_MOBILE:"Old mobile number and new mobile number is similar",
     INVALID_PASSWORD: "Given password is invalid",
     INVALID_OTP: "Given email otp is invalid",
-    INVALID_COUNTRYCODE:"Given country code is invalid" 
+    INVALID_COUNTRYCODE:"Given country code is invalid",
+    CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
+    ADD_NOTIFICATION_FAIL : "Failed to add template to notification"
 };
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
@@ -73,10 +75,18 @@ export const RESPONSE = {
     REMOVE_MEMBER: "Group member removed"
 }
 export const SENDER_IDS = {
-    OTP : "CMPOTP"
+    OTP : "CMPOTP",
+    FORGOT_OTP:"CMPOTP",
+    CHANGE_MOBILE_OTP:"CMPOTP",
+    CHANGE_EMAIL_OTP: "CMPOTP"
 }
 export const MOBILE_TEMPLATES = {
-    LOGIN : "Welcome to CMP"
+    LOGIN : "Welcome to CMP",
+    STATE: "STATE",
+    SUGGEST_TAG_NOTIFICATION:"Suggest Tag Notification",
+    INVITE_FOR_DOCUMENT:"Invite for Document ",
+    APPROVE_TAG_NOTIFICATION: "Approve tag notification",
+    REJECT_TAG_NOTIFICATION: "Reject tag notification",
 }
 
 export const GLOBAL_SCOPE = "global";
