@@ -547,6 +547,8 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
+        let existUsers = await groupUserList(data._id)
+        if(existUsers.length == 1) throw new Error ("Minimum one member is required.")
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
         return { message: RESPONSE.REMOVE_MEMBER }
