@@ -19,13 +19,13 @@ export async function listCompliances(userToken: string, projectId: string) {
     const compliances = await ComplianceSchema.find({projectId}).exec()
     const taskIds = compliances.map((compliance: any) => compliance.taskId).filter(v => !!v)
     const tasks: any = await httpRequest({
-        url: `${TASKS_URL}/task/getByIds`,
+        url: `${TASKS_URL}/task/getTasksDocs`,
         method: 'POST',
         body: { taskIds },
         headers: { 'Authorization': `Bearer ${userToken}` },
         json: true
     })
-    return compliances.map((compliance: any) => ({ ...compliance.toJSON(), taskStatus: tasks.find((task: any) => task._id == compliance.taskId).status }))
+    return compliances.map((compliance: any) => ({ ...compliance.toJSON(), task: tasks.find((task: any) => task._id == compliance.taskId), taskStatus: tasks.find((task: any) => task._id == compliance.taskId).status }))
 }
 
 export async function editCompliance(id: string, updates: any, userObj: any) {
