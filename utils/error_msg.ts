@@ -104,6 +104,7 @@ export const TASK_ERROR = {
     UNAUTHORIZED: `Unauthorized to create task`,
     SUBTASK_UNAUTHORIZED : `Unauthorized to create subtask`,
     ALL_MANDATORY: `Required all mandatory fields.`,
+    CREATOR_CANT_BE_ASSIGNEE: `Creator cant be owner`,
     INVALID_ARRAY: `tags, approvers, viewers and supporters must be an Array.`,
     ASSIGNEE_REQUIRED: `Assignee is required`,
     ASSIGNEE_ERROR: `Assignee cant be approver or endorser`,
