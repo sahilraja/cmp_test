@@ -54,6 +54,11 @@ export async function createNewDoc(body: any, userId: any) {
     if (body.description.length > configLimit.description) { // add config query
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
+    let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
+      if (data.length) {
+        throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
+      }
+
     body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     //  Add user as Owner to this Document
@@ -471,8 +476,8 @@ export async function updateDocNew(objBody: any, docId: any, userId: string) {
     let obj: any = {};
     if (objBody.docName) {
       if (objBody.docName.length > configLimit.name) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
-      let data = (await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() })).filter(({ _id: id }) => docId != id)
-      if (data.length) {
+      let data = await documents.findOne({_id:{$ne:docId}, isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() }).exec()
+      if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
       obj.name = objBody.docName.toLowerCase();
@@ -1381,7 +1386,7 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
 };
 
 async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
-  let userCapabilities: any = documnetCapabilities(docId, userId)
+  let userCapabilities: any = await documnetCapabilities(docId, userId)
   if (["no_access", "viewer"].includes(userCapabilities[0])) return {}
   const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
   let users = await userFindMany("_id", userIds)

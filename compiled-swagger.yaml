@@ -1254,6 +1254,34 @@ paths:
                 items: *ref_5
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/private-group/{id}/member/remove':
+    post:
+      security:
+        - token: []
+      summary: Remove Private Group Member
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  example: []
+      responses:
+        '200': *ref_4
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/create:
     post:
       security:

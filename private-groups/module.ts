@@ -18,6 +18,7 @@ export async function createPrivateGroup(body: privateGroup, userObj: any): Prom
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
         if (!body.name || !Array.isArray(body.members)) throw new Error("Missing Required Fields.");
+        if(body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
@@ -25,15 +26,28 @@ export async function createPrivateGroup(body: privateGroup, userObj: any): Prom
 };
 
 //  edit Private Group
-export async function editPrivateGroup(groupId: string, body: privateGroup, userId: string): Promise<any> {
+export async function editPrivateGroup(groupId: string, body: any, userId: string): Promise<any> {
+    try {
+        let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
+        if (!groupDetails) throw new Error("Group Not Found.");
+        if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
+        if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.")
+        body.members = [...new Set(groupDetails.members.concat(body.members))]
+        if(body.members.includes(userId)) throw new Error("Owner can't be group member.")
+        return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
+    } catch (err) {
+        throw err
+    };
+};
+
+//  edit Private Group
+export async function removePrivateGroup(groupId: string, body: privateGroup, userId: string): Promise<any> {
     try {
         let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
         if (!groupDetails) throw new Error("Group Not Found.");
         if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
         if (Array.isArray(body.members) && body.members.length) {
-            let removedUsers = groupDetails.members.filter((userId: string) => !body.members.includes(userId))
-            let newUsers = body.members.filter((userId: string) => !groupDetails.members.includes(userId))
-            body.members = removedUsers.concat(newUsers)
+            body.members = groupDetails.members.filter((userId: string) => !body.members.includes(userId))
         }
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
@@ -67,7 +81,7 @@ export async function privateGroupDetails(groupId: string): Promise<any> {
 //  Get Group Detail
 export async function privateGroupList(userId: string, search?: string): Promise<any[]> {
     try {
-        let searchQuery = search ? { name: new RegExp(search, "i"), createdBy: userId } : { createdBy: userId }
+        let searchQuery = search ? { name: new RegExp(search, "i"), createdBy: userId, is_active: true } : { createdBy: userId, is_active: true }
         let groupList = await privateGroupSchema.find({ ...searchQuery }).exec()
         return await Promise.all(groupList.map((group: any) => groupDetails(group)))
     } catch (err) {

@@ -68,6 +68,37 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
 
+# Remove Private Groups Member
+  RemovePrivateGroupMember:
+    post:
+      security:
+        - token: []
+      summary: Remove Private Group Member
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  example: []                
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/privateGroup"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
 # Private Group Status
   privateGroupStatus:
     put:
