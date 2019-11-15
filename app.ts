@@ -65,6 +65,7 @@ app.use(`/private-group`, privateGroup)
 app.use(`/activity`, activityRouter)
 app.use('/constants', authenticate, constantsRouter);
 app.use('/phases',authenticate,phaseRouter);
+app.use('/notifications/',authenticate,notificationsRouter);
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

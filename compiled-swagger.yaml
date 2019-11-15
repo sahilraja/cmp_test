@@ -5509,6 +5509,9 @@ paths:
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/role/add:
     post:
+      get: null
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       requierd:

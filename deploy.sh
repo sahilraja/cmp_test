@@ -1,4 +1,4 @@
-#!/bin/bash
+E#!/bin/bash
 if [ -z $1 ]
     then
         environment=dev
