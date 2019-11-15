@@ -25,12 +25,13 @@ export async function createPrivateGroup(body: privateGroup, userObj: any): Prom
 };
 
 //  edit Private Group
-export async function editPrivateGroup(groupId: string, body: privateGroup, userId: string): Promise<any> {
+export async function editPrivateGroup(groupId: string, body: any, userId: string): Promise<any> {
     try {
         let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
         if (!groupDetails) throw new Error("Group Not Found.");
         if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
         if (!Array.isArray(body.members) || !body.members.length) throw new Error("Minimum one member is required.")
+        body.members = [...new Set(groupDetails.members.concat(body.members))]
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
         throw err
