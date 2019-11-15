@@ -86,14 +86,14 @@ export async function userRolesNotification(userId: any, templateName: string) {
         }))
         //return roleInfo
         let notificationResult: any = roleInfo.reduce((acc: any, roleObj: any) => {
-            if (roleObj.email == true) {
-                acc['email'] = true
+            if (roleObj.email == false) {
+                acc['email'] = false
             }
-            if (roleObj.email == true) {
-                acc['mobile'] = true
+            if (roleObj.email == false) {
+                acc['mobile'] = false
             }
             return acc
-        }, { email: false, mobile: false });
+        }, { email: true, mobile: true });
         return notificationResult;
     }
     catch (err) {

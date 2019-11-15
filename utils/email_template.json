@@ -8,7 +8,7 @@
     {
         "content" : "Your account has been [state] | CMP",
         "templateName" : "userState",
-        "displayName" : "user State",
+        "displayName" : "Marking user as active/inactive",
         "subject" : "Your account has been [state] | CMP"
     },
     {
@@ -26,7 +26,7 @@
     {
         "content" : "Hi <b>[fullName]</b>,<br/></br><br/>You have received a new message on CMP. Here is an excerpt.<br/>[content] <br/><br/><a href=[link]>Click here to view the full message.</a>.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inboxMessage",
-        "displayName" : "inbox message",
+        "displayName" : "New Message",
         "subject" : "CMP message | [subject]"
     },
     {

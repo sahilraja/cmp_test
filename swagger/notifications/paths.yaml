@@ -62,6 +62,8 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   addRoleNotification:
     post:
+      security:
+        - token: []
       tags:
         - NOTIFICATIONS
       requierd:
