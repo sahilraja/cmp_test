@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { Router, Request, Response, NextFunction } from "express";
 import { OK } from "http-status-codes";
-import { notificationsUpdate, addRoleNotification, addTemplateNotification, getRoleNotification } from "./module";
+import { notificationsUpdate, addRoleNotification, addTemplateNotification, getRoleNotification, getNotifications } from "./module";
 import { APIError } from "../utils/custom-error";
 import { notificationSchema } from "./model";
 const router = Router();
@@ -17,7 +17,7 @@ router.post("/update",async(req,res,next)=>{
 })
 router.get("/list",async(req,res,next)=>{
     try{
-        res.status(OK).send(await notificationSchema.find().exec());
+        res.status(OK).send(await getNotifications());
     }
     catch(error){
         next(new APIError(error.message));

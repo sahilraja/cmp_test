@@ -100,3 +100,9 @@ export async function userRolesNotification(userId: any, templateName: string) {
         throw err
     }
 }
+
+export async function getNotifications() {
+    const notifications: any[] = await notificationSchema.find({}).exec()
+    const notificationScenarios = notifications[0].templates.reduce((p:string[], template:any) => [...p, (template.displayName || template.templateName)] ,[])
+    return {data: notifications, notificationScenarios}
+}
