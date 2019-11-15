@@ -1384,10 +1384,13 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
   let userCapabilities: any = documnetCapabilities(docId, userId)
   if (["no_access", "viewer"].includes(userCapabilities[0])) return {}
   const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
+  let users = await userFindMany("_id", userIds)
+  const filteredusers =  users.map((user: any) => user._id)
+  let groupIds = userIds.filter(id => !filteredusers.includes(id))
   return {
-    [docId]: s.map((s1, i) => {
+    [docId]: s.map((s1: any, i) => {
       if (s1.includes('no_access')) {
-        return { _id: userIds[i], type: "user" }
+        return { _id: userIds[i], type: groupIds.includes(userIds[i]) ? "group" : "user" }
       }
       return { _id: false }
     }).filter(({ _id }: any) => Types.ObjectId.isValid(_id))
@@ -1727,7 +1730,7 @@ export async function requestRaise(docId: string, userId: string) {
 }
 
 //  Get All Cmp Documents List
-export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: string,userId:string, pagination: boolean = true) {
+export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: string, userId: string, pagination: boolean = true) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data.global[0];
@@ -1735,7 +1738,7 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
     if (!isEligible) {
       throw new APIError("Unauthorized access", 403);
     }
-    let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT} }).sort({ updatedAt: -1 });
+    let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT } }).sort({ updatedAt: -1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
     if (pagination) return manualPagination(page, limit, docList)
     return docList

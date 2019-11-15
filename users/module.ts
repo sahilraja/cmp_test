@@ -448,7 +448,7 @@ export async function createGroup(objBody: any, userObj: any) {
             description: description,
             createdBy: userObj._id
         });
-        await addMember(group._id, users, userObj)
+        await addMember(group._id, users, userObj, false)
         return group
     } catch (err) {
         throw err;
@@ -516,11 +516,13 @@ export async function groupDetail(id: string) {
 };
 
 //  Add Member to Group
-export async function addMember(id: string, users: any[], userObj: any) {
+export async function addMember(id: string, users: any[], userObj: any, validation: boolean = true) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let isEligible = await checkRoleScope(userObj.role, "edit-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (validation) {
+            let isEligible = await checkRoleScope(userObj.role, "edit-group");
+            if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        }
         if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
@@ -682,10 +684,10 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
         if (objBody.mobileOtp) {
-            if(objBody.countryCode && objBody.phone){
+            if (objBody.countryCode && objBody.phone) {
                 await mobileVerifyOtp(objBody.countryCode + objBody.phone, objBody.mobileOtp);
             }
-            else{
+            else {
                 await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
             }
         }
