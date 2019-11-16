@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, invalidPasswordNotification } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, invalidPasswordNotification, sendNotification } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -376,9 +376,9 @@ router.post(`/:id/replace`, async (req, res, next) => {
         next(error)
     }
 })
-router.post('/invalidPassword',async(req,res,next)=>{
+router.post('/send/notification',async(req,res,next)=>{
     try{
-        res.status(OK).send(invalidPasswordNotification(req.body))
+        res.status(OK).send(sendNotification(req.body))
     }
     catch(err){
         next(new APIError(err.message))

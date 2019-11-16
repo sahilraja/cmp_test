@@ -798,7 +798,7 @@ export async function changeMobileNumber(objBody: any, userData: any) {
             throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
         }
         if (!comparePassword(password, userData.password)) {
-            invalidPasswordNotification({ id: userData._id, fullName, email: userData.email, mobileNo })
+            sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName:"invalidPassword", mobileMessage:MOBILE_TEMPLATES.INVALID_PASSWORD})
             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
         }
         let authOtp = { "otp": generateOtp(4) }
@@ -853,14 +853,15 @@ export function getFullNameAndMobile(userObj: any) {
     let mobileNo = countryCode + phone;
     return { fullName, mobileNo }
 }
-export async function invalidPasswordNotification(objBody: any) {
-    const { id, fullName, email, mobileNo } = objBody;
-    let userNotification = await userRolesNotification(id, "invalidPassword");
+export async function sendNotification(objBody: any) {
+    const { id, email, mobileNo,templateName,mobileMessage,...notificationInfo} = objBody;
+    console.log(notificationInfo);
+    let userNotification = await userRolesNotification(id,templateName);
     if (userNotification.mobile) {
-        //mobileSendMessage(mobileNo,MOBILE_TEMPLATES.INVALID_PASSWORD);
+        //mobileSendMessage(mobileNo,mobileMessage);
     }
     if (userNotification.email) {
-        let templatInfo = await getTemplateBySubstitutions('invalidPassword', { fullName });
+        let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
         nodemail({
             email: email,
             subject: templatInfo.subject,

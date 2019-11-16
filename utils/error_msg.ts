@@ -27,6 +27,7 @@ export const USER_ROUTER = {
     INVALID_COUNTRYCODE:"Given country code is invalid",
     CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
     ADD_NOTIFICATION_FAIL : "Failed to add template to notification",
+    BOTH_INVALID : "Mobile and email otps are invalid",
     TOKEN_EXPIRED:"Token is expired"
 };
 export const MOBILE_MESSAGES = {
@@ -34,7 +35,6 @@ export const MOBILE_MESSAGES = {
     SEND_OTP : "Mobile Otp send successfully",
     VALID_OTP: "Mobile otp is verified",
     INVALID_OTP : "Mobile otp is invalid",
-    BOTH_INVALID : "Mobile otp and email otps are invalid"
 }
 
 export const DOCUMENT_ROUTER = {
