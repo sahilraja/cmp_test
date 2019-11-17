@@ -117,7 +117,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
         let constantsList: any = await constantSchema.findOne().exec();
-        if (aboutme.length > constantsList.aboutMe) {
+        if (aboutme.length > Number(constantsList.aboutMe)) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
 
@@ -125,7 +125,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         let success = await userEdit(token.id, {
             firstName, lastName, password, phone,
             profilePic,
-            middleName: middleName || null,
+            middleName: middleName || '',
             is_active: true,
             countryCode: countryCode || null,
             aboutme: aboutme || null,
@@ -169,7 +169,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         }
         let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
-            if (objBody.aboutme.length > constantsList.aboutMe) {
+            if (objBody.aboutme.length > Number(constantsList.aboutMe)) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };

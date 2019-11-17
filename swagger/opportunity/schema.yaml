@@ -1,0 +1,26 @@
+schemas:
+  opportunitySchema:
+    type: object
+    properties:
+      opportunityFamily:
+        type: string 
+      description: 
+        type: string         
+      phase:
+        type: string 
+      impact:
+        type: number
+      probability:
+        type: number
+      actions: 
+        type: string 
+      comments: 
+        type: string
+      opportunityProvision:
+        type: number
+      opportunityOwner: 
+        type: string 
+      status: 
+        type: string
+      previousTrend:
+        type: number

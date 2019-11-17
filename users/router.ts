@@ -14,6 +14,17 @@ import { OK } from "http-status-codes";
 import { roles_list, role_list } from "../role/module";
 import { SENDER_IDS } from "../utils/error_msg";
 const router = Router();
+import * as multer from "multer";
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        console.log("Dest");
+        cb(null, (__dirname + '/uploads/'))
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now()+file.originalname)
+    }
+});
+const upload = multer({storage})
 
 //  Invite User
 router.post('/create', authenticate, async (req: Request, res: Response, next: NextFunction) => {
@@ -24,9 +35,9 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
     };
 });
 
-router.post(`/bulk-invite`, authenticate, async (req: Request, res: Response, next: NextFunction) => {
+router.post(`/bulk-invite`, authenticate, upload.single('upfile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await bulkInvite(res.locals.user, req.body));
+        res.status(200).send(await bulkInvite(req.file.path, res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));
     };

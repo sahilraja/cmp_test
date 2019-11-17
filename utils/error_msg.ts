@@ -138,6 +138,10 @@ export const RISK = {
     UNAUTHORIZED_ACCESS: `Unauthorized to manage risk`
 }
 
+export const OPPORTUNITY = {
+    UNAUTHORIZED_ACCESS: `Unauthorized to manage opportunity`
+}
+
 export const ACTIVITY_LOG = {
     TASK_DATES_UPDATED: `TASK_DATES_UPDATED`,
     CREATE_TASK_FROM_PROJECT: `CREATE_TASK_FROM_PROJECT`,
