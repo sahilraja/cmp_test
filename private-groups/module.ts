@@ -13,11 +13,11 @@ export interface privateGroup {
 };
 
 //  create Private Group 
-export async function createPrivateGroup(body: privateGroup, userObj: any): Promise<object> {
+export async function createPrivateGroup(body: any, userObj: any): Promise<object> {
     try {
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
-        if (!body.name || !Array.isArray(body.members)) throw new Error("Missing Required Fields.");
+        if (!body.name || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
         if(body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
