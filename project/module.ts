@@ -337,8 +337,11 @@ export async function createTask(payload: any, projectId: string, userToken: str
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
   if (!isEligible) throw new APIError("Unauthorized Action.", 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
-  if(payload.assignee == userObj._id){
+  if(!payload.isCompliance && (payload.assignee == userObj._id)){
     throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
+  }
+  if(payload.isCompliance && (!payload.approvers || !payload.approvers.length)){
+    throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
   }
   const options = {
     url: `${TASKS_URL}/task/create`,

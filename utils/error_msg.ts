@@ -113,6 +113,7 @@ export const TASK_ERROR = {
     ASSIGNEE_REQUIRED: `Assignee is required`,
     ASSIGNEE_ERROR: `Assignee cant be approver or endorser`,
     APPROVERS_EXISTS: `Approvers and endorsers must be different`,
+    APPROVERS_REQUIRED: `Approvers are required for compliance task`,
     DUPLICATE_APPROVERS_FOUND: `Duplicate approvers found`,
     DUPLICATE_ENDORSERS_FOUND: `Duplicate endorsers found`,
     USER_NOT_PART_OF_PROJECT:`User not found in project members list`,
