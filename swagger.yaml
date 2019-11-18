@@ -340,6 +340,14 @@ paths:
   /project/{id}/risk/{id}/delete:
     $ref: ./swagger/risk/paths.yaml/#/deleteRisk
 
+  /project/{id}/opportunity/create:
+    $ref: ./swagger/opportunity/paths.yaml/#/createOpportunity
+  /project/{id}/opportunity/list:
+    $ref: ./swagger/opportunity/paths.yaml/#/listOpportunities
+  /project/{id}/opportunity/{id}/edit:
+    $ref: ./swagger/opportunity/paths.yaml/#/editOpportunity
+  /project/{id}/opportunity/{id}/delete:
+    $ref: ./swagger/opportunity/paths.yaml/#/deleteOpportunity
 #Phases
   /phases/create:
     $ref: ./swagger/phases/paths.yaml/#/createPhase

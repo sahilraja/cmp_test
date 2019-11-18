@@ -1,0 +1,100 @@
+createOpportunity:
+  post:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+    tags:
+      - OPPORTUNITY
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ./schema.yaml/#/schemas/opportunitySchema
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/opportunitySchema
+listOpportunities:
+  get:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+    tags:
+      - OPPORTUNITY
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: ./schema.yaml/#/schemas/opportunitySchema
+editOpportunity:
+  put:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+    tags:
+      - OPPORTUNITY
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: ./schema.yaml/#/schemas/opportunitySchema
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/opportunitySchema
+deleteOpportunity:
+  delete:
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+      - in: path
+        name: opportunity_id
+        schema:
+          type: string
+    tags:
+      - OPPORTUNITY
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: boolean
+    responses:
+      200:
+        description: success
+        content:
+          application/json:
+            schema:
+              $ref: ./schema.yaml/#/schemas/opportunitySchema

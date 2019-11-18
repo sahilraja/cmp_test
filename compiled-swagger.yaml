@@ -5296,6 +5296,124 @@ paths:
           content:
             application/json:
               schema: *ref_15
+  '/project/{id}/opportunity/create':
+    post:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      requestBody:
+        content:
+          application/json:
+            schema: &ref_16
+              type: object
+              properties:
+                opportunityFamily:
+                  type: string
+                description:
+                  type: string
+                phase:
+                  type: string
+                impact:
+                  type: number
+                probability:
+                  type: number
+                actions:
+                  type: string
+                comments:
+                  type: string
+                opportunityProvision:
+                  type: number
+                opportunityOwner:
+                  type: string
+                status:
+                  type: string
+                previousTrend:
+                  type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_16
+  '/project/{id}/opportunity/list':
+    get:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_16
+  '/project/{id}/opportunity/{id}/edit':
+    put:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: opportunity_id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      requestBody:
+        content:
+          application/json:
+            schema: *ref_16
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_16
+  '/project/{id}/opportunity/{id}/delete':
+    delete:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: opportunity_id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deleted:
+                  type: boolean
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_16
   /phases/create:
     post:
       '400':
@@ -5325,7 +5443,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_16
+                  - &ref_17
                     type: object
                     properties:
                       phaseName:
@@ -5380,7 +5498,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_16
+                  - *ref_17
                   - type: object
                     properties:
                       id:
@@ -5408,7 +5526,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_16
+                  - *ref_17
                   - type: object
                     properties:
                       id:
@@ -5452,7 +5570,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_16
+                items: *ref_17
   /notifications/update:
     post:
       security:
@@ -5510,7 +5628,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &ref_17
+                items: &ref_18
                   type: object
                   properties:
                     role:
@@ -5558,7 +5676,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_17
+              schema: *ref_18
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/template/add:
@@ -5587,7 +5705,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_17
+              schema: *ref_18
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/getNotification:
@@ -5631,14 +5749,14 @@ definitions:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_18
+          schema: &ref_19
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_18
+    Error: *ref_19
 components:
   securitySchemes:
     token:
@@ -5662,5 +5780,5 @@ components:
     pillarSchema: *ref_10
     stepSchema: *ref_12
     groupSchema: *ref_3
-    phaseSchema: *ref_16
+    phaseSchema: *ref_17
 
