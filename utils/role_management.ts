@@ -90,7 +90,8 @@ export async function siteConstants() {
   if(!existingConstantsCount){
     await constantSchema.create({
       aboutMe:200,
-      documentName: 30
+      documentName: 30,
+      documentDescription: 100
     });
     console.log(`site-constants created successfully`);
   }
