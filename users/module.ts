@@ -676,7 +676,7 @@ export async function profileOtpVerify(objBody: any, user: any) {
             }
         }
         if (email_flag == 1 && mobile_flag == 1) {
-            throw new APIError(MOBILE_MESSAGES.BOTH_INVALID);
+            throw new APIError(USER_ROUTER.BOTH_INVALID);
         }
         if (email_flag == 1) {
             throw new APIError(USER_ROUTER.INVALID_OTP);
