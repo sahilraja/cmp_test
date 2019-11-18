@@ -1359,7 +1359,7 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
     if (objBody.unique) {
       if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-        throw new Error("Invalid User Data.")
+        throw new Error("Duplicate user ids found.")
       }
     };
     let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
