@@ -227,8 +227,8 @@ export async function user_status(id: string, user: any) {
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated"
-        const {mobileNo,fullName} = getFullNameAndMobile(userData);
-        sendNotification({ id: user._id,fullName,mobileNo,email: userData.email,state, templateName: "userState", mobileMessage: MOBILE_TEMPLATES.STATE });
+        const { mobileNo, fullName } = getFullNameAndMobile(userData);
+        sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileMessage: MOBILE_TEMPLATES.STATE });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
         throw err;
@@ -276,7 +276,7 @@ export async function userInviteResend(id: string, role: any, user: any) {
         let userData: any = await userFindOne("id", id)
         if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
-        let token = await jwt_for_url({ user: id, role: role });
+        let token = await jwt_for_url({ id: id, role: role, email: userData.email });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         sendNotification({ id: user._id, fullName, email: userData.email, role: role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
@@ -349,7 +349,7 @@ export async function forgotPassword(objBody: any) {
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userDetails._id });
 
-        sendNotification({ id: userDetails._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, mobileOtp:SENDER_IDS.FORGOT_OTP, templateName: "forgotPasswordOTP" });
+        sendNotification({ id: userDetails._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.FORGOT_OTP, templateName: "forgotPasswordOTP" });
 
         let tokenId = await jwt_for_url({ "id": userDetails._id });
         return { message: RESPONSE.SUCCESS_EMAIL, email: userDetails.email, id: tokenId }
@@ -540,9 +540,9 @@ export async function userSuggestions(search: string, userId: string, role: stri
             });
             return user
         })
-        let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any)=> main.concat(curr.members) ,[]))]
+        let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
         let privateUsersObj = await usersWithType(privateGroupUser)
-        myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any)=> privateGroup.members.includes(user._id)) , type: "private-group" } }))
+        myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any) => privateGroup.members.includes(user._id)), type: "private-group" } }))
         publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
         if (searchKeyArray.length) return [...users, ...publicGroups, ...myPrivateGroups].filter(user => searchKeyArray.includes(user.type))
         return [...users, ...publicGroups, ...myPrivateGroups]
@@ -642,7 +642,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let { fullName, mobileNo } = getFullNameAndMobile(userInfo);
 
         sendNotification({ id: user._id, fullName, email: user.email, mobileNo, templateName: "changeEmailMessage", mobileMessage: MOBILE_TEMPLATES.CHANGE_EMAIL })
-        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, templateName: "changeEmailOTP", mobileOtp:SENDER_IDS.CHANGE_EMAIL_OTP });
+        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, templateName: "changeEmailOTP", mobileOtp: SENDER_IDS.CHANGE_EMAIL_OTP });
 
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
@@ -756,7 +756,7 @@ export async function changeMobileNumber(objBody: any, userData: any) {
         if (newCountryCode && newPhone) {
             phoneNo = newCountryCode + newPhone
         }
-        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo:phoneNo, otp: authOtp.otp, mobileOtp:SENDER_IDS.CHANGE_MOBILE_OTP, templateName: "changeMobileOTP" });
+        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo: phoneNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.CHANGE_MOBILE_OTP, templateName: "changeMobileOTP" });
         return { message: "success" }
     }
     catch (err) {
@@ -789,27 +789,30 @@ export function getFullNameAndMobile(userObj: any) {
 }
 export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileMessage, mobileOtp, ...notificationInfo } = objBody;
-        let userNotification = await userRolesNotification(id, templateName);
-        if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
-            if(mobileOtp){
-                mobileSendOtp(mobileNo, mobileOtp);
-            }
-            else{
-                //mobileSendMessage(mobileNo,mobileMessage);
-            }
+    let userNotification:any;
+    if(!mobileOtp){
+        userNotification = await userRolesNotification(id, templateName);
+    }
+    if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+        if (mobileOtp) {
+            mobileSendOtp(mobileNo, mobileOtp);
         }
-        if (mobileOtp || userNotification.email) {
-            let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
-            nodemail({
-                email: email,
-                subject: templatInfo.subject,
-                html: templatInfo.content
-            })
+        else {
+            //mobileSendMessage(mobileNo,mobileMessage);
         }
+    }
+    if (mobileOtp || userNotification.email) {
+        let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
+        nodemail({
+            email: email,
+            subject: templatInfo.subject,
+            html: templatInfo.content
+        })
+    }
 }
-export async function mobileVerifyOtpicatioin(phone:string,otp:string){
-    let validateOtp= await mobileVerifyOtp(phone,otp)
-    if(validateOtp == false){ 
+export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
+    let validateOtp = await mobileVerifyOtp(phone, otp)
+    if (validateOtp == false) {
         throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
     }
     return validateOtp
