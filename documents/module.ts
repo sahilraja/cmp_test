@@ -785,7 +785,8 @@ export async function documnetCapabilities(docId: string, userId: string) {
       let role = capability.filter((capability: any) => acceptCapabilities.includes(capability)).pop()
       if (role == "owner" || role == "collaborator") return [role]
       if (role == "viewer") viewer = role
-    } else if (groups.length) {
+    }
+    if (groups.length) {
       for (const groupId of groups) {
         let capability = await GetDocCapabilitiesForUser(groupId, docId, "group")
         if (capability.length) {
