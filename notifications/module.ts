@@ -10,8 +10,12 @@ export async function notificationsUpdate(reqObject: any) {
     try {
         let { role, templateName, displayName, email, mobile } = reqObject;
         const oldInfo = await getRoleNotification(role, templateName);
-        mobile = mobile|| oldInfo.mobile
-        email = email || oldInfo.email
+        if(typeof(mobile) === 'undefined'){
+            mobile = oldInfo.mobile;
+        }
+        if(typeof(email) === 'undefined'){
+            email = oldInfo.email;
+        }
         let updatedData = await notificationSchema.update({ 'role': role, "templates.templateName": templateName },
             { $set: { 'templates.$.displayName': displayName, 'templates.$.mobile': mobile, 'templates.$.email': email } })
         return { message: "success", status: true}

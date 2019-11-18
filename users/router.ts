@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, invalidPasswordNotification, sendNotification } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, invalidPasswordNotification, sendNotification, mobileVerifyOtpicatioin } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -352,7 +352,7 @@ router.post("/resend/mobileOtp",async(req,res,next)=>{
 
 router.post("/mobile/verify",async(req,res,next)=>{
     try{
-        res.status(OK).send(await mobileVerifyOtp(req.body.phone,req.body.otp));
+        res.status(OK).send(await mobileVerifyOtpicatioin(req.body.phone,req.body.otp));
     }
     catch(error){
         next(new APIError(error.message));

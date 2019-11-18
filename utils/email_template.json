@@ -82,5 +82,23 @@
         "templateName" : "changeEmailMessage",
         "displayName" : "change email notification",
         "subject" : "CMP change email notification"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is published<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "pubishDocument",
+        "displayName" : "publish document",
+        "subject" : "publish [documentName] document"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is unPublished<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "unPubishDocument",
+        "displayName" : "unPublish document",
+        "subject" : "unPublish [documentName] document"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is replaced.<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "replaceDocument",
+        "displayName" : "replace document",
+        "subject" : "replace [documentName] document"
     }
 ]
