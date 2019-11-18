@@ -85,13 +85,13 @@
     },
     {
         "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is published<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
-        "templateName" : "pubishDocument",
+        "templateName" : "publishDocument",
         "displayName" : "publish document",
         "subject" : "publish [documentName] document"
     },
     {
         "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is unPublished<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
-        "templateName" : "unPubishDocument",
+        "templateName" : "unPublishDocument",
         "displayName" : "unPublish document",
         "subject" : "unPublish [documentName] document"
     },

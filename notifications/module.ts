@@ -59,11 +59,11 @@ export async function addRoleNotification(roleName: any) {
 export async function addTemplateNotification(objBody: any) {
     try {
         const {templateName,displayName} = objBody;
-        // let templateList: any = await TemplateSchema.find({ templateName }).exec();
-        // if (!templateList) {
-        //     throw new APIError("Template is not found in email templates");
-        // }
-        return await notificationSchema.update({}, { "$push": { templates: { templateName, displayName, email: false, mobile: false } } })
+        let templateList: any = await TemplateSchema.find({ templateName }).exec();
+        if (!templateList) {
+            throw new APIError("Template is not found in email templates");
+        }
+        return await notificationSchema.updateMany({}, { "$push": { templates: { templateName, displayName, email: true, mobile: true } } })
     }
     catch (err) {
         throw err
