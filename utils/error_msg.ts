@@ -28,7 +28,7 @@ export const USER_ROUTER = {
     CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
     ADD_NOTIFICATION_FAIL : "Failed to add template to notification",
     BOTH_INVALID : "Mobile and email otps are invalid",
-    TOKEN_EXPIRED:"Verification link is expired. Please contact with Admin"
+    TOKEN_EXPIRED:"Verification link is expired. Please contact Admin"
 };
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
