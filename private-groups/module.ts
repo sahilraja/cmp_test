@@ -3,6 +3,7 @@ import { RESPONSE } from "../utils/error_msg";
 import { userFindMany, userFindOne } from "../utils/users";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
+import { userRoleAndScope } from "../role/module";
 
 export interface privateGroup {
     name: string;
@@ -18,7 +19,7 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
         if (!body.name || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
-        if(body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
+        if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
@@ -33,7 +34,7 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.")
         body.members = [...new Set(groupDetails.members.concat(body.members))]
-        if(body.members.includes(userId)) throw new Error("Owner can't be group member.")
+        if (body.members.includes(userId)) throw new Error("Owner can't be group member.")
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
         throw err
@@ -92,12 +93,20 @@ export async function privateGroupList(userId: string, search?: string): Promise
 async function groupDetails(group: any) {
     try {
         let userData = await userFindMany('_id', group.members.concat([group.createdBy]), { firstName: 1, lastName: 1, middleName: 1, email: 1 })
+        userData = await Promise.all(userData.map((user: any) => getUserDateWithRole(user)));
         return {
             ...group.toJSON(),
-            createdBy: userData.find((user: any)=> user._id == group.createdBy),
-            members: userData.filter((user: any)=> group.members.includes(user._id))
+            createdBy: userData.find((user: any) => user._id == group.createdBy),
+            members: userData.filter((user: any) => group.members.includes(user._id))
         }
     } catch (err) {
         throw err;
     };
+};
+
+async function getUserDateWithRole(userData: any) {
+    return{
+        ...userData,
+        role: ((await userRoleAndScope(userData._id) as any).data.global || [""])[0]
+    };  
 };
