@@ -33,6 +33,8 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         if (!groupDetails) throw new Error("Group Not Found.");
         if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.")
+        let existUsersRemoved = body.members.filter((user: any) => !groupDetails.members.includes(user))
+        if(!existUsersRemoved.length) throw new Error("Member already exist in this group.")
         body.members = [...new Set(groupDetails.members.concat(body.members))]
         if (body.members.includes(userId)) throw new Error("Owner can't be group member.")
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
