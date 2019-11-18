@@ -10,6 +10,7 @@ import * as msg91 from "msg91";
 import * as SendOtp from "sendotp";
 import { httpRequest } from './role_management';
 import * as phoneNo from "phone";
+import { decode } from 'punycode';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 30 * 60;
@@ -78,7 +79,14 @@ export async function jwt_for_url(id: any) {
 
 //  JWT VERIFY
 export async function jwt_Verify(id: any) {
-    return await jwtVerify(id, SECRET);
+    return await jwtVerify(id, SECRET,function(err:any,decoded:any) {
+        if (err) {
+            return err.name
+        }
+        else{
+            return decoded
+        }
+      });
 };
 
 export function generateOtp(limit: number) {
@@ -136,13 +144,13 @@ export async function mobileVerifyOtp(mobileNo:string,otp:string){
         return await new Promise((resolve, reject) => {
             sendOtp.verify(mobileNo,otp, function(err:any, response:any){
                 if(response.type == 'success'){
-                    resolve({message:MOBILE_MESSAGES.VALID_OTP});
+                    resolve({message: "Mobile otp is verified"});
                 }
                 if(response.type == 'error'){
                     reject(new APIError(MOBILE_MESSAGES.INVALID_OTP));
                 }
             })
-        })
+        }).catch(error => false)
     }
     catch(err){
         throw err

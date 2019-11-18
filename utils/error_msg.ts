@@ -26,13 +26,15 @@ export const USER_ROUTER = {
     INVALID_OTP: "Given email otp is invalid",
     INVALID_COUNTRYCODE:"Given country code is invalid",
     CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
-    ADD_NOTIFICATION_FAIL : "Failed to add template to notification"
+    ADD_NOTIFICATION_FAIL : "Failed to add template to notification",
+    BOTH_INVALID : "Mobile and email otps are invalid",
+    TOKEN_EXPIRED:"Token is expired"
 };
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
     SEND_OTP : "Mobile Otp send successfully",
     VALID_OTP: "Mobile otp is verified",
-    INVALID_OTP : "Mobile otp is invalid"
+    INVALID_OTP : "Mobile otp is invalid",
 }
 
 export const DOCUMENT_ROUTER = {
@@ -87,6 +89,8 @@ export const MOBILE_TEMPLATES = {
     INVITE_FOR_DOCUMENT:"Invite for Document ",
     APPROVE_TAG_NOTIFICATION: "Approve tag notification",
     REJECT_TAG_NOTIFICATION: "Reject tag notification",
+    INVALID_PASSWORD: "Invalid password",
+    CHANGE_EMAIL:"Change email"
 }
 
 export const GLOBAL_SCOPE = "global";

@@ -9,9 +9,12 @@ import { userDetails } from "../users/module";
 export async function notificationsUpdate(reqObject: any) {
     try {
         let { role, templateName, displayName, email, mobile } = reqObject;
+        const oldInfo = await getRoleNotification(role, templateName);
+        mobile = mobile|| oldInfo.mobile
+        email = email || oldInfo.email
         let updatedData = await notificationSchema.update({ 'role': role, "templates.templateName": templateName },
             { $set: { 'templates.$.displayName': displayName, 'templates.$.mobile': mobile, 'templates.$.email': email } })
-        return { message: "success" }
+        return { message: "success", status: true}
     }
     catch (err) {
         throw err
@@ -67,10 +70,10 @@ export async function getRoleNotification(roleName: string, templateName: string
     try {
         //let notificationInfo:any = await notificationSchema.aggregate([{$match:{ role: roleName}},{$unwind : "$templates"},{ $replaceRoot: { newRoot:{ $mergeObjects: [ { email: "$email", mobile:"$mobile",role:"$role"}, "$templates" ] }} }])
         let notificationInfo: any = await notificationSchema.findOne({ role: roleName }).exec();
-        let [getNotification]: any = notificationInfo.templates.filter((notif: any) => {
+        let [{mobile,email}]: any = notificationInfo.templates.filter((notif: any) => {
             return notif.templateName == templateName
         })
-        return { role: roleName, ...getNotification }
+        return { role: roleName,templateName, mobile,email }
     }
     catch (err) {
         throw err
