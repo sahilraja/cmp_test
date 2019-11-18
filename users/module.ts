@@ -756,7 +756,7 @@ export async function changeMobileNumber(objBody: any, userData: any) {
         if (newCountryCode && newPhone) {
             phoneNo = newCountryCode + newPhone
         }
-        sendNotification({ id: userData._id, fullName, email: objBody.email, mobileNo:phoneNo, otp: authOtp.otp, mobileOtp:SENDER_IDS.CHANGE_MOBILE_OTP, templateName: "changeMobileOTP" });
+        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo:phoneNo, otp: authOtp.otp, mobileOtp:SENDER_IDS.CHANGE_MOBILE_OTP, templateName: "changeMobileOTP" });
         return { message: "success" }
     }
     catch (err) {
