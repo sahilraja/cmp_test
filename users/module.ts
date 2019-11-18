@@ -807,3 +807,8 @@ export async function sendNotification(objBody: any) {
             })
         }
 }
+export async function mobileVerifyOtpicatioin(phone:string,otp:string){
+    if(!(await mobileVerifyOtp(phone,otp))){ 
+        throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+    }
+}
