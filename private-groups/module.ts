@@ -20,6 +20,8 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
         if (!body.name || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
         if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
+        let existGroups = await privateGroupSchema.find({name: body.name, createdBy: userObj._id, is_active: true })
+        if(existGroups.length) throw new Error("A private group with same name already exists.") 
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
