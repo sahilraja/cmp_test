@@ -5061,6 +5061,8 @@ paths:
     post:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
       summary: add constants and edit constants
       tags:
         - SITE-CONSTANTS
@@ -5091,6 +5093,8 @@ paths:
     get:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
       summary: get constants list
       tags:
         - SITE-CONSTANTS
