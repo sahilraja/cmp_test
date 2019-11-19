@@ -56,6 +56,7 @@ export async function removePrivateGroup(groupId: string, body: privateGroup, us
         if (Array.isArray(body.members) && body.members.length) {
             body.members = groupDetails.members.filter((userId: string) => !body.members.includes(userId))
         }
+        if(groupDetails.members.length == 1) throw new Error("Minimum one member is required.")
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
         throw err
