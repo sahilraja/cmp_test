@@ -6,12 +6,12 @@ const SchemaDef = new Schema({
     taskId: { type: String },
     addedUserIds: { type: Array },
     documentAddedUsers: [{
-        Id: { type: String },
+        id: { type: String },
         type: { type: String },
         role: { typr: String }
     }],
     documentRemovedUsers: [{
-        Id: { type: String },
+        id: { type: String },
         type: { type: String },
         role: { typr: String }
     }],

@@ -51,7 +51,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (body.docName.length > Number(siteConstant.documentName || configLimit.name)) {  // add config query
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if (body.description.length > Number(siteConstant.documentDescription|| configLimit.description)) { // add config query
+    if (body.description.length > Number(siteConstant.documentDescription || configLimit.description)) { // add config query
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
@@ -483,7 +483,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.name = objBody.docName.toLowerCase();
     }
     if (objBody.description) {
-      if (objBody.description.length >  Number(siteConstants.documentDescription || configLimit.description)) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      if (objBody.description.length > Number(siteConstants.documentDescription || configLimit.description)) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
       obj.description = objBody.description;
     }
     if (objBody.tags) {
@@ -837,24 +837,24 @@ export async function invitePeople(docId: string, users: object[], role: string,
   }
 }
 
-export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string) {
+export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
-    await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
+    await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
   }
 }
 
-export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string) {
+export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
-    await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userId, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
+    await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Revoke share successfully." };
   } catch (err) {
     throw err;

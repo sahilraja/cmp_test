@@ -480,7 +480,7 @@ router.get("/:id/share/list", authenticate, async (req, res, next: NextFunction)
 router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next: NextFunction) => {
   try {
     const { id, type, userId } = req.params;
-    res.status(200).send(await invitePeopleEdit(id, userId, type, req.query.role));
+    res.status(200).send(await invitePeopleEdit(id, userId, type, req.query.role, res.locals.user));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -490,7 +490,7 @@ router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next:
 router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, next: NextFunction) => {
   try {
     const { id, type, userId } = req.params;
-    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role));
+    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role, res.locals.user));
   } catch (err) {
     next(new APIError(err.message));
   }
