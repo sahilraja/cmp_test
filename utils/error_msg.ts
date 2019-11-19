@@ -90,7 +90,8 @@ export const MOBILE_TEMPLATES = {
     APPROVE_TAG_NOTIFICATION: "Approve tag notification",
     REJECT_TAG_NOTIFICATION: "Reject tag notification",
     INVALID_PASSWORD: "Invalid password",
-    CHANGE_EMAIL:"Change email"
+    CHANGE_EMAIL:"Change email",
+    DOCUMENT_STATE: (text: string)=> `Document ${text}`
 }
 
 export const GLOBAL_SCOPE = "global";

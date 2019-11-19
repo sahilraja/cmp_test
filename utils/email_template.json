@@ -100,5 +100,11 @@
         "templateName" : "replaceDocument",
         "displayName" : "replace document",
         "subject" : "replace [documentName] document"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This <b>[documentName]</b> document with [text] <br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "documentUpdate",
+        "displayName" : "document Update",
+        "subject" : "update [documentName] document"
     }
 ]

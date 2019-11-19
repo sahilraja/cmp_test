@@ -15,7 +15,8 @@ import {
   GetUserIdsForDoc,
   GetDocCapabilitiesForUser,
   checkCapability,
-  userGroupsList
+  userGroupsList,
+  groupUserList
 } from "../utils/groups";
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
@@ -31,6 +32,7 @@ import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails }
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage } from "../utils/utils";
+import { any } from "bluebird";
 
 enum STATUS {
   DRAFT = 0,
@@ -51,7 +53,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (body.docName.length > Number(siteConstant.documentName || configLimit.name)) {  // add config query
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if (body.description.length > Number(siteConstant.documentDescription|| configLimit.description)) { // add config query
+    if (body.description.length > Number(siteConstant.documentDescription || configLimit.description)) { // add config query
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
@@ -483,14 +485,13 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.name = objBody.docName.toLowerCase();
     }
     if (objBody.description) {
-      if (objBody.description.length >  Number(siteConstants.documentDescription || configLimit.description)) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      if (objBody.description.length > Number(siteConstants.documentDescription || configLimit.description)) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
       obj.description = objBody.description;
     }
     if (objBody.tags) {
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
-
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     if (objBody.description || objBody.docName || objBody.id) obj.versionNum = Number(child[0].versionNum) + 1
@@ -508,16 +509,23 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         fileName: objBody.name || parent.fileName,
         suggestedTags: parent.suggestedTags
       });
+      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description": " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""} updated`
+      mailAllCmpUsers("documentUpdate", parent, false, message)
       await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId })
-
     } else {
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
       if (addtags.length) {
+        let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
+        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag added` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags added`
+        mailAllCmpUsers("documentUpdate", parent, false, message)
         await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
       }
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
       if (removedtags.length) {
+        let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
+        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed`: `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags removed`
+        mailAllCmpUsers("documentUpdate", parent, false, message)
         await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
     }
@@ -837,24 +845,24 @@ export async function invitePeople(docId: string, users: object[], role: string,
   }
 }
 
-export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string) {
+export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
-    await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
+    await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
   }
 }
 
-export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string) {
+export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
-    await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userId, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
+    await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Revoke share successfully." };
   } catch (err) {
     throw err;
@@ -1565,27 +1573,37 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
   };
 };
 
-async function mailAllCmpUsers(type: string, docDetails: any) {
+async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = true, text?: string) {
   try {
-    let users = await userList({ is_active: true, emailVerified: true }, { email: true, firstName: true, middleName: true, lastName: true })
-    let allMailContent = await Promise.all(users.map(async (user: any) => {
-      let userName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
-      return Object.assign({
-        ...(await getTemplateBySubstitutions(type, {
-          fullName: userName,
+    let selectFields = { email: true, firstName: true, middleName: true, lastName: true, phone: true }
+    let users
+    if (allcmp) {
+      users = await userList({ is_active: true, emailVerified: true }, selectFields)
+    } else {
+      let docInvited: any = await invitePeopleList(docDetails._id)
+      let userIds = docInvited.filter((obj: any) => obj.type == "user").map(({ id }: any) => id)
+      let groupIds = docInvited.filter((obj: any) => obj.type == "group").map(({ id }: any) => id)
+      let groupUsers = await Promise.all(groupIds.map((group: string) => groupUserList(group)));
+      userIds = userIds.concat(groupUsers.reduce((main: any[], curr: any) => main.concat(curr), []))
+      users = await userFindMany("_id", userIds, selectFields);
+    }
+    if (users) {
+      let allMailContent = await Promise.all(users.map(async (user: any) => {
+        let fullName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
+        sendNotification({
+          id: user._id,
+          fullName, text,
+          mobileNo: user.phone,
+          email: user.email,
           documentName: docDetails.name,
-          documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`
-        }))
-      }, { email: user.email })
-    }));
-    await Promise.all(allMailContent.map((content: any) => {
-      return nodemail({
-        email: content.email,
-        subject: content.subject,
-        html: content.content
-      });
-    }))
-    return true
+          documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`,
+          templateName: type,
+          mobileMessage: MOBILE_TEMPLATES.DOCUMENT_STATE(type)
+        });
+      }));
+      return true
+    }
+    return false
   } catch (err) {
     throw err;
   };
