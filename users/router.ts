@@ -21,10 +21,10 @@ const storage = multer.diskStorage({
         cb(null, (__dirname + '/uploads/'))
     },
     filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now()+file.originalname)
+        cb(null, file.fieldname + '-' + Date.now() + file.originalname)
     }
 });
-const upload = multer({storage})
+const upload = multer({ storage })
 
 //  Invite User
 router.post('/create', authenticate, async (req: Request, res: Response, next: NextFunction) => {
@@ -46,8 +46,8 @@ router.post(`/bulk-invite`, authenticate, upload.single('upfile'), async (req: R
 // Register User
 router.post("/register/:token", async (req: Request, res: Response, next: NextFunction) => {
     try {
-            const payload: any = await uploadToFileService(req)
-            // req.body.profilePic = JSON.parse(imageObj).id
+        const payload: any = await uploadToFileService(req)
+        // req.body.profilePic = JSON.parse(imageObj).id
         res.status(200).send(await RegisterUser(JSON.parse(payload), req.params.token))
     } catch (err) {
         next(new APIError(err.message));
@@ -59,7 +59,7 @@ router.post("/register/:token", async (req: Request, res: Response, next: NextFu
 router.get('/invite/resend/:role/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { role, id } = req.params
-        res.status(200).send(await userInviteResend(id, role,res.locals.user));
+        res.status(200).send(await userInviteResend(id, role, res.locals.user));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -87,13 +87,13 @@ router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next
 router.post('/edit/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         //const payload: any = await uploadToFileService(req)
-         let payload: any 
+        let payload: any
         // if(req.file){
         //     payload = await uploadToFileService(req)
         // } else {
         //     payload = JSON.stringify(req.body)
         // }
-        const contentType :any= req.get('content-type');
+        const contentType: any = req.get('content-type');
         if (contentType.includes('multipart/form-data')) {
             payload = await uploadToFileService(req)
         }
@@ -128,16 +128,16 @@ router.post('/email/login', async (req: Request, res: Response, next: NextFuncti
 router.get(`/getImage/:userId`, async (request, response, next) => {
     try {
         const userDetail = await getUserDetail(request.params.userId)
-        const req = (FILES_SERVER_BASE as string).startsWith("https") ? 
-        httpsGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
-            response.setHeader('Content-disposition', 'inline');            
-            response.setHeader('Content-type',res.headers['content-type'])
-            res.pipe(response);
-        }) : httpGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
-            response.setHeader('Content-disposition', 'inline');            
-            response.setHeader('Content-type',res.headers['content-type'])
-            res.pipe(response);
-        });
+        const req = (FILES_SERVER_BASE as string).startsWith("https") ?
+            httpsGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
+                response.setHeader('Content-disposition', 'inline');
+                response.setHeader('Content-type', res.headers['content-type'])
+                res.pipe(response);
+            }) : httpGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
+                response.setHeader('Content-disposition', 'inline');
+                response.setHeader('Content-type', res.headers['content-type'])
+                res.pipe(response);
+            });
         req.on('error', (e: Error) => {
             next(e);
         });
@@ -205,6 +205,9 @@ router.post("/group/create", authenticate, async (req: Request, res: Response, n
     try {
         res.status(200).send(await createGroup(req.body, res.locals.user))
     } catch (err) {
+        if (err.message.includes("E11000")) {
+            err.message = `Group name already existed.`
+        }
         next(new APIError(err.message));;
     };
 });
@@ -294,27 +297,27 @@ router.get("/userInfo/:id", authenticate, async (req, res, next) => {
         next(new APIError(err.message));
     }
 })
-router.post("/changePassword",authenticate, async (req, res, next) => {
+router.post("/changePassword", authenticate, async (req, res, next) => {
     try {
-        res.status(200).send(await changePasswordInfo(req.body,res.locals.user._id));
+        res.status(200).send(await changePasswordInfo(req.body, res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));
     }
 })
-router.post('/changeEmail',authenticate,async (req,res,next)=>{
-    try{
-        res.status(200).send(await changeEmailInfo(req.body,res.locals.user));
+router.post('/changeEmail', authenticate, async (req, res, next) => {
+    try {
+        res.status(200).send(await changeEmailInfo(req.body, res.locals.user));
     }
-    catch(err){
+    catch (err) {
         next(new APIError(err.message));;
     }
 })
 
-router.post('/profile/otp/verification',authenticate,async (req,res,next)=>{
-    try{
-        res.status(200).send(await profileOtpVerify(req.body,res.locals.user));
+router.post('/profile/otp/verification', authenticate, async (req, res, next) => {
+    try {
+        res.status(200).send(await profileOtpVerify(req.body, res.locals.user));
     }
-    catch(err){
+    catch (err) {
         next(new APIError(err.message));;
     }
 })
@@ -333,37 +336,37 @@ router.get("/login/history/:id", authenticate, async (req, res, next) => {
         next(new APIError(error.message));
     }
 })
-router.post("/send/mobileOtp",async(req,res,next)=>{
-    try{
-        res.status(OK).send(await mobileSendOtp(req.body.phone,SENDER_IDS.OTP));
+router.post("/send/mobileOtp", async (req, res, next) => {
+    try {
+        res.status(OK).send(await mobileSendOtp(req.body.phone, SENDER_IDS.OTP));
     }
-    catch(error){
+    catch (error) {
         next(new APIError(error.message));
     }
 })
-router.post("/resend/mobileOtp",async(req,res,next)=>{
-    try{
+router.post("/resend/mobileOtp", async (req, res, next) => {
+    try {
         res.status(OK).send(await mobileRetryOtp(req.body.phone));
     }
-    catch(error){
+    catch (error) {
         next(new APIError(error.message));
     }
 })
 
-router.post("/mobile/verify",async(req,res,next)=>{
-    try{
-        res.status(OK).send(await mobileVerifyOtpicatioin(req.body.phone,req.body.otp));
+router.post("/mobile/verify", async (req, res, next) => {
+    try {
+        res.status(OK).send(await mobileVerifyOtpicatioin(req.body.phone, req.body.otp));
     }
-    catch(error){
+    catch (error) {
         next(new APIError(error.message));
     }
 })
 
-router.post("/change/mobile",authenticate,async(req,res,next)=>{
-    try{
-        res.status(OK).send(await changeMobileNumber(req.body,res.locals.user));
+router.post("/change/mobile", authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await changeMobileNumber(req.body, res.locals.user));
     }
-    catch(error){
+    catch (error) {
         next(new APIError(error.message));
     }
 })
@@ -376,11 +379,11 @@ router.post(`/:id/replace`, async (req, res, next) => {
         next(error)
     }
 })
-router.post('/send/notification',async(req,res,next)=>{
-    try{
+router.post('/send/notification', async (req, res, next) => {
+    try {
         res.status(OK).send(sendNotification(req.body))
     }
-    catch(err){
+    catch (err) {
         next(new APIError(err.message))
     }
 })
