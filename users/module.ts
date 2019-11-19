@@ -516,7 +516,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         search = search.trim()
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
         // let groupIds = await userGroupsList(userId)
-        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId }).exec();
+        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId, is_active: true}).exec();
         // let publicGroups: any = await checkRoleScope(role, "create-group");
         let publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
         // publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")

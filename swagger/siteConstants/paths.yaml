@@ -1,5 +1,7 @@
   addConstant:
     post:
+      security:
+        - token: []
       summary: add constants and edit constants
       tags:
         - SITE-CONSTANTS
@@ -31,6 +33,8 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   constantsList:
     get:
+      security:
+        - token: []
       summary: get constants list
       tags:
         - SITE-CONSTANTS

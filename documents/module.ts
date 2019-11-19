@@ -43,21 +43,21 @@ enum STATUS {
   PENDING = -3
 }
 
-export async function createNewDoc(body: any, userId: any) {
+export async function createNewDoc(body: any, userId: any, siteConstant: any) {
   try {
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName.length > configLimit.name) {  // add config query
+    if (body.docName.length > Number(siteConstant.documentName || configLimit.name)) {  // add config query
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
-    if (body.description.length > configLimit.description) { // add config query
+    if (body.description.length > Number(siteConstant.documentDescription|| configLimit.description)) { // add config query
       throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
-      if (data.length) {
-        throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
-      }
+    if (data.length) {
+      throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
+    }
 
     body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
@@ -157,7 +157,7 @@ async function docData(docData: any, host: string) {
       ...docData.toJSON(),
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
-      owner: await userFindOne("id", docData.ownerId, { firstName: 1,middleName: 1,lastName:1,email:1 }),
+      owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A"
     };
   } catch (err) {
@@ -468,22 +468,22 @@ export async function cancelUpdate(docId: string, userId: string) {
   };
 };
 
-export async function updateDocNew(objBody: any, docId: any, userId: string) {
+export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let capability = await GetDocCapabilitiesForUser(userId, docId);
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_ADMIN);
     let obj: any = {};
     if (objBody.docName) {
-      if (objBody.docName.length > configLimit.name) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
-      let data = await documents.findOne({_id:{$ne:docId}, isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() }).exec()
+      if (objBody.docName.length > Number(siteConstants.documentName || configLimit.name)) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      let data = await documents.findOne({ _id: { $ne: docId }, isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() }).exec()
       if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
       obj.name = objBody.docName.toLowerCase();
     }
     if (objBody.description) {
-      if (objBody.description.length > configLimit.description) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      if (objBody.description.length >  Number(siteConstants.documentDescription || configLimit.description)) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
       obj.description = objBody.description;
     }
     if (objBody.tags) {
@@ -811,8 +811,8 @@ async function invite(user: any, docId: any, role: any, doc: any) {
     let userData: any = await userFindOne("id", user._id);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
 
-    const {fullName,mobileNo} = getFullNameAndMobile(userData);
-    sendNotification({ id: userData._id,fullName,mobileNo,email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`,templateName: "inviteForDocument", mobileMessage: MOBILE_TEMPLATES.INVITE_FOR_DOCUMENT });
+    const { fullName, mobileNo } = getFullNameAndMobile(userData);
+    sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileMessage: MOBILE_TEMPLATES.INVITE_FOR_DOCUMENT });
   };
 };
 
@@ -1357,9 +1357,9 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    if(objBody.unique){
-      if(userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))){
-        throw new Error("Invalid User Data.")
+    if (objBody.unique) {
+      if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+        throw new Error("Duplicate user ids found.")
       }
     };
     let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
@@ -1376,7 +1376,7 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
   if (["no_access", "viewer"].includes(userCapabilities[0])) return {}
   const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
   let users = await userFindMany("_id", userIds)
-  const filteredusers =  users.map((user: any) => user._id)
+  const filteredusers = users.map((user: any) => user._id)
   let groupIds = userIds.filter(id => !filteredusers.includes(id))
   return {
     [docId]: s.map((s1: any, i) => {
@@ -1447,8 +1447,8 @@ export async function suggestTags(docId: string, body: any, userId: string) {
 
 
     if (doc) {
-      const {mobileNo,fullName} = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId,fullName: ownerName,userName,mobileNo,email: ownerDetails.email,documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`,templateName: "suggestTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
+      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -1506,13 +1506,13 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       "$push": { tags: body.tagId }
     })
     if (doc) {
-      const {mobileNo,fullName} = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId,fullName: ownerName,userName,mobileNo,email: userDetails.email,documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`,templateName: "approveTagNotification", mobileMessage: MOBILE_TEMPLATES.APPROVE_TAG_NOTIFICATION});
-        return {
-          sucess: true,
-          message: "Tag approved successfully"
-        }
+      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileMessage: MOBILE_TEMPLATES.APPROVE_TAG_NOTIFICATION });
+      return {
+        sucess: true,
+        message: "Tag approved successfully"
       }
+    }
   } catch (err) {
     throw err
   };
@@ -1553,8 +1553,8 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       }
     })
     if (doc) {
-      const {mobileNo,fullName} = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId,fullName: ownerName,userName,mobileNo,email: userDetails.email,documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`,templateName: "rejectTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
+      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
       return {
         sucess: true,
         message: "Tag Rejected"
@@ -1747,7 +1747,7 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
 async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: string, userObj: any) {
   try {
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId);
-  
+
   } catch (err) {
     throw err;
   };
