@@ -7,7 +7,7 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -21,6 +21,7 @@ import { notificationSchema } from "../notifications/model";
 
 import { httpRequest } from "../utils/role_management";
 import { userRolesNotification } from "../notifications/module";
+import { error } from "util";
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
@@ -531,13 +532,32 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
     };
 };
 
+export async function changeGroupOwnerShip(oldUser: string, newUser: string) {
+    try {
+        let myCreatedGroups = await groupPatternMatch({}, {}, { createdBy: oldUser }, {})
+        let groupIds = myCreatedGroups.map(({ _id }: any) => _id)
+        groupUpdateMany({}, { createdBy: newUser }, { _id: groupIds })
+        let olduseGroupIds = await userGroupsList(oldUser);
+        Promise.all(olduseGroupIds.map((groupId)=> changeOwner(groupId, oldUser, newUser)))
+    } catch (err) {
+        throw error
+    };
+};
+async function changeOwner(groupId: string, oldUser: string, newUser: string) {
+    try {
+        await Promise.all([removeUserToGroup(oldUser, groupId), addUserToGroup(newUser, groupId)])
+    } catch (err) {
+        throw err
+    };
+};
+
 //  user and group suggestion
 export async function userSuggestions(search: string, userId: string, role: string, searchKeys: string = "") {
     try {
         search = search.trim()
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
         // let groupIds = await userGroupsList(userId)
-        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId, is_active: true}).exec();
+        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId, is_active: true }).exec();
         // let publicGroups: any = await checkRoleScope(role, "create-group");
         let publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
         // publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
@@ -810,8 +830,8 @@ export function getFullNameAndMobile(userObj: any) {
 }
 export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileMessage, mobileOtp, ...notificationInfo } = objBody;
-    let userNotification:any;
-    if(!mobileOtp){
+    let userNotification: any;
+    if (!mobileOtp) {
         userNotification = await userRolesNotification(id, templateName);
     }
     if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
