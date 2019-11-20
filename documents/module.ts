@@ -842,10 +842,10 @@ async function inviteMail(userId: string, doc: any) {
   };
 };
 
-export async function invitePeople(docId: string, users: object[], role: string, userId: string) {
+export async function invitePeople(docId: string, users: any, role: string, userId: string) {
   try {
 
-    if (!docId || ! Array.isArray(users) || users.length || !role) throw new Error("Missing fields or Invalid Data.");
+    if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error("Missing fields or Invalid Data.");
     let doc: any = await documents.findById(docId);
     let addUsers: any = []
     await Promise.all(
