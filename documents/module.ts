@@ -149,7 +149,7 @@ export async function getDocList(page: number = 1, limit: number = 30, host: str
 
 export async function documentsList(docs: any[]): Promise<object[]> {
   docs = docs.map((id: string) => Types.ObjectId(id))
-  return await documents.find({ _id: { $in: docs }, isDeleted: false })
+  return await documents.find({ _id: { $in: docs }})
 }
 
 async function docData(docData: any, host: string) {
@@ -347,6 +347,7 @@ export async function getDocDetails(docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
+    if(publishDocs.isDeleted) throw new Error("Document is deleted")
     if (publishDocs.status != 2 && publishDocs.parentId == null) {
       let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
       if (!userCapability.length) throw new Error("Unauthorized access.")
