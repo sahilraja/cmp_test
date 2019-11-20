@@ -290,11 +290,30 @@ export async function groupPatternMatch(searchQuery: object, patternQuery?: obje
             uri: `${USERS_URL}/group/Pattern-match`,
             method: "POST",
             body: {
-                searchQuery: searchQuery || {} ,
+                searchQuery: searchQuery || {},
                 patternQuery: patternQuery || {},
                 objectQuery: objectQuery || {},
                 selectFields: selectFields || {},
                 sort: sort || undefined
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
+
+//  Get Group List From User Module  
+export async function groupUpdateMany(searchQuery: object, updateData: any, patternQuery?: object): Promise<GroupSchema[]> {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/group/updateMany`,
+            method: "POST",
+            body: {
+                searchQuery: searchQuery || {},
+                patternQuery: patternQuery || {},
+                updateData: updateData || {}
             },
             json: true
         }
@@ -348,14 +367,14 @@ export async function otpVerify(objBody: string) {
     };
 };
 
-export async function searchByname(search:string) {
+export async function searchByname(search: string) {
     try {
         let Options = {
             uri: `${USERS_URL}/user/search?search=${search}`,
             method: "GET",
             json: true
         };
-        
+
         return await request(Options);
     } catch (err) {
         throw err
@@ -366,10 +385,10 @@ export async function getTasksByIds(taskIds: string[], token: string) {
     try {
         const options = {
             uri: `${TASKS_URL}/task/getByIds`,
-            method:'POST',
+            method: 'POST',
             json: true,
             headers: { 'Authorization': `Bearer ${token}` },
-            body:{taskIds}
+            body: { taskIds }
         }
         return await request(options)
     } catch (error) {
