@@ -1,0 +1,163 @@
+# template create
+  smsTemplateCreate:
+    post:
+      security:
+        - token: []
+      summary: create sms template
+      tags:
+        - SMS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - templateName
+                - content
+              properties:
+                content:
+                  type: string
+                  example: content
+                templateName:
+                  type: string
+                  example: information
+                displayName:
+                  type: string
+                  example: Display Name
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/smsTemplateSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  smsTemplateList:
+    get:
+      tags:
+        - SMS
+      security:
+        - token: []
+      summary: get sms templates list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./schema.yaml/#/responses/schemas/smsTemplateSchema" 
+
+  # Add Grants        
+  smsTemplateEdit:
+    post:
+      security:
+        - token: []
+      summary: edit sms template
+      tags:
+        - SMS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: template id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: content
+                displayName:
+                  type: string
+                  example: Display Name
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/smsTemplateSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  smsTemplateGet:
+    get:
+      security:
+        - token: []
+      summary: get sms tempalte
+      tags:
+        - SMS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: template id
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                allOf: 
+                  - $ref: "./schema.yaml/#/responses/schemas/smsTemplateSchema" 
+                  - type: object
+                    properties:
+                      id: 
+                        type: string
+                        example: "5d68875cc006bf53125ec36d"
+                        description: "Record Id"
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  smsTemplateDelete:
+    get:
+      security:
+        - token: []
+      summary:  delete sms template 
+      tags:
+        - SMS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: template id
+      
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully deleted sms template
+          description: Success
+  
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

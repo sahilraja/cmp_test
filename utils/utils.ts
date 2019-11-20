@@ -79,15 +79,25 @@ export async function jwt_for_url(id: any) {
 
 //  JWT VERIFY
 export async function jwt_Verify(id: any) {
-    return await jwtVerify(id, SECRET,function(err:any,decoded:any) {
-        if (err) {
-            return err.name
-        }
-        else{
-            return decoded
-        }
-      });
-};
+    try{
+        return jwtVerify(id, SECRET,function(err:any,decoded:any) {
+            if (err) {
+                if(err.name == "TokenExpiredError") {
+                    throw new APIError(USER_ROUTER.TOKEN_EXPIRED);
+                }
+                if(err.name == "JsonWebTokenError") {
+                    throw  new APIError(USER_ROUTER.TOKEN_INVALID);
+                }
+            }
+            else{
+                return decoded
+            }
+        });
+    }
+    catch(err){
+        throw err;
+    }
+}
 
 export function generateOtp(limit: number) {
     var characters = '0123456789';
