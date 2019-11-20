@@ -5747,20 +5747,187 @@ paths:
                   displayName: Invite User
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  /sms/create:
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: create sms template
+      tags:
+        - SMS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - templateName
+                - content
+              properties:
+                content:
+                  type: string
+                  example: content
+                templateName:
+                  type: string
+                  example: information
+                displayName:
+                  type: string
+                  example: Display Name
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - &ref_19
+                    type: object
+                    properties:
+                      content:
+                        type: string
+                        example: subject
+                      templateName:
+                        type: string
+                        example: information
+                      displayName:
+                        type: string
+                        example: Display Name
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
+  /sms/list:
+    get:
+      tags:
+        - SMS
+      security:
+        - token: []
+      summary: get sms templates list
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_19
+  '/sms/edit/{id}':
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: edit sms template
+      tags:
+        - SMS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: subject
+                displayName:
+                  type: string
+                  example: Display Name
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_19
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
+  '/sms/delete/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: delete sms template
+      tags:
+        - SMS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully deleted sms template
+          description: Success
+  '/sms/getTemplate/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: get sms tempalte
+      tags:
+        - SMS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_19
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
 definitions:
   ErrorResponse:
     BadRequest:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_19
+          schema: &ref_20
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_19
+    Error: *ref_20
 components:
   securitySchemes:
     token:
@@ -5785,4 +5952,6 @@ components:
     stepSchema: *ref_12
     groupSchema: *ref_3
     phaseSchema: *ref_17
+    smsTemplateSchema:
+      $ref: './swagger/sms/schema.yaml/#/responses/schemas/templateSchema'
 

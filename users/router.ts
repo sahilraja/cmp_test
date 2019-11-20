@@ -384,4 +384,13 @@ router.post('/send/notification',async(req,res,next)=>{
         next(new APIError(err.message))
     }
 })
+
+router.get('/validation/:token',async(req,res,next)=>{
+    try{
+        res.status(OK).send(await tokenValidation(req.params.token));
+    }
+    catch(err){
+        next(new APIError(err.message))
+    }
+})
 export = router;

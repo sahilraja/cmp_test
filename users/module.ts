@@ -817,3 +817,15 @@ export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
     }
     return validateOtp
 }
+export async function tokenValidation(token:string) {
+    try{
+        let tokenInfo: any = await jwt_Verify(token);
+        let user:any = await userFindOne("id",tokenInfo.id) 
+        if(user.emailVerified == true){
+            throw new APIError(USER_ROUTER.USER_EXIST);
+        }
+    }
+    catch(err){
+        throw err
+    }
+}

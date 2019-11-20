@@ -361,9 +361,6 @@ paths:
     $ref: ./swagger/phases/paths.yaml/#/phaseList
 
 
-
-
-
 #notifications
   /notifications/update:
     $ref: ./swagger/notifications/paths.yaml/#/updateNotification
@@ -375,6 +372,18 @@ paths:
     $ref: ./swagger/notifications/paths.yaml/#/addTemplateNotification
   /notifications/getNotification:
     $ref: ./swagger/notifications/paths.yaml/#/getNotificationInfo
+  
+#SMS Templates
+  /sms/create:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateCreate
+  /sms/list:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateList
+  /sms/edit/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateEdit
+  /sms/delete/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateDelete
+  /sms/getTemplate/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateGet
 
 definitions:
   # Error
@@ -408,4 +417,5 @@ components:
       $ref: ./swagger/groups/schema.yaml/#/responses/schemas/groupSchema
     phaseSchema:
       $ref: ./swagger/phases/schema.yaml/#/responses/schemas/phaseSchema      
-
+    smsTemplateSchema:
+      $ref: ./swagger/sms/schema.yaml/#/responses/schemas/templateSchema
