@@ -40,6 +40,9 @@ let result = listcapabilities.reduce((response, capability) =>{
     response[capability.category].push(capability);
         return response;
     }, Object.create(null));
+    result = Object.keys(result).reduce((p: any, r: any) => ({...p,
+        [r]: result[r].sort((a: any,b: any) => (a.shortDescription as string).localeCompare((b.shortDescription as string), 'en', {sensitivity:'base'}))
+    }), {})
 
 // console.log(result);
     return {
