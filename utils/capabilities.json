@@ -7,6 +7,13 @@
           "category": "User Management"
         },
         {
+          "capability":"bulk-invite",
+          "shortDescription":"Bulk Invitations of User",
+          "description":"Bulk Invitations of User",
+          "category":"User Management",
+          "scope":"global"
+        },
+        {
           "capability": "create-task",
           "shortDescription": "Create Task",
           "description": "Ability to create a task",
@@ -256,6 +263,13 @@
           "shortDescription":"Manage Funds Utilized",
           "category":"Project Management",
           "description":"Manage Funds Released",
+          "scope":"global"
+        },
+        {
+          "capability":"upload-task-excel",
+          "shortDescription":"Bulk Upload of Tasks",
+          "category":"Project Management",
+          "description":"Bulk Upload of Tasks",
           "scope":"global"
         },
         {
