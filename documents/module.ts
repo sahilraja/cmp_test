@@ -353,6 +353,11 @@ export async function getDocDetails(docId: any, userId: string) {
     }
     let filteredDocs: any;
     const docList = publishDocs.toJSON();
+    if (docList.parentId) {
+      let parentDoc: any = await documents.findById(docList.parentId)
+      docList.tags = parentDoc.tags
+      docList.suggestedTags = parentDoc.suggestedTags
+    }
     if (docList.ownerId == userId) {
       filteredDocs = docList.suggestedTags
     } else {
@@ -367,10 +372,7 @@ export async function getDocDetails(docId: any, userId: string) {
         .filter((_respdata: any) => _respdata.userId == userId)
         .reduce((resp: any, eachTag: any) => [...resp, ...eachTag.tags], [])
     }));
-    let users = await Promise.all(
-      userData.map((suggestedTagsInfo: any) => {
-        return userInfo(suggestedTagsInfo);
-      }))
+    let users = await Promise.all(userData.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
     docList.suggestedTags = users
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       docList.role = ((await userRoleAndScope(docList.ownerId)) as any).data.global[0];
@@ -509,7 +511,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         fileName: objBody.name || parent.fileName,
         suggestedTags: parent.suggestedTags
       });
-      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description": " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""} updated`
+      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description" : " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""} updated`
       mailAllCmpUsers("documentUpdate", parent, false, message)
       await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId })
     } else {
@@ -524,7 +526,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
       if (removedtags.length) {
         let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
-        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed`: `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags removed`
+        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags removed`
         mailAllCmpUsers("documentUpdate", parent, false, message)
         await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
@@ -760,6 +762,7 @@ export async function sharedList(userId: string, page: number = 1, limit: number
         return await docData(doc, host);
       })
     );
+    data = data.filter(({ownerId}: any)=> ownerId != userId)
     if (pagination) return manualPagination(page, limit, data);
     return data
   } catch (err) {
@@ -1428,32 +1431,19 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     if (!isEligible) {
       throw new APIError("Unauthorized Access", 403);
     }
-
     if (!body.tags) { throw new Error("Tags is required field") }
-    let docData: any = await documents.findById(docId);
+    let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
     if (!docData) throw new Error("Doc not found");
-    let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
-    console.log(docData.ownerId);
-    let ownerDetails = await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
-    let userDetails = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let userDetails = usersData.find((user: any) => userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-
-    let doc = await documents.findByIdAndUpdate(docId, {
-      "$push": {
-        suggestedTags: { userId: userId, tags: body.tags }
-      }
-      // "$push": { tags: { "$each": body.tags  } }    
-    })
-
-    await documents.findByIdAndUpdate(child[child.length - 1]._id, {
-      "$push": {
-        suggestedTags: { userId: userId, tags: body.tags }
-      }
-    })
-
-
+    let [doc, childUpdate]: any = await Promise.all([
+      documents.findByIdAndUpdate(docId, { "$push": { suggestedTags: { userId: userId, tags: body.tags } } }).exec(),
+      documents.findByIdAndUpdate(child[child.length - 1]._id, { "$push": { suggestedTags: { userId: userId, tags: body.tags } } }).exec()
+    ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
       sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
@@ -1485,10 +1475,10 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
-
-    let ownerDetails = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
-    let userDetails = await userFindOne("id", body.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
 
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
@@ -1508,11 +1498,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
         })
     ])
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
-
-    let doc = await documents.findByIdAndUpdate(docId, {
-      suggestedTags: filteredDocs,
-      "$push": { tags: body.tagId }
-    })
+    let doc = await documents.findByIdAndUpdate(docId, { suggestedTags: filteredDocs, "$push": { tags: body.tagId } })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
       sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileMessage: MOBILE_TEMPLATES.APPROVE_TAG_NOTIFICATION });
@@ -1531,11 +1517,11 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
-    let ownerDetails = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
-    let userDetails = await userFindOne("id", body.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
       docdetails.suggestedTags.filter((tag: any) => tag.userId == body.userId).map(
         (_respdata: any) => {
