@@ -30,8 +30,25 @@ export async function bulkInvite(filePath: string, userId: string) {
     if(!excelFormattedData.length){
         throw new APIError(`Uploaded empty document`)
     }
-    const roleData: any = await role_list()
-    const formattedDataWithRoles = excelFormattedData.map(data => ({ ...data, role: roleData.roles.find((role: any) => role.roleName == data.role) }))
+    const [roleData, usersList]: any = await Promise.all([
+        role_list(),
+        userList({}, {email:1})
+    ]) 
+    const existingEmails = usersList.map((user: any) => (user.email || '').toLowerCase()).filter((v: any) => !!v)
+    const categories = Array.from(new Set(roleData.roles.map((role: any) => role.category)))
+    const formattedDataWithRoles = excelFormattedData.map(data => {
+        const matchedRole = roleData.roles.find((role: any) => role.roleName == data.role)
+        if(existingEmails.includes(data.email.toLowerCase())){
+            throw new APIError(`${data.email} already exists`)
+        }
+        if(!categories.includes(data.category)){
+            throw new APIError(`No category matched with ${data.category}`)
+        }
+        if(!matchedRole){
+            throw new APIError(`No role matched with ${data.role}`)
+        }
+        return { ...data, role:  matchedRole.role}
+    })
     if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
         throw new APIError(`Category, Role and Email are mandatory for all`)
     }

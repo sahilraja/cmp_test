@@ -704,6 +704,9 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   const roleData: any = await role_list()
   const roleNames = roleData.roles.map((role: any) => role.roleName)
   const excelFormattedData = importExcelAndFormatData(filePath)
+  if(!excelFormattedData.length){
+    throw new APIError(`Uploaded empty document`)
+  }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
   await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
