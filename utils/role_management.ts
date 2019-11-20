@@ -10,6 +10,7 @@ import { notificationSchema } from "../notifications/model";
 import { role_list } from "../role/module";
 import { TemplateSchema } from "../email-templates/model";
 import { readFileSync } from "fs";
+import { APIError } from "./custom-error";
 
 export async function init() {
   let removeOptions = {
@@ -147,6 +148,9 @@ export async function httpRequest(options: any) {
           if (err) {
               return reject(err);
           }
+          if(body.errors){
+            return reject(body.errors)
+          }
           try {
               resolve(body || {});
           } catch (error) {
@@ -154,6 +158,8 @@ export async function httpRequest(options: any) {
               reject(new Error(`Failed to fetch results`));
           }
       });
+  }).catch(error => {
+    throw new APIError(error[0].error)
   })
 }
 

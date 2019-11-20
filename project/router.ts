@@ -235,7 +235,7 @@ router.post(`/:id/add-utilized-fund`, async (req, res, next) => {
 
 router.put(`/:id/update-released-fund`, async (req, res, next) => {
     try {
-        res.status(OK).send(await updateReleasedFund(req.params.id, req.body, res.locals.user._id))
+        res.status(OK).send(await updateReleasedFund(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -243,7 +243,7 @@ router.put(`/:id/update-released-fund`, async (req, res, next) => {
 
 router.put(`/:id/update-utilized-fund`, async (req, res, next) => {
     try {
-        res.status(OK).send(await updateUtilizedFund(req.params.id, req.body, res.locals.user._id))
+        res.status(OK).send(await updateUtilizedFund(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -251,7 +251,7 @@ router.put(`/:id/update-utilized-fund`, async (req, res, next) => {
 
 router.put(`/:id/delete-released-fund`, async (req, res, next) => {
     try {
-        res.status(OK).send(await deleteReleasedFund(req.params.id, req.body, res.locals.user._id))
+        res.status(OK).send(await deleteReleasedFund(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -259,7 +259,7 @@ router.put(`/:id/delete-released-fund`, async (req, res, next) => {
 
 router.put(`/:id/delete-utilized-fund`, async (req, res, next) => {
     try {
-        res.status(OK).send(await deleteUtilizedFund(req.params.id, req.body, res.locals.user._id))
+        res.status(OK).send(await deleteUtilizedFund(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }

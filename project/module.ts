@@ -707,6 +707,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
   await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
+  return {message:'success'}
 }
 
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
@@ -817,7 +818,7 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
 
 export async function projectCostInfo(projectId: string, projectCost: number) {
   try {
-    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }, { new: true })
+    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }, { new: true }).exec()
   }
   catch (err) {
     throw err
@@ -826,7 +827,11 @@ export async function projectCostInfo(projectId: string, projectCost: number) {
 
 export async function citiisGrantsInfo(projectId: string, citiisGrants: number) {
   try {
-    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true })
+    const projectInfo = await ProjectSchema.findById(projectId).exec()
+    if((projectInfo as any).projectCost < citiisGrants){
+      throw new APIError(PROJECT_ROUTER.CITIIS_GRANTS_VALIDATION)
+    }
+    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
   }
   catch (err) {
     throw err

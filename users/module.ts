@@ -27,8 +27,11 @@ const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5F
 
 export async function bulkInvite(filePath: string, userId: string) {
     const excelFormattedData = importExcelAndFormatData(filePath)
+    if(!excelFormattedData.length){
+        throw new APIError(`Uploaded empty document`)
+    }
     const roleData: any = await role_list()
-    const formattedDataWithRoles = excelFormattedData.map(data => ({ ...data, role: roleData.roles.find((role: any) => role.name == data.role) }))
+    const formattedDataWithRoles = excelFormattedData.map(data => ({ ...data, role: roleData.roles.find((role: any) => role.roleName == data.role) }))
     if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
         throw new APIError(`Category, Role and Email are mandatory for all`)
     }
@@ -38,6 +41,7 @@ export async function bulkInvite(filePath: string, userId: string) {
         }
     })
     await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
+    return {message:'success'}
 }
 
 //  Create User
