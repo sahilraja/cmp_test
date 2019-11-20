@@ -131,7 +131,8 @@ export const PROJECT_ROUTER = {
     TASK_REQUIRED_FOR_LINKING: `Task ID is required to link task to a project`,
     NOT_MEMBER_OF_PROJECT: `User is not a member of this project`,
     PROJECT_NOT_EXISTS: `No such project exists`,
-    UNAUTHORIZED_ACCESS: `Unauthorized to perform this action`
+    UNAUTHORIZED_ACCESS: `Unauthorized to perform this action`,
+    CITIIS_GRANTS_VALIDATION: `Citiis grants should not exceed project cost`
 }
 
 export const COMPLIANCES = {
