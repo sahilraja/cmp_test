@@ -15,6 +15,10 @@ export async function list(projectId: string) {
     return await RiskSchema.find({ deleted: false, projectId }).populate({ path: 'phase', select: 'phaseName' }).sort({ createdAt: 1 }).exec()
 }
 
+export async function detail(riskId: string) {
+    return RiskSchema.findById(riskId).populate({ path: 'phase', select: 'phaseName' }).exec()
+}
+
 export async function edit(id: string, updates: any, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
     if(!isEligible){

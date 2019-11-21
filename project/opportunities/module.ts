@@ -15,6 +15,10 @@ export async function list(projectId: string) {
     return await OpportunitySchema.find({ deleted: false, projectId }).populate({ path: 'phase', select: 'phaseName' }).sort({ createdAt: 1 }).exec()
 }
 
+export async function detail(id: string) {
+    return await OpportunitySchema.findById(id).populate({path:'phase', select:'phaseName'}).exec()
+}
+
 export async function edit(id: string, updates: any, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-opportunity`)
     if(!isEligible){
