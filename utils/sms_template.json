@@ -1,0 +1,78 @@
+[   
+    {
+        "content" : "Your account has been [state] | CMP",
+        "templateName" : "userState",
+        "displayName" : "Marking user as active/inactive"
+    },
+    {
+        "content" : "You've entered the wrong password",
+        "templateName" : "invalidPassword",
+        "displayName" : "invalid password"
+    },
+    {
+        "content" : "welcome to CMP",
+        "templateName" : "login",
+        "displayName" : "user login"
+    },
+    {
+        "content" : "Your Verification code is [mobileOtp]",
+        "templateName" : "sendOtp",
+        "displayName" : "send otp"
+    },
+    {
+        "content" : "Your primary email address can only be replaced with a confirmed email address.",
+        "templateName" : "changeEmailMessage",
+        "displayName" : "change email notification"
+    },
+    {
+        "content" : "You are invited by an user of CMP to collaborate on the document [documentName].You can click this [documentUrl] to access it.Please ignore if you think this is not intended for you.",
+        "templateName" : "inviteForDocument",
+        "displayName" : "invite for document"
+    },
+    {
+        "content" : "You have received a new message on CMP. Here is an excerpt.<br/>[content] [link]",
+        "templateName" : "inboxMessage",
+        "displayName" : "New Message"
+    },
+    {
+        "content" : "Task udpated",
+        "templateName" : "taskUpdate",
+        "subject" : "Task Updated"
+    },
+    {
+        "content" : "suggest a tag.You can click this [documentUrl] to view it.",
+        "templateName" : "suggestTagNotification",
+        "displayName" : "suggest tag notification"
+    },
+    {
+        "content" : "approved a tag.You can click this [documentUrl] to view it.",
+        "templateName" : "approveTagNotification",
+        "displayName" : "approve tag notification"
+    },
+    {
+        "content" : "rejected a tag.You can click this [documentUrl] to view it.",
+        "templateName" : "rejectTagNotification",
+        "displayName" : "reject tag notification"
+    },
+    {
+        "content" : "This document is published [documentName]. You can click this [documentUrl] to access it.",
+        "templateName" : "publishDocument",
+        "displayName" : "publish document"
+    },
+    {
+        "content" : "This document is unPublished [documentName]. You can click this [documentUrl] to access it.",
+        "templateName" : "unPublishDocument",
+        "displayName" : "unPublish document"
+    },
+    {
+        "content" : "This document is replaced.[documentName] You can click this [documentUrl] to access it.",
+        "templateName" : "replaceDocument",
+        "displayName" : "replace document"
+
+    },
+    {
+        "content" : "Your role is replaced with [role]",
+        "templateName" : "changeUserRole",
+        "displayName" : "change user role"
+    }
+]
