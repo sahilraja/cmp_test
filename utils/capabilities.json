@@ -122,7 +122,21 @@
           "capability":"edit-task-progress-dates",
           "shortDescription":"Edit Task Progress Dates",
           "description":"Edit Task Progress Percentage",
-          "category": "Task Management",
+          "category": "Project Management",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-citiis-grants",
+          "shortDescription":"Edit Citiis Grants",
+          "description":"Edit Citiis Grants",
+          "category":"Project Management",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-project-cost",
+          "shortDescription":"Edit Project Cost",
+          "description":"Edit Project Cost",
+          "category":"Project Management",
           "scope":"global"
         },
         {

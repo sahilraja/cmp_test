@@ -19,6 +19,7 @@ export async function constantsList() {
         return Object.keys(constantResult).map((ele)=>{
             return {
                 key:ele,
+                displayName: ele.split(/(?=[A-Z])/).map(key => key.charAt(0).toUpperCase()+key.slice(1)).join(' '),
                 value:constantResult[ele]
             }
         })
