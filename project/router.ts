@@ -289,14 +289,14 @@ router.post(`/:id/upload-task-excel`, upload.single('upfile'), async (req, res, 
 })
 router.put("/:id/project-cost", async (req, res, next) => {
     try {
-        res.status(OK).send(await projectCostInfo(req.params.id,req.body.projectCost, res.locals.user.role));
+        res.status(OK).send(await projectCostInfo(req.params.id,req.body.projectCost, res.locals.user.role, res.locals.user._id));
     } catch (error) {
         next(new APIError(error.message));
     }
 })
 router.put("/:id/citiis-grants", async (req, res, next) => {
     try {
-        res.status(OK).send(await citiisGrantsInfo(req.params.id,req.body.citiisGrants, res.locals.user.role));
+        res.status(OK).send(await citiisGrantsInfo(req.params.id,req.body.citiisGrants, res.locals.user.role, res.locals.user._id));
     } catch (error) {
         next(new APIError(error.message));
     }

@@ -24,7 +24,7 @@ export async function paginatedList(query = {}, page = 1, limit = 20) {
 }
 
 export async function getTaskLogs(taskId: string, token: string) {
-    const activities = await ActivitySchema.find({ taskId }).exec()
+    const activities = await ActivitySchema.find({ taskId }).sort({createdAt:1}).exec()
     const userIds = activities.reduce((p: any, activity: any) =>
         [...p, ...
             ((activity.addedUserIds || []).concat(activity.removedUserIds || []).concat([activity.activityBy]))
@@ -40,7 +40,7 @@ export async function getTaskLogs(taskId: string, token: string) {
         activityBy: usersInfo.find((user: any) => user._id == activity.activityBy),
         addedUserIds: usersInfo.filter((s: any) => (activity.addedUserIds || []).includes(s._id)),
         removedUserIds: usersInfo.filter((s: any) => (activity.removedUserIds || []).includes(s._id)),
-    }))
+    })).sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 };
 
 export async function getDocumentsLogs(DocID: string, token: string) {
