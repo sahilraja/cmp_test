@@ -19,7 +19,7 @@ echo "Removed dist build directory successfully"
 echo "Started typescript compiling"
 ./node_modules/.bin/tsc -p tsconfig.json --outDir $builddir --sourceMap false
 cp package.json package-lock.json openapi.yaml swagger.yaml compiled-swagger.yaml $builddir
-cp utils/roles.json utils/capabilities.json utils/rbac.json utils/country_codes.json utils/email_template.json $builddir/utils
+cp utils/roles.json utils/capabilities.json utils/rbac.json utils/country_codes.json utils/email_template.json utils/sms_template.json $builddir/utils
 
 echo "Creating a zip to be exported"
 zip -qr $zipname $builddir

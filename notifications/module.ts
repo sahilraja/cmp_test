@@ -74,9 +74,11 @@ export async function getRoleNotification(roleName: string, templateName: string
     try {
         //let notificationInfo:any = await notificationSchema.aggregate([{$match:{ role: roleName}},{$unwind : "$templates"},{ $replaceRoot: { newRoot:{ $mergeObjects: [ { email: "$email", mobile:"$mobile",role:"$role"}, "$templates" ] }} }])
         let notificationInfo: any = await notificationSchema.findOne({ role: roleName }).exec();
-        let [{mobile,email}]: any = notificationInfo.templates.filter((notif: any) => {
+        notificationInfo = notificationInfo.toObject();
+        let [userTemplateInfo]: any = notificationInfo.templates.filter((notif: any) => {
             return notif.templateName == templateName
         })
+        let {mobile,email} = userTemplateInfo;
         return { role: roleName,templateName, mobile,email }
     }
     catch (err) {
@@ -93,14 +95,14 @@ export async function userRolesNotification(userId: any, templateName: string) {
         }))
         //return roleInfo
         let notificationResult: any = roleInfo.reduce((acc: any, roleObj: any) => {
-            if (roleObj.email == false) {
-                acc['email'] = false
+            if (roleObj.email == false || roleObj.email == true) {
+                acc['email'] = true
             }
-            if (roleObj.email == false) {
-                acc['mobile'] = false
+            if (roleObj.mobile == false || roleObj.mobile == true ) {
+                acc['mobile'] = true
             }
             return acc
-        }, { email: true, mobile: true });
+        }, { email: false, mobile: false });
         return notificationResult;
     }
     catch (err) {

@@ -157,3 +157,4 @@ export function rejectTagNotification(body: any) {
         throw err;
     };
 };
+text = "you recieved {otp}"

@@ -11,6 +11,7 @@ import * as SendOtp from "sendotp";
 import { httpRequest } from './role_management';
 import * as phoneNo from "phone";
 import { decode } from 'punycode';
+import { resolve } from 'bluebird';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const ACCESS_TOKEN_FOR_URL = 15 * 60;
@@ -99,7 +100,7 @@ export async function jwt_Verify(id: any) {
     }
 }
 
-export function generateOtp(limit: number) {
+export async function generateOtp(limit: number,objBody?:any) {
     var characters = '0123456789';
     var charactersLength = characters.length;
     var result = "";
@@ -107,7 +108,17 @@ export function generateOtp(limit: number) {
     for (var i = 0; i < limit; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-    return result;
+    let authOtp:any = { "otp":result,...objBody};
+    let token = await jwtOtpToken(authOtp);
+    return {otp:result,token}
+}
+
+export async function generatemobileOtp(limit:number,objBody?:any) {
+    let timestamp  =(new Date().getTime()).toString()
+    let result =  timestamp.slice(timestamp.length-limit,timestamp.length);
+    let authOtp:any = { "smsOtp": result,...objBody};
+    let smsToken = await jwtOtpToken(authOtp);
+    return {mobileOtp:result,smsToken}
 }
 
 export async function jwtOtpToken(otp: any) {
@@ -116,7 +127,24 @@ export async function jwtOtpToken(otp: any) {
 
 // verify token for otp
 export async function jwtOtpVerify(otp: any) {
-    return await jwtVerify(otp, SECRET)
+    try{
+        return await jwtVerify(otp, SECRET,function(err:any,decoded:any) {
+            if (err) {
+                if(err.name == "TokenExpiredError") {
+                    throw new APIError(USER_ROUTER.TOKEN_EXPIRED_OTP);
+                }
+                if(err.name == "JsonWebTokenError") {
+                    throw new APIError(USER_ROUTER.TOKEN_INVALID);
+                }
+            }
+            else{
+                return decoded
+            }
+        })
+    }
+    catch(err){
+        throw err
+    }
 }
 
 //sendOtp to mobile
