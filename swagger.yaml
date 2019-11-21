@@ -105,6 +105,19 @@ paths:
   /private-group/{id}/member/remove:
     $ref: ./swagger/private-groups/paths.yaml/#/RemovePrivateGroupMember
 
+# Pattern APIs
+  /pattern/create:
+    $ref: ./swagger/patterns/paths.yaml/#/patternCreate
+  /pattern/{id}/edit:
+    $ref: ./swagger/patterns/paths.yaml/#/patternEdit
+  /pattern/{id}/delete:
+    $ref: ./swagger/patterns/paths.yaml/#/patternDelete
+  /pattern/{id}/details:
+    $ref: ./swagger/patterns/paths.yaml/#/patternDetails
+  /pattern/list:
+    $ref: ./swagger/patterns/paths.yaml/#/patternList
+  /pattern/message-modification:
+    $ref: ./swagger/patterns/paths.yaml/#/patternMessageModification
     
 # Project APIs
   /project/create:
@@ -419,3 +432,7 @@ components:
       $ref: ./swagger/phases/schema.yaml/#/responses/schemas/phaseSchema      
     smsTemplateSchema:
       $ref: ./swagger/sms/schema.yaml/#/responses/schemas/templateSchema
+    PrivateGroupSchema:
+      $ref: ./swagger/private-groups/schema.yaml/#/responses/schemas/privateGroup
+    PatternSchema:
+      $ref: ./swagger/patterns/schema.yaml/#/responses/schemas/patternSchema

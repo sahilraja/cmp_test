@@ -27,6 +27,7 @@
                   example: []
       responses:
         "200":
+          description: success
           $ref: "./schema.yaml/#/responses/privateGroup"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
@@ -64,6 +65,7 @@
                   example: []                
       responses:
         "200":
+          description: success
           $ref: "./schema.yaml/#/responses/privateGroup"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
@@ -95,6 +97,7 @@
                   example: []                
       responses:
         "200":
+          description: success
           $ref: "./schema.yaml/#/responses/privateGroup"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
@@ -168,6 +171,6 @@
               schema:
                 type: array
                 items:
-                  $ref: "./schema.yaml/#/responses/schemas/groupSchema"
+                  $ref: "./schema.yaml/#/responses/schemas/privateGroup"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
