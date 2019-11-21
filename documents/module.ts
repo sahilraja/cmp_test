@@ -139,7 +139,10 @@ export async function getDocList(page: number = 1, limit: number = 30, host: str
   try {
     let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
-    if (pagination) return manualPagination(page, limit, docList)
+    if (pagination) {
+      data = documentsSort(data, "updatedAt", true)
+      return manualPagination(page, limit, docList)
+    }
     return docList
   } catch (error) {
     console.error(error);
@@ -149,7 +152,7 @@ export async function getDocList(page: number = 1, limit: number = 30, host: str
 
 export async function documentsList(docs: any[]): Promise<object[]> {
   docs = docs.map((id: string) => Types.ObjectId(id))
-  return await documents.find({ _id: { $in: docs }})
+  return await documents.find({ _id: { $in: docs } })
 }
 
 async function docData(docData: any, host: string) {
@@ -183,6 +186,7 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
         return docs._id == folderDocs;
       });
     })
+    result = documentsSort(result, "updatedAt", true)
     return manualPagination(page, limit, result)
   } catch (error) {
     console.error(error);
@@ -193,8 +197,11 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
 export async function getDocumentListOfMeWithOutFolders(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
     let docs = await documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 })
-    const docList = await Promise.all(docs.map((doc: any) => docData(doc, host)));
-    if (pagination) return manualPagination(page, limit, docList);
+    let docList = await Promise.all(docs.map((doc: any) => docData(doc, host)));
+    if (pagination) {
+      docList = documentsSort(docList, "updatedAt", true)
+      return manualPagination(page, limit, docList);
+    }
     return docList
   } catch (err) {
     throw err
@@ -347,7 +354,7 @@ export async function getDocDetails(docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
-    if(publishDocs.isDeleted) throw new Error("Document is deleted")
+    if (publishDocs.isDeleted) throw new Error("Document is deleted")
     if (publishDocs.status != 2 && publishDocs.parentId == null) {
       let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
       if (!userCapability.length) throw new Error("Unauthorized access.")
@@ -495,7 +502,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
-    if(objBody.name && objBody.id){
+    if (objBody.name && objBody.id) {
       obj.fileId = objBody.id
       obj.fileName = objBody.name
     }
@@ -768,7 +775,10 @@ export async function sharedList(userId: string, page: number = 1, limit: number
       })
     );
     data = data.filter(({ ownerId }: any) => ownerId != userId)
-    if (pagination) return manualPagination(page, limit, data);
+    if (pagination) {
+      data = documentsSort(data, "updatedAt", true)
+      return manualPagination(page, limit, data)
+    };
     return data
   } catch (err) {
     throw err;
@@ -782,7 +792,10 @@ export async function allDocuments(userId: string, page: number = 1, limit: numb
       ...(await sharedList(userId, page, limit, host, false) as any),
       ...(await getDocumentListOfMeWithOutFolders(userId, page, limit, host, false) as any),
     ]
-    if (pagination) return manualPagination(page, limit, data)
+    if (pagination) {
+      data = documentsSort(data, "name", false)
+      return manualPagination(page, limit, data)
+    }
     return data
   } catch (err) {
     throw err
@@ -818,6 +831,17 @@ export async function documnetCapabilities(docId: string, userId: string) {
     return ["no_access"]
   } catch (err) {
     throw err;
+  };
+};
+
+function documentsSort(data: any[], key: string, date: boolean = false) {
+  try {
+    if (date) {
+      return data.sort((a: any, b: any) => (new Date(b[key]) as any) - (new Date(a[key]) as any));
+    }
+    return data.sort((a: any, b: any) => (a[key] as string).localeCompare(b[key]));
+  } catch (err) {
+    throw err
   };
 };
 
@@ -1036,7 +1060,10 @@ export async function publishList(userId: string, page: number = 1, limit: numbe
   try {
     let docs = await documents.find({ ownerId: userId, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
     let data = await Promise.all(docs.map(async (doc: any) => docData(doc, host)));
-    if (pagination) return manualPagination(page, limit, data)
+    if (pagination) {
+      data = documentsSort(data, "updatedAt", true)
+      return manualPagination(page, limit, data)
+    }
     return data
   } catch (err) {
     throw err;
@@ -1070,7 +1097,8 @@ export async function docFilter(search: string, userId: string, page: number = 1
     }
     // {: Promise<object[]> 
     docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
-    let filteredDocs = await Promise.all(docs.map((doc: any) => docData(doc, host)));
+    let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
+    filteredDocs = documentsSort(filteredDocs, "name", false)
     return manualPagination(page, limit, filteredDocs)
   } catch (err) {
     throw err;
@@ -1376,6 +1404,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   const docsData = manualPagination(page, limit, [...foldersList, ...docsList])
   const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
+  docsData.docs = documentsSort(docsData.docs, "updatedAt", true)
   return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
 
