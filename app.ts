@@ -21,6 +21,7 @@ import * as activityRouter from "./log/router";
 import * as constantsRouter from "./site-constants/router";
 import * as phaseRouter from "./phase/router";
 import * as notificationsRouter from "./notifications/router";
+import * as patternRouter from "./patterns/router"
 
 // implement multer
 import * as multer from "multer";
@@ -57,6 +58,7 @@ app.use("/project", authenticate, projectRouter);
 app.use("/docs", documentRouter)
 app.use("/task", taskRouter)
 app.use("/tag", tagRouter);
+app.use("/pattern", patternRouter);
 app.use("/template", templateRouter);
 app.use("/comments", authenticate, commentRouter);
 app.use(`/pillars`, authenticate, pillarRouter)

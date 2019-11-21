@@ -306,6 +306,13 @@
           "category":"Risk Management",
           "description":"Risk Management",
           "scope":"global"
+        },
+        {
+          "capability":"patterns-management",
+          "shortDescription":"Pattern management",
+          "category":"Pattern Management",
+          "description":"Pattern management",
+          "scope":"global"
         }
   ]
   

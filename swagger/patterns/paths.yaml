@@ -1,0 +1,177 @@
+# create pattern
+  patternCreate:
+    post:
+      security:
+        - token: []
+      summary: Create New Pattern
+      tags:
+        - PATTERNS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patternCode
+                - patternName
+              properties:
+                patternCode:
+                  type: string
+                  example: Taj
+                patternName:
+                  type: string
+                  example: Taj mahal
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/patterns"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Edit Patterns
+  patternEdit:
+    post:
+      security:
+        - token: []
+      summary: Edit Pattern Details
+      tags:
+        - PATTERNS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: pattern id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patternCode
+                - patternName
+              properties:
+                patternCode:
+                  type: string
+                  example: Taj
+                patternName:
+                  type: string
+                  example: Taj mahal              
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/patterns"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Pattern Delete
+  patternDelete:
+    put:
+      security:
+        - token: []
+      summary: Delete Pattern
+      tags:
+        - PATTERNS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: pattern id
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Pattern Details
+  patternDetails:
+    get:
+      security:
+        - token: []
+      summary: Pattern Details
+      tags:
+        - PATTERNS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: pattern id
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/patterns"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Pattern details
+  patternList:
+    get:
+      security:
+        - token: []
+      summary: Pattern list
+      tags:
+        - PATTERNS
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          example: Taj
+          description: search pattern
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./schema.yaml/#/responses/schemas/patternSchema"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# pattern message-modification
+  patternMessageModification:
+    post:
+      security:
+        - token: []
+      summary: Pattern Message Modification
+      tags:
+        - PATTERNS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  example: "%Taj% is awesome"           
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: taj mahal is awesome
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
