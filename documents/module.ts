@@ -149,7 +149,7 @@ export async function getDocList(page: number = 1, limit: number = 30, host: str
 
 export async function documentsList(docs: any[]): Promise<object[]> {
   docs = docs.map((id: string) => Types.ObjectId(id))
-  return await documents.find({ _id: { $in: docs }, isDeleted: false })
+  return await documents.find({ _id: { $in: docs }})
 }
 
 async function docData(docData: any, host: string) {
@@ -347,6 +347,7 @@ export async function getDocDetails(docId: any, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
+    if(publishDocs.isDeleted) throw new Error("Document is deleted")
     if (publishDocs.status != 2 && publishDocs.parentId == null) {
       let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
       if (!userCapability.length) throw new Error("Unauthorized access.")
@@ -493,6 +494,10 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (objBody.tags) {
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
+    }
+    if(objBody.name && objBody.id){
+      obj.fileId = objBody.id
+      obj.fileName = objBody.name
     }
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
@@ -762,7 +767,7 @@ export async function sharedList(userId: string, page: number = 1, limit: number
         return await docData(doc, host);
       })
     );
-    data = data.filter(({ownerId}: any)=> ownerId != userId)
+    data = data.filter(({ ownerId }: any) => ownerId != userId)
     if (pagination) return manualPagination(page, limit, data);
     return data
   } catch (err) {
@@ -819,18 +824,29 @@ export async function documnetCapabilities(docId: string, userId: string) {
 async function invite(user: any, docId: any, role: any, doc: any) {
   await shareDoc(user._id, user.type, docId, role);
   if (user.type == "user") {
-    let userData: any = await userFindOne("id", user._id);
-    let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
+    inviteMail(user._id, doc)
+  } else if (user.type == "group") {
+    let userIds = await groupUserList(user._id)
+    userIds = userIds.filter(userId => userIds != doc.ownerId)
+    await Promise.all(userIds.map(userId => inviteMail(userId, doc)))
+  }
+};
 
+async function inviteMail(userId: string, doc: any) {
+  try {
+    let userData: any = await userFindOne("id", userId);
+    let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
     const { fullName, mobileNo } = getFullNameAndMobile(userData);
     sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileMessage: MOBILE_TEMPLATES.INVITE_FOR_DOCUMENT });
+  } catch (err) {
+    throw err;
   };
 };
 
-export async function invitePeople(docId: string, users: object[], role: string, userId: string) {
+export async function invitePeople(docId: string, users: any, role: string, userId: string) {
   try {
 
-    if (!docId || !users.length || !role) throw new Error("Missing fields.");
+    if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error("Missing fields or Invalid Data.");
     let doc: any = await documents.findById(docId);
     let addUsers: any = []
     await Promise.all(
