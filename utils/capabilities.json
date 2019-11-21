@@ -308,6 +308,13 @@
           "scope":"global"
         },
         {
+          "capability":"manage-opportunity",
+          "shortDescription":"Opportunity Management",
+          "category":"Opportunity Management",
+          "description":"Opportunity Management",
+          "scope":"global"
+        },
+        {
           "capability":"patterns-management",
           "shortDescription":"Pattern management",
           "category":"Pattern Management",
