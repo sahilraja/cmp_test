@@ -120,7 +120,10 @@ export async function getProjectMembers(id: string) {
     role_list()
   ])
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
-  return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data.global[0], formattedRoleObjs.roles) }))
+  return members.map((user: any, i: number) => ({ 
+    ...(users.find((_user: any) => _user._id == user)), 
+    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles) 
+  }))
 }
 
 function formatUserRole(role: string, formattedRoleObjs: any) {
@@ -819,30 +822,34 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   }
 }
 
-export async function projectCostInfo(projectId: string, projectCost: number, userRole: string) {
+export async function projectCostInfo(projectId: string, projectCost: number, userRole: string, userId: string) {
   try {
     const isEligible = await checkRoleScope(userRole, 'edit-project-cost')
     if(!isEligible){
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
-    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }, { new: true }).exec()
+    const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }).exec()
+    createLog({activityBy:userId, activityType:ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: (updatedProject as any).projectCost, updatedCost:projectCost, projectId})    
+    return updatedProject
   }
   catch (err) {
     throw err
   }
 }
 
-export async function citiisGrantsInfo(projectId: string, citiisGrants: number, userRole: string) {
+export async function citiisGrantsInfo(projectId: string, citiisGrants: number, userRole: string, userId: string) {
   try {
     const isEligible = await checkRoleScope(userRole, 'edit-citiis-grants')
     if(!isEligible){
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
-    const projectInfo = await ProjectSchema.findById(projectId).exec()
+    const projectInfo: any = await ProjectSchema.findById(projectId).exec()
     if((projectInfo as any).projectCost < citiisGrants){
       throw new APIError(PROJECT_ROUTER.CITIIS_GRANTS_VALIDATION)
     }
-    return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
+    const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
+    createLog({activityBy:userId, activityType:ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost:citiisGrants, projectId})
+    return updatedProject
   }
   catch (err) {
     throw err
