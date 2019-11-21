@@ -865,6 +865,7 @@ export async function tokenValidation(token:string) {
         if(user.emailVerified == true){
             throw new APIError(USER_ROUTER.USER_EXIST);
         }
+        return user
     }
     catch(err){
         throw err

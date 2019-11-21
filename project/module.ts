@@ -326,7 +326,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 // get project details
 export async function getProjectDetail(projectId: string) {
   try {
-    return await ProjectSchema.findById(projectId).exec()
+    return await ProjectSchema.findById(projectId).populate({path:'phase'}).exec()
   } catch (error) {
     console.error(error)
     throw error
@@ -819,8 +819,12 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   }
 }
 
-export async function projectCostInfo(projectId: string, projectCost: number) {
+export async function projectCostInfo(projectId: string, projectCost: number, userRole: string) {
   try {
+    const isEligible = await checkRoleScope(userRole, 'edit-project-cost')
+    if(!isEligible){
+      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+    }
     return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }, { new: true }).exec()
   }
   catch (err) {
@@ -828,8 +832,12 @@ export async function projectCostInfo(projectId: string, projectCost: number) {
   }
 }
 
-export async function citiisGrantsInfo(projectId: string, citiisGrants: number) {
+export async function citiisGrantsInfo(projectId: string, citiisGrants: number, userRole: string) {
   try {
+    const isEligible = await checkRoleScope(userRole, 'edit-citiis-grants')
+    if(!isEligible){
+      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+    }
     const projectInfo = await ProjectSchema.findById(projectId).exec()
     if((projectInfo as any).projectCost < citiisGrants){
       throw new APIError(PROJECT_ROUTER.CITIIS_GRANTS_VALIDATION)
