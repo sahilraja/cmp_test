@@ -313,6 +313,13 @@
           "category":"Pattern Management",
           "description":"Pattern management",
           "scope":"global"
+        },
+        {
+          "capability":"send-message-to-email",
+          "shortDescription":"Send Message To Email",
+          "category":"Message Management",
+          "description":"Ability to send a message to email",
+          "scope":"global"
         }
   ]
   
