@@ -11,6 +11,7 @@ import { role_list } from "../role/module";
 import { TemplateSchema } from "../email-templates/model";
 import { readFileSync } from "fs";
 import { APIError } from "./custom-error";
+import { smsTemplateSchema } from "../sms/model";
 
 export async function init() {
   let removeOptions = {
@@ -161,6 +162,17 @@ export async function httpRequest(options: any) {
   }).catch(error => {
     throw new APIError(error[0].error)
   })
+}
+
+export async function smsTemplates(){
+  let existingTemplatesCount:any = await smsTemplateSchema.find().count().exec();
+  if(!existingTemplatesCount){
+    await smsTemplateSchema.create(JSON.parse(readFileSync(join(__dirname,"sms_template.json"), "utf8")));
+      console.log(`SMS templates created successfully`);
+    }
+    else{
+      console.log(`existing SMS templates found in DB`);
+    }
 }
 
 export async function fetchRoles() {

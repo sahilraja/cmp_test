@@ -27,7 +27,7 @@
         "content" : "Hi <b>[fullName]</b>,<br/></br><br/>You have received a new message on CMP. Here is an excerpt.<br/>[content] <br/><br/><a href=[link]>Click here to view the full message.</a>.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inboxMessage",
         "displayName" : "New Message",
-        "subject" : "CMP message | [subject]"
+        "subject" : "You have a new message | CMP"
     },
     {
         "content" : "Task udpated",
@@ -106,5 +106,11 @@
         "templateName" : "documentUpdate",
         "displayName" : "document Update",
         "subject" : "update [documentName] document"
+    },
+    {        
+        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>Your role is replaced with <b>[role]</b><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "changeUserRole",
+        "displayName" : "change user role",
+        "subject" : "Replace role with [role] | CMP"
     }
 ]

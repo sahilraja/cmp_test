@@ -4,7 +4,7 @@ import { homedir } from 'os';
 import * as path from 'path';
 import { readFileSync, constants } from "fs";
 import { USE_REMOTE_DB } from './urls';
-import { userInit, init, siteConstants, notifications, templates } from './role_management';
+import { userInit, init, siteConstants, notifications, templates, smsTemplates } from './role_management';
 
 
 async function initializeDB() {
@@ -13,6 +13,7 @@ async function initializeDB() {
         await siteConstants();
         await templates();
         await notifications();
+        await smsTemplates();
         // await init();
     } catch (err) {
         console.error(err);

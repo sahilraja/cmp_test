@@ -1,13 +1,13 @@
 import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
-import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage } from "../utils/utils";
+import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage, generatemobileOtp } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest} from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -25,6 +25,9 @@ import { readFileSync } from "fs"
 import { any } from "bluebird";
 import { create } from "../log/module";
 
+import { error } from "util";
+import { getSmsTemplateBySubstitutions } from "../sms/module";
+import { smsTemplateSchema } from "../sms/model";
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
@@ -185,10 +188,14 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
         };
+        let editUserInfo:any =await userFindOne("id",id);
+
+        let {fullName, mobileNo} =  getFullNameAndMobile(editUserInfo);
         let userRole;
         if (id != user._id && objBody.role) {
             userRole = await updateRole(id, objBody.updateRole, objBody.role);
-            await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
+            await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })            
+            sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role:objBody.role, templateName: "changeUserRole", mobileTemplateName:"changeUserRole"});
         }
         let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
@@ -254,7 +261,7 @@ export async function user_status(id: string, user: any) {
         if (!userData.emailVerified) throw new Error("User not registered Yet.")
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
-        let state = data.is_active ? "Activated" : "Inactivated"
+        let state = data.is_active ? "Activated" : "Inactivated";
         const { mobileNo, fullName } = getFullNameAndMobile(userData);
         await create({ activityType: data.is_active ? "ACTIVATE-PROFILE": "DEACTIVATE-PROFILE", activityBy: user.id, profileId: id })
         sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileMessage: MOBILE_TEMPLATES.STATE });
@@ -290,8 +297,8 @@ export async function user_login(req: any) {
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
-        sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileMessage: MOBILE_TEMPLATES.LOGIN });
-        return response
+        sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login"});
+        return response;
     } catch (err) {
         throw err;
     };
@@ -374,11 +381,11 @@ export async function forgotPassword(objBody: any) {
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         //  Create Token
-        let authOtp = { "otp": generateOtp(4) }
-        let token = await jwtOtpToken(authOtp);
-        await userUpdate({ otp_token: token, id: userDetails._id });
+        let {otp,token} = await generateOtp(4);
+        let {mobileOtp,smsToken} = await generatemobileOtp(4);
 
-        sendNotification({ id: userDetails._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.FORGOT_OTP, templateName: "forgotPasswordOTP" });
+        await userUpdate({ otp_token: token,smsOtpToken:smsToken,id: userDetails._id });
+        sendNotification({ id: userDetails._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "forgotPasswordOTP",mobileTemplateName:"sendOtp"});
 
         let tokenId = await jwt_for_url({ "id": userDetails._id });
         return { message: RESPONSE.SUCCESS_EMAIL, email: userDetails.email, id: tokenId }
@@ -663,11 +670,11 @@ export async function otpVerification(objBody: any) {
             throw new Error(USER_ROUTER.EMAIL_WRONG);
         }
         let token: any = await jwtOtpVerify(userInfo.otp_token);
+        let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if (objBody.mobileOtp) {
-            let result = await mobileVerifyOtp(userInfo.countryCode + userInfo.phone, objBody.mobileOtp);
-            if (!result) {
+            if (mobileToken.smsOtp !=  objBody.mobileOtp) {
                 mobile_flag = 1
             }
         }
@@ -717,13 +724,15 @@ export async function changeEmailInfo(objBody: any, user: any) {
         if (emailExist) throw new Error("Already email exist.")
         let validUser = await userLogin({ email: user.email, password: objBody.password })
         if (!validUser.token) throw new Error("Enter valid credentials.");
-        let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
-        let token = await jwtOtpToken(authOtp);
-        let userInfo = await userUpdate({ otp_token: token, id: user._id });
+
+        let {otp,token} = await generateOtp(4,{"newEmail": objBody.email});
+        let {mobileOtp,smsToken} = await generatemobileOtp(4,{"newEmail": objBody.email});
+
+        let userInfo = await userUpdate({ otp_token: token, id: user._id, smsOtpToken:smsToken});
         let { fullName, mobileNo } = getFullNameAndMobile(userInfo);
 
-        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, templateName: "changeEmailMessage", mobileMessage: MOBILE_TEMPLATES.CHANGE_EMAIL })
-        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, templateName: "changeEmailOTP", mobileOtp: SENDER_IDS.CHANGE_EMAIL_OTP });
+        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, templateName: "changeEmailMessage", mobileTemplateName:"changeEmailMessage" })
+        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName:"sendOtp" });
 
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
@@ -737,16 +746,11 @@ export async function profileOtpVerify(objBody: any, user: any) {
         let mobile_flag: number = 0, email_flag: number = 0
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
+        let mobileToken: any = await jwt_Verify(user.smsOtpToken);
+
         if (objBody.mobileOtp) {
             if (objBody.countryCode && objBody.phone) {
-                let result = await mobileVerifyOtp(objBody.countryCode + objBody.phone, objBody.mobileOtp);
-                if (!result) {
-                    mobile_flag = 1
-                }
-            }
-            else {
-                let result = await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
-                if (!result) {
+                if (mobileToken.smsOtp !=  objBody.mobileOtp) {
                     mobile_flag = 1
                 }
             }
@@ -827,18 +831,19 @@ export async function changeMobileNumber(objBody: any, userData: any) {
             throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
         }
         if (!comparePassword(password, userData.password)) {
-            sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName: "invalidPassword", mobileMessage: MOBILE_TEMPLATES.INVALID_PASSWORD });
+            sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName: "invalidPassword", mobileTemplateName:"invalidPassword"});
             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
         }
-        let authOtp = { "otp": generateOtp(4) }
-        let token = await jwtOtpToken(authOtp);
-        await userUpdate({ otp_token: token, id: userData._id });
+        let {otp,token} = await generateOtp(4);
+        let {mobileOtp,smsToken} = await generatemobileOtp(4);
+
+        await userUpdate({ otp_token: token, id: userData._id, smsOtpToken:smsToken});
 
         let phoneNo: any = mobileNo;
         if (newCountryCode && newPhone) {
             phoneNo = newCountryCode + newPhone
         }
-        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo: phoneNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.CHANGE_MOBILE_OTP, templateName: "changeMobileOTP" });
+        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo: phoneNo, otp, mobileOtp, templateName: "changeMobileOTP",mobileTemplateName:"sendOtp" });
         return { message: "success" }
     }
     catch (err) {
@@ -870,17 +875,20 @@ export function getFullNameAndMobile(userObj: any) {
     return { fullName, mobileNo }
 }
 export async function sendNotification(objBody: any) {
-    const { id, email, mobileNo, templateName, mobileMessage, mobileOtp, ...notificationInfo } = objBody;
-    let userNotification: any;
-    if (!mobileOtp) {
+    const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
+    let userNotification:any;
+    if(!mobileOtp){
         userNotification = await userRolesNotification(id, templateName);
     }
     if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+        //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
         if (mobileOtp) {
-            mobileSendOtp(mobileNo, mobileOtp);
+            let smsContent:any = await getSmsTemplateBySubstitutions(mobileTemplateName,{mobileOtp,...notificationInfo});
+            smsRequest(mobileNo,smsContent);
         }
         else {
-            //mobileSendMessage(mobileNo,mobileMessage);
+            let smsContent:any = await getSmsTemplateBySubstitutions(mobileTemplateName,notificationInfo);
+            smsRequest(mobileNo,smsContent);
         }
     }
     if (mobileOtp || userNotification.email) {

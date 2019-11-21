@@ -879,7 +879,7 @@ async function inviteMail(userId: string, doc: any) {
     let userData: any = await userFindOne("id", userId);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
     const { fullName, mobileNo } = getFullNameAndMobile(userData);
-    sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileMessage: MOBILE_TEMPLATES.INVITE_FOR_DOCUMENT });
+    sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileTemplateName:"inviteForDocument" });
   } catch (err) {
     throw err;
   };
@@ -1558,7 +1558,7 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName:"suggestTagNotification"});
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -1613,7 +1613,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     let doc = await documents.findByIdAndUpdate(docId, { suggestedTags: filteredDocs, "$push": { tags: body.tagId } })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileMessage: MOBILE_TEMPLATES.APPROVE_TAG_NOTIFICATION });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName:"approveTagNotification"  });
       return {
         sucess: true,
         message: "Tag approved successfully"
@@ -1660,7 +1660,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName:"rejectTagNotification" });
       return {
         sucess: true,
         message: "Tag Rejected"
