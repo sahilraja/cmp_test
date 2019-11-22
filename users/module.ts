@@ -607,7 +607,7 @@ async function roleFormanting(users: any[]) {
 
 function userSort(data: any[]) {
     try {
-        return data.sort((a: any, b: any) => (a.firstName|| a.middleName || a.name).localeCompare(b.firstName|| a.middleName || b.name));
+        return data.sort((a: any, b: any) => (a.firstName|| a.middleName || a.name).localeCompare(b.firstName|| b.middleName || b.name));
     } catch (err) {
         throw err
     };
