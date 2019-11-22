@@ -2,6 +2,7 @@ import { RiskSchema } from "./model";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
 import { RISK } from "../utils/error_msg";
+import { userFindOne } from "../utils/users";
 
 export async function create(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
@@ -12,11 +13,16 @@ export async function create(payload: any, projectId: string, userObj: any) {
 }
 
 export async function list(projectId: string) {
-    return await RiskSchema.find({ deleted: false, projectId }).populate({ path: 'phase', select: 'phaseName' }).sort({ createdAt: 1 }).exec()
+    return await RiskSchema.find({ deleted: false, projectId }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
 }
 
 export async function detail(riskId: string) {
-    return RiskSchema.findById(riskId).populate({ path: 'phase', select: 'phaseName' }).exec()
+    const detail: any = await RiskSchema.findById(riskId).populate({ path: 'phase' }).exec()
+    const {riskOwner} = detail.toJSON()
+    if(riskOwner){
+        return {...detail.toJSON(), riskOwner: await userFindOne('_id', riskOwner)}
+    }
+    return detail
 }
 
 export async function edit(id: string, updates: any, userObj: any) {
