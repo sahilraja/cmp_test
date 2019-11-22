@@ -573,6 +573,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         if (roles) {
             roles = await Promise.all(roles.map((role: string) => roleUsersList(role)));
             roles = await userFindManyWithRole([... new Set(roles.reduce((main: any, curr: any) => main.concat(curr.users), []))] as any)
+            roles = roles.filter(({emailVerified, is_active}: any)=> emailVerified && is_active)
         }
         let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
         let privateUsersObj = await userFindManyWithRole(privateGroupUser)
@@ -581,7 +582,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
         // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
         allUsers = Object.values(allUsers.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
-        allUsers = allUsers.filter(({emailVerified, is_active}): any=> emailVerified && is_active)
+        // allUsers = allUsers.filter(({emailVerified, is_active}): any=> emailVerified && is_active)
         if (searchKeyArray.length) {
             return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
         }

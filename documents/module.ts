@@ -870,10 +870,10 @@ export async function invitePeople(docId: string, users: any, role: string, user
   try {
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error("Missing fields or Invalid Data.");
     let doc: any = await documents.findById(docId);
-    if(doc.status == 2) throw new Error("Unauthorized action on published document.")
+    if (doc.status == 2) throw new Error("Unauthorized action on published document.")
     let userRole = await documnetCapabilities(docId, userId)
-    if(userRole.includes("collaborator") &&  role != "viewer" ) throw new Error("You have Capability to give view access.")
-    if(userRole.includes("viewer") || userRole.includes("no_access") ) throw new Error("You dont have Capability any access.")
+    if (userRole.includes("collaborator") && role != "viewer") throw new Error("You have Capability to give view access.")
+    if (userRole.includes("viewer") || userRole.includes("no_access")) throw new Error("You dont have Capability any access.")
     let addUsers: any = []
     await Promise.all(
       users.map(async (user: any) => {
@@ -894,8 +894,8 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     let actionUserRole = await documnetCapabilities(docId, userObj._id)
-    if(actionUserRole.includes("collaborator") &&  role != "viewer" ) throw new Error("You have Capability to give view access.")
-    if(actionUserRole.includes("viewer") || actionUserRole.includes("no_access") ) throw new Error("You dont have Capability any access.")
+    if (actionUserRole.includes("collaborator") && role != "viewer") throw new Error("You have Capability to give view access.")
+    if (actionUserRole.includes("viewer") || actionUserRole.includes("no_access")) throw new Error("You dont have Capability any access.")
     let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
@@ -910,7 +910,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
     let userRole = await documnetCapabilities(docId, userObj._id)
-    if(!userRole.includes("owner")) throw new Error("You dont Capability to remove user.")
+    if (!userRole.includes("owner")) throw new Error("You dont Capability to remove user.")
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Revoke share successfully." };
@@ -1040,9 +1040,9 @@ export async function unPublished(docId: string, userObj: any) {
     let [isEligible, docDetail] = await Promise.all([
       checkRoleScope(userObj.role, "unpublish-document"),
       documents.findById(docId).exec()
-    ]) 
+    ])
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    if((docDetail as any).isPublic){
+    if ((docDetail as any).isPublic) {
       throw new APIError(DOCUMENT_ROUTER.UNPUBLISH_PUBLIC_DOCUMENT)
     }
     let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
@@ -1422,6 +1422,22 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
 }
 
 
+// export async function checkCapabilitiesForUser(objBody: any, userId: string) {
+//   try {
+//     let { docIds, userIds } = objBody
+//     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+//     if (objBody.unique) {
+//       if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+//         throw new Error("Duplicate user ids found.");
+//       };
+//     };
+//     let userObjects = await userFindMany("_id", [... new Set(userIds.concat(userId))])
+//     return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId, userObjects)))
+//   } catch (err) {
+//     throw err
+//   };
+// };
+
 export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
@@ -1431,25 +1447,46 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
         throw new Error("Duplicate user ids found.");
       };
     };
-    let userObjects = await userFindMany("_id", [... new Set(userIds.concat(userId))])
-    return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId, userObjects)))
+    let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
+    let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
+    let noAccessDocs = docIds.filter(docid => !Object.keys(mainObj).includes(docid))
+    return Object.assign(mainObj, { noAccessDocuments: noAccessDocs, documents: await documents.find({ _id: { $in: Object.keys(mainObj).concat(noAccessDocs) } }) })
   } catch (err) {
     throw err
   };
 };
 
-async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string, userObjects: any[]) {
-  try {
-    return {
-      document: await documents.findById(docId).exec(),
-      attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0] },
-      users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
-    }
-  } catch (err) {
-    throw err;
+// async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string, userObjects: any[]) {
+//   try {
+//     return {
+//       document: await documents.findById(docId).exec(),
+//       attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0] },
+//       users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
+//     }
+//   } catch (err) {
+//     throw err;
 
-  }
+//   }
+// };
+
+
+async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
+  let userCapabilities: any = await documnetCapabilities(docId, userId)
+  if (["no_access", "viewer"].includes(userCapabilities[0])) return {}
+  const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
+  let users = await userFindMany("_id", userIds)
+  const filteredusers = users.map((user: any) => user._id)
+  let groupIds = userIds.filter(id => !filteredusers.includes(id))
+  return {
+    [docId]: s.map((s1: any, i) => {
+      if (s1.includes('no_access')) {
+        return { _id: userIds[i], type: groupIds.includes(userIds[i]) ? "group" : "user" }
+      }
+      return { _id: false }
+    }).filter(({ _id }: any) => Types.ObjectId.isValid(_id))
+  };
 };
+
 
 async function userWithDocRole(docId: string, userId: string, usersObjects: any[]) {
   try {
@@ -1833,7 +1870,7 @@ export async function getAllPublicDocuments(userRole: string, currentPage = 1, l
   // if(!isEligible){
   //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
   // }
-  let {docs, page, pages} =  await documents.paginate({ isPublic: true }, {page: currentPage, limit})
+  let { docs, page, pages } = await documents.paginate({ isPublic: true }, { page: currentPage, limit })
   docs = await Promise.all(docs.map(doc => docData(doc, host)))
   return {
     docs,
@@ -1846,14 +1883,14 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
   const [isEligible, docDetail] = await Promise.all([
     checkRoleScope(userRole, 'mark-as-public-document'),
     documents.findById(docId).exec()
-  ]) 
+  ])
   // if(!isEligible){
   //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
   // }
-  if((docDetail as any).status != 2){
-    throw new APIError(DOCUMENT_ROUTER.UNABLE_TO_MAKE_PUBLIC_DOCUMENT) 
+  if ((docDetail as any).status != 2) {
+    throw new APIError(DOCUMENT_ROUTER.UNABLE_TO_MAKE_PUBLIC_DOCUMENT)
   }
-  await documents.findByIdAndUpdate(docId, {$set:{isPublic: true}}).exec()
-  await documents.updateMany({parentId: docId}, {$set:{isPublic: true}}).exec()
-  return {message:'success'}
+  await documents.findByIdAndUpdate(docId, { $set: { isPublic: true } }).exec()
+  await documents.updateMany({ parentId: docId }, { $set: { isPublic: true } }).exec()
+  return { message: 'success' }
 }
