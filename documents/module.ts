@@ -32,7 +32,7 @@ import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails }
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage } from "../utils/utils";
-import { any } from "bluebird";
+import { any, try } from "bluebird";
 
 enum STATUS {
   DRAFT = 0,
@@ -869,7 +869,6 @@ async function inviteMail(userId: string, doc: any) {
 
 export async function invitePeople(docId: string, users: any, role: string, userId: string) {
   try {
-
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error("Missing fields or Invalid Data.");
     let doc: any = await documents.findById(docId);
     let addUsers: any = []
@@ -1421,32 +1420,37 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
     if (objBody.unique) {
       if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-        throw new Error("Duplicate user ids found.")
-      }
+        throw new Error("Duplicate user ids found.");
+      };
     };
-    let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
-    let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
-    let noAccessDocs = docIds.filter(docid => !Object.keys(mainObj).includes(docid))
-    return Object.assign(mainObj, { noAccessDocuments: noAccessDocs, documents: await documents.find({ _id: { $in: Object.keys(mainObj).concat(noAccessDocs) } }) })
+    let userObjects = await userFindMany("_id", [... new Set(userIds.concat(userId))])
+    return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId, userObjects)))
   } catch (err) {
     throw err
   };
 };
 
-async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
-  let userCapabilities: any = await documnetCapabilities(docId, userId)
-  if (["no_access", "viewer"].includes(userCapabilities[0])) return {}
-  const s = await Promise.all(userIds.map(user => documnetCapabilities(docId, user)))
-  let users = await userFindMany("_id", userIds)
-  const filteredusers = users.map((user: any) => user._id)
-  let groupIds = userIds.filter(id => !filteredusers.includes(id))
-  return {
-    [docId]: s.map((s1: any, i) => {
-      if (s1.includes('no_access')) {
-        return { _id: userIds[i], type: groupIds.includes(userIds[i]) ? "group" : "user" }
-      }
-      return { _id: false }
-    }).filter(({ _id }: any) => Types.ObjectId.isValid(_id))
+async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string, userObjects: any[]) {
+  try {
+    return {
+      document: await documents.findById(docId).exec(),
+      attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0] },
+      users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
+    }
+  } catch (err) {
+    throw err;
+
+  }
+};
+
+async function userWithDocRole(docId: string, userId: string, usersObjects: any[]) {
+  try {
+    return {
+      ...(usersObjects.find(user => user._id == userId)),
+      docRole: (await documnetCapabilities(docId, userId) as any || [""])[0]
+    }
+  } catch (err) {
+    throw err
   };
 };
 

@@ -4,7 +4,7 @@ import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOt
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
-import { addRole, getRoles, roleCapabilitylist, updateRole } from "../utils/rbac";
+import { addRole, getRoles, roleCapabilitylist, updateRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany } from "../utils/users";
@@ -18,37 +18,39 @@ import { constantSchema } from "../site-constants/model";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
 import { notificationSchema } from "../notifications/model";
-
+import { join } from "path"
 import { httpRequest } from "../utils/role_management";
 import { userRolesNotification } from "../notifications/module";
-import { error } from "util";
+import { readFileSync } from "fs"
+import { any } from "bluebird";
+
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
 
 export async function bulkInvite(filePath: string, userId: string) {
     const excelFormattedData = importExcelAndFormatData(filePath)
-    if(!excelFormattedData.length){
+    if (!excelFormattedData.length) {
         throw new APIError(`Uploaded empty document`)
     }
     const [roleData, usersList]: any = await Promise.all([
         role_list(),
-        userList({}, {email:1})
-    ]) 
+        userList({}, { email: 1 })
+    ])
     const existingEmails = usersList.map((user: any) => (user.email || '').toLowerCase()).filter((v: any) => !!v)
     const categories = Array.from(new Set(roleData.roles.map((role: any) => role.category)))
     const formattedDataWithRoles = excelFormattedData.map(data => {
         const matchedRole = roleData.roles.find((role: any) => role.roleName == data.role)
-        if(existingEmails.includes(data.email.toLowerCase())){
+        if (existingEmails.includes(data.email.toLowerCase())) {
             throw new APIError(`${data.email} already exists`)
         }
-        if(!categories.includes(data.category)){
+        if (!categories.includes(data.category)) {
             throw new APIError(`No category matched with ${data.category}`)
         }
-        if(!matchedRole){
+        if (!matchedRole) {
             throw new APIError(`No role matched with ${data.role}`)
         }
-        return { ...data, role:  matchedRole.role}
+        return { ...data, role: matchedRole.role }
     })
     if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
         throw new APIError(`Category, Role and Email are mandatory for all`)
@@ -59,7 +61,7 @@ export async function bulkInvite(filePath: string, userId: string) {
         }
     })
     await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
-    return {message:'success'}
+    return { message: 'success' }
 }
 
 //  Create User
@@ -208,9 +210,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
-        const data = await Promise.all(docs.map(async doc => {
-            return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data.global || [""])[0] }
-        }));
+        const data = await Promise.all(docs.map(async doc => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data.map((user: any) => {
             rolesBody.roles.forEach((roleInfo: any) => {
@@ -221,6 +221,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             });
             return user
         })
+        
         return { data, page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
@@ -538,9 +539,9 @@ export async function changeGroupOwnerShip(oldUser: string, newUser: string) {
         let groupIds = myCreatedGroups.map(({ _id }: any) => _id)
         groupUpdateMany({}, { createdBy: newUser }, { _id: groupIds })
         let olduseGroupIds = await userGroupsList(oldUser);
-        Promise.all(olduseGroupIds.map((groupId)=> changeOwner(groupId, oldUser, newUser)))
+        Promise.all(olduseGroupIds.map((groupId) => changeOwner(groupId, oldUser, newUser)))
     } catch (err) {
-        throw error
+        throw err
     };
 };
 async function changeOwner(groupId: string, oldUser: string, newUser: string) {
@@ -555,12 +556,11 @@ async function changeOwner(groupId: string, oldUser: string, newUser: string) {
 export async function userSuggestions(search: string, userId: string, role: string, searchKeys: string = "") {
     try {
         search = search.trim()
+        let roles: any = []
+        if (search) roles = JSON.parse(readFileSync(join("__dirname", "..", "utils", "roles.json"), "utf8")).filter(({ description }: any) => description.match(new RegExp(search, "i"))).map(({ role }: any) => role)
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
-        // let groupIds = await userGroupsList(userId)
         let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId, is_active: true }).exec();
-        // let publicGroups: any = await checkRoleScope(role, "create-group");
         let publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
-        // publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         const searchQuery = search ? {
             $or: [{
                 firstName: new RegExp(search, "i")
@@ -569,37 +569,69 @@ export async function userSuggestions(search: string, userId: string, role: stri
         let users: any = search ?
             await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
             await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
-        users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data.global || [""])[0] } }))
-        let rolesBody: any = await role_list();
-        users.map((user: any) => {
-            rolesBody.roles.forEach((roleInfo: any) => {
-                if (roleInfo.role == user.role) {
-                    user.role = roleInfo.roleName;
-                    user.nonDisplaybleRole = roleInfo.role
-                    return false;
-                }
-            });
-            return user
-        })
+        users = await Promise.all(users.map(async (user: any) => userWithRoleAndType(user)))
+        if (roles) {
+            roles = await Promise.all(roles.map((role: string) => roleUsersList(role)));
+            roles = await userFindManyWithRole([... new Set(roles.reduce((main: any, curr: any) => main.concat(curr.users), []))] as any)
+        }
         let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
-        let privateUsersObj = await usersWithType(privateGroupUser)
+        let privateUsersObj = await userFindManyWithRole(privateGroupUser)
         myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any) => privateGroup.members.includes(user._id)), type: "private-group" } }))
         publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
-        if (searchKeyArray.length) return [...users, ...publicGroups, ...myPrivateGroups].filter(user => searchKeyArray.includes(user.type))
-        return [...users, ...publicGroups, ...myPrivateGroups]
+        let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
+        // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
+        allUsers = Object.values(allUsers.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
+        if (searchKeyArray.length) {
+            return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
+        }
+        return userSort(allUsers)
     } catch (err) {
         throw err
     };
 };
 
-async function usersWithType(userIds: string[]) {
+async function roleFormanting(users: any[]) {
+    let rolesBody: any = await role_list();
+    return users.map((user: any) => {
+        rolesBody.roles.forEach((roleInfo: any) => {
+            if (roleInfo.role == user.role) {
+                user.role = roleInfo.roleName;
+                user.nonDisplaybleRole = roleInfo.role
+                return false;
+            }
+        });
+        return user
+    })
+};
+
+function userSort(data: any[]) {
     try {
-        let users = await userFindMany("_id", userIds)
-        return users.map((user: any) => { return { ...user, type: "user" } })
+        return data.sort((a: any, b: any) => (a.firstName || a.name).localeCompare(a.firstName || a.name));
+    } catch (err) {
+        throw err
+    };
+};
+
+async function userFindManyWithRole(userIds: string[]) {
+    try {
+        let users = await userFindMany("_id", userIds, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 })
+        return await Promise.all(users.map((user: any) => userWithRoleAndType(user)))
     } catch (err) {
         throw err
     }
 }
+
+async function userWithRoleAndType(userObject: any) {
+    try {
+        return {
+            ...userObject,
+            type: "user",
+            role: ((await userRoleAndScope(userObject._id) as any).data.global || [""])[0]
+        }
+    } catch (err) {
+        throw err
+    };
+};
 
 export async function getUsersForProject(search: string, userId: string, role: string) {
     const data = await userSuggestions(search, userId, role)
@@ -858,16 +890,16 @@ export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
     }
     return validateOtp
 }
-export async function tokenValidation(token:string) {
-    try{
+export async function tokenValidation(token: string) {
+    try {
         let tokenInfo: any = await jwt_Verify(token);
-        let user:any = await userFindOne("id",tokenInfo.id) 
-        if(user.emailVerified == true){
+        let user: any = await userFindOne("id", tokenInfo.id)
+        if (user.emailVerified == true) {
             throw new APIError(USER_ROUTER.USER_EXIST);
         }
         return user
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
