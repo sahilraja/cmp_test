@@ -32,7 +32,6 @@ import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails }
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage } from "../utils/utils";
-import { any, try } from "bluebird";
 
 enum STATUS {
   DRAFT = 0,
@@ -802,7 +801,7 @@ export async function allDocuments(userId: string, page: number = 1, limit: numb
   }
 }
 
-export async function documnetCapabilities(docId: string, userId: string) {
+export async function documnetCapabilities(docId: string, userId: string): Promise<string[]> {
   try {
     let groups = await userGroupsList(userId)
     let viewer
@@ -811,7 +810,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
     let acceptCapabilities = ["owner", "collaborator", "viewer"]
     let capability = await GetDocCapabilitiesForUser(userId, docId)
     if (capability.length) {
-      let role = capability.filter((capability: any) => acceptCapabilities.includes(capability)).pop()
+      let role: any = capability.filter((capability: any) => acceptCapabilities.includes(capability)).pop()
       if (role == "owner" || role == "collaborator") return [role]
       if (role == "viewer") viewer = role
     }
@@ -819,7 +818,7 @@ export async function documnetCapabilities(docId: string, userId: string) {
       for (const groupId of groups) {
         let capability = await GetDocCapabilitiesForUser(groupId, docId, "group")
         if (capability.length) {
-          let role = capability.filter((capability: any) => acceptCapabilities.includes(capability)).pop()
+          let role: any = capability.filter((capability: any) => acceptCapabilities.includes(capability)).pop()
           if (role == "collaborator") return [role]
           if (role == "viewer") viewer = role
         }
@@ -871,6 +870,10 @@ export async function invitePeople(docId: string, users: any, role: string, user
   try {
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error("Missing fields or Invalid Data.");
     let doc: any = await documents.findById(docId);
+    if(doc.status == 2) throw new Error("Unauthorized action on published document.")
+    let userRole = await documnetCapabilities(docId, userId)
+    if(userRole.includes("collaborator") &&  role != "viewer" ) throw new Error("You have Capability to give view access.")
+    if(userRole.includes("viewer") || userRole.includes("no_access") ) throw new Error("You dont have Capability any access.")
     let addUsers: any = []
     await Promise.all(
       users.map(async (user: any) => {
@@ -890,6 +893,9 @@ export async function invitePeople(docId: string, users: any, role: string, user
 export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
+    let actionUserRole = await documnetCapabilities(docId, userObj._id)
+    if(actionUserRole.includes("collaborator") &&  role != "viewer" ) throw new Error("You have Capability to give view access.")
+    if(actionUserRole.includes("viewer") || actionUserRole.includes("no_access") ) throw new Error("You dont have Capability any access.")
     let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
@@ -903,6 +909,8 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
 export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
     if (!docId || !userId || !type || !role) throw new Error("Missing fields.");
+    let userRole = await documnetCapabilities(docId, userObj._id)
+    if(!userRole.includes("owner")) throw new Error("You dont Capability to remove user.")
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     return { message: "Revoke share successfully." };
