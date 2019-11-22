@@ -1032,6 +1032,32 @@
                 $ref: "./schema/#/responses/schemas/Document"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  markAsPublic:
+    put:
+      security:
+        - token: []
+      summary: Mark as public document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
   
   replaceDocument:
   # "/docs/{id}/replace/{replaceDocId}":
@@ -1887,7 +1913,42 @@
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
  
-
+  publicDocsList:
+    get:
+      security:
+        - token: []
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: number
+        - in: query
+          name: limit
+          schema:
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: number
+                  limit:
+                    type: number
+                  docs:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "./schema.yaml/#/responses/schemas/Document"
+                        - type: object
+                        - properties:
+                            id:
+                              type: string
+                              example: 5968574635575c547q74
          
            
           

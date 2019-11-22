@@ -51,7 +51,10 @@ export const DOCUMENT_ROUTER = {
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
     NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized",
-    DOC_ALREADY_EXIST: "A document with same name already exists"
+    DOC_ALREADY_EXIST: "A document with same name already exists",
+    VIEW_PUBLIC_DOCS_DENIED:"Unauthorized to view public documents",
+    UNPUBLISH_PUBLIC_DOCUMENT:`You can't unpublish a public document`,
+    UNABLE_TO_MAKE_PUBLIC_DOCUMENT: `You can't mark unpublished document as public document`
 }
 
 export const COMMENT_ROUTER = {

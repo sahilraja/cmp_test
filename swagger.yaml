@@ -264,6 +264,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/publishDocument
   /docs/{id}/unpublish:
     $ref: ./swagger/resources/paths.yaml/#/unpublishDocument
+  /docs/{id}/mark-as-public:
+    $ref: ./swagger/resources/paths.yaml/#/markAsPublic
   /docs/{id}/replace/{replaceDocId}:
     $ref: ./swagger/resources/paths.yaml/#/replaceDocument
   /docs/publish/list:
@@ -302,6 +304,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/deleteSuggestedTags
   /docs/allcmp/list:
     $ref: ./swagger/resources/paths.yaml/#/allCmpDocsList  
+  /docs/public:
+    $ref: ./swagger/resources/paths.yaml/#/publicDocsList
 
 #Templates
   /template/create:

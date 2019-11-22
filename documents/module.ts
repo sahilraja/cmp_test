@@ -1030,8 +1030,14 @@ async function publishedDocCreate(body: any, userId: string, doc: any, docId?: s
 export async function unPublished(docId: string, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
-    let isEligible = await checkRoleScope(userObj.role, "unpublish-document");
+    let [isEligible, docDetail] = await Promise.all([
+      checkRoleScope(userObj.role, "unpublish-document"),
+      documents.findById(docId).exec()
+    ]) 
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    if((docDetail as any).isPublic){
+      throw new APIError(DOCUMENT_ROUTER.UNPUBLISH_PUBLIC_DOCUMENT)
+    }
     let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
     await create({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
     mailAllCmpUsers("unPublishDocument", success)
@@ -1809,3 +1815,33 @@ owner -- access to newowner
 shared with owner ---
           change to shared with new owner #if newOwnew Capability is low
 */
+
+export async function getAllPublicDocuments(userRole: string, currentPage = 1, limit = 20, host: string) {
+  // const isEligible = await checkRoleScope(userRole, 'view-all-public-documents')
+  // if(!isEligible){
+  //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
+  // }
+  let {docs, page, pages} =  await documents.paginate({ isPublic: true }, {page: currentPage, limit})
+  docs = await Promise.all(docs.map(doc => docData(doc, host)))
+  return {
+    docs,
+    page,
+    pages
+  }
+}
+
+export async function markDocumentAsPublic(docId: string, userRole: string) {
+  const [isEligible, docDetail] = await Promise.all([
+    checkRoleScope(userRole, 'mark-as-public-document'),
+    documents.findById(docId).exec()
+  ]) 
+  // if(!isEligible){
+  //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
+  // }
+  if((docDetail as any).status != 2){
+    throw new APIError(DOCUMENT_ROUTER.UNABLE_TO_MAKE_PUBLIC_DOCUMENT) 
+  }
+  await documents.findByIdAndUpdate(docId, {$set:{isPublic: true}}).exec()
+  await documents.updateMany({parentId: docId}, {$set:{isPublic: true}}).exec()
+  return {message:'success'}
+}
