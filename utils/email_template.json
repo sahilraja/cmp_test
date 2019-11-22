@@ -1,6 +1,6 @@
 [
     {
-        "content" : "Hi <b>[fullName]</b>, <br/>You are invited by an Administrator of CMP platform to join for the role of [role].</b><br/><br/>You can proceed with your registration by accepting invitation by clicking on the following <a href=[link]>link</a>.<br/><br/>Please ignore if you think this is not intended for you.<br><br/>Note: Link will be expire in 15 minutes <br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>, <br/><br/>You are invited by an Administrator of CMP platform to join for the role of [role].<br/><br/>To proceed with the registration by accepting invitation, click on the following <a href=[link]>link</a>.<br/><br/>Please ignore if you think this is not intended for you.<br><br/>Note: Link will be expire in 15 minutes <br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "invite",
         "displayName" : "Invite User",
         "subject" : "Invitation from CITIIS Management"
@@ -9,108 +9,222 @@
         "content" : "Your account has been [state] | CMP",
         "templateName" : "userState",
         "displayName" : "Marking user as active/inactive",
-        "subject" : "Your account has been [state] | CMP"
+        "subject" : "Account Status update"
     },
     {
-        "content" : "Welcome to <h>CMP<h>",
+        "content" : "You have been logged into <b>CMP</b>",
         "templateName" : "userLogin",
-        "subject" : "Login into CMP",
-        "displayName" : "user login"
+        "subject" : "Welcome to CMP !!",
+        "displayName" : "User Login"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>You are invited by an user of CMP to collaborate on the document <b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You are invited by a user of the CMP to collaborate on the document <b>[documentName]</b>.<br/><br/>You can click on this <a href=[documentUrl]>link</a> to access it. <br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inviteForDocument",
         "displayName" : "invite for document",
         "subject" : "Invitation for [documentName] document"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>You have received a new message on CMP. Here is an excerpt.<br/>[content] <br/><br/><a href=[link]>Click here to view the full message.</a>.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You have received a new message in CMP. Here is an excerpt.<br/>[content] <br/><br/><a href=[link]>Click here to view the full message.</a>.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inboxMessage",
         "displayName" : "New Message",
         "subject" : "You have a new message | CMP"
     },
     {
-        "content" : "Task udpated",
+        "content" : "A task in CMP has been updated",
         "templateName" : "taskUpdate",
         "subject" : "Task Updated",
         "displayName" : "task updated"
     },
     {
-        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to activate your CMP account.<br/><br/>Best Regards,<br/>CMP Support.",
+        "content" : "Hello <b>[fullName]</b>,<br><br> As per your request, <u>[otp]</u> is the One Time Password (OTP) to update your Mobile Number.<br/><br/>Best Regards,<br/>CMP Support.",
         "templateName" : "changeMobileOTP",
         "displayName" : "change mobile otp",
-        "subject" : "CMP change mobile instructions"
+        "subject" : "OTP to update Mobile Number"
     },
     {
-        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to activate your CMP account.<br/><br/>Best Regards,<br/>CMP Support.",
+        "content" : "Hello <b>[fullName]</b>,<br><br> As per your request, <u>[otp]</u> is the One Time Password (OTP) to update your Email ID.<br/><br/>Best Regards,<br/>CMP Support.",
         "templateName" : "changeEmailOTP",
         "displayName" : "change email otp",
-        "subject" : "CMP change email instructions"
+        "subject" : "OTP to update Email ID"
     },
     {
-        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to activate your CMP account.<br/><br/>Best Regards,<br/>CMP Support.",
+        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to create a new Password.<br/><br/>Best Regards,<br/>CMP Support.",
         "templateName" : "forgotPasswordOTP",
         "displayName" : "forgot password otp",
-        "subject" : "CMP forgot Password instructions"
+        "subject" : "OTP to update Password"
     },
     {
-        "content" : "Hi <b>[userName]</b>,<br/></br><br/> suggested a tag.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[userName]</b>,<br/><br><br/> You have a tag suggestion in CMP.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "suggestTagNotification",
         "displayName" : "suggest Tag notification",
-        "subject" : "Message from cmp"
+        "subject" : "A Tag has been Suggested"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/> approved a tag.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/> A tag you suggested have been approved.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "approveTagNotification",
         "displayName" : "approve tag notification",
-        "subject" : "Message from cmp"
+        "subject" : "Tag Approval Notification"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/> rejected a tag.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/> A tag you suggested have been rejected.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "rejectTagNotification",
         "displayName" : "reject tag notification",
-        "subject" : "Message from cmp"
+        "subject" : "Tag Rejected"
     },
-    {   
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>You've entered the wrong password <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+    {  
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You've entered a wrong password <br/><br/><br/> Click on Forgot Password if you have a problem in accessing your account<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "invalidPassword",
         "displayName" : "invalid password",
-        "subject" : "invalid password"
+        "subject" : "Invalid Password"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>Your primary email address can only be replaced with a confirmed email address.<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Your Email ID have been updated to [newMail]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "changeEmailMessage",
         "displayName" : "change email notification",
-        "subject" : "CMP change email notification"
+        "subject" : "Email ID updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is published<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is published<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "publishDocument",
         "displayName" : "publish document",
-        "subject" : "publish [documentName] document"
+        "subject" : "[documentName] Published"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is unPublished<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is Unpublished<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "unPublishDocument",
         "displayName" : "unPublish document",
-        "subject" : "unPublish [documentName] document"
+        "subject" : "[documentName] UnPublished"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This document is replaced.<b>[documentName]</b><br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is replaced.<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "replaceDocument",
         "displayName" : "replace document",
-        "subject" : "replace [documentName] document"
+        "subject" : "[documentName] Replaced"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>This <b>[documentName]</b> document with [text] <br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, has been updated with [text] <br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "documentUpdate",
         "displayName" : "document Update",
-        "subject" : "update [documentName] document"
+        "subject" : "[documentName] Updated"
     },
     {        
-        "content" : "Hi <b>[fullName]</b>,<br/></br><br/>Your role is replaced with <b>[role]</b><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Your role is replaced with <b>[role]</b><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "changeUserRole",
         "displayName" : "change user role",
-        "subject" : "Replace role with [role] | CMP"
+        "subject" : "Role Replaced"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br>A new group with name [groupName] have been created in CMP <br/><br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "createGroup",
+        "displayName" : "create group",
+        "subject" : "New Group [groupName] is Created"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br>A new member is added in group [groupName].<br/><br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "addGroupMember",
+        "displayName" : "Add Group Member",
+        "subject" : "New member added to Group"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br>Group status for [groupName] has been updated to [groupNewStatus].<br/><br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "groupStatus",
+        "displayName" : "Group Status",
+        "subject" : "Group Status"
+    },
+    {
+        "content" : "Hi <b>[userName]</b>,<br/><br><br/> A new comment is added on Document [documentName] in CMP.<br/><br/>Click on the <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "openComment",
+        "displayName" : "New Comment",
+        "subject" : "New comment on Document"
+    },
+    {
+        "content" : "Hi <b>[userName]</b>,<br/><br><br/> A new comment is added on Document [documentName] in CMP.<br/><br/>Click on the <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "addCommentToDoc",
+        "displayName" : "add New Comment ",
+        "subject" : "New comment on Document"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>[creatorName] assigned a task to you in CMP<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "taskAssign",
+        "displayName" : "Task Assign",
+        "subject" : "You have a new Task in CMP"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Status of [taskId] is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "taskProgress",
+        "displayName" : "Update Task",
+        "subject" : "[taskId] updated"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New document is attached to task [taskId].<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "docAddToTask",
+        "displayName" : "Document attached",
+        "subject" : "Document attached to task"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Another task is linked to task [taskId].<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "linkTask",
+        "displayName" : "Link Task",
+        "subject" : "Link Task added"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New tag is added to [taskId].<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "addTaskTag",
+        "displayName" : "Add Tag",
+        "subject" : "Tag Added"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Title updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "updateTaskTitle",
+        "displayName" : "Update Task Title",
+        "subject" : "Task Title Updated"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Due Date updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "updateTaskDueDate",
+        "displayName" : "Update Task Duedate",
+        "subject" : "Task Duedate Updated"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Start Date updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "updateTaskStartDate",
+        "displayName" : "Update Task Start date",
+        "subject" : "Task Start date Updated"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Description updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "updateTaskDescription",
+        "displayName" : "Update Task Description",
+        "subject" : "Task Description Updated"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>A task [taskId] in Maturation Phase is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "updateMaturationTask",
+        "displayName" : "Update Maturation Task",
+        "subject" : "Task Updated"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You are added to the Project [ProjectName] in CMP<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "addToProject",
+        "displayName" : "Add to Project",
+        "subject" : "Added to [ProjectName]"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Financial Information Updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "updateFinancial",
+        "displayName" : "Financial Info Updated",
+        "subject" : "Financial Information Updated"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Risk factor is added to the project [ProjectName]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "addRisk",
+        "displayName" : "Risk Factor",
+        "subject" : "Risk Factor added"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New comment(s) is added to the project [ProjectName]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "templateName" : "addOpenComment",
+        "displayName" : "Add Open Comment",
+        "subject" : "New Comment on [ProjectName]"
     }
 ]

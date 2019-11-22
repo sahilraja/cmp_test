@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction, Handler } from "express";
 import { authenticate } from "../utils/utils";
-import { templateCreate, templateEdit, templateDelete, templateGet, getTemplateBySubstitutions, list } from "./module";
+import { templateCreate, templateEdit, templateDelete, templateGet, getTemplateBySubstitutions, list, testTemplate } from "./module";
 import { APIError } from "../utils/custom-error";
 import { OK } from "http-status-codes";
 const router = Router();
@@ -52,6 +52,14 @@ router.get("/delete/:id", authenticate, async (req: Request, res: Response, next
 router.get("/getTemplate/:id", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(OK).send(await templateGet(req.params.id));
+    } catch (err) {
+        next(new APIError(err.message));
+    };
+})
+
+router.get("/testTemplate/:id",authenticate,async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(OK).send(await testTemplate(req.params.id,res.locals.user));
     } catch (err) {
         next(new APIError(err.message));
     };

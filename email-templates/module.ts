@@ -2,6 +2,7 @@ import {TemplateSchema} from "./model";
 import { USER_ROUTER } from "../utils/error_msg";
 import * as marked from "marked";
 import { SUBSTITUTIONS } from "./substitutions";
+import { nodemail } from "../utils/email";
 
 export async function templateCreate(body: any) {
     try {
@@ -53,8 +54,16 @@ export async function templateGet(id:string) {
         throw err
     };
 };
-
-export async function getTemplateBySubstitutions(templateId: string, substitutions: any): Promise<{ subject: string, content: string }> {
+export async function testTemplate(id:string,user: any){
+    let template:any  = await TemplateSchema.findById(id);
+    let templatInfo = await getTemplateBySubstitutions(template.templateName);
+    nodemail({
+        email: user.email,
+        subject: templatInfo.subject,
+        html: templatInfo.content
+    })
+}
+export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
     } catch( err) {
