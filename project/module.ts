@@ -684,7 +684,7 @@ export async function deleteUtilizedFund(projectId: string, payload: any, user: 
   const { document, cost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
-  updates['fundsReleased.$.deleted'] = true
+  updates['fundsUtilised.$.deleted'] = true
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsUtilised._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
   return updatedProject
