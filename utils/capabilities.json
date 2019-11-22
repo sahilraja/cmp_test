@@ -266,6 +266,20 @@
           "scope":"global"
         },
         {
+          "capability":"view-all-public-documents",
+          "shortDescription":"View All Public Documents",
+          "description":"Ability to view all public documents ",
+          "category": "Document Management",
+          "scope":"global"
+        },
+        {
+          "capability":"mark-as-public-document",
+          "shortDescription":"Mark document as public",
+          "description":"Ability to mark document as public ",
+          "category": "Document Management",
+          "scope":"global"
+        },
+        {
           "capability":"manage-project-released-fund",
           "shortDescription":"Manage Funds Released",
           "category":"Project Management",

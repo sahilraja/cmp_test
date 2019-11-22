@@ -58,7 +58,9 @@ import {
   requestAccept,
   requestDenied,
   requestRaise,
-  getAllCmpDocs
+  getAllCmpDocs,
+  getAllPublicDocuments,
+  markDocumentAsPublic
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -69,6 +71,7 @@ import { APIError } from "../utils/custom-error";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { checkRoleScope } from "../utils/role_management";
 import { constantSchema } from "../site-constants/model";
+import { OK } from "http-status-codes";
 
 const router = Router();
 
@@ -524,6 +527,14 @@ router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) 
   }
 });
 
+router.put(`/:id/mark-as-public`, authenticate, async (req, res, next) => {
+  try {
+    res.status(OK).send(await markDocumentAsPublic(req.params.id, res.locals.user.role))
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
+
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
   try {
@@ -721,5 +732,13 @@ router.get("/allcmp/list", authenticate, async (req, res, next: NextFunction) =>
     next(new APIError(err.message));
   }
 });
+
+router.get(`/public`, authenticate, async (req, res, next) => {
+  try {
+    res.status(OK).send(await getAllPublicDocuments(res.locals.user.role, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`))
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
 
 export = router;
