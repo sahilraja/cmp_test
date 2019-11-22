@@ -567,8 +567,8 @@ export async function userSuggestions(search: string, userId: string, role: stri
             }, { lastName: new RegExp(search, "i") }, { middleName: new RegExp(search, "i") }], emailVerified: true
         } : { is_active: true, emailVerified: true }
         let users: any = search ?
-            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
-            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
+            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }) :
+            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
         users = await Promise.all(users.map(async (user: any) => userWithRoleAndType(user)))
         if (roles) {
             roles = await Promise.all(roles.map((role: string) => roleUsersList(role)));
@@ -581,6 +581,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
         // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
         allUsers = Object.values(allUsers.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
+        allUsers = allUsers.filter(({emailVerified, is_active}): any=> emailVerified && is_active)
         if (searchKeyArray.length) {
             return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
         }
@@ -606,7 +607,7 @@ async function roleFormanting(users: any[]) {
 
 function userSort(data: any[]) {
     try {
-        return data.sort((a: any, b: any) => (a.firstName || a.name).localeCompare(b.firstName || b.name));
+        return data.sort((a: any, b: any) => (a.firstName|| a.middleName || a.name).localeCompare(b.firstName|| a.middleName || b.name));
     } catch (err) {
         throw err
     };
@@ -614,7 +615,7 @@ function userSort(data: any[]) {
 
 async function userFindManyWithRole(userIds: string[]) {
     try {
-        let users = await userFindMany("_id", userIds, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 })
+        let users = await userFindMany("_id", userIds, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
         return await Promise.all(users.map((user: any) => userWithRoleAndType(user)))
     } catch (err) {
         throw err
