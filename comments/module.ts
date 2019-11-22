@@ -7,12 +7,15 @@ import { userRoleAndScope } from "../role/module";
 import { checkRoleScope } from '../utils/role_management'
 import { COMMENT_ROUTER } from "../utils/error_msg";
 import { comments } from "./model";
+import { sendNotification, getFullNameAndMobile } from "../users/module";
 
 export async function addComment(body: any, userId: string) {
     try {
       if(!body.type || !body.comment || !body.entity_id) throw new Error("All mandatory fields are required")
-      
-      
+      let userInfo:any = await userFindOne("id",userId);
+      let {fullName,mobileNo} = getFullNameAndMobile(userInfo);
+      let {templateInfo,...objBodyInfo} = body;
+      sendNotification({ id: userId, fullName, mobileNo, email: userInfo.email,...templateInfo,...objBodyInfo});
       return await comments.create({
         type: body.type,
         comment: body.comment,
@@ -23,7 +26,7 @@ export async function addComment(body: any, userId: string) {
       console.error(error);
       throw error;
     }
-  }
+}
 
 
  export async function commentsList(doc_id: String,type: string) {

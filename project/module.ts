@@ -9,8 +9,8 @@ import { workflowModel } from "./workflow_model";
 import { checkCapability } from "../utils/rbac";
 import { httpRequest, checkRoleScope } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
-import { getUserDetail, userDetails } from "../users/module";
-import { userFindMany } from "../utils/users";
+import { getUserDetail, userDetails, getFullNameAndMobile, sendNotification } from "../users/module";
+import { userFindMany, userFindOne } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
 import { documentsList } from "../documents/module";
@@ -120,9 +120,9 @@ export async function getProjectMembers(id: string) {
     role_list()
   ])
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
-  return members.map((user: any, i: number) => ({ 
-    ...(users.find((_user: any) => _user._id == user)), 
-    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles) 
+  return members.map((user: any, i: number) => ({
+    ...(users.find((_user: any) => _user._id == user)),
+    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles)
   }))
 }
 
@@ -171,9 +171,9 @@ export async function add_tag(reqObject: any, userObj: any) {
     // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let { firstName, lastName, middleName, countryCode, phone } = userObj;
     let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-    
+
     // let userNotification = await userRolesNotification(userObj._id,"tagAdd");
-    
+
     // if(userNotification.email){
     //   let templatInfo = await getTemplateBySubstitutions('tagAdd', { fullName, otp: authOtp.otp });
     //   nodemail({
@@ -329,7 +329,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 // get project details
 export async function getProjectDetail(projectId: string) {
   try {
-    return await ProjectSchema.findById(projectId).populate({path:'phase'}).exec()
+    return await ProjectSchema.findById(projectId).populate({ path: 'phase' }).exec()
   } catch (error) {
     console.error(error)
     throw error
@@ -340,10 +340,10 @@ export async function createTask(payload: any, projectId: string, userToken: str
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
   if (!isEligible) throw new APIError("Unauthorized Action.", 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
-  if(!payload.isCompliance && (payload.assignee == userObj._id)){
+  if (!payload.isCompliance && (payload.assignee == userObj._id)) {
     throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
   }
-  if(payload.isCompliance && (!payload.approvers || !payload.approvers.length)){
+  if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
     throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
   }
   const options = {
@@ -556,7 +556,7 @@ export async function addFundReleased(projectId: string, payload: any, user: any
     throw new APIError(`Installment is required`)
   }
   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const fund: any = await ProjectSchema.findById(projectId).exec()
@@ -579,8 +579,8 @@ export async function addFundReleased(projectId: string, payload: any, user: any
 }
 
 export async function addFundsUtilized(projectId: string, payload: any, user: any) {
-  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)  
-  if(!isEligible){
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   if (!payload.installment) {
@@ -606,7 +606,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
 
 export async function updateReleasedFund(projectId: string, payload: any, user: any) {
   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const { document, cost, _id } = payload
@@ -635,7 +635,7 @@ export async function updateReleasedFund(projectId: string, payload: any, user: 
 
 export async function updateUtilizedFund(projectId: string, payload: any, user: any) {
   const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   // if(!payload.installment || !payload.subInstallment){
@@ -664,7 +664,7 @@ export async function updateUtilizedFund(projectId: string, payload: any, user: 
 
 export async function deleteReleasedFund(projectId: string, payload: any, user: any) {
   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const { document, cost, _id } = payload
@@ -678,7 +678,7 @@ export async function deleteReleasedFund(projectId: string, payload: any, user: 
 
 export async function deleteUtilizedFund(projectId: string, payload: any, user: any) {
   const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const { document, cost, _id } = payload
@@ -707,13 +707,13 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   const roleData: any = await role_list()
   const roleNames = roleData.roles.map((role: any) => role.roleName)
   const excelFormattedData = importExcelAndFormatData(filePath)
-  if(!excelFormattedData.length){
+  if (!excelFormattedData.length) {
     throw new APIError(`Uploaded empty document`)
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
   await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
-  return {message:'success'}
+  return { message: 'success' }
 }
 
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
@@ -771,9 +771,9 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   if (!data.name || !data.name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }
-  data.approvers = Object.keys(data).filter(key => ['approver1',`approver2`, `approver3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
-  data.endorsers = Object.keys(data).filter(key => ['endorser1',`endorser2`, `endorser3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
-  data.viewers = Object.keys(data).filter(key => ['viewer1',`viewer2`, `viewer3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
+  data.approvers = Object.keys(data).filter(key => ['approver1', `approver2`, `approver3`].includes(key)).reduce((p, c) => p.concat(`, ${data[c]}`), '')
+  data.endorsers = Object.keys(data).filter(key => ['endorser1', `endorser2`, `endorser3`].includes(key)).reduce((p, c) => p.concat(`, ${data[c]}`), '')
+  data.viewers = Object.keys(data).filter(key => ['viewer1', `viewer2`, `viewer3`].includes(key)).reduce((p, c) => p.concat(`, ${data[c]}`), '')
   if (!data.assignee || !data.assignee.trim().length) {
     throw new APIError(`Assignee is required for task ${data.name}`)
   }
@@ -825,11 +825,20 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
 export async function projectCostInfo(projectId: string, projectCost: number, userRole: string, userId: string) {
   try {
     const isEligible = await checkRoleScope(userRole, 'edit-project-cost')
-    if(!isEligible){
+    if (!isEligible) {
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }).exec()
-    createLog({activityBy:userId, activityType:ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: (updatedProject as any).projectCost, updatedCost:projectCost, projectId})    
+    createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: (updatedProject as any).projectCost, updatedCost: projectCost, projectId });
+    
+    let userDetails = await userFindOne("id", userId);
+    let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
+    sendNotification({
+      id: userId, fullName, email: userDetails.email, mobileNo,
+      oldCost: (updatedProject as any).projectCost, updatedCost: projectCost,
+      templateName: "updateFinancial", mobileTemplateName: "updateFinancial"
+    })
+    
     return updatedProject
   }
   catch (err) {
@@ -840,15 +849,24 @@ export async function projectCostInfo(projectId: string, projectCost: number, us
 export async function citiisGrantsInfo(projectId: string, citiisGrants: number, userRole: string, userId: string) {
   try {
     const isEligible = await checkRoleScope(userRole, 'edit-citiis-grants')
-    if(!isEligible){
+    if (!isEligible) {
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
     const projectInfo: any = await ProjectSchema.findById(projectId).exec()
-    if((projectInfo as any).projectCost < citiisGrants){
+    if ((projectInfo as any).projectCost < citiisGrants) {
       throw new APIError(PROJECT_ROUTER.CITIIS_GRANTS_VALIDATION)
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
-    createLog({activityBy:userId, activityType:ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost:citiisGrants, projectId})
+    createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost: citiisGrants, projectId })
+    
+    // let userDetails = await userFindOne("id", userId);
+    // let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
+    // sendNotification({
+    //   id: userId, fullName, email: userDetails.email, mobileNo,
+    //   oldCost: projectInfo.citiisGrants, updatedCost: citiisGrants,
+    //   templateName: "updateFinancial", mobileTemplateName: "updateFinancial"
+    // })
+
     return updatedProject
   }
   catch (err) {
