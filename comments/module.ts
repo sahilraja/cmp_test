@@ -9,19 +9,20 @@ import { COMMENT_ROUTER } from "../utils/error_msg";
 import { comments } from "./model";
 import { sendNotification, getFullNameAndMobile } from "../users/module";
 
-export async function addComment(body: any, userId: string) {
+export async function addComment(body: any, user: any) {
     try {
       if(!body.type || !body.comment || !body.entity_id) throw new Error("All mandatory fields are required")
-      let userInfo:any = await userFindOne("id",userId);
-      let {fullName,mobileNo} = getFullNameAndMobile(userInfo);
-      let {templateInfo,...objBodyInfo} = body;
-      sendNotification({ id: userId, fullName, mobileNo, email: userInfo.email,...templateInfo,...objBodyInfo});
-      return await comments.create({
+      let commentInfo =  await comments.create({
         type: body.type,
         comment: body.comment,
         entity_id: body.entity_id,
-        user_id: userId
+        user_id: user._id
       });
+      if(body.type == "document"){
+        const {fullName,mobileNo} = getFullNameAndMobile(user);
+        sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileMessage:"addCommentToDoc"});
+      }
+      return commentInfo
     } catch (error) {
       console.error(error);
       throw error;

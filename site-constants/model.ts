@@ -7,6 +7,6 @@ const schema = new Schema({
     groupName:{type: String},
     displayName:{type: String}
     // aboutMe:{type:Number}
-    },{strict: false,timestamps: true });
+    },{timestamps: true });
 schema.plugin(mongoosePaginate);
 export const constantSchema = model("constant", schema);

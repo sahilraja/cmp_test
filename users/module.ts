@@ -24,6 +24,7 @@ import { userRolesNotification } from "../notifications/module";
 import { readFileSync } from "fs"
 import { any } from "bluebird";
 import { create } from "../log/module";
+import { getConstantsAndValues } from "../site-constants/module";
 
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
@@ -140,7 +141,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!phoneNo(phoneNumber).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
-        let constantsList: any = await constantSchema.findOne({key:'aboutMe'}).exec();
+        let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (aboutme.length > Number(constantsList.value)) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
@@ -167,6 +168,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
+        let updateProfile: Number = 1;
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
             if (!validateEmail(objBody.email)) {
@@ -190,14 +192,15 @@ export async function edit_user(id: string, objBody: any, user: any) {
         };
         let editUserInfo: any = await userFindOne("id", id);
 
-        let { fullName, mobileNo } = getFullNameAndMobile(editUserInfo);
+        let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
         let userRole;
         if (id != user._id && objBody.role) {
+            updateProfile = 0
             userRole = await updateRole(id, objBody.updateRole, objBody.role);
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
             sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
         }
-        let constantsList: any = await constantSchema.findOne({key:'aboutMe'}).exec();
+        let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (objBody.aboutme) {
             if (objBody.aboutme.length > Number(constantsList.value)) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
@@ -208,9 +211,13 @@ export async function edit_user(id: string, objBody: any, user: any) {
             delete objBody.name;
         }
         // update user with edited fields
-        let userInfo = await userEdit(id, objBody);
+        let userInfo: any = await userEdit(id, objBody);
+        let userData: any = getFullNameAndMobile(userInfo);
         userInfo.role = userRole;
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id })
+        if (updateProfile) {
+            sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileMessage: "profile" });
+        }
         return userInfo
     } catch (err) {
         throw err;
@@ -287,7 +294,10 @@ export async function user_login(req: any) {
             }
         }
 
-        // await recaptchaValidation(req);
+        let constantsList: any = await constantSchema.findOne({ key: 'captcha' }).exec();
+        if (constantsList.value == "true") {
+            //await recaptchaValidation(req);
+        }
 
         //  find User
         let userData: any = await userFindOne("email", objBody.email);
@@ -976,6 +986,34 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
         let userInfo = await userEdit(id, body);
         await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id })
         return { message: "successfully profile Updated" }
+    } catch (err) {
+        throw err
+    }
+}
+
+export function validatePassword(password: string) {
+    try {
+        let constantsInfo: any = getConstantsAndValues(['passwordLength', 'specialCharCount', 'numCount', 'upperCaseCount']);
+        const UPPER_CASE_COUNT = Number(constantsInfo.upperCaseCount);
+        const NUMBERS_COUNT = Number(constantsInfo.numCount);
+        const SPECIAL_COUNT = Number(constantsInfo.specialCharCount);
+        const TOTAL_LETTERS = Number(constantsInfo.passwordLength);
+
+        let lower = 0, upper = 0, num = 0, special = 0;
+        for (var char of password) {
+            if (char >= "A" && char <= "Z") {
+                upper += 1
+            }
+            else if (char >= "0" && char <= "9") {
+                num += 1
+            }
+            else if (char == "_" || char == "." || char == "@") {
+                special += 1
+            }
+        }
+        if ((password.length < TOTAL_LETTERS) || upper < UPPER_CASE_COUNT || num < NUMBERS_COUNT || special < SPECIAL_COUNT) {
+            throw new APIError(USER_ROUTER.INVALID_PASSWORD);
+        }
     }
     catch (err) {
         throw err

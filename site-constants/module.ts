@@ -36,3 +36,19 @@ export async function getConstantsGroupBy(){
         return p
     } ,{})
 }
+
+export async function getConstantsAndValues(constKeys:string[]) { 
+    try{
+    const constantInfo = await constantSchema.find({}).exec();
+    let result = constantInfo.reduce((prev:any,current:any)=>{
+        if(constKeys.includes(current.key)){
+            prev[current.key] =  current.value;
+        }
+        return prev;
+    },{});
+    return result;
+    }
+    catch(err){
+        throw err;
+    }
+}

@@ -55,11 +55,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName.length > Number(siteConstant.documentName || configLimit.name)) {  // add config query
-      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {  // add config query
+      throw new Error(`Document name should not exceed more than ${siteConstant.docNameLength} characters`)
     }
-    if (body.description.length > Number(siteConstant.documentDescription || configLimit.description)) { // add config query
-      throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.description.length > Number(siteConstant.docDescriptionSize || configLimit.description)) { // add config query
+      throw new Error(`Document description should not exceed more than ${siteConstant.docDescriptionSize} characters`)
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
     if (data.length) {
@@ -499,7 +499,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_ADMIN);
     let obj: any = {};
     if (objBody.docName) {
-      if (objBody.docName.length > Number(siteConstants.documentName || configLimit.name)) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      if (objBody.docName.length > Number(siteConstants.docNameLength || configLimit.name)) throw new Error(`Document name should not exceed more than ${siteConstants.docNameLength} characters`);
       let data = await documents.findOne({ _id: { $ne: docId }, isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() }).exec()
       if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
@@ -507,7 +507,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.name = objBody.docName.toLowerCase();
     }
     if (objBody.description) {
-      if (objBody.description.length > Number(siteConstants.documentDescription || configLimit.description)) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
     if (objBody.tags) {
