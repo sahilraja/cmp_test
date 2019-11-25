@@ -241,7 +241,7 @@ export async function user_status(id: string, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
 
-        let admin_scope = await checkRoleScope(user.role, "create-user");
+        let admin_scope = await checkRoleScope(user.role, "activate-deactivate-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
 
         let userData: any = await userFindOne("id", id);
