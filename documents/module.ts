@@ -1484,7 +1484,7 @@ async function userWithDocRole(docId: string, userId: string, usersObjects: any[
     let user = usersObjects.find(user => user._id == userId)
     if (!user) user = {...(await groupFindOne("_id", userId)), type: "group"}
     return {
-      ...(usersObjects.find(user => user._id == userId)),
+      ...(user),
       docRole: (await documnetCapabilities(docId, userId) as any || [""])[0]
     }
   } catch (err) {
