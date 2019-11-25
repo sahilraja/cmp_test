@@ -51,6 +51,9 @@ router.post("/:id/edit", async (req: any, res: any, next: any) => {
     try {
         res.status(OK).send(await editProject(req.params.id, req.body, res.locals.user))
     } catch (err) {
+        if(err.code == 11000){
+            err.message = `Reference code already exists`
+        }
         next(new APIError(err.message));
     }
 });
