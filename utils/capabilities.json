@@ -348,6 +348,14 @@
           "description": "Activate/Deactivate User",
           "scope": "global",
           "category": "User Management"
+        },
+        {
+          "capability": "attach-documents-to-message",
+          "shortDescription": "Attach Documents To Messages",
+          "description": "Ability to Attach Documents to a Messages",
+          "scope": "global",
+          "category": "Message Management"
         }
+        
   ]
   
