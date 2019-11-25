@@ -1099,9 +1099,9 @@ export async function docFilter(search: string, userId: string, page: number = 1
     let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
     let docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
     let shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-    if(publish) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
-    else  docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
-    docs = Object.values(docs.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
+    if (publish) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    else docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    docs = Object.values(docs.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
     let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     filteredDocs = documentsSort(filteredDocs, "name", false)
     return manualPagination(page, limit, filteredDocs)
@@ -1732,9 +1732,9 @@ export async function getAllRequest(docId: string) {
   };
 };
 
-async function RequestList(request: any){
+async function RequestList(request: any) {
   try {
-    return { ...request, requestedBy: await userFindOne("id", request.requestedBy, {}) } 
+    return { ...request, requestedBy: await userFindOne("id", request.requestedBy, {}) }
   } catch (err) {
     throw err
   };
@@ -1774,7 +1774,7 @@ export async function requestDenied(requestId: string, userObj: any) {
 export async function requestRaise(docId: string, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id.");
-    return await docRequestModel.create({ requestId: userId, docId: docId })
+    return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
     throw err;
   }
