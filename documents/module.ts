@@ -1746,15 +1746,20 @@ export async function requestAccept(requestId: string, userObj: any) {
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
     let capability: any[] = await documnetCapabilities(requestDetails.docId, requestDetails.requestedBy);
+    let addedCapability;
     if (capability.includes("no_access")) {
-      await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId, "viewer")
+      addedCapability = await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId.id, "viewer")
     } else if (capability.includes("viewer")) {
-      await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId, "viewer");
-      await groupsAddPolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId, "collaborator");
+      await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "viewer");
+      addedCapability = await groupsAddPolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "collaborator");
     } else {
       throw new Error("Invalid Action Performed.")
     }
-    return { message: "Shared successfully." }
+    if (addedCapability && addedCapability.user.length) {
+      await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
+      return { message: "Shared successfully." }
+    }
+    throw new Error("Unable to Fecth Data.")
   } catch (err) {
     throw err;
   };
