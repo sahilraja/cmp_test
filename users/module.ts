@@ -399,9 +399,9 @@ export async function userCapabilities(id: any) {
 
 async function roleData(eachRole: any) {
     try {
-        let role = eachRole.role
+        let role = eachRole
        
-          let resp =await roleCapabilitylist(eachRole.role)
+          let resp =await roleCapabilitylist(eachRole)
           return {
               role: role,
               capabilities:resp.data
