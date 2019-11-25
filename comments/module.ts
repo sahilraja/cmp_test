@@ -7,7 +7,11 @@ import { userRoleAndScope } from "../role/module";
 import { checkRoleScope } from '../utils/role_management'
 import { COMMENT_ROUTER } from "../utils/error_msg";
 import { comments } from "./model";
+<<<<<<< HEAD
 import { sendNotification, getFullNameAndMobile } from "../users/module";
+=======
+import { getFullNameAndMobile, sendNotification } from "../users/module";
+>>>>>>> added system-config
 
 export async function addComment(body: any, user: any) {
     try {
