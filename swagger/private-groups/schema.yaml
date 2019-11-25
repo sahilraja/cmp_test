@@ -4,9 +4,9 @@ responses:
     content:
       application/json:
         schema:
-          $ref: "#/responses/schemas/groupSchema"
+          $ref: "#/responses/schemas/privateGroup"
   schemas:
-    groupSchema:
+    privateGroup:
       type: object
       properties:
         name: 

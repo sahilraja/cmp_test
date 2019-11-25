@@ -27,6 +27,7 @@
                   example: []
       responses:
         "200":
+          description: success
           $ref: "./schema.yaml/#/responses/privateGroup"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
@@ -64,6 +65,39 @@
                   example: []                
       responses:
         "200":
+          description: success
+          $ref: "./schema.yaml/#/responses/privateGroup"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Remove Private Groups Member
+  RemovePrivateGroupMember:
+    post:
+      security:
+        - token: []
+      summary: Remove Private Group Member
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  example: []                
+      responses:
+        "200":
+          description: success
           $ref: "./schema.yaml/#/responses/privateGroup"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
@@ -137,6 +171,6 @@
               schema:
                 type: array
                 items:
-                  $ref: "./schema.yaml/#/responses/schemas/groupSchema"
+                  $ref: "./schema.yaml/#/responses/schemas/privateGroup"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"

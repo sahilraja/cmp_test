@@ -2,6 +2,11 @@ createCompliance:
   post:
     security:
       - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
     tags:
       - COMPLIANCES
     requestBody:
@@ -20,6 +25,11 @@ getCompliances:
   get:
     security:
       - token: []
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
     tags:
       - COMPLIANCES
     responses:
@@ -37,6 +47,10 @@ editCompliance:
     parameters:
       - in: path
         name: id
+        schema:
+          type: string
+      - in: path
+        name: compliance_id
         schema:
           type: string
     tags:

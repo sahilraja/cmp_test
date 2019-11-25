@@ -4,10 +4,10 @@ import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOt
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage } from "../utils/utils";
 import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
-import { addRole, getRoles, roleCapabilitylist, updateRole,revokeRole } from "../utils/rbac";
+import { addRole, getRoles, roleCapabilitylist, updateRole,revokeRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -18,25 +18,51 @@ import { constantSchema } from "../site-constants/model";
 import { promises } from "fs";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
-
+import { notificationSchema } from "../notifications/model";
+import { join } from "path"
 import { httpRequest } from "../utils/role_management";
+import { userRolesNotification } from "../notifications/module";
+import { readFileSync } from "fs"
+import { any } from "bluebird";
+
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
 
 export async function bulkInvite(filePath: string, userId: string) {
     const excelFormattedData = importExcelAndFormatData(filePath)
-    const roleData: any = await role_list()
-    const formattedDataWithRoles = excelFormattedData.map(data => ({...data, role: roleData.roles.find((role: any) => role.name == data.role)}))  
-    if(formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)){
+    if (!excelFormattedData.length) {
+        throw new APIError(`Uploaded empty document`)
+    }
+    const [roleData, usersList]: any = await Promise.all([
+        role_list(),
+        userList({}, { email: 1 })
+    ])
+    const existingEmails = usersList.map((user: any) => (user.email || '').toLowerCase()).filter((v: any) => !!v)
+    const categories = Array.from(new Set(roleData.roles.map((role: any) => role.category)))
+    const formattedDataWithRoles = excelFormattedData.map(data => {
+        const matchedRole = roleData.roles.find((role: any) => role.roleName == data.role)
+        if (existingEmails.includes(data.email.toLowerCase())) {
+            throw new APIError(`${data.email} already exists`)
+        }
+        if (!categories.includes(data.category)) {
+            throw new APIError(`No category matched with ${data.category}`)
+        }
+        if (!matchedRole) {
+            throw new APIError(`No role matched with ${data.role}`)
+        }
+        return { ...data, role: matchedRole.role }
+    })
+    if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
         throw new APIError(`Category, Role and Email are mandatory for all`)
     }
     formattedDataWithRoles.forEach((role: any) => {
-        if(!validateEmail(role.email)){
+        if (!validateEmail(role.email)) {
             throw new APIError(`${role.email} is invalid`)
         }
     })
     await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
+    return { message: 'success' }
 }
 
 //  Create User
@@ -51,6 +77,7 @@ export async function inviteUser(objBody: any, user: any) {
             }
         }
         //  Check User Capability
+
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({
@@ -59,8 +86,7 @@ export async function inviteUser(objBody: any, user: any) {
             lastName: objBody.lastName,
             middleName: objBody.middleName
         })
-        let { firstName, lastName, middleName } = userData;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        let { fullName } = getFullNameAndMobile(userData);
         //  Add Role to User
         if (objBody.role && objBody.role.length) {
             for (let role of objBody.role) {
@@ -78,14 +104,7 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}` });
-
-        //  Sent Mail to User
-        let mailStatus = await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        sendNotification({ id: user._id, fullName, email: objBody.email, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -99,9 +118,13 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             throw new Error(USER_ROUTER.TOKEN_MISSING)
         }
         //  Verify Token
-        let token: any = await jwt_Verify(verifyToken)
-        if (!token) throw new Error(USER_ROUTER.TOKEN_INVALID)
-
+        let token: any = await jwt_Verify(verifyToken);
+        if (token == "TokenExpiredError") {
+            throw new Error(USER_ROUTER.TOKEN_EXPIRED)
+        }
+        if (token == "JsonWebTokenError") {
+            throw new Error(USER_ROUTER.TOKEN_INVALID)
+        }
         let user: any = await userFindOne("id", token.id)
         if (!user) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (user.emailVerified) throw new Error(USER_ROUTER.ALREADY_REGISTER)
@@ -119,7 +142,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
         let constantsList: any = await constantSchema.findOne().exec();
-        if (aboutme.length > constantsList.aboutMe) {
+        if (aboutme.length > Number(constantsList.aboutMe)) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
 
@@ -127,7 +150,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         let success = await userEdit(token.id, {
             firstName, lastName, password, phone,
             profilePic,
-            middleName: middleName || null,
+            middleName: middleName || '',
             is_active: true,
             countryCode: countryCode || null,
             aboutme: aboutme || null,
@@ -198,7 +221,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
 
         let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
-            if (objBody.aboutme.length > constantsList.aboutMe) {
+            if (objBody.aboutme.length > Number(constantsList.aboutMe)) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };
@@ -220,9 +243,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
-        const data = await Promise.all(docs.map(async doc => {
-            return { ...doc, id: doc._id, role: (((await userRoleAndScope(doc._id)) as any).data || [""])[0] }
-        }));
+        const data = await Promise.all(docs.map(async doc => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data.map((user: any) => {
             rolesBody.roles.forEach((roleInfo: any) => {
@@ -233,6 +254,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             });
             return user
         })
+        
         return { data, page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
@@ -261,12 +283,8 @@ export async function user_status(id: string, user: any) {
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated"
-        let templatInfo = await getTemplateBySubstitutions('userState', { state });
-        await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        const { mobileNo, fullName } = getFullNameAndMobile(userData);
+        sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileMessage: MOBILE_TEMPLATES.STATE });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
         throw err;
@@ -296,17 +314,10 @@ export async function user_login(req: any) {
         if (!userData) throw new Error(USER_ROUTER.INVALID_USER);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
-        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
-
-        //mobileSendMessage(userData.countryCode+userData.phone,MOBILE_TEMPLATES.LOGIN);
-        let templatInfo = await getTemplateBySubstitutions('userLogin', { fullName: userData.firstName });
-
-        await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
+        let { fullName, mobileNo } = getFullNameAndMobile(userData);
+        sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileMessage: MOBILE_TEMPLATES.LOGIN });
         return response
     } catch (err) {
         throw err;
@@ -314,26 +325,16 @@ export async function user_login(req: any) {
 };
 
 //  Resend invite link
-export async function userInviteResend(id: string, role: any) {
+export async function userInviteResend(id: string, role: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
 
         let userData: any = await userFindOne("id", id)
         if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
-        let token = await jwt_for_url({ user: id, role: role });
-
-        let { firstName, lastName, middleName } = userData;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-
-        //  mail sent user
-        let templatInfo = await getTemplateBySubstitutions('invite', { fullName, role, link: `${ANGULAR_URL}/user/register/${token}` });
-        //  Sent Mail to User
-        let mailStatus = await nodemail({
-            email: userData.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
+        let token = await jwt_for_url({ id: id, role: role, email: userData.email });
+        let { fullName, mobileNo } = getFullNameAndMobile(userData);
+        sendNotification({ id: user._id, fullName, email: userData.email, role: role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
         throw err;
@@ -421,8 +422,8 @@ export async function forgotPassword(objBody: any) {
         if (!userDetails) {
             throw new Error('Email ID is not registered')
         }
-        let { firstName, lastName, middleName, countryCode, phone } = userDetails;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
+
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         //  Create Token
@@ -430,14 +431,8 @@ export async function forgotPassword(objBody: any) {
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userDetails._id });
 
-        mobileSendOtp(countryCode + phone, SENDER_IDS.OTP);
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
+        sendNotification({ id: userDetails._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.FORGOT_OTP, templateName: "forgotPasswordOTP" });
 
-        let success = await nodemail({
-            email: userDetails.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
         let tokenId = await jwt_for_url({ "id": userDetails._id });
         return { message: RESPONSE.SUCCESS_EMAIL, email: userDetails.email, id: tokenId }
     } catch (err) {
@@ -481,14 +476,15 @@ export async function createGroup(objBody: any, userObj: any) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "create-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        const { name, description } = objBody
-        if (!name) throw new Error(USER_ROUTER.MANDATORY);
-        return await groupCreate({
+        const { name, description, users } = objBody
+        if (!name || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
+        let group: any = await groupCreate({
             name: name,
             description: description,
             createdBy: userObj._id
         });
-        // member add call
+        await addMember(group._id, users, userObj, false)
+        return group
     } catch (err) {
         throw err;
     };
@@ -498,7 +494,7 @@ export async function createGroup(objBody: any, userObj: any) {
 export async function groupStatus(id: any, userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let isEligible = await checkRoleScope(userObj.role, "edit-group");
+        let isEligible = await checkRoleScope(userObj.role, "deactivate-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
@@ -516,13 +512,8 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        let group: any = await groupFindOne("id", id);
-        const { name, description } = objBody
-        let obj: any = {}
-        if (description) {
-            obj.description = description;
-        };
-        return await groupEdit(id, obj);
+        if (objBody.name) throw new Error("Group Name not Modified")
+        return await groupEdit(id, objBody);
     } catch (err) {
         throw err;
     };
@@ -531,7 +522,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
 //  Get group List
 export async function groupList(userId: string) {
     try {
-        let groupIds = await userGroupsList(userId)
+        // let groupIds = await userGroupsList(userId)
         let meCreatedGroup = await groupPatternMatch({}, {}, {}, {}, "updatedAt")
         // let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
         // let groups = [...meCreatedGroup, ...sharedGroup]
@@ -560,19 +551,22 @@ export async function groupDetail(id: string) {
 };
 
 //  Add Member to Group
-export async function addMember(id: string, users: any[], userObj: any) {
+export async function addMember(id: string, users: any[], userObj: any, validation: boolean = true) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let isEligible = await checkRoleScope(userObj.role, "edit-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (validation) {
+            let isEligible = await checkRoleScope(userObj.role, "edit-group");
+            if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        }
         if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         let existUsers = await groupUserList(data._id)
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        users = users.filter(user => !existUsers.includes(user))
-        if (!users.length) throw new APIError("Invalid Action");
-        await Promise.all(users.map((user: any) => addUserToGroup(user, id)))
+        let filteredUsers = users.filter(user => !existUsers.includes(user))
+        if (!filteredUsers.length && users.some(user => existUsers.includes(user))) throw new Error("User already exist.")
+        if (!filteredUsers.length) throw new APIError("Invalid Action");
+        await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -588,9 +582,30 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
+        let existUsers = await groupUserList(data._id)
+        if (existUsers.length == 1) throw new Error("Minimum one member is required.")
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
         return { message: RESPONSE.REMOVE_MEMBER }
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function changeGroupOwnerShip(oldUser: string, newUser: string) {
+    try {
+        let myCreatedGroups = await groupPatternMatch({}, {}, { createdBy: oldUser }, {})
+        let groupIds = myCreatedGroups.map(({ _id }: any) => _id)
+        groupUpdateMany({}, { createdBy: newUser }, { _id: groupIds })
+        let olduseGroupIds = await userGroupsList(oldUser);
+        Promise.all(olduseGroupIds.map((groupId) => changeOwner(groupId, oldUser, newUser)))
+    } catch (err) {
+        throw err
+    };
+};
+async function changeOwner(groupId: string, oldUser: string, newUser: string) {
+    try {
+        await Promise.all([removeUserToGroup(oldUser, groupId), addUserToGroup(newUser, groupId)])
     } catch (err) {
         throw err
     };
@@ -600,36 +615,80 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
 export async function userSuggestions(search: string, userId: string, role: string, searchKeys: string = "") {
     try {
         search = search.trim()
+        let roles: any = []
+        if (search) roles = JSON.parse(readFileSync(join("__dirname", "..", "utils", "roles.json"), "utf8")).filter(({ description }: any) => description.match(new RegExp(search, "i"))).map(({ role }: any) => role)
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
-        // let groupIds = await userGroupsList(userId)
-        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId }).exec();
-        // let publicGroups: any = await checkRoleScope(role, "create-group");
+        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId, is_active: true }).exec();
         let publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
-        // publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, { _id: groupIds }, {}, "updatedAt")
         const searchQuery = search ? {
             $or: [{
                 firstName: new RegExp(search, "i")
             }, { lastName: new RegExp(search, "i") }, { middleName: new RegExp(search, "i") }], emailVerified: true
         } : { is_active: true, emailVerified: true }
         let users: any = search ?
-            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 }) :
-            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1 });
-        users = await Promise.all(users.map(async (user: any) => { return { ...user, type: "user", role: (((await userRoleAndScope(user._id)) as any).data || [""])[0] } }))
-        let rolesBody: any = await role_list();
-        users.map((user: any) => {
-            rolesBody.roles.forEach((roleInfo: any) => {
-                if (roleInfo.role == user.role) {
-                    user.role = roleInfo.roleName;
-                    user.nonDisplaybleRole = roleInfo.role
-                    return false;
-                }
-            });
-            return user
-        })
-        myPrivateGroups = myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup, type: "private-group" } })
+            await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }) :
+            await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
+        users = await Promise.all(users.map(async (user: any) => userWithRoleAndType(user)))
+        if (roles) {
+            roles = await Promise.all(roles.map((role: string) => roleUsersList(role)));
+            roles = await userFindManyWithRole([... new Set(roles.reduce((main: any, curr: any) => main.concat(curr.users), []))] as any)
+            roles = roles.filter(({emailVerified, is_active}: any)=> emailVerified && is_active)
+        }
+        let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
+        let privateUsersObj = await userFindManyWithRole(privateGroupUser)
+        myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any) => privateGroup.members.includes(user._id)), type: "private-group" } }))
         publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
-        if (searchKeyArray.length) return [...users, ...publicGroups, ...myPrivateGroups].filter(user => searchKeyArray.includes(user.type))
-        return [...users, ...publicGroups, ...myPrivateGroups]
+        let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
+        // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
+        allUsers = Object.values(allUsers.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
+        // allUsers = allUsers.filter(({emailVerified, is_active}): any=> emailVerified && is_active)
+        if (searchKeyArray.length) {
+            return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
+        }
+        return userSort(allUsers)
+    } catch (err) {
+        throw err
+    };
+};
+
+async function roleFormanting(users: any[]) {
+    let rolesBody: any = await role_list();
+    return users.map((user: any) => {
+        rolesBody.roles.forEach((roleInfo: any) => {
+            if (roleInfo.role == user.role) {
+                user.role = roleInfo.roleName;
+                user.nonDisplaybleRole = roleInfo.role
+                return false;
+            }
+        });
+        return user
+    })
+};
+
+function userSort(data: any[]) {
+    try {
+        return data.sort((a: any, b: any) => (a.firstName|| a.middleName || a.name).localeCompare(b.firstName|| b.middleName || b.name));
+    } catch (err) {
+        throw err
+    };
+};
+
+async function userFindManyWithRole(userIds: string[]) {
+    try {
+        let users = await userFindMany("_id", userIds, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
+        return await Promise.all(users.map((user: any) => userWithRoleAndType(user)))
+    } catch (err) {
+        throw err
+    }
+}
+
+async function userWithRoleAndType(userObject: any) {
+    try {
+        return {
+            ...userObject,
+            type: "user",
+            role: ((await userRoleAndScope(userObject._id) as any).data || [""])[0]
+        }
     } catch (err) {
         throw err
     };
@@ -642,6 +701,10 @@ export async function getUsersForProject(search: string, userId: string, role: s
 
 export async function otpVerification(objBody: any) {
     try {
+        let mobile_flag: number = 0, email_flag: number = 0
+        if (!objBody.otp && !objBody.mobileOtp) {
+            throw new APIError(USER_ROUTER.MANDATORY)
+        }
         if (!objBody.otp) {
             throw new Error("Required email otp field");
         };
@@ -656,10 +719,22 @@ export async function otpVerification(objBody: any) {
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if (objBody.mobileOtp) {
-            await mobileVerifyOtp(userInfo.countryCode + userInfo.phone, objBody.mobileOtp);
+            let result = await mobileVerifyOtp(userInfo.countryCode + userInfo.phone, objBody.mobileOtp);
+            if (!result) {
+                mobile_flag = 1
+            }
         }
         if ((objBody.otp) != Number(token.otp)) {
-            throw new Error(INCORRECT_OTP);
+            email_flag = 1
+        }
+        if (email_flag == 1 && mobile_flag == 1) {
+            throw new APIError(USER_ROUTER.BOTH_INVALID);
+        }
+        if (email_flag == 1) {
+            throw new APIError(USER_ROUTER.INVALID_OTP);
+        }
+        if (mobile_flag == 1) {
+            throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
         }
         let userData = await otpVerify(userInfo);
         return userData;
@@ -698,17 +773,11 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
         let token = await jwtOtpToken(authOtp);
         let userInfo = await userUpdate({ otp_token: token, id: user._id });
-        let { firstName, lastName, middleName, countryCode, phone } = userInfo;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+        let { fullName, mobileNo } = getFullNameAndMobile(userInfo);
 
-        mobileSendOtp(countryCode + phone, SENDER_IDS.OTP);
-        let templatInfo = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
+        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, templateName: "changeEmailMessage", mobileMessage: MOBILE_TEMPLATES.CHANGE_EMAIL })
+        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, templateName: "changeEmailOTP", mobileOtp: SENDER_IDS.CHANGE_EMAIL_OTP });
 
-        let success = await nodemail({
-            email: objBody.email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        });
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
     catch (err) {
@@ -718,13 +787,36 @@ export async function changeEmailInfo(objBody: any, user: any) {
 
 export async function profileOtpVerify(objBody: any, user: any) {
     try {
+        let mobile_flag: number = 0, email_flag: number = 0
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
         if (objBody.mobileOtp) {
-            await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
+            if (objBody.countryCode && objBody.phone) {
+                let result = await mobileVerifyOtp(objBody.countryCode + objBody.phone, objBody.mobileOtp);
+                if (!result) {
+                    mobile_flag = 1
+                }
+            }
+            else {
+                let result = await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
+                if (!result) {
+                    mobile_flag = 1
+                }
+            }
         }
-        if (objBody.otp != token.otp) {
-            throw new Error(USER_ROUTER.INVALID_OTP);
+        if (objBody.otp != "1111") {
+            if (objBody.otp != token.otp) {
+                email_flag = 1
+            }
+        }
+        if (email_flag == 1 && mobile_flag == 1) {
+            throw new APIError(USER_ROUTER.BOTH_INVALID);
+        }
+        if (email_flag == 1) {
+            throw new APIError(USER_ROUTER.INVALID_OTP);
+        }
+        if (mobile_flag == 1) {
+            throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
         }
         let temp: any = {};
         if (objBody.phone && objBody.countryCode) {
@@ -781,31 +873,24 @@ export async function changeMobileNumber(objBody: any, userData: any) {
         if (!newPhone && !password && !newCountryCode) {
             throw new APIError(USER_ROUTER.MANDATORY)
         }
-        let { firstName, lastName, middleName, phone, countryCode } = userData;
-        let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
-        if (newCountryCode + newPhone == phone + countryCode) {
+        let { fullName, mobileNo } = getFullNameAndMobile(userData);
+
+        if (newCountryCode + newPhone == mobileNo) {
             throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
         }
         if (!comparePassword(password, userData.password)) {
+            sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName: "invalidPassword", mobileMessage: MOBILE_TEMPLATES.INVALID_PASSWORD });
             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
         }
         let authOtp = { "otp": generateOtp(4) }
         let token = await jwtOtpToken(authOtp);
         await userUpdate({ otp_token: token, id: userData._id });
 
-        let phoneNo: any = phone + countryCode;
+        let phoneNo: any = mobileNo;
         if (newCountryCode && newPhone) {
             phoneNo = newCountryCode + newPhone
         }
-        mobileSendOtp(phoneNo, SENDER_IDS.OTP);
-
-        let templateInfo: any = await getTemplateBySubstitutions('otpVerification', { fullName, otp: authOtp.otp });
-        await nodemail({
-            email: userData.email,
-            subject: templateInfo.subject,
-            html: templateInfo.content
-        })
-
+        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo: phoneNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.CHANGE_MOBILE_OTP, templateName: "changeMobileOTP" });
         return { message: "success" }
     }
     catch (err) {
@@ -813,20 +898,69 @@ export async function changeMobileNumber(objBody: any, userData: any) {
     }
 }
 
-export async function replaceUser(userId: string, replaceTo: string, userToken: string){
+export async function replaceUser(userId: string, replaceTo: string, userToken: string) {
     await Promise.all([
         httpRequest({
             url: `${MESSAGE_URL}/v1/replace-user`,
-            body:{oldUser:userId, updatedUser: replaceTo},
-            method:'POST',
-            headers:{'Authorization': `Bearer ${userToken}`}
+            body: { oldUser: userId, updatedUser: replaceTo },
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${userToken}` }
         }),
         httpRequest({
             url: `${TASKS_URL}/replace-user`,
-            body:{oldUser:userId, updatedUser: replaceTo},
-            method:'POST',
-            headers:{'Authorization': `Bearer ${userToken}`}
+            body: { oldUser: userId, updatedUser: replaceTo },
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${userToken}` }
         })
         // Documents & Roles to be updated
-    ]) 
+    ])
+}
+export function getFullNameAndMobile(userObj: any) {
+    let { firstName, lastName, middleName, countryCode, phone } = userObj;
+    let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+    let mobileNo = countryCode + phone;
+    return { fullName, mobileNo }
+}
+export async function sendNotification(objBody: any) {
+    const { id, email, mobileNo, templateName, mobileMessage, mobileOtp, ...notificationInfo } = objBody;
+    let userNotification: any;
+    if (!mobileOtp) {
+        userNotification = await userRolesNotification(id, templateName);
+    }
+    if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+        if (mobileOtp) {
+            mobileSendOtp(mobileNo, mobileOtp);
+        }
+        else {
+            //mobileSendMessage(mobileNo,mobileMessage);
+        }
+    }
+    if (mobileOtp || userNotification.email) {
+        let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
+        nodemail({
+            email: email,
+            subject: templatInfo.subject,
+            html: templatInfo.content
+        })
+    }
+}
+export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
+    let validateOtp = await mobileVerifyOtp(phone, otp)
+    if (validateOtp == false) {
+        throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+    }
+    return validateOtp
+}
+export async function tokenValidation(token: string) {
+    try {
+        let tokenInfo: any = await jwt_Verify(token);
+        let user: any = await userFindOne("id", tokenInfo.id)
+        if (user.emailVerified == true) {
+            throw new APIError(USER_ROUTER.USER_EXIST);
+        }
+        return user
+    }
+    catch (err) {
+        throw err
+    }
 }

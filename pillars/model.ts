@@ -5,6 +5,6 @@ const SchemaDef = new Schema({
     createdBy: { type: String },
     disabled: { type: Boolean, default: false }
 }, { timestamps: true })
-
+console.log(plugin)
 SchemaDef.plugin(plugin)
 export const PillarSchema = model('pillars', SchemaDef)

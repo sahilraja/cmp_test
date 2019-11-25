@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
 const schema = new Schema(
   {
@@ -9,7 +9,7 @@ const schema = new Schema(
     fileId: { type: String },
     versionNum: { type: String },
     status: { type: String, enum: [0, 1, 2, 3] },
-    parentId: { type: String },
+    parentId: { type: String},
     ownerId: { type: String },
     fileName: { type: String },
     collaborator: { type: Array },
@@ -17,6 +17,7 @@ const schema = new Schema(
     is_active: { type: Boolean, default: true },
     sourceId: { type: String },
     isDeleted:{ type: Boolean, default: false },
+    isPublic: { type: Boolean, default: false },
     suggestedTags:[{ userId:String, tags:Array }],
     rejectedTags:[{ userId:String, tags:Array }]
   },

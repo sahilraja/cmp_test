@@ -3,7 +3,7 @@ import { authenticate } from "../utils/utils";
 import { APIError } from "../utils/custom-error";
 import { Types } from "mongoose";
 import { OK } from "http-status-codes";
-import { createPrivateGroup, editPrivateGroup, privateGroupStatus, privateGroupList, privateGroupDetails } from "./module";
+import { createPrivateGroup, editPrivateGroup, privateGroupStatus, privateGroupList, privateGroupDetails, removePrivateGroup } from "./module";
 const router = Router();
 
 //  Group Id Validation
@@ -22,6 +22,9 @@ router.post("/create", authenticate, async (req: Request, res: Response, next: N
     try {
         res.status(OK).send(await createPrivateGroup(req.body, res.locals.user))
     } catch (err) {
+        if(err.code == 11000){
+            err.message = `Group name already existed.`
+        }
         next(new APIError(err.message));
     };
 });
@@ -30,6 +33,15 @@ router.post("/create", authenticate, async (req: Request, res: Response, next: N
 router.post("/:id/edit", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(OK).send(await editPrivateGroup(req.params.id, req.body, res.locals.user._id))
+    } catch (err) {
+        next(new APIError(err.message));
+    };
+});
+
+//  Remove Private Group Details
+router.post("/:id/member/remove", authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(OK).send(await removePrivateGroup(req.params.id, req.body, res.locals.user._id))
     } catch (err) {
         next(new APIError(err.message));
     };

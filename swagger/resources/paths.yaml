@@ -1032,6 +1032,32 @@
                 $ref: "./schema/#/responses/schemas/Document"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  markAsPublic:
+    put:
+      security:
+        - token: []
+      summary: Mark as public document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
   
   replaceDocument:
   # "/docs/{id}/replace/{replaceDocId}":
@@ -1794,7 +1820,135 @@
                     type: boolean
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  deleteSuggestedTags:
+  # "/docs/{docId}/delete/suggested/tags":
+    post:
+      security:
+        - token: []
+      summary: delete suggested tags before approving
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: docId
+          schema:
+            type: string
+          required: true
+          description: DocumentId     
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tagId:
+                  type: string
+                  example: tag1234 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      success:
+                        type: boolean
+                        example: true
+                      message:
+                        type: string
+                        example: Tag deleted Successfully
 
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # all Cmp Doc List
+  allCmpDocsList:
+  # "/docs/allcmp/list":
+    get:
+      security:
+        - token: []
+      summary: list of All CMP documents
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        uploadBy:
+                          type: string
+                          example: jeevan
+                        role: 
+                          type: string
+                          example: project manager
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                        thumbnail:
+                          type: string
+                          example: http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b  
+                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+ 
+  publicDocsList:
+    get:
+      security:
+        - token: []
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: number
+        - in: query
+          name: limit
+          schema:
+            type: number
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: number
+                  limit:
+                    type: number
+                  docs:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "./schema.yaml/#/responses/schemas/Document"
+                        - type: object
+                        - properties:
+                            id:
+                              type: string
+                              example: 5968574635575c547q74
          
            
           

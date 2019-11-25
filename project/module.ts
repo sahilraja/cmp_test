@@ -9,7 +9,7 @@ import { workflowModel } from "./workflow_model";
 import { checkCapability } from "../utils/rbac";
 import { httpRequest, checkRoleScope } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
-import { getUserDetail } from "../users/module";
+import { getUserDetail, userDetails } from "../users/module";
 import { userFindMany } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
@@ -17,6 +17,9 @@ import { documentsList } from "../documents/module";
 import { unlinkSync } from "fs";
 import { extname } from "path";
 import * as xlsx from "xlsx";
+import { userRolesNotification } from "../notifications/module";
+import { nodemail } from "../utils/email";
+import { getTemplateBySubstitutions } from "../email-templates/module";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -44,6 +47,7 @@ export async function createProject(reqObject: any, user: any) {
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
       fundsReleased: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
       fundsUtilised: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
+      phase: reqObject.phase
     });
     createLog({ activityType: ACTIVITY_LOG.PROJECT_CREATED, projectId: createdProject.id, activityBy: user._id })
     return createdProject
@@ -84,7 +88,10 @@ export async function editProject(id: any, reqObject: any, user: any) {
     if (reqObject.maturationStartDate) {
       obj.maturationStartDate = { date: reqObject.maturationStartDate, modifiedBy: user._id }
     }
-    const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set:obj }, { new: true }).exec();
+    if (reqObject.phase) {
+      obj.phase = reqObject.phase
+    }
+    const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
     return updatedProject
   } catch (err) {
     console.error(err);
@@ -93,16 +100,16 @@ export async function editProject(id: any, reqObject: any, user: any) {
 }
 
 
-export async function manageProjectMembers(id: string, members:string[], userId: string) {
+export async function manageProjectMembers(id: string, members: string[], userId: string) {
   members = Array.from(new Set(members))
-  if(members.includes(userId)){
+  if (members.includes(userId)) {
     throw new APIError(`You are trying to add yourself as project member`)
   }
-  const previousProjectData:any = await ProjectSchema.findById(id).exec()
-  const updatedProject:any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
+  const previousProjectData: any = await ProjectSchema.findById(id).exec()
+  const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
   const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
   const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
-  createLog({activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId:id, addedUserIds, removedUserIds})
+  createLog({ activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId: id, addedUserIds, removedUserIds })
   return updatedProject
 }
 
@@ -113,7 +120,10 @@ export async function getProjectMembers(id: string) {
     role_list()
   ])
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
-  return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
+  return members.map((user: any, i: number) => ({ 
+    ...(users.find((_user: any) => _user._id == user)), 
+    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles) 
+  }))
 }
 
 function formatUserRole(role: string, formattedRoleObjs: any) {
@@ -159,6 +169,20 @@ export async function add_tag(reqObject: any, userObj: any) {
     }
     let isEligible = await checkRoleScope(userObj.role, "create-tag");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    let { firstName, lastName, middleName, countryCode, phone } = userObj;
+    let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+    
+    // let userNotification = await userRolesNotification(userObj._id,"tagAdd");
+    
+    // if(userNotification.email){
+    //   let templatInfo = await getTemplateBySubstitutions('tagAdd', { fullName, otp: authOtp.otp });
+    //   nodemail({
+    //     email: userObj.email,
+    //     subject: templatInfo.subject,
+    //     html: templatInfo.content
+    //   })
+    // }
+
     return await tags.create({
       tag: reqObject.tag,
       description: reqObject.description || "N/A"
@@ -278,9 +302,10 @@ export async function getProjectsList(userId: any, userToken: string) {
   try {
     // let userProjects: any = await userRoleAndScope(userId);
     // if (!userProjects) throw new Error("user have no projects");
-    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
-    const projectIds = (list || []).map((_list) => _list.id)
-    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages }
+    //const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
+    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] }, { populate: "phase" })
+    const projectIds = (list || []).map((_list) => _list.id);
+    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
     throw error;
@@ -304,7 +329,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 // get project details
 export async function getProjectDetail(projectId: string) {
   try {
-    return await ProjectSchema.findById(projectId).exec()
+    return await ProjectSchema.findById(projectId).populate({path:'phase'}).exec()
   } catch (error) {
     console.error(error)
     throw error
@@ -315,6 +340,12 @@ export async function createTask(payload: any, projectId: string, userToken: str
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
   if (!isEligible) throw new APIError("Unauthorized Action.", 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
+  if(!payload.isCompliance && (payload.assignee == userObj._id)){
+    throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
+  }
+  if(payload.isCompliance && (!payload.approvers || !payload.approvers.length)){
+    throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
+  }
   const options = {
     url: `${TASKS_URL}/task/create`,
     body: { ...taskPayload },
@@ -322,9 +353,9 @@ export async function createTask(payload: any, projectId: string, userToken: str
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  const createdTask:any = await httpRequest(options)
+  const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask.id, projectId, activityBy: userObj._id })
-  createdTask
+  return createdTask
 }
 
 async function formatTaskPayload(payload: any, projectId: string) {
@@ -348,10 +379,10 @@ async function formatTaskPayload(payload: any, projectId: string) {
   } else {
     assignee = payload.assignee
   }
-  approvers = memberRoles.filter((role: any) => (payload.approvers || []).includes(role.data.global[0]))
-  endorsers = memberRoles.filter((role: any) => (payload.endorsers || []).includes(role.data.global[0]))
-  viewers = memberRoles.filter((role: any) => (payload.viewers || []).includes(role.data.global[0]))
-  supporters = memberRoles.filter((role: any) => (payload.supporters || []).includes(role.data.global[0]))
+  approvers = memberRoles.filter((role: any) => (payload.approvers || []).includes(role.data[0]))
+  endorsers = memberRoles.filter((role: any) => (payload.endorsers || []).includes(role.data[0]))
+  viewers = memberRoles.filter((role: any) => (payload.viewers || []).includes(role.data[0]))
+  supporters = memberRoles.filter((role: any) => (payload.supporters || []).includes(role.data[0]))
   return { ...payload, assignee, approvers, endorsers, viewers, supporters }
 }
 
@@ -384,12 +415,12 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
     json: true
   }
   const updatedTask = await httpRequest(options)
-  createLog({activityBy: userObj._id, activityType:ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
+  createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
 }
 
 export async function linkTask(projectId: string, taskId: string, userToken: string, userId: string) {
-  if(!taskId){
+  if (!taskId) {
     throw new Error(PROJECT_ROUTER.TASK_REQUIRED_FOR_LINKING)
   }
   const options = {
@@ -399,8 +430,8 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  const updatedTask:any = await httpRequest(options)  
-  createLog({activityBy: userId, activityType:ACTIVITY_LOG.TASK_LINKED_TO_PROJECT, taskId, projectId })
+  const updatedTask: any = await httpRequest(options)
+  createLog({ activityBy: userId, activityType: ACTIVITY_LOG.TASK_LINKED_TO_PROJECT, taskId, projectId })
   return updatedTask
 }
 
@@ -449,126 +480,142 @@ function getPercentageByInstallment(installment: number) {
   let percentage = 10, installmentType, phase
   switch (installment) {
     case 1:
-    percentage = 10
-    installmentType = `1st Installment`
-    phase = `Maturation`
-    break;
+      percentage = 10
+      installmentType = `1st Installment`
+      phase = `Maturation`
+      break;
     case 2:
-    phase = `Implementation`
-    percentage = 40
-    installmentType = `2nd Installment`
-    break;
+      phase = `Implementation`
+      percentage = 40
+      installmentType = `2nd Installment`
+      break;
     case 3:
-    phase = `Implementation`
-    percentage = 40
-    installmentType = `3rd Installment`
-    break;
+      phase = `Implementation`
+      percentage = 40
+      installmentType = `3rd Installment`
+      break;
     case 4:
-    percentage = 10
-    phase = `Implementation`
-    installmentType = `4th Installment`
-    break;
+      percentage = 10
+      phase = `Implementation`
+      installmentType = `4th Installment`
+      break;
     default:
-    break;
+      break;
   }
-  return {percentage, installmentType, phase}
+  return { percentage, installmentType, phase }
 }
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
-  const { fundsReleased, fundsUtilised }:any = projectDetail
+  const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
   const documentIds = fundsReleased.map((fund: any) => fund.document).concat(fundsUtilised.map((fund: any) => fund.document)).filter((v: any) => !!v)
   const documents = await documentsList(documentIds)
-  const fundsReleasedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
-    const {installmentType, percentage, phase} = getPercentageByInstallment(fund)
-    const items = fundsReleased.filter((fundReleased: any) => 
-      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
-      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
-    return {
-      phase,
-      installment: installmentType,
-      percentage,
-      // Filter empty data
-      items,
-      installmentLevelTotal: items.reduce((p:number,item: any) => p + (item.cost || 0) ,0)
-    }
-  })
-  const fundsUtilisedData = Array(4).fill(0).map((it, index) => index+1).map((fund: any) => {
+  const fundsReleasedData = Array(4).fill(0).map((it, index) => index + 1).map((fund: any) => {
     const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
-    const items = fundsUtilised.filter((fundReleased: any) => 
-      (!fundReleased.deleted &&  fundReleased.subInstallment && (fund == fundReleased.installment)
-      )).map((item: any) => ({...item.toJSON(), document: documents.find((d:any) => d.id == item.document)}))
+    const items = fundsReleased.filter((fundReleased: any) =>
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
     return {
       phase,
       installment: installmentType,
       percentage,
       // Filter empty data
       items,
-      installmentLevelTotal: items.reduce((p:number,item: any) => p + (item.cost || 0) ,0)
+      installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
     }
   })
-  return { 
-    projectCost:200000000,
-    citiisGrants: 100000000,
+  const fundsUtilisedData = Array(4).fill(0).map((it, index) => index + 1).map((fund: any) => {
+    const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
+    const items = fundsUtilised.filter((fundReleased: any) =>
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
+    return {
+      phase,
+      installment: installmentType,
+      percentage,
+      // Filter empty data
+      items,
+      installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
+    }
+  })
+  return {
+    projectCost: projectCost,
+    citiisGrants: citiisGrants,
     fundsReleased: {
-      info:fundsReleasedData,
-      total: fundsReleasedData.reduce((p:number,c: any) => p + c.installmentLevelTotal ,0)
-    }, 
+      info: fundsReleasedData,
+      total: fundsReleasedData.reduce((p: number, c: any) => p + c.installmentLevelTotal, 0)
+    },
     fundsUtilised: {
       info: fundsUtilisedData,
-      total: fundsUtilisedData.reduce((p:number,c: any) => p + c.installmentLevelTotal ,0)
+      total: fundsUtilisedData.reduce((p: number, c: any) => p + c.installmentLevelTotal, 0)
     }
   }
 }
 
-export async function addFundReleased(projectId: string, payload: any, userId: string) {
-  if(!payload.installment){
+export async function addFundReleased(projectId: string, payload: any, user: any) {
+  if (!payload.installment) {
     throw new APIError(`Installment is required`)
+  }
+  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const fund: any = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased } = fund
   const otherFunds = fundsReleased.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsReleased.filter((fund: any) => fund.installment == payload.installment)
   let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].cost ? [] : matchedFunds
-  const updates = {fundsReleased: otherFunds.concat(matchedFundsWithData).concat([
-    {
-      subInstallment:matchedFundsWithData.length + 1,
-      installment: payload.installment, document: payload.document, cost: payload.cost, 
-      createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
-    }
-  ]).sort((a: any, b: any) => a.installment - b.installment)}
-  const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
-  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: userId})
+  const updates = {
+    fundsReleased: otherFunds.concat(matchedFundsWithData).concat([
+      {
+        subInstallment: matchedFundsWithData.length + 1,
+        installment: payload.installment, document: payload.document, cost: payload.cost,
+        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id
+      }
+    ]).sort((a: any, b: any) => a.installment - b.installment)
+  }
+  const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
+  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: user._id })
   return updatedFund
 }
 
-export async function addFundsUtilized(projectId: string, payload: any, userId: string) {
-  if(!payload.installment){
+export async function addFundsUtilized(projectId: string, payload: any, user: any) {
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)  
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
+  if (!payload.installment) {
     throw new Error(`Installment is required`)
   }
   const project: any = await ProjectSchema.findById(projectId).exec()
   const { fundsUtilised } = project
   const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsUtilised.filter((fund: any) => fund.installment == payload.installment)
-  const updates = {fundsUtilised: otherFunds.concat(matchedFunds).concat([
-    {
-      subInstallment: matchedFunds.length + 1,
-      installment: payload.installment, document: payload.document, cost: payload.cost, 
-      createdAt: new Date(), modifiedAt: new Date(), modifiedBy: userId
-    }
-  ]).sort((a: any, b: any) => a.installment - b.installment)}
-  const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
-  createLog({activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: userId})
+  const updates = {
+    fundsUtilised: otherFunds.concat(matchedFunds).concat([
+      {
+        subInstallment: matchedFunds.length + 1,
+        installment: payload.installment, document: payload.document, cost: payload.cost,
+        createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id
+      }
+    ]).sort((a: any, b: any) => a.installment - b.installment)
+  }
+  const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
+  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.cost, activityBy: user._id })
   return updatedProject
 }
 
-export async function updateReleasedFund(projectId: string, payload: any, userId: string) {
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+export async function updateReleasedFund(projectId: string, payload: any, user: any) {
+  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
-  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id })
   return updatedProject
   // if(!payload.installment || !payload.subInstallment){
   //   throw new APIError(`Installment is required`)
@@ -586,7 +633,11 @@ export async function updateReleasedFund(projectId: string, payload: any, userId
   // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
 }
 
-export async function updateUtilizedFund(projectId: string, payload: any, userId: string) {
+export async function updateUtilizedFund(projectId: string, payload: any, user: any) {
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   // if(!payload.installment || !payload.subInstallment){
   //   throw new Error(`Installment is required`)
   // }
@@ -601,32 +652,40 @@ export async function updateUtilizedFund(projectId: string, payload: any, userId
   //   }
   // ]).sort((a: any, b: any) => a.installment - b.installment)}
   // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
   updates['fundsReleased.$.document'] = document
   updates['fundsReleased.$.cost'] = cost
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
-  createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id })
   return updatedProject
 }
 
-export async function deleteReleasedFund(projectId: string, payload: any, userId: string) {
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
+export async function deleteReleasedFund(projectId: string, payload: any, user: any) {
+  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
   updates['fundsReleased.$.deleted'] = true
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
   return updatedProject
 }
 
-export async function deleteUtilizedFund(projectId: string, payload: any, userId: string) {
-  const {document, cost, _id} = payload
-  let updates:any = {}
-  updates = {...updates, modifiedAt: new Date(), modifiedBy: userId}
-  updates['fundsReleased.$.deleted'] = true
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({_id:projectId, 'fundsReleased._id':_id}, {$set:updates}).exec()
+export async function deleteUtilizedFund(projectId: string, payload: any, user: any) {
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
+  const { document, cost, _id } = payload
+  let updates: any = {}
+  updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
+  updates['fundsUtilised.$.deleted'] = true
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsUtilised._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
   return updatedProject
 }
@@ -644,13 +703,17 @@ export function importExcelAndFormatData(filePath: string) {
   return excelFormattedData
 }
 
-export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj:any) {
+export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any) {
   const roleData: any = await role_list()
   const roleNames = roleData.roles.map((role: any) => role.roleName)
   const excelFormattedData = importExcelAndFormatData(filePath)
+  if(!excelFormattedData.length){
+    throw new APIError(`Uploaded empty document`)
+  }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
   await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
+  return {message:'success'}
 }
 
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
@@ -658,34 +721,36 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     ProjectSchema.findById(projectId).exec(),
     projectMembers(projectId)
   ])
-  if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
-    throw new APIError(TASK_ERROR.INVALID_ARRAY);
-  }
+  // if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
+  //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
+  // }
+  taskObj.approvers = Object.keys(taskObj).filter(key => key == `approver`)
   const approverIds = memberRoles.filter((memberRole: any) => taskObj.approvers.includes(memberRole.key)).map(val => val.key)
   const endorserIds = memberRoles.filter((memberRole: any) => taskObj.endorsers.includes(memberRole.key)).map(val => val.key)
   const viewerIds = memberRoles.filter((memberRole: any) => taskObj.viewers.includes(memberRole.key)).map(val => val.key)
   const assigneeId = memberRoles.filter((memberRole: any) => [taskObj.assignee].includes(memberRole.key)).map(val => val.key)
 
-  if(approverIds.length != taskObj.approvers.length){
+  if (approverIds.length != taskObj.approvers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
   }
-  if(endorserIds.length != taskObj.endorsers.length){
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)    
-  }
-  if(viewerIds.length != taskObj.viewers.length){
+  if (endorserIds.length != taskObj.endorsers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
   }
-  if(!assigneeId){
+  if (viewerIds.length != taskObj.viewers.length) {
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+  }
+  if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
-  taskObj = {...taskObj, 
+  taskObj = {
+    ...taskObj,
     projectId,
-    assignee:assigneeId,
-    approvers:approverIds,
-    endorsers:endorserIds,
-    viewers:viewerIds,
+    assignee: assigneeId,
+    approvers: approverIds,
+    endorsers: endorserIds,
+    viewers: viewerIds,
   }
-  const {assignee, approvers, endorsers} = taskObj
+  const { assignee, approvers, endorsers } = taskObj
   if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {
     throw new APIError(TASK_ERROR.DUPLICATE_APPROVERS_FOUND)
   }
@@ -695,7 +760,7 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   if (assignee && ((taskObj.approvers || []).concat(taskObj.endorsers || [])).includes(assignee)) {
     throw new APIError(TASK_ERROR.ASSIGNEE_ERROR)
   }
-  if ((taskObj.approvers || []).some((approver:any) => (taskObj.endorsers || []).includes(approver))) {
+  if ((taskObj.approvers || []).some((approver: any) => (taskObj.endorsers || []).includes(approver))) {
     throw new APIError(TASK_ERROR.APPROVERS_EXISTS)
   }
   return taskObj
@@ -703,53 +768,90 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
 
 function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   let errorRole
-  if(!data.name || !data.name.trim().length){
+  if (!data.name || !data.name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }
-  if(!data.assignee || !data.assignee.trim().length){
-    throw new APIError(`Assignee is required for task ${data.name}`) 
+  data.approvers = Object.keys(data).filter(key => ['approver1',`approver2`, `approver3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
+  data.endorsers = Object.keys(data).filter(key => ['endorser1',`endorser2`, `endorser3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
+  data.viewers = Object.keys(data).filter(key => ['viewer1',`viewer2`, `viewer3`].includes(key)).reduce((p,c) => p.concat(`, ${data[c]}`) ,'')
+  if (!data.assignee || !data.assignee.trim().length) {
+    throw new APIError(`Assignee is required for task ${data.name}`)
   }
   const approvers = data.approvers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   const endorsers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   const viewers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
-  if(!roleNames.includes(data.assignee.trim())){
-    throw new APIError(`Assignee not exists for task ${data.name}`) 
+  if (!roleNames.includes(data.assignee.trim())) {
+    throw new APIError(`Assignee not exists for task ${data.name}`)
   }
   // Validate Approvers
-  if(approvers.some((approver: string) => {
+  if (approvers.some((approver: string) => {
     errorRole = approver
     return !roleNames.includes(approver)
-  })){
+  })) {
     throw new APIError(`Approver ${errorRole} not exists in the system at task ${data.name}`)
   }
   // Validate Endorsers  
-  if(endorsers.some((endorser: string) => {
+  if (endorsers.some((endorser: string) => {
     errorRole = endorser
     return !roleNames.includes(endorser)
-  })){
+  })) {
     throw new APIError(`Endorser ${errorRole} not exists in the system at task ${data.name}`)
   }
   // Validate Viewers
-  if(viewers.some((viewer: string) => {
+  if (viewers.some((viewer: string) => {
     errorRole = viewer
     return !roleNames.includes(viewer)
-  })){
+  })) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
   return {
-    name:data.name,
+    name: data.name,
     description: data.description,
     initialStartDate: data.initialStartDate,
     initialDueDate: data.initialDueDate,
     // Validate ids
     // tags: data.tags,
-    assignee:data.assignee,
+    assignee: data.assignee,
     viewers: data.viewers,
     approvers: data.approvers,
     endorsers: data.endorsers,
     stepId: data.stepId,
     pillarId: data.pillarId,
-    isFromExcel:  true,
+    isFromExcel: true,
     documents: data.documents
+  }
+}
+
+export async function projectCostInfo(projectId: string, projectCost: number, userRole: string, userId: string) {
+  try {
+    const isEligible = await checkRoleScope(userRole, 'edit-project-cost')
+    if(!isEligible){
+      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+    }
+    const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }).exec()
+    createLog({activityBy:userId, activityType:ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: (updatedProject as any).projectCost, updatedCost:projectCost, projectId})    
+    return updatedProject
+  }
+  catch (err) {
+    throw err
+  }
+}
+
+export async function citiisGrantsInfo(projectId: string, citiisGrants: number, userRole: string, userId: string) {
+  try {
+    const isEligible = await checkRoleScope(userRole, 'edit-citiis-grants')
+    if(!isEligible){
+      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+    }
+    const projectInfo: any = await ProjectSchema.findById(projectId).exec()
+    if((projectInfo as any).projectCost < citiisGrants){
+      throw new APIError(PROJECT_ROUTER.CITIIS_GRANTS_VALIDATION)
+    }
+    const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
+    createLog({activityBy:userId, activityType:ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost:citiisGrants, projectId})
+    return updatedProject
+  }
+  catch (err) {
+    throw err
   }
 }

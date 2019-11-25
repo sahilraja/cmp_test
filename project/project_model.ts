@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 import * as mongoosePaginate from "mongoose-paginate";
 
 const schema = new Schema({
@@ -20,22 +20,8 @@ const schema = new Schema({
             modifiedBy: { type: String }
         }
     ],
-    projectCost: [
-        {
-            cost: { type: Number },
-            createdAt: { type: Date },
-            modifiedAt: { type: Date },
-            modifiedBy: { type: String }
-        }
-    ],
-    ciitiisGrants: [
-        {
-            cost: { type: Number },
-            createdAt: { type: Date },
-            modifiedAt: { type: Date },
-            modifiedBy: { type: String }
-        }
-    ],
+    projectCost: { type: Number ,default:0},
+    citiisGrants: { type: Number , default:0},
     fundsReleased: [
         {
             deleted:{type:Boolean, default: false},
@@ -61,7 +47,8 @@ const schema = new Schema({
         }
     ],
     themes: { type: Schema.Types.ObjectId, ref: 'themes' },
-    is_active: { type: Boolean, default: true }
+    is_active: { type: Boolean, default: true },
+    phase:{type:Types.ObjectId,ref:"phase"}
 }, { timestamps: true });
 
 schema.plugin(mongoosePaginate)

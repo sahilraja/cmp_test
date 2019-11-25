@@ -1268,6 +1268,213 @@ paths:
                 items: *ref_5
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/private-group/{id}/member/remove':
+    post:
+      security:
+        - token: []
+      summary: Remove Private Group Member
+      tags:
+        - PRIVATE GROUPS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  example: []
+      responses:
+        '200': *ref_4
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /pattern/create:
+    post:
+      security:
+        - token: []
+      summary: Create New Pattern
+      tags:
+        - PATTERNS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patternCode
+                - patternName
+              properties:
+                patternCode:
+                  type: string
+                  example: Taj
+                patternName:
+                  type: string
+                  example: Taj mahal
+      responses:
+        '200': &ref_6
+          description: Patterns
+          content:
+            application/json:
+              schema: &ref_7
+                type: object
+                properties:
+                  patternCode:
+                    type: string
+                    example: taj
+                  patternName:
+                    type: string
+                    example: taj mahal
+                  createdBy:
+                    type: string
+                    example: 9uiewjf9023jfo39ur39
+                  isDeleted:
+                    type: boolean
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/pattern/{id}/edit':
+    post:
+      security:
+        - token: []
+      summary: Edit Pattern Details
+      tags:
+        - PATTERNS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: pattern id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - patternCode
+                - patternName
+              properties:
+                patternCode:
+                  type: string
+                  example: Taj
+                patternName:
+                  type: string
+                  example: Taj mahal
+      responses:
+        '200': *ref_6
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/pattern/{id}/delete':
+    put:
+      security:
+        - token: []
+      summary: Delete Pattern
+      tags:
+        - PATTERNS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: pattern id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/pattern/{id}/details':
+    get:
+      security:
+        - token: []
+      summary: Pattern Details
+      tags:
+        - PATTERNS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: pattern id
+      responses:
+        '200': *ref_6
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /pattern/list:
+    get:
+      security:
+        - token: []
+      summary: Pattern list
+      tags:
+        - PATTERNS
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          example: Taj
+          description: search pattern
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_7
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /pattern/message-modification:
+    post:
+      security:
+        - token: []
+      summary: Pattern Message Modification
+      tags:
+        - PATTERNS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  example: '%Taj% is awesome'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: taj mahal is awesome
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/create:
     post:
       security:
@@ -1284,6 +1491,7 @@ paths:
               required:
                 - reference
                 - name
+                - phase
               properties:
                 reference:
                   type: string
@@ -1294,6 +1502,9 @@ paths:
                 description:
                   type: string
                   example: project for develop schools
+                phase:
+                  type: string
+                  example: phase id
       responses:
         '200':
           description: success
@@ -1314,6 +1525,9 @@ paths:
                       summary:
                         type: string
                         example: project for develop schools
+                      phase:
+                        type: string
+                        example: phase id
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /project/list:
@@ -1337,7 +1551,7 @@ paths:
                     type: number
                   docs:
                     type: array
-                    items: &ref_6
+                    items: &ref_8
                       type: object
                       properties:
                         name:
@@ -1429,41 +1643,11 @@ paths:
                                 example: 12343567890
                                 description: user id
                         projectCost:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              date:
-                                type: number
-                                example: 1000
-                              created_at:
-                                type: string
-                                example: 10-1-2019
-                              modified_at:
-                                type: string
-                                example: 15-1-2019
-                              modified_by:
-                                type: string
-                                example: 12343567890
-                                description: user id
-                        ciitiisGrants:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              date:
-                                type: number
-                                example: 1000
-                              created_at:
-                                type: string
-                                example: 10-1-2019
-                              modified_at:
-                                type: string
-                                example: 15-1-2019
-                              modified_by:
-                                type: string
-                                example: 12343567890
-                                description: user id
+                          type: number
+                          example: 12343
+                        citiisGrants:
+                          type: number
+                          example: 12343
                         fundsReleased:
                           type: array
                           items:
@@ -1525,6 +1709,9 @@ paths:
                         is_active:
                           type: boolean
                           example: true
+                        phase:
+                          type: string
+                          example: phase id
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/detail':
@@ -1597,6 +1784,7 @@ paths:
               required:
                 - reference
                 - name
+                - phase
               properties:
                 reference:
                   type: string
@@ -1607,6 +1795,9 @@ paths:
                 description:
                   type: string
                   example: project for develop schools
+                phase:
+                  type: string
+                  example: phase id
       responses:
         '200':
           description: success
@@ -1627,6 +1818,9 @@ paths:
                       summary:
                         type: string
                         example: project for develop schoolss
+                      phase:
+                        type: string
+                        example: phase id
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/manage-members':
@@ -1661,7 +1855,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_6
+              schema: *ref_8
   '/project/{id}/members':
     get:
       security:
@@ -1828,7 +2022,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_6
+                  - *ref_8
                   - type: object
                     properties:
                       tasks:
@@ -1961,7 +2155,7 @@ paths:
                     type: string
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/add-released-fund': &ref_7
+  '/project/{id}/add-released-fund': &ref_9
     post:
       security:
         token: []
@@ -1991,10 +2185,10 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_6
+              schema: *ref_8
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/add-utilized-fund': &ref_8
+  '/project/{id}/add-utilized-fund': &ref_10
     post:
       security:
         token: []
@@ -2024,11 +2218,11 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_6
+              schema: *ref_8
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/project/{id}/delete-released-fund': *ref_7
-  '/project/{id}/delete-utilized-fund': *ref_8
+  '/project/{id}/delete-released-fund': *ref_9
+  '/project/{id}/delete-utilized-fund': *ref_10
   '/project/{id}/update-released-fund':
     post:
       security:
@@ -2061,7 +2255,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_6
+              schema: *ref_8
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/update-utilized-fund':
@@ -2096,7 +2290,71 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_6
+              schema: *ref_8
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/project-cost':
+    put:
+      security:
+        - token: []
+      summary: update project cost
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectCost:
+                  type: number
+                  example: 12345
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_8
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/citiis-grants':
+    put:
+      security:
+        - token: []
+      summary: update Citiis-Grants
+      tags:
+        - PROJECT
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                citiisGrants:
+                  type: number
+                  example: 12345
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_8
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /role/list:
@@ -3880,6 +4138,32 @@ paths:
                 $ref: './schema/#/responses/schemas/Document'
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/docs/{id}/mark-as-public':
+    put:
+      security:
+        - token: []
+      summary: Mark as public document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+                    example: success
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/{id}/replace/{replaceDocId}':
     post:
       security:
@@ -3925,7 +4209,7 @@ paths:
                 type: array
                 items:
                   type: object
-                  $ref: './schema/#/responses/schemas/Document'
+                  $ref: './schema.yaml/#/responses/schemas/Document'
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /docs/search:
@@ -4597,6 +4881,130 @@ paths:
                     type: boolean
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/docs/{docId}/delete/suggested/tags':
+    post:
+      security:
+        - token: []
+      summary: delete suggested tags before approving
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: docId
+          schema:
+            type: string
+          required: true
+          description: DocumentId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tagId:
+                  type: string
+                  example: tag1234
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Tag deleted Successfully
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /docs/allcmp/list:
+    get:
+      security:
+        - token: []
+      summary: list of All CMP documents
+      tags:
+        - RESOURCES
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        uploadBy:
+                          type: string
+                          example: jeevan
+                        role:
+                          type: string
+                          example: project manager
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - tagId1234
+                            - tagId5432
+                        date:
+                          type: string
+                          example: '2019-08-26T15:17:29.912Z'
+                        thumbnail:
+                          type: string
+                          example: >-
+                            http://localhost:3000/docs/get-document/5db172d9b6de702a6d2b4d7b
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /docs/public:
+    get:
+      security:
+        - token: []
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: number
+        - in: query
+          name: limit
+          schema:
+            type: number
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: number
+                  limit:
+                    type: number
+                  docs:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: './schema.yaml/#/responses/schemas/Document'
+                        - type: object
+                        - properties:
+                            id:
+                              type: string
+                              example: 5968574635575c547q74
   /template/create:
     post:
       '400':
@@ -4615,13 +5023,17 @@ paths:
               required:
                 - templateName
                 - content
+                - subject
               properties:
                 content:
                   type: string
-                  example: subject
+                  example: content
                 templateName:
                   type: string
                   example: information
+                displayName:
+                  type: string
+                  example: Display Name
                 subject:
                   type: string
                   example: subject
@@ -4631,7 +5043,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_9
+                  - &ref_11
                     type: object
                     properties:
                       content:
@@ -4643,6 +5055,9 @@ paths:
                       subject:
                         type: string
                         example: subject
+                      displayName:
+                        type: string
+                        example: Display Name
                   - type: object
                     properties:
                       id:
@@ -4662,7 +5077,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_9
+                items: *ref_11
   '/template/edit/{id}':
     post:
       '400':
@@ -4685,25 +5100,23 @@ paths:
           application/json:
             schema:
               type: object
-              required:
-                - templateName
               properties:
                 content:
                   type: string
                   example: subject
-                templateName:
-                  type: string
-                  example: information
                 subject:
                   type: string
                   example: subject
+                displayName:
+                  type: string
+                  example: Display Name
       responses:
         '200':
           content:
             application/json:
               schema:
                 allOf:
-                  - *ref_9
+                  - *ref_11
                   - type: object
                     properties:
                       id:
@@ -4760,7 +5173,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_9
+                  - *ref_11
                   - type: object
                     properties:
                       id:
@@ -4768,7 +5181,7 @@ paths:
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
           description: Success
-  /pillars/create: &ref_11
+  /pillars/create: &ref_13
     post:
       security:
         - token: []
@@ -4778,7 +5191,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_10
+            schema: &ref_12
               type: object
               properties:
                 name:
@@ -4797,7 +5210,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_10
+                    - *ref_12
                     - type: object
                     - properties:
                         id:
@@ -4817,15 +5230,15 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_10
+                  - *ref_12
                   - type: object
                   - properties:
                       id:
                         type: string
                         example: 5968574635575c547q74
           description: Success
-  '/pillars/{id}/edit': *ref_11
-  /steps/create: &ref_13
+  '/pillars/{id}/edit': *ref_13
+  /steps/create: &ref_15
     post:
       security:
         - token: []
@@ -4835,7 +5248,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: &ref_12
+            schema: &ref_14
               type: object
               properties:
                 name:
@@ -4869,7 +5282,7 @@ paths:
                 type: array
                 items:
                   allOf:
-                    - *ref_12
+                    - *ref_14
                     - type: object
                     - properties:
                         id:
@@ -4889,7 +5302,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_12
+                  - *ref_14
                   - type: object
                   - properties:
                       id:
@@ -4898,11 +5311,13 @@ paths:
           description: Success
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
-  '/steps/{id}/edit': *ref_13
+  '/steps/{id}/edit': *ref_15
   /constants/update:
     post:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
       summary: add constants and edit constants
       tags:
         - SITE-CONSTANTS
@@ -4933,6 +5348,8 @@ paths:
     get:
       '400':
         $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
       summary: get constants list
       tags:
         - SITE-CONSTANTS
@@ -4948,16 +5365,21 @@ paths:
                   - key: docName
                     value: 30
           description: Success
-  /compliances/create:
+  '/project/{id}/compliance/create':
     post:
       security:
         - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
       tags:
         - COMPLIANCES
       requestBody:
         content:
           application/json:
-            schema: &ref_14
+            schema: &ref_16
               type: object
               properties:
                 name:
@@ -4973,22 +5395,9 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_14
-  /compliances/list:
+              schema: *ref_16
+  '/project/{id}/compliance/list':
     get:
-      security:
-        - token: []
-      tags:
-        - COMPLIANCES
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items: *ref_14
-  '/compliances/{id}/edit':
-    put:
       security:
         - token: []
       parameters:
@@ -4998,29 +5407,782 @@ paths:
             type: string
       tags:
         - COMPLIANCES
-      requestBody:
-        content:
-          application/json:
-            schema: *ref_14
       responses:
         '200':
           content:
             application/json:
-              schema: *ref_14
+              schema:
+                type: array
+                items: *ref_16
+  '/project/{id}/compliance/{id}/edit':
+    put:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: compliance_id
+          schema:
+            type: string
+      tags:
+        - COMPLIANCES
+      requestBody:
+        content:
+          application/json:
+            schema: *ref_16
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: *ref_16
+  '/project/{id}/risk/create':
+    post:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - RISK
+      requestBody:
+        content:
+          application/json:
+            schema: &ref_17
+              type: object
+              properties:
+                riskFamily:
+                  type: string
+                description:
+                  type: string
+                phase:
+                  type: string
+                impact:
+                  type: number
+                probability:
+                  type: number
+                actions:
+                  type: string
+                comments:
+                  type: string
+                riskProvision:
+                  type: number
+                riskOwner:
+                  type: string
+                status:
+                  type: string
+                previousTrend: null
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_17
+  '/project/{id}/risk/list':
+    get:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - RISK
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_17
+  '/project/{id}/risk/{id}/edit':
+    put:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: risk_id
+          schema:
+            type: string
+      tags:
+        - RISK
+      requestBody:
+        content:
+          application/json:
+            schema: *ref_17
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_17
+  '/project/{id}/risk/{id}/delete':
+    delete:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: risk_id
+          schema:
+            type: string
+      tags:
+        - RISK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deleted:
+                  type: boolean
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_17
+  '/project/{id}/opportunity/create':
+    post:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      requestBody:
+        content:
+          application/json:
+            schema: &ref_18
+              type: object
+              properties:
+                opportunityFamily:
+                  type: string
+                description:
+                  type: string
+                phase:
+                  type: string
+                impact:
+                  type: number
+                probability:
+                  type: number
+                actions:
+                  type: string
+                comments:
+                  type: string
+                opportunityProvision:
+                  type: number
+                opportunityOwner:
+                  type: string
+                status:
+                  type: string
+                previousTrend:
+                  type: number
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_18
+  '/project/{id}/opportunity/list':
+    get:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_18
+  '/project/{id}/opportunity/{id}/edit':
+    put:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: opportunity_id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      requestBody:
+        content:
+          application/json:
+            schema: *ref_18
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_18
+  '/project/{id}/opportunity/{id}/delete':
+    delete:
+      security:
+        - token: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+        - in: path
+          name: opportunity_id
+          schema:
+            type: string
+      tags:
+        - OPPORTUNITY
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deleted:
+                  type: boolean
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_18
+  /phases/create:
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: create Phase
+      tags:
+        - Phases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phaseName
+                - colorCode
+              properties:
+                phaseName:
+                  type: string
+                  example: first
+                colorCode:
+                  type: string
+                  example: '#FF00FF'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - &ref_19
+                    type: object
+                    properties:
+                      phaseName:
+                        type: string
+                        example: first
+                      colorCode:
+                        type: string
+                        example: '#FF00FF'
+                      createdBy:
+                        type: string
+                        example: user id
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: phase Id
+          description: Success
+  '/phases/edit/{id}':
+    put:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: edit phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phaseName
+                - colorCode
+              properties:
+                phaseName:
+                  type: string
+                  example: first
+                colorCode:
+                  type: string
+                  example: '#FF00FF'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_19
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: phase Id
+          description: Success
+  '/phases/getPhase/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: Get phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_19
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: phase Id
+          description: Success
+  '/phases/deletePhase/{id}':
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      summary: delete phase
+      tags:
+        - Phases
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: phase id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully deleted phase
+          description: Success
+  /phases/list:
+    get:
+      tags:
+        - Phases
+      summary: phase list
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_19
+  /notifications/update:
+    post:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+        - templateName
+        - email
+        - mobile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+                templateName:
+                  type: string
+                  example: invite
+                displayName:
+                  type: string
+                  example: Invite User
+                email:
+                  type: boolean
+                  example: false
+                mobile:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: success
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /notifications/list:
+    get:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: &ref_20
+                  type: object
+                  properties:
+                    role:
+                      type: string
+                      example: technology-lead
+                    templates:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          displayName:
+                            type: string
+                            example: Invite User
+                          templateName:
+                            type: string
+                            example: invite
+                          email:
+                            type: boolean
+                            example: 'yes'
+                          mobile:
+                            type: boolean
+                            example: 'yes'
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /notifications/role/add:
+    post:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_20
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /notifications/template/add:
+    post:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - templateName
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateName:
+                  type: string
+                  example: technology-lead
+                displayName:
+                  type: string
+                  example: Invite User
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema: *ref_20
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /notifications/getNotification:
+    get:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: role
+        - in: query
+          name: templateName
+          schema:
+            type: string
+          required: true
+          description: template name
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  role: technology-lead
+                  _id: 5dc97713fab0cd2189498e47
+                  templateName: invite
+                  email: true
+                  mobile: false
+                  displayName: Invite User
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  /sms/create:
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: create sms template
+      tags:
+        - SMS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - templateName
+                - content
+              properties:
+                content:
+                  type: string
+                  example: content
+                templateName:
+                  type: string
+                  example: information
+                displayName:
+                  type: string
+                  example: Display Name
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - &ref_21
+                    type: object
+                    properties:
+                      content:
+                        type: string
+                        example: subject
+                      templateName:
+                        type: string
+                        example: information
+                      displayName:
+                        type: string
+                        example: Display Name
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
+  /sms/list:
+    get:
+      tags:
+        - SMS
+      security:
+        - token: []
+      summary: get sms templates list
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_21
+  '/sms/edit/{id}':
+    post:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: edit sms template
+      tags:
+        - SMS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: content
+                displayName:
+                  type: string
+                  example: Display Name
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_21
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
+  '/sms/delete/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: delete sms template
+      tags:
+        - SMS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully deleted sms template
+          description: Success
+  '/sms/getTemplate/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: get sms tempalte
+      tags:
+        - SMS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - *ref_21
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 5d68875cc006bf53125ec36d
+                        description: Record Id
+          description: Success
 definitions:
   ErrorResponse:
     BadRequest:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_15
+          schema: &ref_22
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_15
+    Error: *ref_22
 components:
   securitySchemes:
     token:
@@ -5036,12 +6198,17 @@ components:
       required:
         - error
     userME: *ref_0
-    project: *ref_6
+    project: *ref_8
     userSchema: *ref_0
-    projectSchema: *ref_6
+    projectSchema: *ref_8
     templateSchema:
       $ref: './swagger/template/schema.yaml/#/responses/schemas/templateSchema'
-    pillarSchema: *ref_10
-    stepSchema: *ref_12
+    pillarSchema: *ref_12
+    stepSchema: *ref_14
     groupSchema: *ref_3
+    phaseSchema: *ref_19
+    smsTemplateSchema:
+      $ref: './swagger/sms/schema.yaml/#/responses/schemas/templateSchema'
+    PrivateGroupSchema: *ref_5
+    PatternSchema: *ref_7
 

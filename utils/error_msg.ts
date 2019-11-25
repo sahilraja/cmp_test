@@ -25,13 +25,19 @@ export const USER_ROUTER = {
     SIMILAR_MOBILE:"Old mobile number and new mobile number is similar",
     INVALID_PASSWORD: "Given password is invalid",
     INVALID_OTP: "Given email otp is invalid",
-    INVALID_COUNTRYCODE:"Given country code is invalid" 
+    INVALID_COUNTRYCODE:"Given country code is invalid",
+    CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
+    ADD_NOTIFICATION_FAIL : "Failed to add template to notification",
+    BOTH_INVALID : "Mobile and email otps are invalid",
+    TOKEN_EXPIRED:"Verification link is expired. Please contact Admin",
+    TOKEN_EXPIRED_OTP:"OTP verification link is expired",
+    USER_EXIST: "User already registered."
 };
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
     SEND_OTP : "Mobile Otp send successfully",
     VALID_OTP: "Mobile otp is verified",
-    INVALID_OTP : "Mobile otp is invalid"
+    INVALID_OTP : "Mobile otp is invalid",
 }
 
 export const DOCUMENT_ROUTER = {
@@ -46,7 +52,10 @@ export const DOCUMENT_ROUTER = {
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
     NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized",
-    DOC_ALREADY_EXIST: "A document with same name already exists"
+    DOC_ALREADY_EXIST: "A document with same name already exists",
+    VIEW_PUBLIC_DOCS_DENIED:"Unauthorized to view public documents",
+    UNPUBLISH_PUBLIC_DOCUMENT:`You can't unpublish a public document`,
+    UNABLE_TO_MAKE_PUBLIC_DOCUMENT: `You can't mark unpublished document as public document`
 }
 
 export const COMMENT_ROUTER = {
@@ -74,10 +83,21 @@ export const RESPONSE = {
     REMOVE_MEMBER: "Group member removed"
 }
 export const SENDER_IDS = {
-    OTP : "CMPOTP"
+    OTP : "CMPOTP",
+    FORGOT_OTP:"CMPOTP",
+    CHANGE_MOBILE_OTP:"CMPOTP",
+    CHANGE_EMAIL_OTP: "CMPOTP"
 }
 export const MOBILE_TEMPLATES = {
-    LOGIN : "Welcome to CMP"
+    LOGIN : "Welcome to CMP",
+    STATE: "STATE",
+    SUGGEST_TAG_NOTIFICATION:"Suggest Tag Notification",
+    INVITE_FOR_DOCUMENT:"Invite for Document ",
+    APPROVE_TAG_NOTIFICATION: "Approve tag notification",
+    REJECT_TAG_NOTIFICATION: "Reject tag notification",
+    INVALID_PASSWORD: "Invalid password",
+    CHANGE_EMAIL:"Change email",
+    DOCUMENT_STATE: (text: string)=> `Document ${text}`
 }
 
 export const GLOBAL_SCOPE = "global";
@@ -95,10 +115,12 @@ export const TASK_ERROR = {
     UNAUTHORIZED: `Unauthorized to create task`,
     SUBTASK_UNAUTHORIZED : `Unauthorized to create subtask`,
     ALL_MANDATORY: `Required all mandatory fields.`,
+    CREATOR_CANT_BE_ASSIGNEE: `Creator cant be owner`,
     INVALID_ARRAY: `tags, approvers, viewers and supporters must be an Array.`,
     ASSIGNEE_REQUIRED: `Assignee is required`,
     ASSIGNEE_ERROR: `Assignee cant be approver or endorser`,
     APPROVERS_EXISTS: `Approvers and endorsers must be different`,
+    APPROVERS_REQUIRED: `Approvers are required for compliance task`,
     DUPLICATE_APPROVERS_FOUND: `Duplicate approvers found`,
     DUPLICATE_ENDORSERS_FOUND: `Duplicate endorsers found`,
     USER_NOT_PART_OF_PROJECT:`User not found in project members list`,
@@ -114,12 +136,23 @@ export const PROJECT_ROUTER = {
     MORE_THAN_ONE_RESULT_FOUND: `More than one result found for specified role`,
     TASK_REQUIRED_FOR_LINKING: `Task ID is required to link task to a project`,
     NOT_MEMBER_OF_PROJECT: `User is not a member of this project`,
-    PROJECT_NOT_EXISTS: `No such project exists`
+    PROJECT_NOT_EXISTS: `No such project exists`,
+    UNAUTHORIZED_ACCESS: `Unauthorized to perform this action`,
+    CITIIS_GRANTS_VALIDATION: `Citiis grants should not exceed project cost`
 }
 
 export const COMPLIANCES = {
+    REQUIRED_TASK: `task ID is required to create compliance`,
     UNAUTHORIZED_TO_CREATE:`Unauthorized to create compliance`,
     UNAUTHORIZED_TO_EDIT:`Unauthorized to edit compliance`
+}
+
+export const RISK = {
+    UNAUTHORIZED_ACCESS: `Unauthorized to manage risk`
+}
+
+export const OPPORTUNITY = {
+    UNAUTHORIZED_ACCESS: `Unauthorized to manage opportunity`
 }
 
 export const ACTIVITY_LOG = {
@@ -131,5 +164,8 @@ export const ACTIVITY_LOG = {
     ADDED_FUND_RELEASE: `ADDED_FUND_RELEASE`,
     ADDED_FUND_UTILIZATION: `ADDED_FUND_UTILIZATION`,
     UPDATED_FUND_RELEASE: `UPDATED_FUND_RELEASE`,
-    UPDATED_FUND_UTILIZATION:`UPDATED_FUND_UTILIZATION`
+    UPDATED_FUND_UTILIZATION:`UPDATED_FUND_UTILIZATION`,
+    UPDATED_CITIIS_GRANTS:`UPDATED_CITIIS_GRANTS`,
+    UPDATED_PROJECT_COST:`UPDATED_PROJECT_COST`,
+    REPLACE_USER:`REPLACE_USER`
 }

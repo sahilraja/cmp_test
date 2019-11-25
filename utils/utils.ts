@@ -10,12 +10,12 @@ import * as msg91 from "msg91";
 import * as SendOtp from "sendotp";
 import { httpRequest } from './role_management';
 import * as phoneNo from "phone";
-import { throws } from 'assert';
+import { decode } from 'punycode';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
-const ACCESS_TOKEN_FOR_URL = 30 * 60;
+const ACCESS_TOKEN_FOR_URL = 15 * 60;
 const SALTROUNDS = 10;
-const ACCESS_TOKEN_FOR_OTP = 30 * 60;
+const ACCESS_TOKEN_FOR_OTP = 15 * 60;
 const MSG_EXPIRE_OTP = 30 * 60;
 const MSG_API_KEY = "301746A16myISu5dbc0bc7";//"9d67e9da3bXX"; //"301746A16myISu5dbc0bc7"; 
 const SENDER_ID = "CMPIND";//"INFOSM";
@@ -79,8 +79,25 @@ export async function jwt_for_url(id: any) {
 
 //  JWT VERIFY
 export async function jwt_Verify(id: any) {
-    return await jwtVerify(id, SECRET);
-};
+    try{
+        return jwtVerify(id, SECRET,function(err:any,decoded:any) {
+            if (err) {
+                if(err.name == "TokenExpiredError") {
+                    throw new APIError(USER_ROUTER.TOKEN_EXPIRED);
+                }
+                if(err.name == "JsonWebTokenError") {
+                    throw  new APIError(USER_ROUTER.TOKEN_INVALID);
+                }
+            }
+            else{
+                return decoded
+            }
+        });
+    }
+    catch(err){
+        throw err;
+    }
+}
 
 export function generateOtp(limit: number) {
     var characters = '0123456789';
@@ -137,13 +154,13 @@ export async function mobileVerifyOtp(mobileNo:string,otp:string){
         return await new Promise((resolve, reject) => {
             sendOtp.verify(mobileNo,otp, function(err:any, response:any){
                 if(response.type == 'success'){
-                    resolve({message:MOBILE_MESSAGES.VALID_OTP});
+                    resolve({message: "Mobile otp is verified"});
                 }
                 if(response.type == 'error'){
                     reject(new APIError(MOBILE_MESSAGES.INVALID_OTP));
                 }
             })
-        })
+        }).catch(error => false)
     }
     catch(err){
         throw err

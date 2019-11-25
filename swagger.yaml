@@ -102,7 +102,22 @@ paths:
     $ref: ./swagger/private-groups/paths.yaml/#/privateGroupDetails
   /private-group/list:
     $ref: ./swagger/private-groups/paths.yaml/#/PrivateGroupList
+  /private-group/{id}/member/remove:
+    $ref: ./swagger/private-groups/paths.yaml/#/RemovePrivateGroupMember
 
+# Pattern APIs
+  /pattern/create:
+    $ref: ./swagger/patterns/paths.yaml/#/patternCreate
+  /pattern/{id}/edit:
+    $ref: ./swagger/patterns/paths.yaml/#/patternEdit
+  /pattern/{id}/delete:
+    $ref: ./swagger/patterns/paths.yaml/#/patternDelete
+  /pattern/{id}/details:
+    $ref: ./swagger/patterns/paths.yaml/#/patternDetails
+  /pattern/list:
+    $ref: ./swagger/patterns/paths.yaml/#/patternList
+  /pattern/message-modification:
+    $ref: ./swagger/patterns/paths.yaml/#/patternMessageModification
     
 # Project APIs
   /project/create:
@@ -145,6 +160,10 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/updateReleasedFund
   /project/{id}/update-utilized-fund:
     $ref: ./swagger/projects/paths.yaml/#/updateUtilizedFund
+  /project/{id}/project-cost:
+    $ref: ./swagger/projects/paths.yaml/#/projectCost
+  /project/{id}/citiis-grants:
+    $ref: ./swagger/projects/paths.yaml/#/citiisGrants
 
 # Roles
   /role/list:
@@ -245,6 +264,8 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/publishDocument
   /docs/{id}/unpublish:
     $ref: ./swagger/resources/paths.yaml/#/unpublishDocument
+  /docs/{id}/mark-as-public:
+    $ref: ./swagger/resources/paths.yaml/#/markAsPublic
   /docs/{id}/replace/{replaceDocId}:
     $ref: ./swagger/resources/paths.yaml/#/replaceDocument
   /docs/publish/list:
@@ -279,6 +300,12 @@ paths:
     $ref: ./swagger/resources/paths.yaml/#/adduserCapabilities
   /docs/{Id}/cancel:
     $ref: ./swagger/resources/paths.yaml/#/cancelDocUpdate
+  /docs/{docId}/delete/suggested/tags:
+    $ref: ./swagger/resources/paths.yaml/#/deleteSuggestedTags
+  /docs/allcmp/list:
+    $ref: ./swagger/resources/paths.yaml/#/allCmpDocsList  
+  /docs/public:
+    $ref: ./swagger/resources/paths.yaml/#/publicDocsList
 
 #Templates
   /template/create:
@@ -315,12 +342,65 @@ paths:
     $ref: ./swagger/siteConstants/paths.yaml/#/addConstant
   /constants/list:
     $ref: ./swagger/siteConstants/paths.yaml/#/constantsList
-  /compliances/create:
+  /project/{id}/compliance/create:
     $ref: ./swagger/compliances/paths.yaml/#/createCompliance
-  /compliances/list:
+  /project/{id}/compliance/list:
     $ref: ./swagger/compliances/paths.yaml/#/getCompliances
-  /compliances/{id}/edit:
+  /project/{id}/compliance/{id}/edit:
     $ref: ./swagger/compliances/paths.yaml/#/editCompliance
+  /project/{id}/risk/create:
+    $ref: ./swagger/risk/paths.yaml/#/createRisk
+  /project/{id}/risk/list:
+    $ref: ./swagger/risk/paths.yaml/#/listRisks
+  /project/{id}/risk/{id}/edit:
+    $ref: ./swagger/risk/paths.yaml/#/editRisk
+  /project/{id}/risk/{id}/delete:
+    $ref: ./swagger/risk/paths.yaml/#/deleteRisk
+
+  /project/{id}/opportunity/create:
+    $ref: ./swagger/opportunity/paths.yaml/#/createOpportunity
+  /project/{id}/opportunity/list:
+    $ref: ./swagger/opportunity/paths.yaml/#/listOpportunities
+  /project/{id}/opportunity/{id}/edit:
+    $ref: ./swagger/opportunity/paths.yaml/#/editOpportunity
+  /project/{id}/opportunity/{id}/delete:
+    $ref: ./swagger/opportunity/paths.yaml/#/deleteOpportunity
+#Phases
+  /phases/create:
+    $ref: ./swagger/phases/paths.yaml/#/createPhase
+  /phases/edit/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseEdit
+  /phases/getPhase/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseGet
+  /phases/deletePhase/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseDelete
+  /phases/list:
+    $ref: ./swagger/phases/paths.yaml/#/phaseList
+
+
+#notifications
+  /notifications/update:
+    $ref: ./swagger/notifications/paths.yaml/#/updateNotification
+  /notifications/list:
+    $ref: ./swagger/notifications/paths.yaml/#/getNotificationList
+  /notifications/role/add:
+    $ref: ./swagger/notifications/paths.yaml/#/addRoleNotification
+  /notifications/template/add:
+    $ref: ./swagger/notifications/paths.yaml/#/addTemplateNotification
+  /notifications/getNotification:
+    $ref: ./swagger/notifications/paths.yaml/#/getNotificationInfo
+  
+#SMS Templates
+  /sms/create:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateCreate
+  /sms/list:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateList
+  /sms/edit/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateEdit
+  /sms/delete/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateDelete
+  /sms/getTemplate/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateGet
 
 definitions:
   # Error
@@ -352,4 +432,11 @@ components:
       $ref: ./swagger/steps/schema.yaml/#/responses/schemas/stepSchema
     groupSchema:
       $ref: ./swagger/groups/schema.yaml/#/responses/schemas/groupSchema
-
+    phaseSchema:
+      $ref: ./swagger/phases/schema.yaml/#/responses/schemas/phaseSchema      
+    smsTemplateSchema:
+      $ref: ./swagger/sms/schema.yaml/#/responses/schemas/templateSchema
+    PrivateGroupSchema:
+      $ref: ./swagger/private-groups/schema.yaml/#/responses/schemas/privateGroup
+    PatternSchema:
+      $ref: ./swagger/patterns/schema.yaml/#/responses/schemas/patternSchema

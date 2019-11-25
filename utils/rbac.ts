@@ -105,3 +105,21 @@ export async function checkCapability(object: any) {
         throw err;
     };
 };
+
+//  Role Users List
+export async function roleUsersList(role: string) {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/role/user/list`,
+            method: "GET",
+            qs: {
+                role: role,
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        console.error(err);
+        throw err;
+    };
+};

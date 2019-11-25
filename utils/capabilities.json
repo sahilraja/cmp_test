@@ -7,6 +7,13 @@
           "category": "User Management"
         },
         {
+          "capability":"bulk-invite",
+          "shortDescription":"Bulk Invitations of User",
+          "description":"Bulk Invitations of User",
+          "category":"User Management",
+          "scope":"global"
+        },
+        {
           "capability": "create-task",
           "shortDescription": "Create Task",
           "description": "Ability to create a task",
@@ -98,20 +105,6 @@
           "scope": "global"
         },
         {
-          "capability": "attach-documents",
-          "shortDescription": "Attach Documents",
-          "description": "Ability to attach documents to a task",
-          "category": "Task Management",
-          "scope": "global"
-        },
-        {
-          "capability": "publish-documents",
-          "shortDescription": "Publish Documents",
-          "description": "Publish Documents",
-          "category": "Document Management",
-          "scope": "global"
-        },
-        {
           "capability": "create-folder",
           "shortDescription": "Create Folder",
           "description": "Ability to create a folder",
@@ -129,7 +122,21 @@
           "capability":"edit-task-progress-dates",
           "shortDescription":"Edit Task Progress Dates",
           "description":"Edit Task Progress Percentage",
-          "category": "Task Management",
+          "category": "Project Management",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-citiis-grants",
+          "shortDescription":"Edit Citiis Grants",
+          "description":"Edit Citiis Grants",
+          "category":"Project Management",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-project-cost",
+          "shortDescription":"Edit Project Cost",
+          "description":"Edit Project Cost",
+          "category":"Project Management",
           "scope":"global"
         },
         {
@@ -182,13 +189,6 @@
           "scope":"global"
         },
         {
-          "capability":"project-edit-task",
-          "shortDescription":"project edit task",
-          "description":"project edit task",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
           "capability":"publish-document",
           "shortDescription":"published documents",
           "description":"published documents",
@@ -217,10 +217,24 @@
           "scope":"global"
         },
         {
+          "capability":"deactivate-group",
+          "shortDescription":"deactivate group",
+          "description":"deactivate group",
+          "category": "Group Management",
+          "scope":"global"
+        },
+        {
           "capability":"project-add-core-team",
           "shortDescription":"add core team",
           "description":"add core team",
           "category": "Project Management",
+          "scope":"global"
+        },
+        {
+          "capability":"suggest-tag",
+          "shortDescription":"Suggest Tag",
+          "description":"Ability to suggest Tag",
+          "category": "Document Management",
           "scope":"global"
         },
         {
@@ -231,10 +245,101 @@
           "scope":"global"
         },
         {
-          "capability":"create-private-group",
+          "capability":"manage-private-group",
           "shortDescription":"Create Private Group",
-          "description":"Create Private Group",
+          "description":"Create Private Group ",
           "category": "Private Group Management",
+          "scope":"global"
+        },
+        {
+          "capability":"delete-message",
+          "shortDescription":"Delete Message",
+          "description":"Ability to delete a message ",
+          "category": "Message Management",
+          "scope":"global"
+        },
+        {
+          "capability":"view-all-cmp-documents",
+          "shortDescription":"View All CMP Documents",
+          "description":"Ability to view all cmp documents ",
+          "category": "Document Management",
+          "scope":"global"
+        },
+        {
+          "capability":"view-all-public-documents",
+          "shortDescription":"View All Public Documents",
+          "description":"Ability to view all public documents ",
+          "category": "Document Management",
+          "scope":"global"
+        },
+        {
+          "capability":"mark-as-public-document",
+          "shortDescription":"Mark document as public",
+          "description":"Ability to mark document as public ",
+          "category": "Document Management",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-project-released-fund",
+          "shortDescription":"Manage Funds Released",
+          "category":"Project Management",
+          "description":"Manage Funds Released",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-project-utilized-fund",
+          "shortDescription":"Manage Funds Utilized",
+          "category":"Project Management",
+          "description":"Manage Funds Released",
+          "scope":"global"
+        },
+        {
+          "capability":"upload-task-excel",
+          "shortDescription":"Bulk Upload of Tasks",
+          "category":"Project Management",
+          "description":"Bulk Upload of Tasks",
+          "scope":"global"
+        },
+        {
+          "capability":"create-compliance",
+          "shortDescription":"Create Compliance",
+          "category":"Compliances",
+          "description":"Manage Compliances",
+          "scope":"global"
+        },
+        {
+          "capability":"edit-compliance",
+          "shortDescription":"Edit Compliance",
+          "category":"Compliances",
+          "description":"Manage Compliances",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-risk",
+          "shortDescription":"Risk Management",
+          "category":"Risk Management",
+          "description":"Risk Management",
+          "scope":"global"
+        },
+        {
+          "capability":"manage-opportunity",
+          "shortDescription":"Opportunity Management",
+          "category":"Opportunity Management",
+          "description":"Opportunity Management",
+          "scope":"global"
+        },
+        {
+          "capability":"patterns-management",
+          "shortDescription":"Pattern management",
+          "category":"Pattern Management",
+          "description":"Pattern management",
+          "scope":"global"
+        },
+        {
+          "capability":"send-message-to-email",
+          "shortDescription":"Send Message To Email",
+          "category":"Message Management",
+          "description":"Ability to send a message to email",
           "scope":"global"
         }
   ]

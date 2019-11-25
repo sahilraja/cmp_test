@@ -52,7 +52,15 @@ import {
   rejectTags,
   getAllTags,
   allDocuments,
-  cancelUpdate
+  cancelUpdate,
+  deleteSuggestedTag,
+  getAllRequest,
+  requestAccept,
+  requestDenied,
+  requestRaise,
+  getAllCmpDocs,
+  getAllPublicDocuments,
+  markDocumentAsPublic
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -62,6 +70,8 @@ import { FILES_SERVER_BASE } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { checkRoleScope } from "../utils/role_management";
+import { constantSchema } from "../site-constants/model";
+import { OK } from "http-status-codes";
 
 const router = Router();
 
@@ -73,6 +83,12 @@ const ensureCanViewDocument: RequestHandler = (req, res, next) => {
 const ensureCanViewVersion: RequestHandler = (req, res, next) => {
   const documentId = req.params.id;
   //Make sure this is either CS or owner.
+  next();
+};
+
+const siteConstants: RequestHandler = async (req: any, res, next) => {
+  let siteConstants: any = await constantSchema.findOne().exec();
+  req.siteConstants = siteConstants.toJSON()
   next();
 };
 
@@ -114,12 +130,12 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 });
 
 //  Create Document new Api
-router.post("/create/new", authenticate, async (req, res, next: NextFunction) => {
+router.post("/create/new", authenticate, siteConstants, async (req: any, res, next: NextFunction) => {
   try {
     const isEligible = await checkRoleScope(res.locals.user.role, "create-doc");
     if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
-    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id));
+    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -467,7 +483,7 @@ router.get("/:id/share/list", authenticate, async (req, res, next: NextFunction)
 router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next: NextFunction) => {
   try {
     const { id, type, userId } = req.params;
-    res.status(200).send(await invitePeopleEdit(id, userId, type, req.query.role));
+    res.status(200).send(await invitePeopleEdit(id, userId, type, req.query.role, res.locals.user));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -477,7 +493,7 @@ router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next:
 router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, next: NextFunction) => {
   try {
     const { id, type, userId } = req.params;
-    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role));
+    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role, res.locals.user));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -511,6 +527,14 @@ router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) 
   }
 });
 
+router.put(`/:id/mark-as-public`, authenticate, async (req, res, next) => {
+  try {
+    res.status(OK).send(await markDocumentAsPublic(req.params.id, res.locals.user.role))
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
+
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
   try {
@@ -532,10 +556,10 @@ router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: 
 });
 
 //  update exist doc
-router.post("/:id/new", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+router.post("/:id/new", authenticate, ensureCanEditDocument, siteConstants, async (req: any, res, next: NextFunction) => {
   try {
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
-    res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id));
+    res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id, req.siteConstants));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -652,11 +676,69 @@ router.post("/:docId/reject/tags", authenticate, async (req, res, next: NextFunc
   }
 });
 
-router.post("/get/tags", async (req, res, next: NextFunction) => {
+router.post("/get/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getAllTags(req.body.tags));
   } catch (err) {
     next(new APIError(err.message));
   }
 });
+
+router.post("/:docId/delete/suggested/tags", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await deleteSuggestedTag(req.params.docId, req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.get("/:id/requests/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getAllRequest(req.params.id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:id/requests/accept", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await requestAccept(req.params.id, res.locals.user));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:id/requests/denied", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await requestDenied(req.params.id, res.locals.user));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/:docid/requests/raise", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await requestRaise(req.params.docid, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+//  Get All Cmp Docs List
+router.get("/allcmp/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getAllCmpDocs(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.get(`/public`, authenticate, async (req, res, next) => {
+  try {
+    res.status(OK).send(await getAllPublicDocuments(res.locals.user.role, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`))
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
+
 export = router;
