@@ -184,15 +184,24 @@ export async function checkRoleScope(role: any, capabilities: any) {
   try {
       const data: any = await fetchRoles()
       if (!data.status) throw new Error("Error to fetch Roles")
-      if(data.data.find((d:any) => d[0] == role && d[2] == capabilities)){
+     let eligible = await role.map((eachRole:any)=>{
+      if(data.data.find((d:any) => d[0] == eachRole && d[2] == capabilities)){
         return true
+      }else{
+        return false
       }
+    })
+    if(eligible.includes(true)){
+      return true
+    }else{
+      return false
+    }
       // for (const policy of data.data) {
       //     if ((policy[0] == role) && (policy[2] == capabilities)) {
       //         return true
       //     }
       // }
-      return false
+      // return false
   } catch (err) {
       console.log(err);
       throw err
