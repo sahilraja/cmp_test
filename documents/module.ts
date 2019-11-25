@@ -1084,32 +1084,24 @@ export async function publishList(userId: string, page: number = 1, limit: numbe
 }
 
 // Get Filterd Documents
-export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string) {
+export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string, publish: boolean = true) {
   search = search.trim();
   try {
     let { users } = await searchByname(search);
     let userIds = users.map((user: any) => user._id)
-    let docs: any = [], shared: any = [], docIds: any = [];
-
-    //  User doc Ids
     let groups = await userGroupsList(userId)
-    docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
-    docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
+    let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
+    docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
-
-    //  Search With Tags
-    if (search.startsWith("#")) {
-      let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
-      if (!tags.length) return [];
-      let tagId = tags.map(tag => tag._id).pop().toString();
-      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).collation({ locale: 'en' }).sort({ name: 1 });
-    } else {
-      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-    }
-    // {: Promise<object[]> 
-    docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
+    let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
+    let tagIds = tags.map(tag => tag.id)
+    let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
+    let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
+    let docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
+    let shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
+    if(publish) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    else  docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    docs = Object.values(docs.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
     let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     filteredDocs = documentsSort(filteredDocs, "name", false)
     return manualPagination(page, limit, filteredDocs)
@@ -1422,21 +1414,21 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
 }
 
 
-// export async function checkCapabilitiesForUser(objBody: any, userId: string) {
-//   try {
-//     let { docIds, userIds } = objBody
-//     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-//     if (objBody.unique) {
-//       if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-//         throw new Error("Duplicate user ids found.");
-//       };
-//     };
-//     let userObjects = await userFindMany("_id", [... new Set(userIds.concat(userId))])
-//     return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId, userObjects)))
-//   } catch (err) {
-//     throw err
-//   };
-// };
+export async function checkCapabilitiesForUserNew(objBody: any, userId: string) {
+  try {
+    let { docIds, userIds } = objBody
+    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    if (objBody.unique) {
+      if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+        throw new Error("Duplicate user ids found.");
+      };
+    };
+    let userObjects = await userFindMany("_id", [... new Set(userIds.concat(userId))])
+    return await Promise.all(docIds.map(docId => loopUsersAndFetchDataNew(docId, userIds, userId, userObjects)))
+  } catch (err) {
+    throw err
+  };
+};
 
 export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
@@ -1456,18 +1448,17 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   };
 };
 
-// async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string, userObjects: any[]) {
-//   try {
-//     return {
-//       document: await documents.findById(docId).exec(),
-//       attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0] },
-//       users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
-//     }
-//   } catch (err) {
-//     throw err;
-
-//   }
-// };
+async function loopUsersAndFetchDataNew(docId: string, userIds: string[], userId: string, userObjects: any[]) {
+  try {
+    return {
+      document: await documents.findById(docId).exec(),
+      attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0] },
+      users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
+    }
+  } catch (err) {
+    throw err;
+  }
+};
 
 
 async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
