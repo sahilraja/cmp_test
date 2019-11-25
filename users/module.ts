@@ -140,8 +140,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!phoneNo(phoneNumber).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
-        let constantsList: any = await constantSchema.findOne().exec();
-        if (aboutme.length > Number(constantsList.aboutMe)) {
+        let constantsList: any = await constantSchema.findOne({key:'aboutMe'}).exec();
+        if (aboutme.length > Number(constantsList.value)) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
 
@@ -197,9 +197,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
             sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
         }
-        let constantsList = await constantSchema.findOne().lean().exec();
+        let constantsList: any = await constantSchema.findOne({key:'aboutMe'}).exec();
         if (objBody.aboutme) {
-            if (objBody.aboutme.length > Number(constantsList.aboutMe)) {
+            if (objBody.aboutme.length > Number(constantsList.value)) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };
