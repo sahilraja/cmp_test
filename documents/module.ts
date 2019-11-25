@@ -1093,7 +1093,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
     let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
-    let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
+    let tags = await Tags.find({ tag: new RegExp(search, "i") });
     let tagIds = tags.map(tag => tag.id)
     let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
@@ -1726,9 +1726,17 @@ export async function getAllRequest(docId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
     let requestData = await docRequestModel.find({ docId: Types.ObjectId(docId), isDelete: false }).populate(docId)
-    return await Promise.all(requestData.map((request: any) => { return { ...request, requestedBy: userFindOne("id", request.requestedBy, {}) } }))
+    return await Promise.all(requestData.map((request: any) => RequestList(request.toJSON())))
   } catch (err) {
     throw err;
+  };
+};
+
+async function RequestList(request: any){
+  try {
+    return { ...request, requestedBy: await userFindOne("id", request.requestedBy, {}) } 
+  } catch (err) {
+    throw err
   };
 };
 
