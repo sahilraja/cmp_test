@@ -2,18 +2,19 @@ import { Router, Request, Response, NextFunction, Handler } from "express";
 import { OK } from "http-status-codes";
 import { constantSchema } from "./model";
 import { APIError } from "../utils/custom-error";
-import { constantsList, addConstants, createConstant, getConstantsGroupBy } from "./module";
+import { constantsList, addConstants, createConstant, getConstantsGroupBy, getConstantsAndValues } from "./module";
+import { authenticate } from "../utils/utils";
 const router = Router();
 
-router.post(`/create`, async (req, res, next) => {
+router.post(`/create`,authenticate,async (req, res, next) => {
     try {
-        res.status(OK).send(await createConstant(req.body))
+        res.status(OK).send(await createConstant(req.body));
     } catch (error) {
         next(new APIError(error.message))
     }
 })
 
-router.get(`/groupBy`, async (req, res, next) => {
+router.get(`/groupBy`,authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await getConstantsGroupBy())
     } catch (error) {
@@ -21,7 +22,7 @@ router.get(`/groupBy`, async (req, res, next) => {
     }
 })
 
-router.post("/update", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/update", authenticate,async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(OK).send(await addConstants(req.body));
     } catch (err) {
@@ -29,7 +30,7 @@ router.post("/update", async (req: Request, res: Response, next: NextFunction) =
     };
 })
 
-router.get("/list", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/list",authenticate,async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(OK).send(await constantsList());
     } catch (err) {
@@ -37,4 +38,11 @@ router.get("/list", async (req: Request, res: Response, next: NextFunction) => {
     };
 })
 
+router.post('/keyValues', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(OK).send(await getConstantsAndValues(req.body.constantKeys));
+    } catch (err) {
+        next(new APIError(err.message));
+    };
+})
 export = router

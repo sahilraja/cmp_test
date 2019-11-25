@@ -66,7 +66,7 @@ app.use(`/pillars`, authenticate, pillarRouter)
 app.use(`/steps`, authenticate, stepRouter)
 app.use(`/private-group`, privateGroup)
 app.use(`/activity`, activityRouter)
-app.use('/constants', authenticate, constantsRouter);
+app.use('/constants', constantsRouter);
 app.use('/phases',authenticate,phaseRouter);
 app.use('/notifications/',authenticate,notificationsRouter);
 app.use('/sms',smsRouter);

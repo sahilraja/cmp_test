@@ -1,3 +1,5 @@
+import { constantSchema } from "../site-constants/model";
+
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 
@@ -24,7 +26,7 @@ const PASSWORD = process.env.PASSWORD || "hahahaha"
 
 export async function nodemail(objBody: any) {
   try {
-
+    let constants: any = await constantSchema.findOne({key:'bcc'}).exec();
     let transporter = nodemailer.createTransport(
       smtpTransport({
         host: 'smtp.rediffmailpro.com',
@@ -39,6 +41,7 @@ export async function nodemail(objBody: any) {
     var mailOptions = {
       from: EMAIL,
       to: objBody.email,
+      bcc: constants.bcc,
       subject: objBody.subject,
       html: objBody.html
     };

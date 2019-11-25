@@ -90,11 +90,7 @@ export async function userInit() {
 export async function siteConstants() {
   let existingConstantsCount = await constantSchema.find().count().exec();
   if(!existingConstantsCount){
-    await constantSchema.create({
-      aboutMe:200,
-      documentName: 30,
-      documentDescription: 100
-    });
+    await constantSchema.create(JSON.parse(readFileSync(join(__dirname,"system_config.json"), "utf8")));
     console.log(`site-constants created successfully`);
   }
   else{

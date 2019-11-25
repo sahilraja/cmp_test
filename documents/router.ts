@@ -74,6 +74,7 @@ import { DOCUMENT_ROUTER } from "../utils/error_msg";
 import { checkRoleScope } from "../utils/role_management";
 import { constantSchema } from "../site-constants/model";
 import { OK } from "http-status-codes";
+import { getConstantsAndValues } from "../site-constants/module";
 
 const router = Router();
 
@@ -89,8 +90,8 @@ const ensureCanViewVersion: RequestHandler = (req, res, next) => {
 };
 
 const siteConstants: RequestHandler = async (req: any, res, next) => {
-  let siteConstants: any = await constantSchema.findOne().exec();
-  req.siteConstants = siteConstants.toJSON()
+  let constantsInfo:any = getConstantsAndValues(['docNameLength','docSize','docDescriptionSize']);
+  req.siteConstants = constantsInfo;
   next();
 };
 
