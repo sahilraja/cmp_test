@@ -341,6 +341,13 @@
           "category":"Message Management",
           "description":"Ability to send a message to email",
           "scope":"global"
+        },
+        {
+          "capability": "activate-deactivate-user",
+          "shortDescription": "Activate/Deactivate User",
+          "description": "Activate/Deactivate User",
+          "scope": "global",
+          "category": "User Management"
         }
   ]
   
