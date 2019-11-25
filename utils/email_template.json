@@ -12,7 +12,7 @@
         "subject" : "Account Status update"
     },
     {
-        "content" : "You have been logged into <b>CMP</b>",
+        "content" : "You have logged into <b>CMP</b>",
         "templateName" : "userLogin",
         "subject" : "Welcome to CMP !!",
         "displayName" : "User Login"
@@ -132,13 +132,7 @@
         "subject" : "Group Status"
     },
     {
-        "content" : "Hi <b>[userName]</b>,<br/><br><br/> A new comment is added on Document [documentName] in CMP.<br/><br/>Click on the <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
-        "templateName" : "openComment",
-        "displayName" : "New Comment",
-        "subject" : "New comment on Document"
-    },
-    {
-        "content" : "Hi <b>[userName]</b>,<br/><br><br/> A new comment is added on Document [documentName] in CMP.<br/><br/>Click on the <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[userName]</b>,<br/><br><br/> A new comment is added on Document in CMP.<br/><br/>Click on the <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "addCommentToDoc",
         "displayName" : "add New Comment ",
         "subject" : "New comment on Document"
@@ -226,5 +220,11 @@
         "templateName" : "addOpenComment",
         "displayName" : "Add Open Comment",
         "subject" : "New Comment on [ProjectName]"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>, <br/><br/>You have updated your profile in <b>CMP</b><br/><br><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "profile",
+        "displayName" : "update profile",
+        "subject" : "Profile Updated"
     }
 ]
