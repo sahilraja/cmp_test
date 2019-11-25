@@ -21,7 +21,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
@@ -1423,7 +1423,7 @@ export async function checkCapabilitiesForUserNew(objBody: any, userId: string) 
         throw new Error("Duplicate user ids found.");
       };
     };
-    let userObjects = await userFindMany("_id", [... new Set(userIds.concat(userId))])
+    let userObjects = (await userFindMany("_id", [... new Set(userIds.concat(userId))])).map((user: any) => { return { ...user, type: "user" } })
     return await Promise.all(docIds.map(docId => loopUsersAndFetchDataNew(docId, userIds, userId, userObjects)))
   } catch (err) {
     throw err
@@ -1452,7 +1452,7 @@ async function loopUsersAndFetchDataNew(docId: string, userIds: string[], userId
   try {
     return {
       document: await documents.findById(docId).exec(),
-      attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0] },
+      attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0], type: "user" },
       users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
     }
   } catch (err) {
@@ -1481,6 +1481,8 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
 
 async function userWithDocRole(docId: string, userId: string, usersObjects: any[]) {
   try {
+    let user = usersObjects.find(user => user._id == userId)
+    if (!user) user = {...(await groupFindOne("_id", userId)), type: "group"}
     return {
       ...(usersObjects.find(user => user._id == userId)),
       docRole: (await documnetCapabilities(docId, userId) as any || [""])[0]
@@ -1860,14 +1862,6 @@ async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: stri
     throw err;
   };
 };
-
-/*
-owner -- access to newowner
-  #if newowner capability remove
-
-shared with owner ---
-          change to shared with new owner #if newOwnew Capability is low
-*/
 
 export async function getAllPublicDocuments(userRole: string, currentPage = 1, limit = 20, host: string) {
   // const isEligible = await checkRoleScope(userRole, 'view-all-public-documents')
