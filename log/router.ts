@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { OK } from "http-status-codes";
-import { paginatedList, create, list, getTaskLogs, getDocumentsLogs } from "./module";
+import { paginatedList, create, list, getTaskLogs, getDocumentsLogs, getProfileLogs } from "./module";
 import { APIError } from "../utils/custom-error";
 import { authenticate } from "../utils/utils";
 const router = Router()
