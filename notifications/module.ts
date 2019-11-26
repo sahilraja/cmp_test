@@ -88,8 +88,8 @@ export async function getRoleNotification(roleName: string, templateName: string
 export async function userRolesNotification(userId: any, templateName: string) {
     try {
         let { data } = await getRoles(userId);
-        let roleInfo: any = await Promise.all(data.map(async (user: any) => {
-            return await getRoleNotification(user.role, templateName);
+        let roleInfo: any = await Promise.all(data.map(async (role: any) => {
+            return await getRoleNotification(role, templateName);
         }))
         //return roleInfo
         let notificationResult: any = roleInfo.reduce((acc: any, roleObj: any) => {
