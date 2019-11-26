@@ -60,7 +60,8 @@ import {
   requestRaise,
   getAllCmpDocs,
   getAllPublicDocuments,
-  markDocumentAsPublic
+  markDocumentAsPublic,
+  checkCapabilitiesForUserNew
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -210,7 +211,7 @@ router.get("/approvals/:id", authenticate, async (req, res, next: NextFunction) 
 
 router.get("/search", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await docFilter(req.query.filter, res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`, req.query.publish));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -219,6 +220,14 @@ router.get("/search", authenticate, async (req, res, next: NextFunction) => {
 router.post("/user-capabilities", authenticate, async (req, res, next) => {
   try {
     res.status(200).send(await checkCapabilitiesForUser(req.body, res.locals.user._id))
+  } catch (err) {
+    next(new APIError(err.message));
+  };
+});
+
+router.post("/user-capabilities-new", authenticate, async (req, res, next) => {
+  try {
+    res.status(200).send(await checkCapabilitiesForUserNew(req.body, res.locals.user._id))
   } catch (err) {
     next(new APIError(err.message));
   };

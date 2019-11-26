@@ -243,7 +243,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
-        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
+        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
         const data = await Promise.all(docs.map(async doc => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data.map((user: any) => {
@@ -275,7 +275,7 @@ export async function user_status(id: string, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
 
-        let admin_scope = await checkRoleScope(user.role, "create-user");
+        let admin_scope = await checkRoleScope(user.role, "activate-deactivate-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
 
         let userData: any = await userFindOne("id", id);
@@ -308,7 +308,7 @@ export async function user_login(req: any) {
             }
         }
 
-        //await recaptchaValidation(req);
+        // await recaptchaValidation(req);
 
         //  find User
         let userData: any = await userFindOne("email", objBody.email);

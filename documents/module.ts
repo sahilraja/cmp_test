@@ -21,7 +21,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
@@ -1084,32 +1084,24 @@ export async function publishList(userId: string, page: number = 1, limit: numbe
 }
 
 // Get Filterd Documents
-export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string) {
+export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string, publish: boolean = true) {
   search = search.trim();
   try {
     let { users } = await searchByname(search);
     let userIds = users.map((user: any) => user._id)
-    let docs: any = [], shared: any = [], docIds: any = [];
-
-    //  User doc Ids
     let groups = await userGroupsList(userId)
-    docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
-    docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
+    let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
+    docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
-
-    //  Search With Tags
-    if (search.startsWith("#")) {
-      let tags = await Tags.find({ tag: new RegExp(((search.substring(1)).trim()), "i") });
-      if (!tags.length) return [];
-      let tagId = tags.map(tag => tag._id).pop().toString();
-      docs = await documents.find({ tags: { $elemMatch: { $eq: tagId } }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $elemMatch: { $eq: tagId } } }).collation({ locale: 'en' }).sort({ name: 1 });
-    } else {
-      docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-      shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-    }
-    // {: Promise<object[]> 
-    docs = [...(docs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shared];
+    let tags = await Tags.find({ tag: new RegExp(search, "i") });
+    let tagIds = tags.map(tag => tag.id)
+    let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
+    let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
+    let docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
+    let shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
+    if (publish) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    else docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    docs = Object.values(docs.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
     let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     filteredDocs = documentsSort(filteredDocs, "name", false)
     return manualPagination(page, limit, filteredDocs)
@@ -1422,21 +1414,21 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
 }
 
 
-// export async function checkCapabilitiesForUser(objBody: any, userId: string) {
-//   try {
-//     let { docIds, userIds } = objBody
-//     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-//     if (objBody.unique) {
-//       if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-//         throw new Error("Duplicate user ids found.");
-//       };
-//     };
-//     let userObjects = await userFindMany("_id", [... new Set(userIds.concat(userId))])
-//     return await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId, userObjects)))
-//   } catch (err) {
-//     throw err
-//   };
-// };
+export async function checkCapabilitiesForUserNew(objBody: any, userId: string) {
+  try {
+    let { docIds, userIds } = objBody
+    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    if (objBody.unique) {
+      if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+        throw new Error("Duplicate user ids found.");
+      };
+    };
+    let userObjects = (await userFindMany("_id", [... new Set(userIds.concat(userId))])).map((user: any) => { return { ...user, type: "user" } })
+    return await Promise.all(docIds.map(docId => loopUsersAndFetchDataNew(docId, userIds, userId, userObjects)))
+  } catch (err) {
+    throw err
+  };
+};
 
 export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
@@ -1456,18 +1448,17 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   };
 };
 
-// async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string, userObjects: any[]) {
-//   try {
-//     return {
-//       document: await documents.findById(docId).exec(),
-//       attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0] },
-//       users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
-//     }
-//   } catch (err) {
-//     throw err;
-
-//   }
-// };
+async function loopUsersAndFetchDataNew(docId: string, userIds: string[], userId: string, userObjects: any[]) {
+  try {
+    return {
+      document: await documents.findById(docId).exec(),
+      attachedBy: { ...(userObjects.find(user => user._id == userId)), docRole: (await documnetCapabilities(docId, userId) as any || [""])[0], type: "user" },
+      users: await Promise.all(userIds.map(userId => userWithDocRole(docId, userId, userObjects)))
+    }
+  } catch (err) {
+    throw err;
+  }
+};
 
 
 async function loopUsersAndFetchData(docId: string, userIds: string[], userId: string) {
@@ -1490,8 +1481,10 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
 
 async function userWithDocRole(docId: string, userId: string, usersObjects: any[]) {
   try {
+    let user = usersObjects.find(user => user._id == userId)
+    if (!user) user = {...(await groupFindOne("_id", userId)), type: "group"}
     return {
-      ...(usersObjects.find(user => user._id == userId)),
+      ...(user),
       docRole: (await documnetCapabilities(docId, userId) as any || [""])[0]
     }
   } catch (err) {
@@ -1735,9 +1728,17 @@ export async function getAllRequest(docId: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
     let requestData = await docRequestModel.find({ docId: Types.ObjectId(docId), isDelete: false }).populate(docId)
-    return await Promise.all(requestData.map((request: any) => { return { ...request, requestedBy: userFindOne("id", request.requestedBy, {}) } }))
+    return await Promise.all(requestData.map((request: any) => RequestList(request.toJSON())))
   } catch (err) {
     throw err;
+  };
+};
+
+async function RequestList(request: any) {
+  try {
+    return { ...request, requestedBy: await userFindOne("id", request.requestedBy, {}) }
+  } catch (err) {
+    throw err
   };
 };
 
@@ -1747,15 +1748,20 @@ export async function requestAccept(requestId: string, userObj: any) {
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
     let capability: any[] = await documnetCapabilities(requestDetails.docId, requestDetails.requestedBy);
+    let addedCapability;
     if (capability.includes("no_access")) {
-      await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId, "viewer")
+      addedCapability = await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId.id, "viewer")
     } else if (capability.includes("viewer")) {
-      await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId, "viewer");
-      await groupsAddPolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId, "collaborator");
+      await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "viewer");
+      addedCapability = await groupsAddPolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "collaborator");
     } else {
       throw new Error("Invalid Action Performed.")
     }
-    return { message: "Shared successfully." }
+    if (addedCapability && addedCapability.user.length) {
+      await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
+      return { message: "Shared successfully." }
+    }
+    throw new Error("Unable to Fecth Data.")
   } catch (err) {
     throw err;
   };
@@ -1775,7 +1781,7 @@ export async function requestDenied(requestId: string, userObj: any) {
 export async function requestRaise(docId: string, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id.");
-    return await docRequestModel.create({ requestId: userId, docId: docId })
+    return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
     throw err;
   }
@@ -1856,14 +1862,6 @@ async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: stri
     throw err;
   };
 };
-
-/*
-owner -- access to newowner
-  #if newowner capability remove
-
-shared with owner ---
-          change to shared with new owner #if newOwnew Capability is low
-*/
 
 export async function getAllPublicDocuments(userRole: string, currentPage = 1, limit = 20, host: string) {
   // const isEligible = await checkRoleScope(userRole, 'view-all-public-documents')
