@@ -169,5 +169,10 @@
         "content" : "New comment(s) is added to the project [ProjectName]",
         "templateName" : "addOpenComment",
         "displayName" : "Add Open Comment"
+    },
+    {
+        "content" : "You have updated your profile in CMP",
+        "templateName" : "profile",
+        "displayName" : "Profile Update"
     }
 ]
