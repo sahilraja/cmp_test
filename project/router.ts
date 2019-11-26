@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
@@ -37,6 +37,22 @@ router.get("/:id/detail", async (req, res, next) => {
         res.status(OK).send(await getProjectDetail(req.params.id))
     } catch (err) {
         next(new APIError(err.message));
+    }
+})
+
+router.post(`/:id/add-released-installment`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addReleasedInstallment(req.params.id, req.body))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.post(`/:id/add-utilized-installment`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addUtilizedInstallment(req.params.id, req.body))
+    } catch (error) {
+        next(new APIError(error.message))
     }
 })
 
