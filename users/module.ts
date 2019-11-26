@@ -771,8 +771,9 @@ export async function profileOtpVerify(objBody: any, user: any) {
 }
 export async function loginHistory(id: string) {
     try {
+        let userInfo = await userFindOne("id",id);
         let userLoginHistory = await loginSchema.find({ userId: id }).sort({ createdAt: 1 })
-        return userLoginHistory;
+        return {history: userLoginHistory, userInfo};
     } catch (err) {
         throw err
     }
@@ -902,6 +903,44 @@ export async function tokenValidation(token: string) {
         return user
     }
     catch (err) {
+        throw err
+    }
+}
+export async function profileEditByAdmin(id:string,body:any,admin:any) {
+    try{
+        let admin_scope = await checkRoleScope(admin.role, "create-user");
+        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        let user :any = await userFindOne("id",id);
+        if(!user.emailVerified){
+            throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
+        }
+        const { firstName, lastName, middleName, phone, aboutme, countryCode, email} = body;
+
+        if (!firstName || !lastName || firstName.trim() == "" || lastName.trim() == "" || !phone || !countryCode) {
+            throw new Error(USER_ROUTER.MANDATORY);
+        };
+        if (email) {
+            if (!validateEmail(email)) {
+                throw Error(USER_ROUTER.EMAIL_WRONG);
+            }
+        }
+        if(phone && countryCode){
+            let phoneNumber: string = countryCode + phone
+            if (!phoneNo(phoneNumber).length) {
+                throw new Error(USER_ROUTER.VALID_PHONE_NO)
+            }
+            
+        }
+        if(aboutme){
+            let constantsList: any = await constantSchema.findOne().exec();
+            if (aboutme.length > Number(constantsList.aboutMe)) {
+                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+            }
+        }
+        await userEdit(id,body);
+        return { message : "successfully profile Updated" }
+    }
+    catch(err){
         throw err
     }
 }

@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, mobileVerifyOtpicatioin, tokenValidation } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, mobileVerifyOtpicatioin, tokenValidation, profileEditByAdmin } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -396,4 +396,14 @@ router.get('/validation/:token',async(req,res,next)=>{
         next(new APIError(err.message))
     }
 })
+
+
+router.post('/:id/admin/profile/edit', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(OK).send(await profileEditByAdmin(req.params.id,req.body,res.locals.user));
+    } catch (err) {
+        next(new APIError(err.message));;
+    };
+});
+
 export = router;

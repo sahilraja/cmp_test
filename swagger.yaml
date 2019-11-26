@@ -72,7 +72,8 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/mobileOtp
   /user/change/mobile:
     $ref: ./swagger/users/paths.yaml/#/changeMobile
-
+  /user/{id}/admin/profile/edit:
+    $ref: ./swagger/users/paths.yaml/#/editAdminProfile
 
 # Groups APIs
   /user/group/create:
