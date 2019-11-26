@@ -4209,7 +4209,7 @@ paths:
                 type: array
                 items:
                   type: object
-                  $ref: './schema.yaml/#/responses/schemas/Document'
+                  $ref: './schema/#/responses/schemas/Document'
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /docs/search:

@@ -194,9 +194,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
            let updatedRole = await updateRole(id, objBody.updateRole, objBody.role);
            userRole.push(updatedRole);
         }
-        if(id != user._id && objBody.addRole){
+        // if(objBody.addRole){
              //  Add Role to User
-        if (objBody.addRole.length) {
+        if (objBody.addRole &&  objBody.addRole.length) {
             for (let role of objBody.addRole) {
                 let RoleStatus = await addRole(id, role)
                 if (!RoleStatus.status) {
@@ -205,20 +205,20 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }
         }
             // let addRole = await addRole(id,role);
-        }
+        // }
 
-        if(id != user._id && objBody.revokeRole){
+        // if(objBody.revokeRole){
             //  Delete Role of User
-       if (objBody.revokeRole.length) {
+       if (objBody.revokeRole && objBody.revokeRole.length) {
            for (let role of objBody.revokeRole) {
                let RoleStatus = await revokeRole(id, role)
                if (!RoleStatus.status) {
-                   throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+                   throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
                }
            }
        }
            // let addRole = await addRole(id,role);
-       }
+    //    }
 
         let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
