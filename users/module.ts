@@ -944,7 +944,7 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
             }
         }
         let userInfo = await userEdit(id, body);
-        await create({ activityType: "EDIT-PROFILE", activityBy: admin._id, profileId: userInfo._id })
+        await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id })
         return { message: "successfully profile Updated" }
     }
     catch (err) {
