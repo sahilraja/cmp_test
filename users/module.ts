@@ -100,6 +100,7 @@ export async function inviteUser(objBody: any, user: any) {
             role: objBody.role
         });
         sendNotification({ id: user._id, fullName, email: objBody.email, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        await create({ activityType: "INVITE-USER", activityBy: user._id, profileId: userData._id })
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -153,6 +154,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             profilePicName: name
         })
         //  create life time token
+        await create({ activityType: "REGISTER-USER", activityBy: token.id, profileId: token.id })
         return { token: await createJWT({ id: success._id, role: token.role }) }
     } catch (err) {
         throw err;
@@ -186,6 +188,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         let userRole;
         if (id != user._id && objBody.role) {
             userRole = await updateRole(id, objBody.updateRole, objBody.role);
+            await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
         }
         let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
@@ -253,6 +256,7 @@ export async function user_status(id: string, user: any) {
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated"
         const { mobileNo, fullName } = getFullNameAndMobile(userData);
+        await create({ activityType: data.is_active ? "ACTIVATE-PROFILE": "DEACTIVATE-PROFILE", activityBy: user.id, profileId: id })
         sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileMessage: MOBILE_TEMPLATES.STATE });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
@@ -297,12 +301,12 @@ export async function user_login(req: any) {
 export async function userInviteResend(id: string, role: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-
         let userData: any = await userFindOne("id", id)
         if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
         let token = await jwt_for_url({ id: id, role: role, email: userData.email });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
+        await create({ activityType: "RESEND-INVITE-USER", activityBy: user.id, profileId: id })
         sendNotification({ id: user._id, fullName, email: userData.email, role: role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
