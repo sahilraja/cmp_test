@@ -81,7 +81,6 @@ async function activityFetchDetails(activity: any) {
 
 export async function getProfileLogs(profileId: string, token: string) {
     try {
-        const select = {name: true, description: true}
         const activities: any[] = await ActivitySchema.find({ profileId: Types.ObjectId(profileId) }).exec()
         return await Promise.all(activities.map((activity: any) => {
             return profileFetchDetails(activity.toJSON())
