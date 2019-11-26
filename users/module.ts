@@ -177,7 +177,11 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
+<<<<<<< HEAD
         let updateProfile: Number = 1;
+=======
+        let user_roles:any = await userRoles(id)
+>>>>>>> changed edit role
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
             if (!validateEmail(objBody.email)) {

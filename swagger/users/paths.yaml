@@ -498,11 +498,13 @@
                   type: string
                   format: binary
                 role:
-                  type: string
-                  example: old role
-                updateRole:
-                  type: string
-                  example: new role
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - role 1
+                    - role 2
+                    - role 3
                 countryCode:
                   type: string
                   example: '+91'
@@ -514,21 +516,7 @@
                     example: this is sample about me
                 email:
                   type: string
-                  example: Jeevan.balla@transerve.com
-                addRole:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    - role1
-                    - role2
-                revokeRole:
-                  type: array
-                  items:
-                    type: string
-                  example:
-                    - role1
-                    - role2  
+                  example: Jeevan.balla@transerve.com  
                                       
       responses:
         "200":
