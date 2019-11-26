@@ -23,6 +23,7 @@ import { httpRequest } from "../utils/role_management";
 import { userRolesNotification } from "../notifications/module";
 import { readFileSync } from "fs"
 import { any } from "bluebird";
+import { create } from "../log/module";
 
 const MESSAGE_URL = process.env.MESSAGE_URL
 
@@ -199,6 +200,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         // update user with edited fields
         let userInfo = await userEdit(id, objBody);
         userInfo.role = userRole;
+        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id })
         return userInfo
     } catch (err) {
         throw err;
@@ -221,7 +223,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             });
             return user
         })
-        
+
         return { data, page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
@@ -573,7 +575,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         if (roles) {
             roles = await Promise.all(roles.map((role: string) => roleUsersList(role)));
             roles = await userFindManyWithRole([... new Set(roles.reduce((main: any, curr: any) => main.concat(curr.users), []))] as any)
-            roles = roles.filter(({emailVerified, is_active}: any)=> emailVerified && is_active)
+            roles = roles.filter(({ emailVerified, is_active }: any) => emailVerified && is_active)
         }
         let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
         let privateUsersObj = await userFindManyWithRole(privateGroupUser)
@@ -581,7 +583,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
         let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
         // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
-        allUsers = Object.values(allUsers.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
+        allUsers = Object.values(allUsers.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
         // allUsers = allUsers.filter(({emailVerified, is_active}): any=> emailVerified && is_active)
         if (searchKeyArray.length) {
             return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
@@ -608,7 +610,7 @@ async function roleFormanting(users: any[]) {
 
 function userSort(data: any[]) {
     try {
-        return data.sort((a: any, b: any) => (a.firstName|| a.middleName || a.name).localeCompare(b.firstName|| b.middleName || b.name));
+        return data.sort((a: any, b: any) => (a.firstName || a.middleName || a.name).localeCompare(b.firstName || b.middleName || b.name));
     } catch (err) {
         throw err
     };
@@ -771,9 +773,9 @@ export async function profileOtpVerify(objBody: any, user: any) {
 }
 export async function loginHistory(id: string) {
     try {
-        let userInfo = await userFindOne("id",id);
+        let userInfo = await userFindOne("id", id);
         let userLoginHistory = await loginSchema.find({ userId: id }).sort({ createdAt: 1 })
-        return {history: userLoginHistory, userInfo};
+        return { history: userLoginHistory, userInfo };
     } catch (err) {
         throw err
     }
@@ -906,15 +908,15 @@ export async function tokenValidation(token: string) {
         throw err
     }
 }
-export async function profileEditByAdmin(id:string,body:any,admin:any) {
-    try{
+export async function profileEditByAdmin(id: string, body: any, admin: any) {
+    try {
         let admin_scope = await checkRoleScope(admin.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-        let user :any = await userFindOne("id",id);
-        if(!user.emailVerified){
+        let user: any = await userFindOne("id", id);
+        if (!user.emailVerified) {
             throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
         }
-        const { firstName, lastName, middleName, phone, aboutme, countryCode, email} = body;
+        const { firstName, lastName, middleName, phone, aboutme, countryCode, email } = body;
 
         if (!firstName || !lastName || firstName.trim() == "" || lastName.trim() == "" || !phone || !countryCode) {
             throw new Error(USER_ROUTER.MANDATORY);
@@ -924,23 +926,24 @@ export async function profileEditByAdmin(id:string,body:any,admin:any) {
                 throw Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
-        if(phone && countryCode){
+        if (phone && countryCode) {
             let phoneNumber: string = countryCode + phone
             if (!phoneNo(phoneNumber).length) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
-            
+
         }
-        if(aboutme){
+        if (aboutme) {
             let constantsList: any = await constantSchema.findOne().exec();
             if (aboutme.length > Number(constantsList.aboutMe)) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         }
-        await userEdit(id,body);
-        return { message : "successfully profile Updated" }
+        let userInfo = await userEdit(id, body);
+        await create({ activityType: "EDIT-PROFILE", activityBy: admin._id, profileId: userInfo._id })
+        return { message: "successfully profile Updated" }
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
