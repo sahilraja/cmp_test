@@ -891,7 +891,7 @@ export function getFullNameAndMobile(userObj: any) {
 export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     let userNotification: any;
-    if (mobileNo.slice(0, 3) == "+91") {
+    if (mobileNo && mobileNo.slice(0, 3) == "+91") {
         if (!mobileOtp) {
             userNotification = await userRolesNotification(id, templateName);
         }
@@ -1054,10 +1054,11 @@ export function validatePassword(password: string) {
 
 export async function sendNotificationToGroup(groupId: string, groupName: string, userId: string, templateNamesInfo: any) {
     try {
-        let usersList = await groupUserList(groupId);
-        usersList.forEach((user) => {
+        let userIds = await groupUserList(groupId);
+        let userObjs = await userFindMany("_id", userIds)
+        userObjs.forEach((user: any) => {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
-            sendNotification({
+             sendNotification({
                 id: userId, mobileNo,
                 fullName, groupName,
                 ...templateNamesInfo
