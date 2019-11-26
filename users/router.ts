@@ -15,6 +15,7 @@ import { roles_list, role_list } from "../role/module";
 import { SENDER_IDS } from "../utils/error_msg";
 const router = Router();
 import * as multer from "multer";
+import { constantSchema } from "../site-constants/model";
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         console.log("Dest");
@@ -406,4 +407,12 @@ router.post('/:id/admin/profile/edit', authenticate, async (req: Request, res: R
     };
 });
 
+router.get('/check/recaptcha',async(req,res,next)=>{
+    try{
+        res.status(OK).send(await constantSchema.find({key:"captcha"}));
+    }
+    catch(err){
+        next(new APIError(err.message));
+    }
+})
 export = router;
