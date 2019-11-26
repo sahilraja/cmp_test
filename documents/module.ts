@@ -1454,11 +1454,11 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    if (objBody.unique) {
-      if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-        throw new Error("Duplicate user ids found.");
-      };
-    };
+    // if (objBody.unique) {
+    //   if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+    //     throw new Error("Duplicate user ids found.");
+    //   };
+    // };
     let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
     let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
     let noAccessDocs = docIds.filter(docid => !Object.keys(mainObj).includes(docid))
