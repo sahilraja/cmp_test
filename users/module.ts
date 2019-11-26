@@ -418,7 +418,7 @@ export async function createGroup(objBody: any, userObj: any) {
         let isEligible = await checkRoleScope(userObj.role, "create-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         const { name, description, users } = objBody
-        if (!name || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
+        if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         let group: any = await groupCreate({
             name: name,
             description: description,
