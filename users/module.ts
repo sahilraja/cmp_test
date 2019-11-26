@@ -168,6 +168,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
+        let user_roles:any = await userRoles(id)
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
             if (!validateEmail(objBody.email)) {
@@ -189,36 +190,24 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
         };
-        let userRole=[];
-        if (id != user._id && objBody.role) {
-           let updatedRole = await updateRole(id, objBody.updateRole, objBody.role);
-           userRole.push(updatedRole);
-        }
-        // if(objBody.addRole){
-             //  Add Role to User
-        if (objBody.addRole &&  objBody.addRole.length) {
-            for (let role of objBody.addRole) {
+        let userRole:any=[];
+
+        if (objBody.role &&  objBody.role.length) {
+
+            const removeRole = await Promise.all(user_roles.roles.map(async (role:any) =>{ 
+            let RoleStatus = await revokeRole(id, role)
+                if (!RoleStatus.status) {
+                    throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
+                }
+            }));
+            const addrole = await Promise.all(objBody.role.map(async (role:any) =>{ 
                 let RoleStatus = await addRole(id, role)
                 if (!RoleStatus.status) {
                     throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
                 }
-            }
+                userRole.push(role)
+                }));
         }
-            // let addRole = await addRole(id,role);
-        // }
-
-        // if(objBody.revokeRole){
-            //  Delete Role of User
-       if (objBody.revokeRole && objBody.revokeRole.length) {
-           for (let role of objBody.revokeRole) {
-               let RoleStatus = await revokeRole(id, role)
-               if (!RoleStatus.status) {
-                   throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
-               }
-           }
-       }
-           // let addRole = await addRole(id,role);
-    //    }
 
         let constantsList = await constantSchema.findOne().lean().exec();
         if (objBody.aboutme) {
