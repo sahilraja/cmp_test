@@ -859,7 +859,23 @@
                 properties:
                   history:
                     type: array
-                    example: [{}]
+                    items:
+                      type: object
+                      properties:
+                        _id: 
+                          example: 5daedaeefb8aa31f4cc86a1c
+                        ip : 
+                          example: 192.168.1.90
+                        userId : 
+                          example: 1234567890
+                  userInfo: 
+                    allOf: 
+                    - $ref: "./schema.yaml/#/responses/schemas/userSchema" 
+                    - type: object
+                      properties:
+                        id: 
+                          type: string
+                          example: "1234567890"
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
   mobileOtp:
@@ -947,7 +963,7 @@
               properties:
                 newCountryCode:
                   type: string
-                  exmaple : +91
+                  example : "+91"
                 newPhone:
                   type: string
                   example: "1234567890"
@@ -966,5 +982,60 @@
                   message:
                     type: string
                     example: success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  editAdminProfile:
+  # "/user/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary:  admin edit user profile
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+            
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  example: jeevan
+                lastName:
+                  type: string
+                  example: jeevan
+                middleName:
+                  type: string
+                  example:
+                countryCode:
+                  type: string
+                  example: '+91'
+                phone:
+                  type: string
+                  example: 7989238348
+                aboutme:
+                    type: string
+                    example: this is sample about me
+                email:
+                  type: string
+                  example: Jeevan.balla@transerve.com
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  - message : successfully profile Update
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
