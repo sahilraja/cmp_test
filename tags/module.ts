@@ -31,11 +31,11 @@ export async function mergeTags(body: any, token: string) {
     }, { multi: true });
     let messageMergeTags = await mergeMessageTags(body, token)
     let taskMergeTags = await mergeTaskTags(body,token);
-    // let removeTagIds = body.tags.filter((tag: any) => tag != body.mergeTag)
-    // let removeTags = await tags.update({ _id: { "$in": removeTagIds } }, {
-    //   $set: { deleted: true }
-    // },
-    //   { multi: true });
+    let removeTagIds = body.tags.filter((tag: any) => tag != body.mergeTag)
+    let removeTags = await tags.update({ _id: { "$in": removeTagIds } }, {
+      $set: { deleted: true }
+    },
+      { multi: true });
     return {
       status: true, 
       Message: "Tags Merged Successfully"
