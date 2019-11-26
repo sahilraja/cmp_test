@@ -355,7 +355,13 @@
           "description": "Ability to Attach Documents to a Messages",
           "scope": "global",
           "category": "Message Management"
-        }
-        
+        },
+        {
+          "capability": "merge-tag",
+          "shortDescription": "Merge Tags",
+          "description": "Ability to merge Tags",
+          "category": "Document Management",
+          "scope": "global"
+        }   
   ]
   

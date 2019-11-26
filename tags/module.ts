@@ -2,7 +2,8 @@ import { tags } from "./tag_model";
 import { documents } from "../documents/model"
 const MESSAGE_URL = process.env.MESSAGE_URL || "http://localhost:4001";
 const TASK_URL = process.env.TASK_HOST || "http://localhost:5052";
- 
+import { checkRoleScope } from '../utils/role_management' ;
+import { userRoleAndScope } from "../role/module";
 import * as request from "request-promise";
 
 
@@ -18,8 +19,14 @@ export async function tag_list(search: string) {
 }
 
 //  get list of tags
-export async function mergeTags(body: any, token: string) {
+export async function mergeTags(body: any, token: string, userId:string) {
   try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "merge-tag");
+    if (!isEligible) {
+      throw new APIError("Unauhorized Action", 403);
+    }
     if(!body.tags ||!body.mergeTag) throw new Error("All Mandatory Fields Required")
     let docData = await documents.find({ tags: { "$in": body.tags } })
     let docIds = docData.map((doc) => { return doc._id })
