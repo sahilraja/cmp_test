@@ -31,7 +31,7 @@ import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 const MESSAGE_URL = process.env.MESSAGE_URL
 
-const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
+const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
 
 export async function bulkInvite(filePath: string, userId: string) {
     const excelFormattedData = importExcelAndFormatData(filePath)
