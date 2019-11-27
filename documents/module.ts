@@ -66,7 +66,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
 
-    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? JSON.parse(body.tags) : []).filter((tag: any) => Types.ObjectId.isValid(tag))
     
     if(body.tags && body.tags.length){
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
