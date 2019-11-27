@@ -2,127 +2,139 @@
     {
         "key" :"captcha",
         "value" : "true" ,
-        "groupName " : "authentication",
+        "groupName" : "authentication",
         "displayName" : "Enable/Disable Captcha"
     },
     {
         "key" :"invalidPassword",
         "value" : "true" ,
-        "groupName " : "authentication",
+        "groupName" : "authentication",
         "displayName" : "Enable/Disable wrong password "
     },
     {
         "key" :"linkExpire",
         "value" : "15" ,
-        "groupName " : "authentication",
+        "groupName" : "authentication",
         "displayName" : "Link expire time"
     },
     {
         "key" :"otpExpire",
         "value" : "15" ,
-        "groupName " : "authentication",
+        "groupName" : "authentication",
         "displayName" : "OTP expire time"
     },
     {
         "key" :"bulkInvite",
         "value" : "true" ,
-        "groupName " : "bulkInvite",
+        "groupName" : "userManagement",
         "displayName" : "Enable/Disable bulk invitation"
     },
     {
         "key" :"passwordLength",
         "value" : "8" ,
-        "groupName " : "password",
+        "groupName" : "password",
         "displayName" : "Password Length"
     },
     {
         "key" :"specialCharCount",
         "value" : "8" ,
-        "groupName " : "password",
+        "groupName" : "password",
         "displayName" : "Special characters count"
     },
     {
         "key" :"numCount",
         "value" : "8" ,
-        "groupName " : "password",
+        "groupName" : "password",
         "displayName" : "Numbers count"
     },
     {
         "key" :"upperCaseCount",
         "value" : "8" ,
-        "groupName " : "password",
+        "groupName" : "password",
         "displayName" : "Numbers count"
     },
     {
         "key" :"aboutMe",
         "value" : "200" ,
-        "groupName " : "userManagement",
+        "groupName" : "userManagement",
         "displayName" : "aboutMe"
     },
     {
         "key" :"docNameLength",
         "value" : "50" ,
-        "groupName " : "documents",
+        "groupName" : "documents",
         "displayName" : "Document Name Length"
     },
     {
         "key" :"docSize",
         "value" : "25" ,  
-        "groupName " : "documents",
+        "groupName" : "documents",
         "displayName" : "Document size"
     },
     {
         "key" :"docDescriptionSize",
         "value" : "200" ,
-        "groupName " : "documents",
+        "groupName" : "documents",
         "displayName" : "Document description Size"
     },
     {
         "key" :"messageSubjectLength",
         "value" : "30" ,
-        "groupName " : "messsages",
+        "groupName" : "messsages",
         "displayName" : "Message subject Length"
     },
     {
         "key" :"messageExcerptLength",
         "value" : "30" ,
-        "groupName " : "messsages",
+        "groupName" : "messsages",
         "displayName" : "Message excerpt Length"
     },
     {
         "key" :"taskTitleLength",
         "value" : "50" ,
-        "groupName " : "task",
+        "groupName" : "task",
         "displayName" : "task title Length"
     },
     {
         "key" :"docNamePg",
         "value" : "50" ,
-        "groupName " : "privateGroup",
+        "groupName" : "privateGroup",
         "displayName" : "Document Name Length"
     },
     {
         "key" :"docSizePg",
         "value" : "25" ,
-        "groupName " : "privateGroup",
+        "groupName" : "privateGroup",
         "displayName" : "Document size"
     },
     {
         "key" :"docDescriptionPg",
         "value" : "200" ,
-        "groupName " : "privateGroup",
+        "groupName" : "privateGroup",
         "displayName" : "Document description Size"
     },
     {
         "key" :"docDescriptionPg",
         "value" : "200" ,
-        "groupName " : "privateGroup",
+        "groupName" : "privateGroup",
         "displayName" : "Document description Size"
     },
     {
         "key" :"bcc",
         "value" : "jeevan.balla@transerve.com",
-        "groupName " : "email",
+        "groupName" : "email",
         "displayName" : "bcc emails"
+    },
+    {
+        "key" :"editRole",
+        "value" : "true",
+        "groupName" : "capability",
+        "displayName" : "edit role"
+    },
+    {
+        "key" :"editTemplate",
+        "value" : "true",
+        "groupName" : "templates",
+        "displayName" : "edit template"
     }
 ]

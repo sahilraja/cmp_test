@@ -5421,6 +5421,27 @@ paths:
                   - key: docName
                     value: 30
           description: Success
+  /constants/groupBy:
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: get constants list
+      tags:
+        - SITE-CONSTANTS
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groupName:
+                    type: array
+                    example:
+                      - {}
+          description: Success
   '/project/{id}/compliance/create':
     post:
       security:
