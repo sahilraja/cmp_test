@@ -240,8 +240,9 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             });
             return user
         })
-
-        return { data, page: +page, pages: pages, count: total };
+        let nonVerifiedUsers = userSort(data.filter(({ emailVerified }: any) => !emailVerified), true)
+        let existUsers = userSort(data.filter(({ emailVerified }: any) => emailVerified))
+        return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
     };
@@ -633,8 +634,9 @@ async function roleFormanting(users: any[]) {
     })
 };
 
-function userSort(data: any[]) {
+function userSort(data: any[], email: boolean = false) {
     try {
+        if (email) return data.sort((a: any, b: any) => (a.email).localeCompare(b.email));
         return data.sort((a: any, b: any) => (a.firstName || a.middleName || a.name).localeCompare(b.firstName || b.middleName || b.name));
     } catch (err) {
         throw err
@@ -1058,7 +1060,7 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
         let userObjs = await userFindMany("_id", userIds)
         userObjs.forEach((user: any) => {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
-             sendNotification({
+            sendNotification({
                 id: userId, mobileNo,
                 fullName, groupName,
                 ...templateNamesInfo
