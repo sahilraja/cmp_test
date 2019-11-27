@@ -29,6 +29,7 @@ import { getConstantsAndValues } from "../site-constants/module";
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
+import { manualPagination } from "../documents/module";
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
@@ -228,7 +229,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
-        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
+        let { docs, pages, total }: PaginateResult<any> = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
         const data = await Promise.all(docs.map(async doc => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data.map((user: any) => {
@@ -242,11 +243,25 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         })
         let nonVerifiedUsers = userSort(data.filter(({ emailVerified }: any) => !emailVerified), true)
         let existUsers = userSort(data.filter(({ emailVerified }: any) => emailVerified))
-        return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
+        return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
+        // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
     };
 };
+
+function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
+    page = Number(page)
+    limit = Number(limit)
+    const skip = ((page - 1) * limit)
+    return {
+        count: docs.length,
+        page,
+        pages: Math.ceil(docs.length / limit),
+        data: docs.slice(skip, skip + limit)
+    }
+}
+
 export async function getUserDetail(userId: string) {
     try {
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
