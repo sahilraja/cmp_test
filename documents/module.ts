@@ -1135,7 +1135,7 @@ function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): P
   return orders.slice(skip, skip + limit);
 };
 
-function manualPagination(page: number, limit: number, docs: any[]) {
+export function manualPagination(page: number, limit: number, docs: any[]) {
   page = Number(page)
   limit = Number(limit)
   const skip = ((page - 1) * limit)
