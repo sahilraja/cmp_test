@@ -395,3 +395,29 @@ export async function getTasksByIds(taskIds: string[], token: string) {
         throw error
     }
 }
+
+export async function smsRequest(mobileNo:string,smsContent:string) {
+    try {
+        const options = {
+            url: `http://mobicomm.dove-sms.com//submitsms.jsp?user=NationalIN&key=04f397d2daXX&mobile=${mobileNo}&message=${smsContent}&senderid=NTFSMS&accusage=1`,
+            method:'GET',
+            json: true
+        }
+        return await request(options)
+    } catch (error) {
+        throw error
+    }
+}
+
+export async function internationalSmsRequest(mobileNo:string,smsContent:string) {
+    try {
+        const options = {
+            url:`http://95.216.8.124:8787/msg//submitsms.jsp?user=nainuras&key=9d67e9da3bXX&mobile=${mobileNo}&message=${smsContent}&senderid=INFOSM&accusage=3`,
+            method:'GET',
+            json: true
+        }
+        return await request(options)
+    } catch (error) {
+        throw error
+    }
+}

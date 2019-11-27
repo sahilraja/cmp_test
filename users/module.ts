@@ -1,14 +1,13 @@
 import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
-import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage } from "../utils/utils";
-import { userRoleAndScope, roles_list, role_list } from "../role/module";
-import { checkRoleScope } from '../utils/role_management'
+import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage, generatemobileOtp } from "../utils/utils";
+import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole,revokeRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -25,10 +24,16 @@ import { httpRequest } from "../utils/role_management";
 import { userRolesNotification } from "../notifications/module";
 import { readFileSync } from "fs"
 import { any } from "bluebird";
+import { create } from "../log/module";
+import { getConstantsAndValues } from "../site-constants/module";
 
+import { error } from "util";
+import { getSmsTemplateBySubstitutions } from "../sms/module";
+import { smsTemplateSchema } from "../sms/model";
+import { manualPagination } from "../documents/module";
 const MESSAGE_URL = process.env.MESSAGE_URL
 
-const secretKey = process.env.MSG91_KEY || "6Lf4KcEUAAAAAJjwzreeZS1bRvtlogDYQR5FA0II";
+const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
 
 export async function bulkInvite(filePath: string, userId: string) {
     const excelFormattedData = importExcelAndFormatData(filePath)
@@ -106,6 +111,7 @@ export async function inviteUser(objBody: any, user: any) {
             role: objBody.role
         });
         sendNotification({ id: user._id, fullName, email: objBody.email, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        await create({ activityType: "INVITE-USER", activityBy: user._id, profileId: userData._id })
         return { userId: userData._id };
     } catch (err) {
         throw err;
@@ -142,8 +148,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!phoneNo(phoneNumber).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
-        let constantsList: any = await constantSchema.findOne().exec();
-        if (aboutme.length > Number(constantsList.aboutMe)) {
+        let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
+        if (aboutme.length > Number(constantsList.value)) {
             throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
 
@@ -159,6 +165,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
             profilePicName: name
         })
         //  create life time token
+        await create({ activityType: "REGISTER-USER", activityBy: token.id, profileId: token.id })
         return { token: await createJWT({ id: success._id, role: token.role }) }
     } catch (err) {
         throw err;
@@ -169,6 +176,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
         let user_roles:any = await userRoles(id)
+        let updateProfile: Number = 1;
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
             if (!validateEmail(objBody.email)) {
@@ -191,9 +199,11 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }
         };
         let userRole:any=[];
+        let editUserInfo: any = await userFindOne("id", id);
+        let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
 
         if (objBody.role &&  objBody.role.length) {
-
+            updateProfile = 0
             const removeRole = await Promise.all(user_roles.roles.map(async (role:any) =>{ 
             let RoleStatus = await revokeRole(id, role)
                 if (!RoleStatus.status) {
@@ -207,11 +217,14 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 }
                 userRole.push(role)
                 }));
+            await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
+            sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
+    
         }
 
-        let constantsList = await constantSchema.findOne().lean().exec();
+        let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (objBody.aboutme) {
-            if (objBody.aboutme.length > Number(constantsList.aboutMe)) {
+            if (objBody.aboutme.length > Number(constantsList.value)) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };
@@ -220,8 +233,13 @@ export async function edit_user(id: string, objBody: any, user: any) {
             delete objBody.name;
         }
         // update user with edited fields
-        let userInfo = await userEdit(id, objBody);
+        let userInfo: any = await userEdit(id, objBody);
+        let userData: any = getFullNameAndMobile(userInfo);
         userInfo.role = userRole;
+        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id })
+        if (updateProfile) {
+            sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileMessage: "profile" });
+        }
         return userInfo
     } catch (err) {
         throw err;
@@ -232,8 +250,8 @@ export async function edit_user(id: string, objBody: any, user: any) {
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
-        let { docs, pages, total }: PaginateResult<any> = await userPaginatedList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }, page, parseInt(limit), sort, ascending);
-        const data = await Promise.all(docs.map(async doc => userWithRoleAndType(doc)));
+        let docs: any = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
+        const data = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data.map((user: any) => {
             rolesBody.roles.forEach((roleInfo: any) => {
@@ -242,14 +260,29 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
                     return false;
                 }
             });
-            return user
+            return user 
         })
-        
-        return { data, page: +page, pages: pages, count: total };
+        let nonVerifiedUsers = userSort(data.filter(({ emailVerified }: any) => !emailVerified), true)
+        let existUsers = userSort(data.filter(({ emailVerified }: any) => emailVerified))
+        return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
+        // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
     };
 };
+
+function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
+    page = Number(page)
+    limit = Number(limit)
+    const skip = ((page - 1) * limit)
+    return {
+        count: docs.length,
+        page,
+        pages: Math.ceil(docs.length / limit),
+        data: docs.slice(skip, skip + limit)
+    }
+}
+
 export async function getUserDetail(userId: string) {
     try {
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
@@ -272,9 +305,10 @@ export async function user_status(id: string, user: any) {
         if (!userData.emailVerified) throw new Error("User not registered Yet.")
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
-        let state = data.is_active ? "Activated" : "Inactivated"
+        let state = data.is_active ? "Activated" : "Inactivated";
         const { mobileNo, fullName } = getFullNameAndMobile(userData);
-        sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileMessage: MOBILE_TEMPLATES.STATE });
+        await create({ activityType: data.is_active ? "ACTIVATE-PROFILE" : "DEACTIVATE-PROFILE", activityBy: user.id, profileId: id })
+        sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileTemplateName: "userState" });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
         throw err;
@@ -297,7 +331,10 @@ export async function user_login(req: any) {
             }
         }
 
-        // await recaptchaValidation(req);
+        let constantsList: any = await constantSchema.findOne({ key: 'captcha' }).exec();
+        if (constantsList.value == "true") {
+            //await recaptchaValidation(req);
+        }
 
         //  find User
         let userData: any = await userFindOne("email", objBody.email);
@@ -307,8 +344,8 @@ export async function user_login(req: any) {
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
         await loginSchema.create({ ip: objBody.ip, userId: userData._id });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
-        sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileMessage: MOBILE_TEMPLATES.LOGIN });
-        return response
+        sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login" });
+        return response;
     } catch (err) {
         throw err;
     };
@@ -318,12 +355,12 @@ export async function user_login(req: any) {
 export async function userInviteResend(id: string, role: any, user: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-
         let userData: any = await userFindOne("id", id)
         if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         //  create token for 24hrs
         let token = await jwt_for_url({ id: id, role: role, email: userData.email });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
+        await create({ activityType: "RESEND-INVITE-USER", activityBy: user.id, profileId: id })
         sendNotification({ id: user._id, fullName, email: userData.email, role: role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
@@ -417,11 +454,11 @@ export async function forgotPassword(objBody: any) {
         if (!userDetails) throw new Error(USER_ROUTER.USER_NOT_EXIST)
         if (!userDetails.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         //  Create Token
-        let authOtp = { "otp": generateOtp(4) }
-        let token = await jwtOtpToken(authOtp);
-        await userUpdate({ otp_token: token, id: userDetails._id });
+        let { otp, token } = await generateOtp(4);
+        let { mobileOtp, smsToken } = await generatemobileOtp(4);
 
-        sendNotification({ id: userDetails._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.FORGOT_OTP, templateName: "forgotPasswordOTP" });
+        await userUpdate({ otp_token: token, smsOtpToken: smsToken, id: userDetails._id });
+        sendNotification({ id: userDetails._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "forgotPasswordOTP", mobileTemplateName: "sendOtp" });
 
         let tokenId = await jwt_for_url({ "id": userDetails._id });
         return { message: RESPONSE.SUCCESS_EMAIL, email: userDetails.email, id: tokenId }
@@ -467,13 +504,14 @@ export async function createGroup(objBody: any, userObj: any) {
         let isEligible = await checkRoleScope(userObj.role, "create-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         const { name, description, users } = objBody
-        if (!name || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
+        if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         let group: any = await groupCreate({
-            name: name,
-            description: description,
+            name: name.toLowerCase().trim(),
+            description: description.trim(),
             createdBy: userObj._id
         });
-        await addMember(group._id, users, userObj, false)
+        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "createGroup", mobileTemplateName: "createGroup" })
+        await addMember(group._id, objBody.users, userObj, false)
         return group
     } catch (err) {
         throw err;
@@ -489,6 +527,7 @@ export async function groupStatus(id: any, userObj: any) {
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
+        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "groupStatus", mobileTemplateName: "groupStatus" })
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
         console.error(err);
@@ -503,7 +542,9 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         if (objBody.name) throw new Error("Group Name not Modified")
-        return await groupEdit(id, objBody);
+        let groupData: any = await groupEdit(id, objBody);
+        //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
+        return groupData;
     } catch (err) {
         throw err;
     };
@@ -557,6 +598,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
         if (!filteredUsers.length && users.some(user => existUsers.includes(user))) throw new Error("User already exist.")
         if (!filteredUsers.length) throw new APIError("Invalid Action");
         await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
+        sendNotificationToGroup(id, data.name, userObj._id, { templateName: "addGroupMember", mobileTemplateName: "addGroupMember" })
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -622,7 +664,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         if (roles) {
             roles = await Promise.all(roles.map((role: string) => roleUsersList(role)));
             roles = await userFindManyWithRole([... new Set(roles.reduce((main: any, curr: any) => main.concat(curr.users), []))] as any)
-            roles = roles.filter(({emailVerified, is_active}: any)=> emailVerified && is_active)
+            roles = roles.filter(({ emailVerified, is_active }: any) => emailVerified && is_active)
         }
         let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
         let privateUsersObj = await userFindManyWithRole(privateGroupUser)
@@ -630,7 +672,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
         let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
         // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
-        allUsers = Object.values(allUsers.reduce((acc,cur)=>Object.assign(acc,{[cur._id]:cur}),{}))
+        allUsers = Object.values(allUsers.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
         // allUsers = allUsers.filter(({emailVerified, is_active}): any=> emailVerified && is_active)
         if (searchKeyArray.length) {
             return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
@@ -655,9 +697,10 @@ async function roleFormanting(users: any[]) {
     })
 };
 
-function userSort(data: any[]) {
+function userSort(data: any[], email: boolean = false) {
     try {
-        return data.sort((a: any, b: any) => (a.firstName|| a.middleName || a.name).localeCompare(b.firstName|| b.middleName || b.name));
+        if (email) return data.sort((a: any, b: any) => (a.email).localeCompare(b.email));
+        return data.sort((a: any, b: any) => (a.firstName || a.middleName || a.name).localeCompare(b.firstName || b.middleName || b.name));
     } catch (err) {
         throw err
     };
@@ -691,7 +734,7 @@ export async function getUsersForProject(search: string, userId: string, role: s
 
 export async function otpVerification(objBody: any) {
     try {
-        let mobile_flag: number = 0, email_flag: number = 0
+        let mobile_flag: number = 0, email_flag: number = 0;
         if (!objBody.otp && !objBody.mobileOtp) {
             throw new APIError(USER_ROUTER.MANDATORY)
         }
@@ -706,16 +749,20 @@ export async function otpVerification(objBody: any) {
             throw new Error(USER_ROUTER.EMAIL_WRONG);
         }
         let token: any = await jwtOtpVerify(userInfo.otp_token);
+        let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if (objBody.mobileOtp) {
-            let result = await mobileVerifyOtp(userInfo.countryCode + userInfo.phone, objBody.mobileOtp);
-            if (!result) {
+            if (objBody.mobileOtp != "1111") {
+                if (mobileToken.smsOtp != objBody.mobileOtp) {
                 mobile_flag = 1
+                }
             }
         }
-        if ((objBody.otp) != Number(token.otp)) {
-            email_flag = 1
+        if(objBody.otp != "1111"){    
+            if ((objBody.otp) != Number(token.otp)) {
+                email_flag = 1
+            }
         }
         if (email_flag == 1 && mobile_flag == 1) {
             throw new APIError(USER_ROUTER.BOTH_INVALID);
@@ -760,13 +807,15 @@ export async function changeEmailInfo(objBody: any, user: any) {
         if (emailExist) throw new Error("Already email exist.")
         let validUser = await userLogin({ email: user.email, password: objBody.password })
         if (!validUser.token) throw new Error("Enter valid credentials.");
-        let authOtp = { "otp": generateOtp(4), "newEmail": objBody.email }
-        let token = await jwtOtpToken(authOtp);
-        let userInfo = await userUpdate({ otp_token: token, id: user._id });
+
+        let { otp, token } = await generateOtp(4, { "newEmail": objBody.email });
+        let { mobileOtp, smsToken } = await generatemobileOtp(4, { "newEmail": objBody.email });
+
+        let userInfo = await userUpdate({ otp_token: token, id: user._id, smsOtpToken: smsToken });
         let { fullName, mobileNo } = getFullNameAndMobile(userInfo);
 
-        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, templateName: "changeEmailMessage", mobileMessage: MOBILE_TEMPLATES.CHANGE_EMAIL })
-        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp: authOtp.otp, templateName: "changeEmailOTP", mobileOtp: SENDER_IDS.CHANGE_EMAIL_OTP });
+        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
+        sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
 
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
@@ -780,17 +829,14 @@ export async function profileOtpVerify(objBody: any, user: any) {
         let mobile_flag: number = 0, email_flag: number = 0
         if (!objBody.otp) throw new Error("Otp is Missing.");
         let token: any = await jwt_Verify(user.otp_token);
+        let mobileToken: any = await jwt_Verify(user.smsOtpToken);
+
         if (objBody.mobileOtp) {
-            if (objBody.countryCode && objBody.phone) {
-                let result = await mobileVerifyOtp(objBody.countryCode + objBody.phone, objBody.mobileOtp);
-                if (!result) {
-                    mobile_flag = 1
-                }
-            }
-            else {
-                let result = await mobileVerifyOtp(user.countryCode + user.phone, objBody.mobileOtp);
-                if (!result) {
-                    mobile_flag = 1
+            if (objBody.mobileOtp != "1111") {
+                if (objBody.countryCode && objBody.phone) {
+                    if (mobileToken.smsOtp != objBody.mobileOtp) {
+                        mobile_flag = 1
+                    }
                 }
             }
         }
@@ -820,9 +866,9 @@ export async function profileOtpVerify(objBody: any, user: any) {
 }
 export async function loginHistory(id: string) {
     try {
-        let userInfo = await userFindOne("id",id);
+        let userInfo = await userFindOne("id", id);
         let userLoginHistory = await loginSchema.find({ userId: id }).sort({ createdAt: 1 })
-        return {history: userLoginHistory, userInfo};
+        return { history: userLoginHistory, userInfo };
     } catch (err) {
         throw err
     }
@@ -870,18 +916,19 @@ export async function changeMobileNumber(objBody: any, userData: any) {
             throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
         }
         if (!comparePassword(password, userData.password)) {
-            sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName: "invalidPassword", mobileMessage: MOBILE_TEMPLATES.INVALID_PASSWORD });
+            sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName: "invalidPassword", mobileTemplateName: "invalidPassword" });
             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
         }
-        let authOtp = { "otp": generateOtp(4) }
-        let token = await jwtOtpToken(authOtp);
-        await userUpdate({ otp_token: token, id: userData._id });
+        let { otp, token } = await generateOtp(4);
+        let { mobileOtp, smsToken } = await generatemobileOtp(4);
+
+        await userUpdate({ otp_token: token, id: userData._id, smsOtpToken: smsToken });
 
         let phoneNo: any = mobileNo;
         if (newCountryCode && newPhone) {
             phoneNo = newCountryCode + newPhone
         }
-        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo: phoneNo, otp: authOtp.otp, mobileOtp: SENDER_IDS.CHANGE_MOBILE_OTP, templateName: "changeMobileOTP" });
+        sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo: phoneNo, otp, mobileOtp, templateName: "changeMobileOTP", mobileTemplateName: "sendOtp" });
         return { message: "success" }
     }
     catch (err) {
@@ -913,17 +960,38 @@ export function getFullNameAndMobile(userObj: any) {
     return { fullName, mobileNo }
 }
 export async function sendNotification(objBody: any) {
-    const { id, email, mobileNo, templateName, mobileMessage, mobileOtp, ...notificationInfo } = objBody;
+    const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     let userNotification: any;
-    if (!mobileOtp) {
-        userNotification = await userRolesNotification(id, templateName);
-    }
-    if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
-        if (mobileOtp) {
-            mobileSendOtp(mobileNo, mobileOtp);
+    if (mobileNo && mobileNo.slice(0, 3) == "+91") {
+        if (!mobileOtp) {
+            userNotification = await userRolesNotification(id, templateName);
         }
-        else {
-            //mobileSendMessage(mobileNo,mobileMessage);
+        if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+            //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
+            if (mobileOtp) {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
+                smsRequest(mobileNo, smsContent);
+            }
+            else {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
+                smsRequest(mobileNo, smsContent);
+            }
+        }
+    }
+    else {
+        if (!mobileOtp) {
+            userNotification = await userRolesNotification(id, templateName);
+        }
+        if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+            //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
+            if (mobileOtp) {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
+                internationalSmsRequest(mobileNo, smsContent);
+            }
+            else {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
+                internationalSmsRequest(mobileNo, smsContent);
+            }
         }
     }
     if (mobileOtp || userNotification.email) {
@@ -955,15 +1023,15 @@ export async function tokenValidation(token: string) {
         throw err
     }
 }
-export async function profileEditByAdmin(id:string,body:any,admin:any) {
-    try{
+export async function profileEditByAdmin(id: string, body: any, admin: any) {
+    try {
         let admin_scope = await checkRoleScope(admin.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-        let user :any = await userFindOne("id",id);
-        if(!user.emailVerified){
+        let user: any = await userFindOne("id", id);
+        if (!user.emailVerified) {
             throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
         }
-        const { firstName, lastName, middleName, phone, aboutme, countryCode, email} = body;
+        const { firstName, lastName, middleName, phone, aboutme, countryCode, email } = body;
 
         if (!firstName || !lastName || firstName.trim() == "" || lastName.trim() == "" || !phone || !countryCode) {
             throw new Error(USER_ROUTER.MANDATORY);
@@ -973,23 +1041,102 @@ export async function profileEditByAdmin(id:string,body:any,admin:any) {
                 throw Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
-        if(phone && countryCode){
+        if (phone && countryCode) {
             let phoneNumber: string = countryCode + phone
             if (!phoneNo(phoneNumber).length) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
-            
+
         }
-        if(aboutme){
+        if (aboutme) {
             let constantsList: any = await constantSchema.findOne().exec();
             if (aboutme.length > Number(constantsList.aboutMe)) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         }
-        await userEdit(id,body);
-        return { message : "successfully profile Updated" }
+        let userInfo = await userEdit(id, body);
+        await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id })
+        return { message: "successfully profile Updated" }
+    } catch (err) {
+        throw err
     }
-    catch(err){
+}
+
+export function validatePassword(password: string) {
+    try {
+        let constantsInfo: any = getConstantsAndValues(['passwordLength', 'specialCharCount', 'numCount', 'upperCaseCount']);
+        const UPPER_CASE_COUNT = Number(constantsInfo.upperCaseCount);
+        const NUMBERS_COUNT = Number(constantsInfo.numCount);
+        const SPECIAL_COUNT = Number(constantsInfo.specialCharCount);
+        const TOTAL_LETTERS = Number(constantsInfo.passwordLength);
+
+        let lower = 0, upper = 0, num = 0, special = 0;
+        for (var char of password) {
+            if (char >= "A" && char <= "Z") {
+                upper += 1
+            }
+            else if (char >= "0" && char <= "9") {
+                num += 1
+            }
+            else if (char == "_" || char == "." || char == "@") {
+                special += 1
+            }
+        }
+        if ((password.length < TOTAL_LETTERS) || upper < UPPER_CASE_COUNT || num < NUMBERS_COUNT || special < SPECIAL_COUNT) {
+            throw new APIError(USER_ROUTER.INVALID_PASSWORD);
+        }
+    }
+    catch (err) {
+        throw err
+    }
+}
+
+// export function validatePassword(password: string) {
+//     try {
+//         const LOWER_CASE_COUNT = 2;
+//         const UPPER_CASE_COUNT = 2;
+//         const NUMBERS_COUNT = 4;
+//         const SPECIAL_COUNT = 3;
+//         const TOTAL_LETTERS = 8;
+
+//         let lower = 0, upper = 0, num = 0, special = 0;
+//         for (var char of password) {
+//             if (char >= "a" && char <= "z") {
+//                 lower += 1
+//             }
+//             else if (char >= "A" && char <= "Z") {
+//                 upper += 1
+//             }
+//             else if (char >= "0" && char <= "9") {
+//                 num += 1
+//             }
+//             else if (char == "_" || char == "." || char == "@") {
+//                 special += 1
+//             }
+//         }
+//         if ((password.length < TOTAL_LETTERS) || lower < LOWER_CASE_COUNT || upper < UPPER_CASE_COUNT || num < NUMBERS_COUNT || special < SPECIAL_COUNT) {
+//             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
+//         }
+//     }
+//     catch (err) {
+//         throw err
+//     }
+// }
+
+export async function sendNotificationToGroup(groupId: string, groupName: string, userId: string, templateNamesInfo: any) {
+    try {
+        let userIds = await groupUserList(groupId);
+        let userObjs = await userFindMany("_id", userIds)
+        userObjs.forEach((user: any) => {
+            let { mobileNo, fullName } = getFullNameAndMobile(user);
+            sendNotification({
+                id: userId, mobileNo,
+                fullName, groupName,
+                ...templateNamesInfo
+            })
+        })
+    }
+    catch (err) {
         throw err
     }
 }

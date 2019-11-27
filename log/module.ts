@@ -77,4 +77,28 @@ async function activityFetchDetails(activity: any) {
     } catch (err) {
         throw err
     }
-} 
+}
+
+export async function getProfileLogs(profileId: string, token: string) {
+    try {
+        const activities: any[] = await ActivitySchema.find({ profileId: Types.ObjectId(profileId) }).exec()
+        return await Promise.all(activities.map((activity: any) => {
+            return profileFetchDetails(activity.toJSON())
+        }))
+    } catch (err) {
+        throw err
+    };
+};
+
+async function profileFetchDetails(activity: any){
+    try {
+        let userObj = await userFindMany("_id", [activity.activityBy, activity.profileId])
+        return {
+            ...activity,
+            activityBy: userObj.find((users: any)=> activity.activityBy == users._id),
+            profileId: userObj.find((users: any)=> activity.profileId == users._id)
+        }
+    } catch (err) {
+        throw err;
+    };
+};

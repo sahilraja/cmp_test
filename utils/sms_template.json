@@ -1,0 +1,178 @@
+[  
+    {
+        "content" : "Your account has been [state] | CMP",
+        "templateName" : "userState",
+        "displayName" : "Marking user as active/inactive"
+    },
+    {
+        "content" : "You've entered the wrong password",
+        "templateName" : "invalidPassword",
+        "displayName" : "invalid password"
+    },
+    {
+        "content" : "You've logged into CMP",
+        "templateName" : "login",
+        "displayName" : "user login"
+    },
+    {
+        "content" : "Your Verification code is [mobileOtp]",
+        "templateName" : "sendOtp",
+        "displayName" : "send otp"
+    },
+    {
+        "content" : "Your primary email address can only be replaced with a confirmed email address.",
+        "templateName" : "changeEmailMessage",
+        "displayName" : "change email notification"
+    },
+    {
+        "content" : "You are invited by an user of CMP to collaborate on the document [documentName].You can click this [documentUrl] to access it.Please ignore if you think this is not intended for you.",
+        "templateName" : "inviteForDocument",
+        "displayName" : "invite for document"
+    },
+    {
+        "content" : "You have received a new message on CMP. Here is an excerpt.<br/>[content] [link]",
+        "templateName" : "inboxMessage",
+        "displayName" : "New Message"
+    },
+    {
+        "content" : "Task udpated",
+        "templateName" : "taskUpdate",
+        "subject" : "Task Updated"
+    },
+    {
+        "content" : "You have a tag suggestion.You can click this [documentUrl] to view it.",
+        "templateName" : "suggestTagNotification",
+        "displayName" : "suggest tag notification"
+    },
+    {
+        "content" : "Tag you suggested have been Apporved.You can click this [documentUrl] to view it.",
+        "templateName" : "approveTagNotification",
+        "displayName" : "approve tag notification"
+    },
+    {
+        "content" : "Tag you suggested have been Rejected.You can click this [documentUrl] to view it.",
+        "templateName" : "rejectTagNotification",
+        "displayName" : "reject tag notification"
+    },
+    {
+        "content" : "Document [documentName], is published. You can click this [documentUrl] to access it.",
+        "templateName" : "publishDocument",
+        "displayName" : "publish document"
+    },
+    {
+        "content" : "Document [documentName], is unPublished. You can click this [documentUrl] to access it.",
+        "templateName" : "unPublishDocument",
+        "displayName" : "unPublish document"
+    },
+    {
+        "content" : "A new comment is added on Document [documentName] in CMP.",
+        "templateName" : "addCommentToDoc",
+        "displayName" : "New Comment"
+    },
+    {
+        "content" : "Document [documentName], is replaced. You can click this [documentUrl] to access it.",
+        "templateName" : "replaceDocument",
+        "displayName" : "replace document"
+
+    },
+    {
+        "content" : "Your role is replaced with [role]",
+        "templateName" : "changeUserRole",
+        "displayName" : "change user role"
+    },
+    {
+        "content" : "A new group with name [groupName] have been created in CMP",
+        "templateName" : "createGroup",
+        "displayName" : "Create Group"
+    },
+    {
+        "content" : "A new member is added in group [groupName].",
+        "templateName" : "addGroupMember",
+        "displayName" : "Add Group Member"
+    },
+    {
+        "content" : "Group status for [groupName] has been updated to [groupNewStatus].",
+        "templateName" : "groupStatus",
+        "displayName" : "Group Status"
+    },
+    {
+        "content" : "A new comment is added on Document [documentName] in CMP.",
+        "templateName" : "openComment",
+        "displayName" : "New Comment"
+    },
+    {
+        "content" : "[creatorName] assigned a task to you in CMP",
+        "templateName" : "taskAssign",
+        "displayName" : "Task Assign"
+    },
+    {
+        "content" : "Status of [taskId] is updated",
+        "templateName" : "taskProgress",
+        "displayName" : "Update Task"
+    },
+    {
+        "content" : "New document is attached to Task [taskId]",
+        "templateName" : "docAddToTask",
+        "displayName" : "Document attached"
+    },
+    {
+        "content" : "Another task is linked to task [taskId]",
+        "templateName" : "linkTask",
+        "displayName" : "Link Task"
+    },
+    {
+        "content" : "New tag is added to [taskId]",
+        "templateName" : "addTaskTag",
+        "displayName" : "Add Tag"
+    },
+    {
+        "content" : "Title updated for task [taskId].",
+        "templateName" : "updateTaskTitle",
+        "displayName" : "Update Task Title"
+    },
+    {
+        "content" : "Due Date updated for task [taskId].",
+        "templateName" : "updateTaskDueDate",
+        "displayName" : "Update Task Due Date"
+    },
+    {
+        "content" : "Start Date updated for task [taskId].",
+        "templateName" : "updateTaskStartDate",
+        "displayName" : "Update Task Start Date"
+    },
+    {
+        "content" : "Description updated for task [taskId].",
+        "templateName" : "updateTaskDescription",
+        "displayName" : "Update Task Description"
+    },
+    {
+        "content" : "A task [taskId] in Maturation Phase is updated.",
+        "templateName" : "updateMaturationTask",
+        "displayName" : "Update Maturation Task"
+    },
+    {
+        "content" : "You are added to the Project [ProjectName].",
+        "templateName" : "addToProject",
+        "displayName" : "Add to Project"
+    },
+    {
+        "content" : "Financial Information Updated.",
+        "templateName" : "updateFinancial",
+        "displayName" : "Financial Information Updated"
+    },
+    {
+        "content" : "Risk factor is added to the project [ProjectName]",
+        "templateName" : "addRisk",
+        "displayName" : "Risk Factor"
+    },
+    {
+        "content" : "New comment(s) is added to the project [ProjectName]",
+        "templateName" : "addOpenComment",
+        "displayName" : "Add Open Comment"
+    },
+    {
+        "content" : "You have updated your profile in CMP",
+        "templateName" : "profile",
+        "displayName" : "Profile Update"
+    }
+]

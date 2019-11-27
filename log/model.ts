@@ -34,6 +34,7 @@ const SchemaDef = new Schema({
     oldCost: { type: Number, default: null },
     updatedCost: { type: Number, default: null },
     projectId: { type: Schema.Types.ObjectId, ref: 'project' },
+    profileId: { type: String},
     documentId: { type: Schema.Types.ObjectId, ref: 'documents' },
     addedDocIds:[{type:Schema.Types.ObjectId, ref:'documents'}],
     removedDocIds:[{type:Schema.Types.ObjectId, ref:'documents'}],
