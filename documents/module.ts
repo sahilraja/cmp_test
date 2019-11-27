@@ -65,6 +65,9 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (data.length) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
+
+    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+    
     if(body.tags && body.tags.length){
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
@@ -72,7 +75,6 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       }
     }
 
-    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     //  Add user as Owner to this Document
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
@@ -819,7 +821,7 @@ export async function allDocuments(userId: string, page: number = 1, limit: numb
   }
 }
 
-export async function documnetCapabilities(docId: string, userId: string): Promise<string[]> {
+export async function documnetCapabilities(docId: string, userId: string): Promise<any[]> {
   try {
     let groups = await userGroupsList(userId)
     let viewer
@@ -842,10 +844,11 @@ export async function documnetCapabilities(docId: string, userId: string): Promi
         }
       };
     }
+    let request = await docRequestModel.findOne({docId, requestedBy: userId, isDelete: false })
     if (viewer) {
-      return ["viewer"]
+      return request? ["viewer", true]: ["viewer"]
     }
-    return ["no_access"]
+    return request? ["no_access", true] : ["no_access"]
   } catch (err) {
     throw err;
   };
@@ -1436,11 +1439,11 @@ export async function checkCapabilitiesForUserNew(objBody: any, userId: string) 
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    if (objBody.unique) {
-      if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-        throw new Error("Duplicate user ids found.");
-      };
-    };
+    // if (objBody.unique) {
+    //   if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+    //     throw new Error("Duplicate user ids found.");
+    //   };
+    // };
     let userObjects = (await userFindMany("_id", [... new Set(userIds.concat(userId))])).map((user: any) => { return { ...user, type: "user" } })
     return await Promise.all(docIds.map(docId => loopUsersAndFetchDataNew(docId, userIds, userId, userObjects)))
   } catch (err) {
@@ -1765,7 +1768,7 @@ export async function requestAccept(requestId: string, userObj: any) {
     if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
-    let capability: any[] = await documnetCapabilities(requestDetails.docId, requestDetails.requestedBy);
+    let capability: any[] = await documnetCapabilities(requestDetails.docId.id, requestDetails.requestedBy);
     let addedCapability;
     if (capability.includes("no_access")) {
       addedCapability = await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId.id, "viewer")
