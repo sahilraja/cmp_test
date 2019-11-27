@@ -174,5 +174,10 @@
         "content" : "You have updated your profile in CMP",
         "templateName" : "profile",
         "displayName" : "Profile Update"
+    },
+    {
+        "content" : "Document [documentName], has been updated with [text] ",
+        "templateName" : "documentUpdate",
+        "displayName" : "Document updated"
     }
 ]
