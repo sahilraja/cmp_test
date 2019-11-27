@@ -66,9 +66,8 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
     if(body.tags && body.tags.length){
-      let userRoles = await userRoleAndScope(userId);
-      let userRole = userRoles.data.global[0];
-      const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
+  
+      let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
       }
