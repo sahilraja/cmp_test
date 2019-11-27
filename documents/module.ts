@@ -67,8 +67,8 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     }
 
     body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? JSON.parse(body.tags) : []).filter((tag: any) => Types.ObjectId.isValid(tag))
-    
-    if(body.tags && body.tags.length){
+
+    if (body.tags && body.tags.length) {
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
@@ -512,12 +512,12 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.description = objBody.description;
     }
     if (objBody.tags && obj.tags.length) {
-        let userRoles = await userRoleAndScope(userId);
-        let userRole = userRoles.data.global[0];
-        const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
-        if (!isEligible) {
-          throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
-        }
+      let userRoles = await userRoleAndScope(userId);
+      let userRole = userRoles.data.global[0];
+      const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
+      }
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
@@ -784,7 +784,7 @@ export async function sharedList(userId: string, page: number = 1, limit: number
     let groups = await userGroupsList(userId)
     docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
-    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any)=> Types.ObjectId.isValid(id));
+    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let data = await Promise.all(
       docs.map(async (doc: any) => {
@@ -844,11 +844,11 @@ export async function documnetCapabilities(docId: string, userId: string): Promi
         }
       };
     }
-    let request = await docRequestModel.findOne({docId, requestedBy: userId, isDelete: false })
+    let request = await docRequestModel.findOne({ docId, requestedBy: userId, isDelete: false })
     if (viewer) {
-      return request? ["viewer", true]: ["viewer"]
+      return request ? ["viewer", true] : ["viewer"]
     }
-    return request? ["no_access", true] : ["no_access"]
+    return request ? ["no_access", true] : ["no_access"]
   } catch (err) {
     throw err;
   };
@@ -881,7 +881,7 @@ async function inviteMail(userId: string, doc: any) {
     let userData: any = await userFindOne("id", userId);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
     const { fullName, mobileNo } = getFullNameAndMobile(userData);
-    sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileTemplateName:"inviteForDocument" });
+    sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileTemplateName: "inviteForDocument" });
   } catch (err) {
     throw err;
   };
@@ -1503,7 +1503,7 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
 async function userWithDocRole(docId: string, userId: string, usersObjects: any[]) {
   try {
     let user = usersObjects.find(user => user._id == userId)
-    if (!user) user = {...(await groupFindOne("_id", userId)), type: "group"}
+    if (!user) user = { ...(await groupFindOne("_id", userId)), type: "group" }
     return {
       ...(user),
       docRole: (await documnetCapabilities(docId, userId) as any || [""])[0]
@@ -1560,7 +1560,7 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName:"suggestTagNotification"});
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -1615,7 +1615,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     let doc = await documents.findByIdAndUpdate(docId, { suggestedTags: filteredDocs, "$push": { tags: body.tagId } })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName:"approveTagNotification"  });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
       return {
         sucess: true,
         message: "Tag approved successfully"
@@ -1662,7 +1662,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName:"rejectTagNotification" });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
       return {
         sucess: true,
         message: "Tag Rejected"
@@ -1698,7 +1698,7 @@ async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = 
           documentName: docDetails.name,
           documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`,
           templateName: type,
-          mobileMessage: MOBILE_TEMPLATES.DOCUMENT_STATE(type)
+          mobileTemplateName: type
         });
       }));
       return true
