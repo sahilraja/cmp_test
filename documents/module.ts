@@ -46,6 +46,12 @@ enum STATUS {
 
 export async function createNewDoc(body: any, userId: any, siteConstant: any) {
   try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "create-doc");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    }
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
@@ -58,6 +64,14 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
     if (data.length) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
+    }
+    if(body.tags && body.tags.length){
+      let userRoles = await userRoleAndScope(userId);
+      let userRole = userRoles.data.global[0];
+      const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+      }
     }
 
     body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
@@ -498,6 +512,12 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.description = objBody.description;
     }
     if (objBody.tags) {
+        let userRoles = await userRoleAndScope(userId);
+        let userRole = userRoles.data.global[0];
+        const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
+        if (!isEligible) {
+          throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+        }
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }

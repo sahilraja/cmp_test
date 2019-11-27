@@ -169,8 +169,8 @@
         },
         {
           "capability":"add-tag-to-document",
-          "shortDescription":"create tag",
-          "description":"create tag",
+          "shortDescription":"Add Tag To Document",
+          "description":"Ability to add tags to a document",
           "category": "Document Management",
           "scope":"global"
         },
@@ -362,6 +362,27 @@
           "description": "Ability to merge Tags",
           "category": "Document Management",
           "scope": "global"
+        },
+        {
+          "capability":"add-tag-to-message",
+          "shortDescription":"Add Tag To Message",
+          "description":"Ability to add tags to a message",
+          "category": "Message Management",
+          "scope":"global"
+        },
+        {
+          "capability":"add-tag-to-message",
+          "shortDescription":"Add Tag To Message",
+          "description":"Ability to add tags to a message",
+          "category": "Message Management",
+          "scope":"global"
+        },
+        {
+          "capability":"add-tag-to-project",
+          "shortDescription":"Add Tag To Project",
+          "description":"Ability to add tags to a project",
+          "category": "Project Management",
+          "scope":"global"
         }   
   ]
   
