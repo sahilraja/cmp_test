@@ -65,6 +65,9 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (data.length) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
+
+    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? JSON.parse(body.tags) : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+    
     if(body.tags && body.tags.length){
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
@@ -72,7 +75,6 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       }
     }
 
-    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(",") : []).filter((tag: any) => Types.ObjectId.isValid(tag))
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
     //  Add user as Owner to this Document
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
@@ -540,7 +542,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         fileName: objBody.name || parent.fileName,
         suggestedTags: parent.suggestedTags
       });
-      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description" : " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""} updated`
+      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description" : " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""}`
       mailAllCmpUsers("documentUpdate", parent, false, message)
       await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId })
     } else {
@@ -548,14 +550,14 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
       if (addtags.length) {
         let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
-        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag added` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags added`
+        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag added` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
         mailAllCmpUsers("documentUpdate", parent, false, message)
         await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
       }
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
       if (removedtags.length) {
         let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
-        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags removed`
+        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
         mailAllCmpUsers("documentUpdate", parent, false, message)
         await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
@@ -819,7 +821,7 @@ export async function allDocuments(userId: string, page: number = 1, limit: numb
   }
 }
 
-export async function documnetCapabilities(docId: string, userId: string): Promise<string[]> {
+export async function documnetCapabilities(docId: string, userId: string): Promise<any[]> {
   try {
     let groups = await userGroupsList(userId)
     let viewer
@@ -842,10 +844,11 @@ export async function documnetCapabilities(docId: string, userId: string): Promi
         }
       };
     }
+    let request = await docRequestModel.findOne({docId, requestedBy: userId, isDelete: false })
     if (viewer) {
-      return ["viewer"]
+      return request? ["viewer", true]: ["viewer"]
     }
-    return ["no_access"]
+    return request? ["no_access", true] : ["no_access"]
   } catch (err) {
     throw err;
   };
@@ -1436,11 +1439,11 @@ export async function checkCapabilitiesForUserNew(objBody: any, userId: string) 
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    if (objBody.unique) {
-      if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-        throw new Error("Duplicate user ids found.");
-      };
-    };
+    // if (objBody.unique) {
+    //   if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+    //     throw new Error("Duplicate user ids found.");
+    //   };
+    // };
     let userObjects = (await userFindMany("_id", [... new Set(userIds.concat(userId))])).map((user: any) => { return { ...user, type: "user" } })
     return await Promise.all(docIds.map(docId => loopUsersAndFetchDataNew(docId, userIds, userId, userObjects)))
   } catch (err) {
@@ -1765,7 +1768,7 @@ export async function requestAccept(requestId: string, userObj: any) {
     if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
-    let capability: any[] = await documnetCapabilities(requestDetails.docId, requestDetails.requestedBy);
+    let capability: any[] = await documnetCapabilities(requestDetails.docId.id, requestDetails.requestedBy);
     let addedCapability;
     if (capability.includes("no_access")) {
       addedCapability = await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId.id, "viewer")
