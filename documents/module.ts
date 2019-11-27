@@ -66,10 +66,9 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
     if(body.tags && body.tags.length){
-  
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
-        throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+        throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
     }
 
@@ -515,7 +514,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         let userRole = userRoles.data.global[0];
         const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
         if (!isEligible) {
-          throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+          throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
         }
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
@@ -783,7 +782,7 @@ export async function sharedList(userId: string, page: number = 1, limit: number
     let groups = await userGroupsList(userId)
     docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: [], arr: []) => main.concat(arr), [])
-    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
+    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any)=> Types.ObjectId.isValid(id));
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let data = await Promise.all(
       docs.map(async (doc: any) => {
@@ -1152,7 +1151,7 @@ export async function createFolder(body: any, userId: string) {
     let userRole = userRoles.data.global[0];
     const isEligible = await checkRoleScope(userRole, "create-folder");
     if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+      throw new APIError(DOCUMENT_ROUTER.NO_FOLDER_PERMISSION, 403);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
 

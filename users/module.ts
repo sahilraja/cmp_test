@@ -459,11 +459,12 @@ export async function createGroup(objBody: any, userObj: any) {
         const { name, description, users } = objBody
         if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         let group: any = await groupCreate({
-            name: name,
-            description: description,
+            name: name.toLowerCase().trim(),
+            description: description.trim(),
             createdBy: userObj._id
         });
         sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "createGroup", mobileTemplateName: "createGroup" })
+        await addMember(group._id, objBody.users, userObj, false)
         return group
     } catch (err) {
         throw err;
