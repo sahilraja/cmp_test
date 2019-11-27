@@ -1,6 +1,6 @@
 [
     {
-        "content" : "Hi <b>[fullName]</b>, <br/><br/>You are invited by an Administrator of CMP platform to join for the role of [role].<br/><br/>To proceed with the registration by accepting invitation, click on the following <a href=[link]>link</a>.<br/><br/>Please ignore if you think this is not intended for you.<br><br/>Note: Link will be expire in 15 minutes <br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>, <br/><br/>You are invited by an Administrator of CMP platform to join for the role of [role].<br/><br/>To proceed with the registration by accepting invitation, click on the following <a href=[link]>link</a>.<br/><br/>Please ignore if you think this is not intended for you.<br><br/>Note: Link will be expire in [linkExpire] minutes <br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "invite",
         "displayName" : "Invite User",
         "subject" : "Invitation from CITIIS Management"

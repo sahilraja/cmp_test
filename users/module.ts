@@ -104,13 +104,14 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        sendNotification({ id: user._id, fullName, email: objBody.email, role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        let configLink : any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
+        sendNotification({ id: user._id, fullName, email: objBody.email,linkExpire:Number(configLink.value),role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         await create({ activityType: "INVITE-USER", activityBy: user._id, profileId: userData._id })
         return { userId: userData._id };
     } catch (err) {
         throw err;
-    };
-};
+    }
+}
 
 //  Register User
 export async function RegisterUser(objBody: any, verifyToken: string) {
@@ -340,7 +341,8 @@ export async function userInviteResend(id: string, role: any, user: any) {
         let token = await jwt_for_url({ id: id, role: role, email: userData.email });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         await create({ activityType: "RESEND-INVITE-USER", activityBy: user.id, profileId: id })
-        sendNotification({ id: user._id, fullName, email: userData.email, role: role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        let configLink : any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
+        sendNotification({ id: user._id, fullName, email: userData.email, role: role, linkExpire:Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
         throw err;

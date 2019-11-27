@@ -18,6 +18,7 @@ const SALTROUNDS = 10;
 const MSG_API_KEY = "301746A16myISu5dbc0bc7";//"9d67e9da3bXX"; //"301746A16myISu5dbc0bc7"; 
 const SENDER_ID = "CMPIND";//"INFOSM";
 const ROUTE_NO = "4";
+const MSG_EXPIRE_OTP = 15;
 
 
 const msg = msg91(MSG_API_KEY,SENDER_ID,ROUTE_NO);
@@ -156,84 +157,82 @@ export async function jwtOtpVerify(otp: any) {
     }
 }
 
-//sendOtp to mobile
-// export function mobileSendOtp(mobileNo:String,senderId:String){
-//     try{
-//         if(mobileNo.slice(0,3) != "+91")
-//         {
-//             throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
-//         }
-//         if (!phoneNo(mobileNo).length) {
-//             throw new Error(USER_ROUTER.VALID_PHONE_NO);
-//         }
-//         sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
-//         sendOtp.send(mobileNo,senderId,function(err:any, response:any){
-//             if(err){
-//                 console.log(err);
-//             }
-//             else{
-//                 console.log(response);
-//             }
-//         });
-//         return {messsage:MOBILE_MESSAGES.SEND_OTP}
-//     }
-//     catch(err){
-//         throw err;
-//     }
-// }
+export function mobileSendOtp(mobileNo:String,senderId:String){
+    try{
+        if(mobileNo.slice(0,3) != "+91")
+        {
+            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+        }
+        if (!phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
+        sendOtp.setOtpExpiry();
+        sendOtp.send(mobileNo,senderId,function(err:any, response:any){
+            if(err){
+                console.log(err);
+            }
+            else{
+                console.log(response);
+            }
+        });
+        return {messsage:MOBILE_MESSAGES.SEND_OTP}
+    }
+    catch(err){
+        throw err;
+    }
+}
 
-//verify Otp from mobile
-// export async function mobileVerifyOtp(mobileNo:string,otp:string){
-//     try{
-//         if(otp == "1111"){
-//             return {message:MOBILE_MESSAGES.VALID_OTP};
-//         }
-//         return await new Promise((resolve, reject) => {
-//             sendOtp.verify(mobileNo,otp, function(err:any, response:any){
-//                 if(response.type == 'success'){
-//                     resolve({message: "Mobile otp is verified"});
-//                 }
-//                 if(response.type == 'error'){
-//                     reject(new APIError(MOBILE_MESSAGES.INVALID_OTP));
-//                 }
-//             })
-//         }).catch(error => false)
-//     }
-//     catch(err){
-//         throw err
-//     }
-// }
-// //resend otp 
-// // export function mobileRetryOtp(mobileNo:string){
-// //     if(mobileNo.slice(0,3) != "+91")
-// //     {
-// //         throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
-// //     }
-// //     if (!phoneNo(mobileNo).length) {
-// //         throw new Error(USER_ROUTER.VALID_PHONE_NO);
-// //     }
-// //     sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
-// //     sendOtp.retry(mobileNo, false, function (error:any, data:any) {
-// //         console.log(data);
-// //     });
-// //     return {message:MOBILE_MESSAGES.SEND_OTP}
-// // }
+export async function mobileVerifyOtp(mobileNo:string,otp:string){
+    try{
+        if(otp == "1111"){
+            return {message:MOBILE_MESSAGES.VALID_OTP};
+        }
+        return await new Promise((resolve, reject) => {
+            sendOtp.verify(mobileNo,otp, function(err:any, response:any){
+                if(response.type == 'success'){
+                    resolve({message: "Mobile otp is verified"});
+                }
+                if(response.type == 'error'){
+                    reject(new APIError(MOBILE_MESSAGES.INVALID_OTP));
+                }
+            })
+        }).catch(error => false)
+    }
+    catch(err){
+        throw err
+    }
+}
+//resend otp 
+export function mobileRetryOtp(mobileNo:string){
+    if(mobileNo.slice(0,3) != "+91")
+    {
+        throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+    }
+    if (!phoneNo(mobileNo).length) {
+        throw new Error(USER_ROUTER.VALID_PHONE_NO);
+    }
+    sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
+    sendOtp.retry(mobileNo, false, function (error:any, data:any) {
+        console.log(data);
+    });
+    return {message:MOBILE_MESSAGES.SEND_OTP}
+}
 
-// export function mobileSendMessage(mobileNo:String,senderId:String){ 
-//     try{
-//         if(mobileNo.slice(0,3) != "+91")
-//         {
-//             throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
-//         }
-//         if (!phoneNo(mobileNo).length) {
-//             throw new Error(USER_ROUTER.VALID_PHONE_NO);
-//         }
-//         msg.send(mobileNo,senderId, function(err:any, response:any){
-//             console.log("err: ",err);
-//             console.log("result :",response);
-//         });
-//     }
-//     catch(err){
-//         throw err
-//     }
-// }
+export function mobileSendMessage(mobileNo:String,senderId:String){ 
+    try{
+        if(mobileNo.slice(0,3) != "+91")
+        {
+            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
+        }
+        if (!phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
+        msg.send(mobileNo,senderId, function(err:any, response:any){
+            console.log("err: ",err);
+            console.log("result :",response);
+        });
+    }
+    catch(err){
+        throw err
+    }
+}
