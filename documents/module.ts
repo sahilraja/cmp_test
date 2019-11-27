@@ -542,7 +542,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         fileName: objBody.name || parent.fileName,
         suggestedTags: parent.suggestedTags
       });
-      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description" : " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""} updated`
+      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description" : " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""}`
       mailAllCmpUsers("documentUpdate", parent, false, message)
       await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId })
     } else {
@@ -550,14 +550,14 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
       if (addtags.length) {
         let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
-        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag added` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags added`
+        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag added` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
         mailAllCmpUsers("documentUpdate", parent, false, message)
         await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
       }
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
       if (removedtags.length) {
         let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
-        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags removed`
+        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
         mailAllCmpUsers("documentUpdate", parent, false, message)
         await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
