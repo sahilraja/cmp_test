@@ -55,11 +55,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName.length > Number(siteConstant.documentName || configLimit.name)) {  // add config query
-      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {  // add config query
+      throw new Error(`Document name should not exceed more than ${siteConstant.docNameLength} characters`)
     }
-    if (body.description.length > Number(siteConstant.documentDescription || configLimit.description)) { // add config query
-      throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+    if (body.description.length > Number(siteConstant.docDescriptionSize || configLimit.description)) { // add config query
+      throw new Error(`Document description should not exceed more than ${siteConstant.docDescriptionSize} characters`)
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
     if (data.length) {
@@ -499,7 +499,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_ADMIN);
     let obj: any = {};
     if (objBody.docName) {
-      if (objBody.docName.length > Number(siteConstants.documentName || configLimit.name)) throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      if (objBody.docName.length > Number(siteConstants.docNameLength || configLimit.name)) throw new Error(`Document name should not exceed more than ${siteConstants.docNameLength} characters`);
       let data = await documents.findOne({ _id: { $ne: docId }, isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() }).exec()
       if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
@@ -507,7 +507,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.name = objBody.docName.toLowerCase();
     }
     if (objBody.description) {
-      if (objBody.description.length > Number(siteConstants.documentDescription || configLimit.description)) throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
     if (objBody.tags) {
@@ -879,7 +879,7 @@ async function inviteMail(userId: string, doc: any) {
     let userData: any = await userFindOne("id", userId);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
     const { fullName, mobileNo } = getFullNameAndMobile(userData);
-    sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileMessage: MOBILE_TEMPLATES.INVITE_FOR_DOCUMENT });
+    sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileTemplateName:"inviteForDocument" });
   } catch (err) {
     throw err;
   };
@@ -1453,11 +1453,11 @@ export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
     if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
-    if (objBody.unique) {
-      if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
-        throw new Error("Duplicate user ids found.");
-      };
-    };
+    // if (objBody.unique) {
+    //   if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
+    //     throw new Error("Duplicate user ids found.");
+    //   };
+    // };
     let obj = await Promise.all(docIds.map(docId => loopUsersAndFetchData(docId, userIds, userId)))
     let mainObj = obj.reduce((main: any, curr: any) => Object.assign({}, main, curr), {})
     let noAccessDocs = docIds.filter(docid => !Object.keys(mainObj).includes(docid))
@@ -1558,7 +1558,7 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName:"suggestTagNotification"});
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -1613,7 +1613,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     let doc = await documents.findByIdAndUpdate(docId, { suggestedTags: filteredDocs, "$push": { tags: body.tagId } })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileMessage: MOBILE_TEMPLATES.APPROVE_TAG_NOTIFICATION });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName:"approveTagNotification"  });
       return {
         sucess: true,
         message: "Tag approved successfully"
@@ -1660,7 +1660,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileMessage: MOBILE_TEMPLATES.SUGGEST_TAG_NOTIFICATION });
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName:"rejectTagNotification" });
       return {
         sucess: true,
         message: "Tag Rejected"

@@ -1,11 +1,15 @@
 import { constantSchema } from "./model"
 import { constants } from "perf_hooks";
 
+export async function createConstant(objBody: any) {
+    return await constantSchema.create(objBody)
+}
+
 export async function addConstants(objBody:any) {
     try{
-        let constantsData:any = await constantSchema.findOneAndUpdate({},{$set:objBody},{new:true}).exec();
-        let {createdAt,updatedAt,__v,_id,...constantResult} = constantsData.toObject();
-        return constantResult
+        const keys = Object.keys(objBody)
+        let constantsData:any = await constantSchema.findOneAndUpdate({key:keys[0]},{$set:{value:objBody[keys[0]]}},{new:true}).exec();
+        return constantsData
     }
     catch(err){
         throw err
@@ -14,19 +18,37 @@ export async function addConstants(objBody:any) {
 }
 export async function constantsList() {
     try{
-        let constantsData :any= await constantSchema.findOne().exec()
-        let {createdAt,updatedAt,__v,_id,...constantResult} = constantsData.toObject();
-        return Object.keys(constantResult).map((ele)=>{
-            return {
-                key:ele,
-                displayName: ele.split(/(?=[A-Z])/).map(key => key.charAt(0).toUpperCase()+key.slice(1)).join(' '),
-                value:constantResult[ele]
-            }
-        })
-        
+        return await constantSchema.find({}).exec()
     }
     catch(err){
         throw err
     }
+}
 
+export async function getConstantsGroupBy(){
+    const data = await constantSchema.find({}).exec()
+    return data.reduce((p: any,c: any) => {
+        if(p[c.groupName]){
+            p[c.groupName].push(c)
+        } else {
+            p[c.groupName] = [c]
+        }
+        return p
+    } ,{})
+}
+
+export async function getConstantsAndValues(constKeys:string[]) { 
+    try{
+    const constantInfo = await constantSchema.find({}).exec();
+    let result = constantInfo.reduce((prev:any,current:any)=>{
+        if(constKeys.includes(current.key)){
+            prev[current.key] =  current.value;
+        }
+        return prev;
+    },{});
+    return result;
+    }
+    catch(err){
+        throw err;
+    }
 }

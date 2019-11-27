@@ -1,9 +1,10 @@
 import { privateGroupSchema } from "./model";
-import { RESPONSE } from "../utils/error_msg";
+import { RESPONSE, DOCUMENT_ROUTER } from "../utils/error_msg";
 import { userFindMany, userFindOne } from "../utils/users";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
 import { userRoleAndScope } from "../role/module";
+import { getConstantsAndValues } from "../site-constants/module";
 
 export interface privateGroup {
     name: string;
@@ -18,7 +19,8 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
     try {
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
-        if (!body.name || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
+        if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
+        await validateDocument(body);
         if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
         let existGroups = await privateGroupSchema.find({ name: body.name, createdBy: userObj._id, is_active: true })
         if (existGroups.length) throw new Error("A private group with same name already exists.")
@@ -35,6 +37,8 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         if (!groupDetails) throw new Error("Group Not Found.");
         if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.");
+        await validateDocument(body);
+        if(body)
         if (body.members) {
             let existUsersRemoved = body.members.filter((user: any) => !groupDetails.members.includes(user))
             if (!existUsersRemoved.length) throw new Error("Member already exist in this group.")
@@ -117,3 +121,18 @@ async function getUserDateWithRole(userData: any) {
         role: ((await userRoleAndScope(userData._id) as any).data.global || [""])[0]
     };
 };
+
+async function validateDocument(body:any) {
+    try{
+        let {docNamePg,docDescriptionPg}:any = await getConstantsAndValues(["docNamePg", "docSizePg","docDescriptionPg"])
+        if (body.name > Number(docNamePg)){
+            throw new Error(`Document Name should not exceed more than ${docNamePg} characters`);
+        }
+        if (body.description > Number(docDescriptionPg)){
+            throw new Error(`Document description should not exceed more than ${docDescriptionPg} characters`);
+        }
+    }
+    catch(err){
+        throw err
+    }
+}
