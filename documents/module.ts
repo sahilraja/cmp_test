@@ -47,7 +47,7 @@ enum STATUS {
 export async function createNewDoc(body: any, userId: any, siteConstant: any) {
   try {
     let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
+    let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "create-doc");
     if (!isEligible) {
       throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
@@ -511,7 +511,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
-    if (objBody.tags && obj.tags.length) {
+    if (objBody.tags && objBody.tags.length) {
       let userRoles = await userRoleAndScope(userId);
       let userRole = userRoles.data.global[0];
       const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
