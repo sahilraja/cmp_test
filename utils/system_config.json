@@ -26,7 +26,7 @@
     {
         "key" :"bulkInvite",
         "value" : "true" ,
-        "groupName" : "bulkInvite",
+        "groupName" : "userManagement",
         "displayName" : "Enable/Disable bulk invitation"
     },
     {
@@ -130,5 +130,11 @@
         "value" : "true",
         "groupName" : "capability",
         "displayName" : "edit role"
+    },
+    {
+        "key" :"editTemplate",
+        "value" : "true",
+        "groupName" : "templates",
+        "displayName" : "edit template"
     }
 ]
