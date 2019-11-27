@@ -26,8 +26,10 @@ export async function constantsList() {
 }
 
 export async function getConstantsGroupBy(){
-    const data = await constantSchema.find({}).exec()
-    return data.reduce((p: any,c: any) => {
+    const data:any = await constantSchema.find({}).exec();
+    console.log(data);
+    let ans = data.reduce((p: any,c: any) => {
+        c = c.toObject();
         if(p[c.groupName]){
             p[c.groupName].push(c)
         } else {
@@ -35,6 +37,7 @@ export async function getConstantsGroupBy(){
         }
         return p
     } ,{})
+    return ans
 }
 
 export async function getConstantsAndValues(constKeys:string[]) { 

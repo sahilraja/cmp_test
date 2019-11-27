@@ -343,6 +343,9 @@ paths:
     $ref: ./swagger/siteConstants/paths.yaml/#/addConstant
   /constants/list:
     $ref: ./swagger/siteConstants/paths.yaml/#/constantsList
+  /constants/groupBy:
+    $ref: ./swagger/siteConstants/paths.yaml/#/constantsGroupList
+
   /project/{id}/compliance/create:
     $ref: ./swagger/compliances/paths.yaml/#/createCompliance
   /project/{id}/compliance/list:
