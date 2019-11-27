@@ -16,7 +16,7 @@ router.get("/list", async (req: any, res: any, next: any) => {
 // Merge tags
 router.post("/merge",authenticate, async (req: any, res: any, next: any) => {
     try {
-        res.status(200).send(await mergeTags(req.body, req.token))
+        res.status(200).send(await mergeTags(req.body, req.token,res.locals.user._id))
     } catch (err) {
         next(new APIError(err.message));
     }

@@ -2,8 +2,10 @@ import { tags } from "./tag_model";
 import { documents } from "../documents/model"
 const MESSAGE_URL = process.env.MESSAGE_URL || "http://localhost:4001";
 const TASK_URL = process.env.TASK_HOST || "http://localhost:5052";
- 
+import { checkRoleScope } from '../utils/role_management' ;
+import { userRoleAndScope } from "../role/module";
 import * as request from "request-promise";
+import { APIError } from "../utils/custom-error";
 
 
 //  get list of tags
@@ -18,27 +20,47 @@ export async function tag_list(search: string) {
 }
 
 //  get list of tags
-export async function mergeTags(body: any, token: string) {
+export async function mergeTags(body: any, token: string, userId:string) {
   try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data.global[0];
+    const isEligible = await checkRoleScope(userRole, "merge-tag");
+    if (!isEligible) {
+      throw new APIError("Unauhorized Action", 403);
+    }
+    let mergeTagId:any;
     if(!body.tags ||!body.mergeTag) throw new Error("All Mandatory Fields Required")
+    let mergeTag:any = await tags.find({ tag: body.mergeTag, is_active: true, deleted:false });
+    if(mergeTag.length){
+      mergeTagId = mergeTag[0]._id;
+    }else{
+      let mergeTag:any = await tags.create({tag:body.mergeTag,is_active:true});
+      mergeTagId =  mergeTag._id;
+      
+    }
     let docData = await documents.find({ tags: { "$in": body.tags } })
     let docIds = docData.map((doc) => { return doc._id })
     let updateDocs = await documents.update({ _id: { "$in": docIds } }, {
       $pull: { tags: { $in: body.tags } }
     }, { multi: true });
     let updateDocsWithMergeTag = await documents.update({ _id: { "$in": docIds } }, {
-      $addToSet: { tags: body.mergeTag }
+      $addToSet: { tags: mergeTagId }
     }, { multi: true });
-    let messageMergeTags = await mergeMessageTags(body, token)
-    let taskMergeTags = await mergeTaskTags(body,token);
-    // let removeTagIds = body.tags.filter((tag: any) => tag != body.mergeTag)
-    // let removeTags = await tags.update({ _id: { "$in": removeTagIds } }, {
+    let bodyObj = {
+      tags:body.tags,
+      mergeTag:mergeTagId
+    }
+    let messageMergeTags = await mergeMessageTags(bodyObj, token)
+    let taskMergeTags = await mergeTaskTags(bodyObj,token);
+    let removeTagIds = body.tags.filter((tag: any) => tag != mergeTagId)
+    let removeTags = await tags.remove({ _id: { "$in": removeTagIds } });
     //   $set: { deleted: true }
     // },
     //   { multi: true });
     return {
       status: true, 
-      Message: "Tags Merged Successfully"
+      Message: "Tags Merged Successfully",
+      mergeTagId
     }
   } catch (err) {
     console.error(err);

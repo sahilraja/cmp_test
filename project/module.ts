@@ -167,8 +167,8 @@ export async function add_tag(reqObject: any, userObj: any) {
     if (!reqObject.tag) {
       throw new Error(MISSING);
     }
-    let isEligible = await checkRoleScope(userObj.role, "create-tag");
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    // let isEligible = await checkRoleScope(userObj.role, "create-tag");
+    // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let { firstName, lastName, middleName, countryCode, phone } = userObj;
     let fullName = (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
     
