@@ -511,7 +511,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
-    if (objBody.tags) {
+    if (objBody.tags && obj.tags.length) {
         let userRoles = await userRoleAndScope(userId);
         let userRole = userRoles.data.global[0];
         const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
