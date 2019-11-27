@@ -1698,7 +1698,7 @@ async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = 
           documentName: docDetails.name,
           documentUrl: `${ANGULAR_URL}/home/resources/doc/${docDetails._id}`,
           templateName: type,
-          mobileMessage: MOBILE_TEMPLATES.DOCUMENT_STATE(type)
+          mobileTemplateName: type
         });
       }));
       return true
