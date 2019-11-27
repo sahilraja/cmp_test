@@ -61,7 +61,8 @@ import {
   getAllCmpDocs,
   getAllPublicDocuments,
   markDocumentAsPublic,
-  checkCapabilitiesForUserNew
+  checkCapabilitiesForUserNew,
+  removeFromFolder
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -605,6 +606,15 @@ router.post("/folder/create", authenticate, async (req, res, next: NextFunction)
 router.put("/moveTo/folder/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await moveToFolder(req.params.id, req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+//remove file from folder
+router.put("/removeFrom/folder/:id", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await removeFromFolder(req.params.id, req.body, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

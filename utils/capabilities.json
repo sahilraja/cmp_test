@@ -168,7 +168,7 @@
           "scope":"global"
         },
         {
-          "capability":"create-tag",
+          "capability":"add-tag-to-document",
           "shortDescription":"create tag",
           "description":"create tag",
           "category": "Document Management",
