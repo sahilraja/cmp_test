@@ -41,7 +41,7 @@ export async function nodemail(objBody: any) {
     var mailOptions = {
       from: EMAIL,
       to: objBody.email,
-      bcc: constants.bcc,
+      bcc: constants.value || "",
       subject: objBody.subject,
       html: objBody.html
     };
