@@ -117,7 +117,7 @@
     "description": "Communication Specialist",
     "capabilities": [
       {
-        "capability": "publish-documents",
+        "capability": "publish-document",
         "description": "Publish Documents",
         "scope": "global"
       },
