@@ -46,7 +46,7 @@ export async function financialInfoDelete(projectId: string, financialId: string
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let PhaseDetails: any = await financialSchema.findById(financialId).exec();
         if (!PhaseDetails) throw new Error("Phase details Not Found.");
-        let data: any = await financialSchema.findByIdAndUpdate(financialId, { $set: { isDeleted: PhaseDetails.isDeleted ? false : true } });
+        let data: any = await financialSchema.findByIdAndUpdate(financialId, { $set: { isDeleted: PhaseDetails.isDeleted ? false : true } }, { new: true });
         return { message: data.isDeleted ? RESPONSE.INACTIVE : RESPONSE.ACTIVE };
     } catch (err) {
         throw err;

@@ -620,7 +620,7 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         if (existUsers.length == 1) throw new Error("Minimum one member is required.")
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
-        return { message: RESPONSE.REMOVE_MEMBER }
+         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
         throw err
     };
@@ -1147,6 +1147,7 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
             let { mobileNo, fullName } = getFullNameAndMobile(user);
             sendNotification({
                 id: userId, mobileNo,
+                email: user.email,
                 fullName, groupName,
                 ...templateNamesInfo
             })
