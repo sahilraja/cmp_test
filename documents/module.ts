@@ -66,7 +66,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
 
-    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? JSON.parse(body.tags) : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
     if (body.tags && body.tags.length) {
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
@@ -1113,13 +1113,13 @@ export async function docFilter(search: string, userId: string, page: number = 1
   //         firstName: new RegExp(search, "i")
   //     }, { lastName: new RegExp(search, "i") }, { middleName: new RegExp(search, "i") }], emailVerified: true
   // } : { is_active: true, emailVerified: true }
-  let users :any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
+  // let users :any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
     // let users: any = search ?
     //         await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }) :
     //         await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
         // users = await Promise.all(users.map(async (user: any) => userWithRoleAndType(user)))
 
-    // let { users } = await searchByname(search);
+    let { users } = await searchByname(search);
     let userIds = users.map((user: any) => user._id)
     let groups = await userGroupsList(userId)
     let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
