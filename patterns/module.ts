@@ -14,8 +14,8 @@ export interface patternObject {
 //  create pattern
 export async function patternCreate(body: any, userObj: any): Promise<object> {
     try {
-        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
         if (!body.patternCode || !body.patternName) throw new Error("Missing Required Fields.");
         let existPattern = await patternSchema.find({ patternCode: body.patternCode, isDeleted: false })
         if (existPattern.length) throw new Error("A pattern with same name already exists.")
@@ -28,8 +28,8 @@ export async function patternCreate(body: any, userObj: any): Promise<object> {
 //  edit Pattern
 export async function patternEdit(patternId: string, body: any, userObj: any): Promise<any> {
     try {
-        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let patternDetails: any = await patternSchema.findById(patternId).exec();
         if (!patternDetails) throw new Error("Pattern details Not Found.");
         if (!body.patternCode || !body.patternName) throw new Error("Missing Required Fields.");
@@ -44,8 +44,8 @@ export async function patternEdit(patternId: string, body: any, userObj: any): P
 //  change pattern status
 export async function patternDelete(patternId: string, userObj: any): Promise<any> {
     try {
-        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let patternDetails: any = await patternSchema.findById(patternId).exec();
         if (!patternDetails) throw new Error("Pattern details Not Found.");
         let data: any = await patternSchema.findByIdAndUpdate(patternId, { $set: { isDeleted: patternDetails.isDeleted ? false : true } });
@@ -67,8 +67,8 @@ export async function patternDetails(patternId: string): Promise<any> {
 //  Get Group Detail
 export async function patternList(userObj: any, search?: string): Promise<any[]> {
     try {
-        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let searchQuery = search ? { name: new RegExp(search, "i"), isDeleted: false } : { isDeleted: false }
         return await patternSchema.find({ ...searchQuery }).exec()
     } catch (err) {
