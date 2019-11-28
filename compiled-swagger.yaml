@@ -553,11 +553,13 @@ paths:
                   type: string
                   format: binary
                 role:
-                  type: string
-                  example: old role
-                updateRole:
-                  type: string
-                  example: new role
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - role 1
+                    - role 2
+                    - role 3
                 countryCode:
                   type: string
                   example: '+91'

@@ -23,7 +23,7 @@ export async function tag_list(search: string) {
 export async function mergeTags(body: any, token: string, userId:string) {
   try {
     let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
+    let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "merge-tag");
     if (!isEligible) {
       throw new APIError("Unauhorized Action", 403);

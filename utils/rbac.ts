@@ -37,6 +37,23 @@ export async function updateRole(userId: string, updateRole: string, deleteRole:
     };
 };
 
+export async function revokeRole(userId: string, revokeRole: string,scope: any = "global") {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/role/revoke/${userId}`,
+            method: "PUT",
+            body: {
+                "scope": scope,
+                "role" :revokeRole
+            },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
+
 //  Get Roles Of User
 export async function getRoles(userId: string) {
     try {

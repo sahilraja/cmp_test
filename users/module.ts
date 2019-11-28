@@ -2,9 +2,10 @@ import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage, generatemobileOtp } from "../utils/utils";
-import { checkRoleScope, userRoleAndScope, roles_list, role_list } from "../role/module";
+import {  userRoleAndScope, roles_list, role_list } from "../role/module";
+import { checkRoleScope } from '../utils/role_management'
 import { PaginateResult, Types } from "mongoose";
-import { addRole, getRoles, roleCapabilitylist, updateRole, roleUsersList } from "../utils/rbac";
+import { addRole, getRoles, roleCapabilitylist, updateRole, revokeRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
 import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest } from "../utils/users";
@@ -15,6 +16,7 @@ import { loginSchema } from "./login-model";
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
+import { promises } from "fs";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
 import { notificationSchema } from "../notifications/model";
@@ -25,6 +27,7 @@ import { readFileSync } from "fs"
 import { any } from "bluebird";
 import { create } from "../log/module";
 import { getConstantsAndValues } from "../site-constants/module";
+import { promises } from "fs";
 
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
@@ -93,11 +96,16 @@ export async function inviteUser(objBody: any, user: any) {
         })
         let { fullName } = getFullNameAndMobile(userData);
         //  Add Role to User
-        let RoleStatus = await addRole(userData._id, objBody.role)
-        if (!RoleStatus.status) {
-            await userDelete(userData.id)
-            throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+        if (objBody.role && objBody.role.length) {
+            for (let role of objBody.role) {
+                let RoleStatus = await addRole(userData._id, role)
+                if (!RoleStatus.status) {
+                    await userDelete(userData.id)
+                    throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+                }
+            }
         }
+
         //  Create 24hr Token
         let token = await jwt_for_url({
             id: userData._id,
@@ -170,6 +178,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
+        let user_roles:any = await userRoles(id)
         let updateProfile: Number = 1;
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
@@ -192,16 +201,30 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
         };
+        let userRole:any=[];
         let editUserInfo: any = await userFindOne("id", id);
-
         let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
-        let userRole;
-        if (id != user._id && objBody.role) {
+
+        if (objBody.role &&  objBody.role.length) {
             updateProfile = 0
-            userRole = await updateRole(id, objBody.updateRole, objBody.role);
+            const removeRole = await Promise.all(user_roles.roles.map(async (role:any) =>{ 
+            let RoleStatus = await revokeRole(id, role)
+                if (!RoleStatus.status) {
+                    throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
+                }
+            }));
+            const addrole = await Promise.all(objBody.role.map(async (role:any) =>{ 
+                let RoleStatus = await addRole(id, role)
+                if (!RoleStatus.status) {
+                    throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+                }
+                userRole.push(role)
+                }));
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
             sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
+    
         }
+
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (objBody.aboutme) {
             if (objBody.aboutme.length > Number(constantsList.value)) {
@@ -266,7 +289,7 @@ function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
 export async function getUserDetail(userId: string) {
     try {
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
-        return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data.global || [""])[0] }
+        return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data || [""])[0] }
     } catch (err) {
         throw err;
     };
@@ -369,8 +392,9 @@ export async function userRoles(id: any) {
             role_list()
         ])
         if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
-        const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
-        return { roles: formattedRole ? formattedRole.roleName : role.data[0].role }
+        // const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
+        // return { roles: formattedRole ? formattedRole.roleName : role.data[0].role }
+        return { roles: role.data[0] }
     } catch (err) {
         throw err
     };
@@ -385,14 +409,39 @@ export async function userCapabilities(id: any) {
         if (!roles.data.length) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
         //  Get Capabilities of User
         // if (roles.data[0].role == "program-coordinator") return { roles: ["create-user", "create-task", "create-subtask", "attach-documents-to-task", "link-task", "create-message", "view-all-cmp-messages", "create-doc", "project-view", "attach-documents", "publish-documents", "create-folder", "delete-doc", "edit-task-progress-dates", "create-project", "display-role-management", "create-project", "edit-project", "create-tag", "edit-tag", "project-create-task", "project-edit-task", "publish-document", "unpublish-document", "create-group", "edit-group", "project-add-core-team"] }
-        let success = await roleCapabilitylist(roles.data[0].role)
-        if (!success.status) throw new Error(USER_ROUTER.CAPABILITIES_NOT_FOUND);
-        return { roles: success.data }
+
+        return await Promise.all(
+            roles.data[0].map(async (eachRole: any) => {
+                return await roleData(eachRole);
+            })
+        );
+        // let response = Promise.all([
+        //     roles.data[0].map(async (eachRole: any) => {
+        //         return await roleCapabilitylist(eachRole.role)
+        //         //    if (!success.status) throw new Error(USER_ROUTER.CAPABILITIES_NOT_FOUND);
+        //         //    return success;
+        //     })
+        // ])
+
+        // return { roles: data }
     } catch (err) {
         throw err;
     };
 };
 
+async function roleData(eachRole: any) {
+    try {
+        let role = eachRole
+       
+          let resp =await roleCapabilitylist(eachRole)
+          return {
+              role: role,
+              capabilities:resp.data
+        };
+    } catch (err) {
+        throw err;
+    }
+}
 //  Forgot Password
 export async function forgotPassword(objBody: any) {
     try {
@@ -528,7 +577,7 @@ export async function groupDetail(id: string) {
         if (!data) throw new APIError(USER_ROUTER.GROUP_NOT_FOUND)
         let users = await userList({ _id: { $in: await groupUserList(data._id) } }, {});
         users = await Promise.all(users.map(async (user: any) => {
-            return { ...user, role: ((await userRoleAndScope(user._id) as any).data.global || [""])[0] }
+            return { ...user, role: ((await userRoleAndScope(user._id) as any).data || [""])[0] }
         }))
         return { ...data, users: users }
     } catch (err) {
@@ -675,7 +724,7 @@ async function userWithRoleAndType(userObject: any) {
         return {
             ...userObject,
             type: "user",
-            role: ((await userRoleAndScope(userObject._id) as any).data.global || [""])[0]
+            role: ((await userRoleAndScope(userObject._id) as any).data || [""])[0]
         }
     } catch (err) {
         throw err
