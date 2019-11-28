@@ -33,7 +33,7 @@ export async function financialInfoEdit(projectId: string, financialId: string, 
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let existPhase = await financialSchema.findOne({ projectId, phase: body.phase, isDeleted: false })
         if (existPhase && existPhase._id != financialId) throw new Error("A Phase with same name already exists.")
-        return await financialSchema.findByIdAndUpdate(financialId, { $set: { ...body } })
+        return await financialSchema.findByIdAndUpdate(financialId, { $set: { ...body } }, { new: true })
     } catch (err) {
         throw err
     };
