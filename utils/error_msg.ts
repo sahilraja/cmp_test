@@ -21,7 +21,7 @@ export const USER_ROUTER = {
     EMAIL_WRONG : "Given email id is invalid",
     GROUP_NOT_FOUND: "Please enter a valid group name",
     USER_ARRAY: "Users must be an Array.",
-    ABOUTME_LIMIT:"Aboutme shall not exceed 200 characters",
+    ABOUTME_LIMIT:"Aboutme shall not exceed {} characters",
     SIMILAR_MOBILE:"Old mobile number and new mobile number is similar",
     INVALID_PASSWORD: "Given password is invalid",
     INVALID_OTP: "Given email otp is invalid",

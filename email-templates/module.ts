@@ -66,24 +66,25 @@ export async function testTemplate(id:string,user: any){
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
-    } catch( err) {
+        if (!template) {
+            throw new Error(`Invalid email template ${templateId}`);
+        }
+        return {
+            subject: Object.keys(substitutions).reduce((prev, key) => {
+                return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
+            }, template.subject),
+            content: `<style type="text/css">p{margin-bottom:1em;}</style>${template.form == "html" ? 
+            
+            Object.keys(substitutions).reduce((prev, key) => {
+                return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
+            }, template.content) : 
+
+            marked( Object.keys(substitutions).reduce((prev, key) => {
+                return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
+            }, template.content))}`
+        }
+    }
+    catch( err) {
         throw err;
     }
-    if (!template) {
-        throw new Error(`Invalid email template ${templateId}`);
-    }
-    return {
-        subject: Object.keys(substitutions).reduce((prev, key) => {
-            return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
-        }, template.subject),
-        content: `<style type="text/css">p{margin-bottom:1em;}</style>${template.form == "html" ? 
-        
-        Object.keys(substitutions).reduce((prev, key) => {
-            return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
-        }, template.content) : 
-
-        marked( Object.keys(substitutions).reduce((prev, key) => {
-            return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
-        }, template.content))}`
-    };
 }
