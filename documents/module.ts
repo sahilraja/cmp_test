@@ -21,7 +21,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne,getNamePatternMatch } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
@@ -397,7 +397,7 @@ export async function getDocDetails(docId: any, userId: string) {
     docList.suggestedTags = users
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
-    docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
+      docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     return docList;
   } catch (err) {
     console.error(err);
@@ -1106,20 +1106,12 @@ export async function publishList(userId: string, page: number = 1, limit: numbe
 
 // Get Filterd Documents
 export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string, publish: boolean = true) {
-  // search = search.trim();
+  search = search.trim();
   try {
-  //   const searchQuery = search ? {
-  //     $or: [{
-  //         firstName: new RegExp(search, "i")
-  //     }, { lastName: new RegExp(search, "i") }, { middleName: new RegExp(search, "i") }], emailVerified: true
-  // } : { is_active: true, emailVerified: true }
-  // let users :any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
-    // let users: any = search ?
-    //         await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }) :
-    //         await userList({ ...searchQuery, is_active: true }, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
-        // users = await Promise.all(users.map(async (user: any) => userWithRoleAndType(user)))
 
-    let { users } = await searchByname(search);
+    let users: any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
+
+    // let { users } = await searchByname(search);
     let userIds = users.map((user: any) => user._id)
     let groups = await userGroupsList(userId)
     let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
