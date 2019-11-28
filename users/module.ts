@@ -335,7 +335,7 @@ export async function user_login(req: any) {
 
         let constantsList: any = await constantSchema.findOne({ key: 'captcha' }).exec();
         if (constantsList && constantsList.value == "true") {
-            //await recaptchaValidation(req);
+            await recaptchaValidation(req);
         }
 
         //  find User
