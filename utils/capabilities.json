@@ -63,7 +63,7 @@
           "scope": "global"
         },
         {
-          "capability": "replyAll-message",
+          "capability": "reply-all-message",
           "shortDescription": "Reply All Message",
           "description": "Ability to Reply All a message",
           "category": "Message Management",
