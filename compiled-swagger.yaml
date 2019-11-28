@@ -5754,6 +5754,182 @@ paths:
           content:
             application/json:
               schema: *ref_18
+  '/project/{id}/financial-info/instalment/create':
+    post:
+      security:
+        - token: []
+      summary: Create Financial Info
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - percentage
+                - phase
+              properties:
+                percentage:
+                  type: number
+                  example: 10
+                phase:
+                  type: string
+                  example: initialPhase
+      responses:
+        '200': &ref_20
+          description: financial info
+          content:
+            application/json:
+              schema: &ref_19
+                type: object
+                properties:
+                  percentage:
+                    type: number
+                    example: 23
+                  phase:
+                    type: string
+                    example: initialPhase
+                  createdBy:
+                    type: string
+                    example: 9uiewjf9023jfo39ur39
+                  projectId:
+                    type: string
+                    example: 9uiewjf9023jfo39ur39
+                  isDeleted:
+                    type: boolean
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/financial-info/instalment/list':
+    get:
+      security:
+        - token: []
+      summary: Financial Info List
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: *ref_19
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/financial-info/{financialId}/instalment/edit':
+    post:
+      security:
+        - token: []
+      summary: Edit Financial Info
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+        - in: path
+          name: financialId
+          schema:
+            type: string
+          required: true
+          description: Financial Info Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - percentage
+                - phase
+              properties:
+                percentage:
+                  type: number
+                  example: 10
+                phase:
+                  type: string
+                  example: initialPhase
+      responses:
+        '200': *ref_20
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/financial-info/{financialId}/instalment/delete':
+    post:
+      security:
+        - token: []
+      summary: Delete Financial Info
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+        - in: path
+          name: financialId
+          schema:
+            type: string
+          required: true
+          description: Financial Info Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  example: []
+      responses:
+        '200': *ref_20
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/project/{id}/financial-info/{financialId}/instalment/details':
+    get:
+      security:
+        - token: []
+      summary: Financial Info Details
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+        - in: path
+          name: financialId
+          schema:
+            type: string
+          required: true
+          description: Financial Info Id
+      responses:
+        '200': *ref_20
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /phases/create:
     post:
       '400':
@@ -5783,7 +5959,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_19
+                  - &ref_21
                     type: object
                     properties:
                       phaseName:
@@ -5838,7 +6014,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_19
+                  - *ref_21
                   - type: object
                     properties:
                       id:
@@ -5866,7 +6042,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_19
+                  - *ref_21
                   - type: object
                     properties:
                       id:
@@ -5910,7 +6086,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_19
+                items: *ref_21
   /notifications/update:
     post:
       security:
@@ -5968,7 +6144,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: &ref_20
+                items: &ref_22
                   type: object
                   properties:
                     role:
@@ -6016,7 +6192,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_20
+              schema: *ref_22
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/template/add:
@@ -6045,7 +6221,7 @@ paths:
           description: success
           content:
             application/json:
-              schema: *ref_20
+              schema: *ref_22
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /notifications/getNotification:
@@ -6117,7 +6293,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - &ref_21
+                  - &ref_23
                     type: object
                     properties:
                       content:
@@ -6149,7 +6325,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: *ref_21
+                items: *ref_23
   '/sms/edit/{id}':
     post:
       '400':
@@ -6185,7 +6361,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_21
+                  - *ref_23
                   - type: object
                     properties:
                       id:
@@ -6242,7 +6418,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - *ref_21
+                  - *ref_23
                   - type: object
                     properties:
                       id:
@@ -6256,14 +6432,14 @@ definitions:
       description: Bad Request
       content:
         application/json:
-          schema: &ref_22
+          schema: &ref_24
             type: object
             properties:
               error:
                 type: string
             required:
               - error
-    Error: *ref_22
+    Error: *ref_24
 components:
   securitySchemes:
     token:
@@ -6287,7 +6463,7 @@ components:
     pillarSchema: *ref_12
     stepSchema: *ref_14
     groupSchema: *ref_3
-    phaseSchema: *ref_19
+    phaseSchema: *ref_21
     smsTemplateSchema:
       $ref: './swagger/sms/schema.yaml/#/responses/schemas/templateSchema'
     PrivateGroupSchema: *ref_5

@@ -263,8 +263,8 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             });
             return user 
         })
-        let nonVerifiedUsers = userSort(data.filter(({ emailVerified }: any) => !emailVerified), true)
-        let existUsers = userSort(data.filter(({ emailVerified }: any) => emailVerified))
+        let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
+        let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
         return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
         // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
