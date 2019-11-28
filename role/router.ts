@@ -53,7 +53,7 @@ router.post('/capability/add', authenticate, async (req: Request, res: Response,
         let scope = 'global'
         res.status(200).send(await addCapability(req.body.role, scope, req.body.capability, res.locals.user._id));
     } catch (err) {
-        res.status(400).send({ error: err.message });
+        res.status(400).send({ error: err.error });
     };
 });
 
@@ -62,7 +62,7 @@ router.put('/capability/remove', authenticate, async (req: Request, res: Respons
         let scope = 'global'
         res.status(200).send(await removeCapability(req.body.role, scope, req.body.capability, res.locals.user._id));
     } catch (err) {
-        res.status(400).send({ error: err.message });
+        res.status(400).send({ error: err.error });
     };
 });
 
