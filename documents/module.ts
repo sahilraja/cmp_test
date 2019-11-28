@@ -511,7 +511,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
-    objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : objBody.tags.length ? objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+    // objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : objBody.tags.length ? objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
     if (objBody.tags && objBody.tags.length) {
       let userRoles = await userRoleAndScope(userId);
