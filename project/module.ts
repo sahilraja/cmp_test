@@ -120,9 +120,9 @@ export async function getProjectMembers(id: string) {
     role_list()
   ])
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
-  return members.map((user: any, i: number) => ({
-    ...(users.find((_user: any) => _user._id == user)),
-    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data.global[0], formattedRoleObjs.roles)
+  return members.map((user: any, i: number) => ({ 
+    ...(users.find((_user: any) => _user._id == user)), 
+    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles) 
   }))
   // return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
 }
@@ -505,6 +505,7 @@ function getPercentageByInstallment(installment: number) {
   }
   return { percentage, installmentType, phase }
 }
+
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
