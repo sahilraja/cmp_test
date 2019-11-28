@@ -805,6 +805,8 @@ paths:
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /user/resend/mobileOtp: &ref_1
     post:
+      security:
+        - token: []
       summary: resend mobile otp
       tags:
         - USERS
@@ -835,6 +837,8 @@ paths:
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /user/mobile/verify:
     post:
+      security:
+        - token: []
       summary: verfiy mobile otp
       tags:
         - USERS

@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, mobileVerifyOtpicatioin, tokenValidation, profileEditByAdmin } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -337,26 +337,26 @@ router.get("/login/history/:id", authenticate, async (req, res, next) => {
         next(new APIError(error.message));
     }
 })
-router.post("/send/mobileOtp", async (req, res, next) => {
+router.post("/send/mobileOtp",authenticate,async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileSendOtp(req.body.phone, SENDER_IDS.OTP));
+        res.status(OK).send(await mobileSendOtp(req.body.phone,res.locals.user));
     }
     catch (error) {
         next(new APIError(error.message));
     }
 })
-router.post("/resend/mobileOtp", async (req, res, next) => {
+router.post("/resend/mobileOtp",authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileRetryOtp(req.body.phone));
+        res.status(OK).send(await mobileRetryOtp(req.body.phone,res.locals.user));
     }
     catch (error) {
         next(new APIError(error.message));
     }
 })
 
-router.post("/mobile/verify", async (req, res, next) => {
+router.post("/mobile/verify",authenticate,async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileVerifyOtpicatioin(req.body.phone, req.body.otp));
+        res.status(OK).send(await mobileVerifyOtp(req.body.phone, req.body.otp,res.locals.user));
     }
     catch (error) {
         next(new APIError(error.message));

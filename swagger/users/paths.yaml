@@ -868,6 +868,8 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   mobileOtp:
     post:
+      security:
+        - token: []
       summary: resend mobile otp
       tags:
         - USERS
@@ -899,6 +901,8 @@
           $ref: "#/definitions/ErrorResponse/BadRequest"
   mobileVerify:
     post:
+      security:
+        - token: []
       summary: verfiy mobile otp
       tags:
         - USERS

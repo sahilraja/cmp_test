@@ -22,7 +22,7 @@ import { notificationSchema } from "../notifications/model";
 import { join } from "path"
 import { httpRequest } from "../utils/role_management";
 import { userRolesNotification } from "../notifications/module";
-import { readFileSync } from "fs"
+import { readFileSync, constants } from "fs"
 import { any } from "bluebird";
 import { create } from "../log/module";
 import { getConstantsAndValues } from "../site-constants/module";
@@ -819,7 +819,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
 
         sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
         sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
-
+        
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
     catch (err) {
@@ -965,53 +965,58 @@ export function getFullNameAndMobile(userObj: any) {
 export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     let userNotification: any;
-    if (mobileNo && mobileNo.slice(0, 3) == "+91") {
-        if (!mobileOtp) {
-            userNotification = await userRolesNotification(id, templateName);
-        }
-        if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
-            //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
-            if (mobileOtp) {
-                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
-                smsRequest(mobileNo, smsContent);
-            }
-            else {
-                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
-                smsRequest(mobileNo, smsContent);
-            }
+    let templateConfig:Number = 1; 
+
+    if(templateName == "invalidPassword"){
+        let constantInfo: any = await constantSchema.findOne({key:"invalidPassword"}).exec();
+        if(constantInfo && constantInfo.value == "false"){
+            templateConfig = 0
         }
     }
-    else {
-        if (!mobileOtp) {
-            userNotification = await userRolesNotification(id, templateName);
-        }
-        if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
-            //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
-            if (mobileOtp) {
-                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
-                internationalSmsRequest(mobileNo, smsContent);
+    if(templateConfig)
+    {
+        if (mobileNo && mobileNo.slice(0, 3) == "+91") {
+            if (!mobileOtp) {
+                userNotification = await userRolesNotification(id, templateName);
             }
-            else {
-                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
-                internationalSmsRequest(mobileNo, smsContent);
+            if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+                //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
+                if (mobileOtp) {
+                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
+                    smsRequest(mobileNo, smsContent);
+                }
+                else {
+                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
+                    smsRequest(mobileNo, smsContent);
+                }
             }
         }
+        else {
+            if (!mobileOtp) {
+                userNotification = await userRolesNotification(id, templateName);
+            }
+            if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+                //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
+                if (mobileOtp) {
+                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
+                    internationalSmsRequest(mobileNo, smsContent);
+                }
+                else {
+                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
+                    internationalSmsRequest(mobileNo, smsContent);
+                }
+            }
+        }
+        if (mobileOtp || userNotification.email) {
+            let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
+            nodemail({
+                email: email,
+                subject: templatInfo.subject,
+                html: templatInfo.content
+            })
+        }
     }
-    if (mobileOtp || userNotification.email) {
-        let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
-        nodemail({
-            email: email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
-        })
-    }
-}
-export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
-    let validateOtp = await mobileVerifyOtp(phone, otp)
-    if (validateOtp == false) {
-        throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
-    }
-    return validateOtp
+            
 }
 export async function tokenValidation(token: string) {
     try {
