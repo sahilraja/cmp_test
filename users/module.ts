@@ -16,6 +16,7 @@ import { loginSchema } from "./login-model";
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
+import { promises } from "fs";
 import { privateGroupSchema } from "../private-groups/model";
 import { importExcelAndFormatData } from "../project/module";
 import { notificationSchema } from "../notifications/model";
@@ -177,11 +178,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
-<<<<<<< HEAD
-        let updateProfile: Number = 1;
-=======
         let user_roles:any = await userRoles(id)
->>>>>>> changed edit role
+        let updateProfile: Number = 1;
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
             if (!validateEmail(objBody.email)) {
@@ -203,16 +201,30 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
         };
+        let userRole:any=[];
         let editUserInfo: any = await userFindOne("id", id);
-
         let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
-        let userRole;
-        if (id != user._id && objBody.role) {
+
+        if (objBody.role &&  objBody.role.length) {
             updateProfile = 0
-            userRole = await updateRole(id, objBody.updateRole, objBody.role);
+            const removeRole = await Promise.all(user_roles.roles.map(async (role:any) =>{ 
+            let RoleStatus = await revokeRole(id, role)
+                if (!RoleStatus.status) {
+                    throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
+                }
+            }));
+            const addrole = await Promise.all(objBody.role.map(async (role:any) =>{ 
+                let RoleStatus = await addRole(id, role)
+                if (!RoleStatus.status) {
+                    throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
+                }
+                userRole.push(role)
+                }));
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
             sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
+    
         }
+
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (objBody.aboutme) {
             if (objBody.aboutme.length > Number(constantsList.value)) {
@@ -712,7 +724,7 @@ async function userWithRoleAndType(userObject: any) {
         return {
             ...userObject,
             type: "user",
-            role: ((await userRoleAndScope(userObject._id) as any).data.global || [""])[0]
+            role: ((await userRoleAndScope(userObject._id) as any).data || [""])[0]
         }
     } catch (err) {
         throw err

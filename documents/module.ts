@@ -174,7 +174,7 @@ async function docData(docData: any, host: string) {
     return {
       ...docData.toJSON(),
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
-      role: (((await userRoleAndScope(docData.ownerId)) as any).data.global || [""])[0],
+      role: (((await userRoleAndScope(docData.ownerId)) as any).data || [""])[0],
       owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A"
     };
@@ -1540,7 +1540,7 @@ async function loopForAddCapability(docId: string, users: any[]) {
 export async function suggestTags(docId: string, body: any, userId: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
+    let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "suggest-tag");
     if (!isEligible) {
       throw new APIError("Unauthorized Access", 403);
@@ -1577,7 +1577,7 @@ async function userInfo(docData: any) {
       ...docData,
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       user: await userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
-      role: ((await userRoleAndScope(docData.userId)) as any).data.global[0]
+      role: ((await userRoleAndScope(docData.userId)) as any).data[0]
     };
   } catch (err) {
     throw err;
@@ -1812,7 +1812,7 @@ export async function requestRaise(docId: string, userId: string) {
 export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: string, userId: string, pagination: boolean = true) {
   try {
     let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data.global[0];
+    let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
     if (!isEligible) {
       throw new APIError("Unauthorized access", 403);

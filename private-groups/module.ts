@@ -118,7 +118,7 @@ async function groupDetails(group: any) {
 async function getUserDateWithRole(userData: any) {
     return {
         ...userData,
-        role: ((await userRoleAndScope(userData._id) as any).data.global || [""])[0]
+        role: ((await userRoleAndScope(userData._id) as any).data || [""])[0]
     };
 };
 

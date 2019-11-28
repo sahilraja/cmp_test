@@ -380,10 +380,10 @@ async function formatTaskPayload(payload: any, projectId: string) {
   } else {
     assignee = payload.assignee
   }
-  approvers = memberRoles.filter((role: any) => (payload.approvers || []).includes(role.data.global[0]))
-  endorsers = memberRoles.filter((role: any) => (payload.endorsers || []).includes(role.data.global[0]))
-  viewers = memberRoles.filter((role: any) => (payload.viewers || []).includes(role.data.global[0]))
-  supporters = memberRoles.filter((role: any) => (payload.supporters || []).includes(role.data.global[0]))
+  approvers = memberRoles.filter((role: any) => (payload.approvers || []).includes(role.data[0]))
+  endorsers = memberRoles.filter((role: any) => (payload.endorsers || []).includes(role.data[0]))
+  viewers = memberRoles.filter((role: any) => (payload.viewers || []).includes(role.data[0]))
+  supporters = memberRoles.filter((role: any) => (payload.supporters || []).includes(role.data[0]))
   return { ...payload, assignee, approvers, endorsers, viewers, supporters }
 }
 

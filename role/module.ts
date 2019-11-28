@@ -6,7 +6,7 @@ import { userList } from "../utils/users";
 import { roleSchema } from "./model";
 import { init } from '../utils/role_management';
 import { APIError } from "../utils/custom-error";
-
+import { checkRoleScope } from '../utils/role_management'
 // Get Roles List
 export async function role_list() {
     let roles = await roleSchema.find()
@@ -51,24 +51,24 @@ let result = listcapabilities.reduce((response, capability) =>{
     }
 };
 //  Check Role Scope
-export async function checkRoleScope(role: any, capabilities: any) {
-    try {
-        let Options = {
-            uri: `${RBAC_URL}/capabilities/policy/list`,
-            method: "GET",
-            json: true
-        }
-        let data = await request(Options);
-        if (!data.status) throw new Error("Error to fetch Roles")
-        if (data.data.some((policy: any) => policy[0] == role && policy[2] == capabilities)) {
-            return true
-        }
-        return false
-    } catch (err) {
-        console.error(err);
-        throw err
-    }
-}
+// export async function checkRoleScope(role: any, capabilities: any) {
+//     try {
+//         let Options = {
+//             uri: `${RBAC_URL}/capabilities/policy/list`,
+//             method: "GET",
+//             json: true
+//         }
+//         let data = await request(Options);
+//         if (!data.status) throw new Error("Error to fetch Roles")
+//         if (data.data.some((policy: any) => policy[0] == role && policy[2] == capabilities)) {
+//             return true
+//         }
+//         return false
+//     } catch (err) {
+//         console.error(err);
+//         throw err
+//     }
+// }
 
 export async function userRoleAndScope(userId: any) {
     try {
@@ -170,7 +170,7 @@ export async function allrolecapabilities() {
 export async function addCapability(role: string, scope: string, capability: string,userId:string) {
     try {
         let userRoles = await userRoleAndScope(userId);
-        let userRole = userRoles.data.global[0];
+        let userRole = userRoles.data[0];
         const isEligible = await checkRoleScope(userRole, "display-role-management");
         if (!isEligible) {
         throw new APIError("Unauthorized for this Action", 403);
@@ -194,7 +194,7 @@ export async function addCapability(role: string, scope: string, capability: str
 export async function removeCapability(role: string, scope: string, capability: string, userId:string) {
     try {
         let userRoles = await userRoleAndScope(userId);
-        let userRole = userRoles.data.global[0];
+        let userRole = userRoles.data[0];
         const isEligible = await checkRoleScope(userRole, "display-role-management");
         if (!isEligible) {
         throw new APIError("Unauthorized for this Action", 403);
@@ -217,7 +217,7 @@ export async function removeCapability(role: string, scope: string, capability: 
 export async function updaterole(role:string,bodyObj:any,userId:string) {
     try {
         let userRoles = await userRoleAndScope(userId);
-        let userRole = userRoles.data.global[0];
+        let userRole = userRoles.data[0];
         const isEligible = await checkRoleScope(userRole, "display-role-management");
         if (!isEligible) {
         throw new APIError("Unauthorized for this Action", 403);
@@ -270,7 +270,7 @@ export async function addRolesFromJSON() {
 export async function addRole(userId: string, bodyObj: any) {
     try {
         let userRoles = await userRoleAndScope(userId);
-        let userRole = userRoles.data.global[0];
+        let userRole = userRoles.data[0];
         const isEligible = await checkRoleScope(userRole, "display-role-management");
         if (!isEligible) {
         throw new APIError("Unauthorized for this Action", 403);
