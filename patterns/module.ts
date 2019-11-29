@@ -11,7 +11,7 @@ export interface patternObject {
     isDeleted: boolean
 };
 
-const patternRegex = /%[A-Za-z0-9]{3,}+%$/
+const patternRegex = /%[A-Za-z0-9]{3,}%$/
 
 //  create pattern
 export async function patternCreate(body: any, userObj: any): Promise<object> {
