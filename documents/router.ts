@@ -556,6 +556,15 @@ router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: N
 }
 );
 
+//  update exist doc
+router.get("/:id/cancel", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await cancelUpdate(req.params.id, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
 
 //  update exist doc
 router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
@@ -571,15 +580,6 @@ router.post("/:id/new", authenticate, ensureCanEditDocument, siteConstants, asyn
   try {
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
     res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id, req.siteConstants));
-  } catch (err) {
-    next(new APIError(err.message));
-  }
-});
-
-//  update exist doc
-router.get("/:id/cancle", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
-  try {
-    res.status(200).send(await cancelUpdate(req.params.id, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

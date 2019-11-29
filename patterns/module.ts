@@ -11,12 +11,14 @@ export interface patternObject {
     isDeleted: boolean
 };
 
+const patternRegex = /%[A-Za-z0-9]{3,}+%$/
+
 //  create pattern
 export async function patternCreate(body: any, userObj: any): Promise<object> {
     try {
-        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
-        if (!body.patternCode || !body.patternName) throw new Error("Missing Required Fields.");
+        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error("Missing or Invalid Required Fields.");
         let existPattern = await patternSchema.find({ patternCode: body.patternCode, isDeleted: false })
         if (existPattern.length) throw new Error("A pattern with same name already exists.")
         return patternSchema.create({ ...body, createdBy: userObj._id })
@@ -28,11 +30,11 @@ export async function patternCreate(body: any, userObj: any): Promise<object> {
 //  edit Pattern
 export async function patternEdit(patternId: string, body: any, userObj: any): Promise<any> {
     try {
-        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let patternDetails: any = await patternSchema.findById(patternId).exec();
         if (!patternDetails) throw new Error("Pattern details Not Found.");
-        if (!body.patternCode || !body.patternName) throw new Error("Missing Required Fields.");
+        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error("Missing Required Fields.");
         let existPattern = await patternSchema.findOne({ patternCode: body.patternCode, isDeleted: false })
         if (existPattern && existPattern._id != patternId) throw new Error("A pattern with same name already exists.")
         return await patternSchema.findByIdAndUpdate(patternId, { $set: { ...body } })
@@ -44,8 +46,8 @@ export async function patternEdit(patternId: string, body: any, userObj: any): P
 //  change pattern status
 export async function patternDelete(patternId: string, userObj: any): Promise<any> {
     try {
-        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let patternDetails: any = await patternSchema.findById(patternId).exec();
         if (!patternDetails) throw new Error("Pattern details Not Found.");
         let data: any = await patternSchema.findByIdAndUpdate(patternId, { $set: { isDeleted: patternDetails.isDeleted ? false : true } });
@@ -67,8 +69,8 @@ export async function patternDetails(patternId: string): Promise<any> {
 //  Get Group Detail
 export async function patternList(userObj: any, search?: string): Promise<any[]> {
     try {
-        //const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        //if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        const isEligible = await checkRoleScope(userObj.role, "patterns-management");
+        if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let searchQuery = search ? { name: new RegExp(search, "i"), isDeleted: false } : { isDeleted: false }
         return await patternSchema.find({ ...searchQuery }).exec()
     } catch (err) {
@@ -81,10 +83,9 @@ export async function patternSubstitutions(message: string): Promise<{ message: 
     try {
         let allPatternCodes = message.match(/%(.*?)%/g)
         if (!allPatternCodes) return { message }
-        allPatternCodes = allPatternCodes.map((code) => code.slice(1, code.length - 1))
         var allPatterns: any[] = await patternSchema.find({ patternCode: { $in: allPatternCodes }, isDeleted: false }).exec();
         for (const { patternCode, patternName } of allPatterns) {
-            message = replaceAll(message, `%${patternCode}%`, patternName)
+            message = replaceAll(message, patternCode, patternName)
         }
         return { message }
     } catch (err) {

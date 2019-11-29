@@ -392,6 +392,13 @@
     "scope": "global"
   },
   {
+    "capability": "patterns-management",
+    "shortDescription": "patterns Management",
+    "description": "Ability to create patterns",
+    "category": "Template Management",
+    "scope": "global"
+  },
+  {
     "capability": "edit-user-profile",
     "shortDescription": "Edit User Profile",
     "description": "Ability to user profile",
