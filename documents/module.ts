@@ -66,8 +66,13 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
 
-    body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
-
+    // body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+    
+    if(body.tags&&Array.isArray(body.tags)){
+      body.tags=body.tags.filter((tag: any) => Types.ObjectId.isValid(tag))
+    }else if(body.tags.length){
+      body.tags = body.tags.split(',').filter((tag: any) => Types.ObjectId.isValid(tag))
+    }
     if (body.tags && body.tags.length) {
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
@@ -1019,6 +1024,12 @@ export async function published(body: any, docId: string, userObj: any, withAuth
       let admin_scope = await checkRoleScope(userObj.role, "publish-document");
       if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
     };
+    if (body.tags && body.tags.length) {
+      let isEligible = await checkRoleScope(userObj.role, "add-tag-to-document");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
+      }
+    }
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found")
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
