@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { APIError } from "../utils/custom-error";
 import { OK } from "http-status-codes";
-import { create, edit, list, detail } from "./module";
+import { create, edit, list, detail, riskSaveAll, logList } from "./module";
 const router = Router()
 
 router.post(`/:id/risk/create`, async (req, res, next) => {
@@ -19,6 +19,22 @@ router.get(`/:id/risk/list`, async (req, res, next) => {
         next(new APIError(error.message))
     }
 })
+
+router.post(`/:id/risk/edit/save-all`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await riskSaveAll(req.params.id, req.body.saveAll, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    };
+});
+
+router.get(`/:id/risk/:riskId/edit-history/list`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await logList(req.params.id, req.params.riskId))
+    } catch (error) {
+        next(new APIError(error.message))
+    };
+});
 
 router.get(`/:id/risk/:risk_id`, async (req, res, next) => {
     try {

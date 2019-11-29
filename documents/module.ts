@@ -1292,11 +1292,11 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
     return folder[0];
   })
   const filteredDocs = docsList.filter(doc => doc.isDeleted == false)
-  const folderName:any = await folders.findById(folderId); 
+  const folderName: any = await folders.findById(folderId);
   const docsData = manualPagination(page, limit, [...subFolderList, ...filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
-  return { page: docsData.page, pages: docsData.pages, folderName:folderName.name , subFoldersList: filteredSubFolders, docsList: docsData.docs,};
+  return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs, };
 }
 
 async function userData(folder: any, host: string) {
@@ -1820,6 +1820,8 @@ export async function requestDenied(requestId: string, userObj: any) {
 export async function requestRaise(docId: string, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id.");
+    let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
+    if(existRequest) throw new Error("already request is there.")
     return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
     throw err;
@@ -1921,9 +1923,9 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
     checkRoleScope(userRole, 'mark-as-public-document'),
     documents.findById(docId).exec()
   ])
-  // if(!isEligible){
-  //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
-  // }
+  if(!isEligible){
+    throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
+  }
   if ((docDetail as any).status != 2) {
     throw new APIError(DOCUMENT_ROUTER.UNABLE_TO_MAKE_PUBLIC_DOCUMENT)
   }

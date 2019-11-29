@@ -34,7 +34,7 @@ export async function patternEdit(patternId: string, body: any, userObj: any): P
         if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let patternDetails: any = await patternSchema.findById(patternId).exec();
         if (!patternDetails) throw new Error("Pattern details Not Found.");
-        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error("Missing Required Fields.");
+        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error("Missing or Invalid Required Fields.");
         let existPattern = await patternSchema.findOne({ patternCode: body.patternCode, isDeleted: false })
         if (existPattern && existPattern._id != patternId) throw new Error("A pattern with same name already exists.")
         return await patternSchema.findByIdAndUpdate(patternId, { $set: { ...body } })
