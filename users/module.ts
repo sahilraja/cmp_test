@@ -1034,8 +1034,6 @@ export async function tokenValidation(token: string) {
 }
 export async function profileEditByAdmin(id: string, body: any, admin: any) {
     try {
-        let admin_scope = await checkRoleScope(admin.role, "create-user");
-        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let user: any = await userFindOne("id", id);
         if (!user.emailVerified) {
             throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);

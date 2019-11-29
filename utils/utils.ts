@@ -158,8 +158,9 @@ export async function jwtOtpVerify(otp: any) {
     }
 }
 
-export async function mobileSendOtp(mobileNo:string,user:string){
+export async function mobileSendOtp(mobileNo:string,id:string){
     try{
+        let user = await userFindOne('id',id);
         return await sendMobileOtp(mobileNo,user);
     }
     catch(err){
