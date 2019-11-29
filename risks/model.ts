@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 import plugin from "mongoose-transform";
 
 export enum RISK_STATUS {
@@ -20,6 +20,7 @@ const SchemaDef = new Schema({
     status: { type: String },
     previousTrend: { type: Number, default: 0 },
     deleted: { type: Boolean, default: false },
+    parentId: {type: Types.ObjectId, ref: "risks"},
     createdBy: { type: String }
 }, { timestamps: true })
 SchemaDef.plugin(plugin)
