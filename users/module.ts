@@ -8,7 +8,7 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole, revokeRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest, changePasswordInfo } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -22,7 +22,7 @@ import { notificationSchema } from "../notifications/model";
 import { join } from "path"
 import { httpRequest } from "../utils/role_management";
 import { userRolesNotification } from "../notifications/module";
-import { readFileSync, constants } from "fs"
+import { readFileSync } from "fs"
 import { any } from "bluebird";
 import { create } from "../log/module";
 import { getConstantsAndValues } from "../site-constants/module";
@@ -32,7 +32,6 @@ import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 import { manualPagination } from "../documents/module";
-import { patternSubstitutions } from "../patterns/module";
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
@@ -143,8 +142,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!firstName || !lastName || !password || !phone || !countryCode) {
             throw new Error(USER_ROUTER.MANDATORY);
         };
-        if (password) {
-            await validatePassword(password);
+        if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(password)) {
+            throw new Error(USER_ROUTER.VALID_PASSWORD)
         };
 
         let phoneNumber: string = countryCode + phone
@@ -153,7 +152,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         }
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (aboutme.length > Number(constantsList.value)) {
-            throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}',constantsList.value));
+            throw new Error(USER_ROUTER.ABOUTME_LIMIT);
         }
 
         //  hash the password
@@ -191,7 +190,9 @@ export async function edit_user(id: string, objBody: any, user: any) {
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         if (objBody.password) {
-            await validatePassword(objBody.password);
+            if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
+                throw new Error(USER_ROUTER.VALID_PASSWORD)
+            }
         };
         if (objBody.phone && objBody.countryCode) {
             let phoneNumber = objBody.countryCode + objBody.phone
@@ -226,7 +227,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (objBody.aboutme) {
             if (objBody.aboutme.length > Number(constantsList.value)) {
-                throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}',constantsList.value));
+                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         };
         if (objBody.name) {
@@ -477,9 +478,9 @@ export async function setNewPassword(objBody: any) {
             throw new Error("required password field")
         };
         //  verified the token
-        if (objBody.password) {
-            await validatePassword(objBody.password);
-        };
+        if (!/^(?=.{6,})(?=.*[@#$%^&+=]).*$/.test(objBody.password)) {
+            throw new Error(USER_ROUTER.VALID_PASSWORD)
+        }
         // update password
         let tokenData: any = await jwt_Verify(objBody.id);
         if (!tokenData) {
@@ -818,7 +819,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
 
         sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
         sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
-        
+
         return { message: RESPONSE.SUCCESS_EMAIL };
     }
     catch (err) {
@@ -964,60 +965,53 @@ export function getFullNameAndMobile(userObj: any) {
 export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     let userNotification: any;
-    let templateConfig:Number = 1; 
-
-    if(templateName == "invalidPassword"){
-        let constantInfo: any = await constantSchema.findOne({key:"invalidPassword"}).exec();
-        if(constantInfo && constantInfo.value == "false"){
-            templateConfig = 0
+    if (mobileNo && mobileNo.slice(0, 3) == "+91") {
+        if (!mobileOtp) {
+            userNotification = await userRolesNotification(id, templateName);
+        }
+        if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+            //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
+            if (mobileOtp) {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
+                smsRequest(mobileNo, smsContent);
+            }
+            else {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
+                smsRequest(mobileNo, smsContent);
+            }
         }
     }
-    if(templateConfig)
-    {
-        if (mobileNo && mobileNo.slice(0, 3) == "+91") {
-            if (!mobileOtp) {
-                userNotification = await userRolesNotification(id, templateName);
-            }
-            if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
-                //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
-                if (mobileOtp) {
-                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
-                    smsRequest(mobileNo, smsContent);
-                }
-                else {
-                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
-                    smsRequest(mobileNo, smsContent);
-                }
-            }
+    else {
+        if (!mobileOtp) {
+            userNotification = await userRolesNotification(id, templateName);
         }
-        else {
-            if (!mobileOtp) {
-                userNotification = await userRolesNotification(id, templateName);
+        if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+            //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
+            if (mobileOtp) {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
+                internationalSmsRequest(mobileNo, smsContent);
             }
-            if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
-                //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
-                if (mobileOtp) {
-                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
-                    internationalSmsRequest(mobileNo, smsContent);
-                }
-                else {
-                    let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
-                    internationalSmsRequest(mobileNo, smsContent);
-                }
+            else {
+                let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
+                internationalSmsRequest(mobileNo, smsContent);
             }
-        }
-        if (mobileOtp || userNotification.email) {
-            let templateInfo:any = await getTemplateBySubstitutions(templateName, notificationInfo);
-            let subject = await patternSubstitutions(templateInfo.subject);
-            let content = await patternSubstitutions(templateInfo.content);
-            nodemail({
-                email: email,
-                subject: subject.message,
-                html: content.message,//templateInfo.content
-            })
         }
     }
-            
+    if (mobileOtp || userNotification.email) {
+        let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
+        nodemail({
+            email: email,
+            subject: templatInfo.subject,
+            html: templatInfo.content
+        })
+    }
+}
+export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
+    let validateOtp = await mobileVerifyOtp(phone, otp)
+    if (validateOtp == false) {
+        throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+    }
+    return validateOtp
 }
 export async function tokenValidation(token: string) {
     try {
@@ -1058,7 +1052,7 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
         if (aboutme) {
             let constantsList: any = await constantSchema.findOne().exec();
             if (aboutme.length > Number(constantsList.aboutMe)) {
-                throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}',constantsList.value));
+                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         }
         if (body.name) {
@@ -1073,9 +1067,9 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
     }
 }
 
-export async function validatePassword(password: string) {
+export function validatePassword(password: string) {
     try {
-        let constantsInfo: any = await getConstantsAndValues(['passwordLength', 'specialCharCount', 'numCount', 'upperCaseCount']);
+        let constantsInfo: any = getConstantsAndValues(['passwordLength', 'specialCharCount', 'numCount', 'upperCaseCount']);
         const UPPER_CASE_COUNT = Number(constantsInfo.upperCaseCount);
         const NUMBERS_COUNT = Number(constantsInfo.numCount);
         const SPECIAL_COUNT = Number(constantsInfo.specialCharCount);
@@ -1132,13 +1126,6 @@ export async function validatePassword(password: string) {
 //         throw err
 //     }
 // }
-
-export async function setNewPasswordInfo(body:any,id:string) {
-    if(body.new_password){
-        await validatePassword(body.new_password)
-    }
-    return await changePasswordInfo(body, id)
-}
 
 export async function sendNotificationToGroup(groupId: string, groupName: string, userId: string, templateNamesInfo: any) {
     try {
