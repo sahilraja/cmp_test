@@ -401,7 +401,15 @@ router.get('/validation/:token',async(req,res,next)=>{
 
 router.post('/:id/admin/profile/edit', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await profileEditByAdmin(req.params.id,req.body,res.locals.user));
+        let payload: any
+        const contentType: any = req.get('content-type');
+        if (contentType.includes('multipart/form-data')) {
+            payload = await uploadToFileService(req)
+        }
+        if (contentType.includes('application/json')) {
+            payload = JSON.stringify(req.body)
+        }
+        res.status(OK).send(await profileEditByAdmin(req.params.id,JSON.parse(payload),res.locals.user));
     } catch (err) {
         next(new APIError(err.message));;
     };
