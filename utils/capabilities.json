@@ -1,408 +1,422 @@
 [
-        {
-          "capability": "create-user",
-          "shortDescription": "Create User",
-          "description": "Create User",
-          "scope": "global",
-          "category": "User Management"
-        },
-        {
-          "capability":"bulk-invite",
-          "shortDescription":"Bulk Invitations of User",
-          "description":"Bulk Invitations of User",
-          "category":"User Management",
-          "scope":"global"
-        },
-        {
-          "capability": "create-task",
-          "shortDescription": "Create Task",
-          "description": "Ability to create a task",
-          "category": "Task Management",
-          "scope": "global"
-        },
-        {
-          "capability": "create-subtask",
-          "shortDescription": "Create Subtask",
-          "description": "Ability to create a task",
-          "category": "Task Management",
-          "scope": "global"
-        },
-        {
-          "capability": "attach-documents-to-task",
-          "shortDescription": "Attach Documents To Task",
-          "description": "Ability to attach documents to a task",
-          "category": "Task Management",
-          "scope": "global"
-        },
-        {
-          "capability": "add-tag-to-task",
-          "shortDescription": "Add Tag To Task",
-          "description": "Ability to add tag to a task",
-          "category": "Task Management",
-          "scope": "global"
-        },
-        {
-          "capability": "link-task",
-          "shortDescription": "Link Task",
-          "description": "Ability to link task with other task",
-          "category": "Task Management",
-          "scope": "global"
-        },
-        {
-          "capability": "create-message",
-          "shortDescription": "Create Message",
-          "description": "Ability to create a message",
-          "category": "Message Management",
-          "scope": "global"
-        },
-        {
-          "capability": "reply-message",
-          "shortDescription": "Reply To Message",
-          "description": "Ability to reply to message",
-          "category": "Message Management",
-          "scope": "global"
-        },
-        {
-          "capability": "reply-all-message",
-          "shortDescription": "Reply All Message",
-          "description": "Ability to Reply All a message",
-          "category": "Message Management",
-          "scope": "global"
-        },
-        {
-          "capability": "forward-message",
-          "shortDescription": "Forward Message",
-          "description": "Ability to forward a message",
-          "category": "Message Management",
-          "scope": "global"
-        },
-        {
-          "capability": "create-message",
-          "shortDescription": "Create Message",
-          "description": "Ability to create a message",
-          "category": "Message Management",
-          "scope": "global"
-        },
-        {
-          "capability": "view-all-cmp-messages",
-          "shortDescription": "View All Cmp Messages",
-          "description": "Ability to view all cmp message",
-          "category": "Message Management",
-          "scope": "global"
-        },
-        {
-          "capability": "create-doc",
-          "shortDescription": "Create Document",
-          "description": "Ability to create a document",
-          "category": "Document Management",
-          "scope": "global"
-        },
-        {
-          "capability": "project-view",
-          "shortDescription": "Project View",
-          "description": "Project View",
-          "category": "Project Management",
-          "scope": "global"
-        },
-        {
-          "capability": "create-folder",
-          "shortDescription": "Create Folder",
-          "description": "Ability to create a folder",
-          "category": "Folder Management",
-          "scope": "global"
-        },
-        {
-          "capability": "delete-doc",
-          "shortDescription": "Delete Document",
-          "description": "Ability to delete a document",
-          "category": "Document Management",
-          "scope": "global"
-        },
-        {
-          "capability":"edit-task-progress-dates",
-          "shortDescription":"Edit Task Progress Dates",
-          "description":"Edit Task Progress Percentage",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"edit-citiis-grants",
-          "shortDescription":"Edit Citiis Grants",
-          "description":"Edit Citiis Grants",
-          "category":"Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"edit-project-cost",
-          "shortDescription":"Edit Project Cost",
-          "description":"Edit Project Cost",
-          "category":"Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"create-project",
-          "shortDescription":"Create Project",
-          "description":"Create Project",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"display-role-management",
-          "shortDescription":"Display Role Management",
-          "description":"Display Role Management",
-          "category": "Role Management",
-          "scope":"global"
-        },
-        {
-          "capability":"create-project",
-          "shortDescription":"create Project",
-          "description":"create Project",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"edit-project",
-          "shortDescription":"edit Project",
-          "description":"edit Project",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"add-tag-to-document",
-          "shortDescription":"Add Tag To Document",
-          "description":"Ability to add tags to a document",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"edit-tag",
-          "shortDescription":"edit tag",
-          "description":"edit tag",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"project-create-task",
-          "shortDescription":"project create task",
-          "description":"project create task",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"publish-document",
-          "shortDescription":"published documents",
-          "description":"published documents",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"unpublish-document",
-          "shortDescription":"unpublished documents",
-          "description":"unpublished documents",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"create-group",
-          "shortDescription":"create group",
-          "description":"create group",
-          "category": "Group Management",
-          "scope":"global"
-        },
-        {
-          "capability":"edit-group",
-          "shortDescription":"edit group",
-          "description":"edit group",
-          "category": "Group Management",
-          "scope":"global"
-        },
-        {
-          "capability":"deactivate-group",
-          "shortDescription":"deactivate group",
-          "description":"deactivate group",
-          "category": "Group Management",
-          "scope":"global"
-        },
-        {
-          "capability":"project-add-core-team",
-          "shortDescription":"add core team",
-          "description":"add core team",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"suggest-tag",
-          "shortDescription":"Suggest Tag",
-          "description":"Ability to suggest Tag",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"replace-document",
-          "shortDescription":"Replace Document",
-          "description":"Replace Document",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"manage-private-group",
-          "shortDescription":"Create Private Group",
-          "description":"Create Private Group ",
-          "category": "Private Group Management",
-          "scope":"global"
-        },
-        {
-          "capability":"delete-message",
-          "shortDescription":"Delete Message",
-          "description":"Ability to delete a message ",
-          "category": "Message Management",
-          "scope":"global"
-        },
-        {
-          "capability":"view-all-cmp-documents",
-          "shortDescription":"View All CMP Documents",
-          "description":"Ability to view all cmp documents ",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"view-all-public-documents",
-          "shortDescription":"View All Public Documents",
-          "description":"Ability to view all public documents ",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"mark-as-public-document",
-          "shortDescription":"Mark document as public",
-          "description":"Ability to mark document as public ",
-          "category": "Document Management",
-          "scope":"global"
-        },
-        {
-          "capability":"manage-project-released-fund",
-          "shortDescription":"Manage Funds Released",
-          "category":"Project Management",
-          "description":"Manage Funds Released",
-          "scope":"global"
-        },
-        {
-          "capability":"manage-project-utilized-fund",
-          "shortDescription":"Manage Funds Utilized",
-          "category":"Project Management",
-          "description":"Manage Funds Released",
-          "scope":"global"
-        },
-        {
-          "capability":"upload-task-excel",
-          "shortDescription":"Bulk Upload of Tasks",
-          "category":"Project Management",
-          "description":"Bulk Upload of Tasks",
-          "scope":"global"
-        },
-        {
-          "capability":"create-compliance",
-          "shortDescription":"Create Compliance",
-          "category":"Compliances",
-          "description":"Manage Compliances",
-          "scope":"global"
-        },
-        {
-          "capability":"edit-compliance",
-          "shortDescription":"Edit Compliance",
-          "category":"Compliances",
-          "description":"Manage Compliances",
-          "scope":"global"
-        },
-        {
-          "capability":"manage-risk",
-          "shortDescription":"Risk Management",
-          "category":"Risk Management",
-          "description":"Risk Management",
-          "scope":"global"
-        },
-        {
-          "capability":"manage-opportunity",
-          "shortDescription":"Opportunity Management",
-          "category":"Opportunity Management",
-          "description":"Opportunity Management",
-          "scope":"global"
-        },
-        {
-          "capability":"send-message-to-email",
-          "shortDescription":"Send Message To Email",
-          "category":"Message Management",
-          "description":"Ability to send a message to email",
-          "scope":"global"
-        },
-        {
-          "capability": "activate-deactivate-user",
-          "shortDescription": "Activate/Deactivate User",
-          "description": "Activate/Deactivate User",
-          "scope": "global",
-          "category": "User Management"
-        },
-        {
-          "capability": "attach-documents-to-message",
-          "shortDescription": "Attach Documents To Messages",
-          "description": "Ability to Attach Documents to a Messages",
-          "scope": "global",
-          "category": "Message Management"
-        },
-        {
-          "capability": "merge-tag",
-          "shortDescription": "Merge Tags",
-          "description": "Ability to merge Tags",
-          "category": "Document Management",
-          "scope": "global"
-        },
-        {
-          "capability":"add-tag-to-message",
-          "shortDescription":"Add Tag To Message",
-          "description":"Ability to add tags to a message",
-          "category": "Message Management",
-          "scope":"global"
-        },
-        {
-          "capability":"add-tag-to-message",
-          "shortDescription":"Add Tag To Message",
-          "description":"Ability to add tags to a message",
-          "category": "Message Management",
-          "scope":"global"
-        },
-        {
-          "capability":"add-tag-to-project",
-          "shortDescription":"Add Tag To Project",
-          "description":"Ability to add tags to a project",
-          "category": "Project Management",
-          "scope":"global"
-        },
-        {
-          "capability":"edit-template",
-          "shortDescription":"Edit Template",
-          "description":"Ability to edit template",
-          "category": "Template Management",
-          "scope":"global"
-        },
-        {
-          "capability":"display-template-management",
-          "shortDescription":"Display Template Management",
-          "description":"Display Template Management ",
-          "category": "Template Management",
-          "scope":"global"
-        },
-        {
-          "capability": "edit-user-profile",
-          "shortDescription": "Edit User Profile",
-          "description": "Ability to user profile",
-          "scope": "global",
-          "category": "User Management"
-        },
-        {
-          "capability": "change-user-role",
-          "shortDescription": "change user role",
-          "description": "Ability to change user role",
-          "scope": "global",
-          "category": "User Management"
-        }
+  {
+    "capability": "create-user",
+    "shortDescription": "Create User",
+    "description": "Create User",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "bulk-invite",
+    "shortDescription": "Bulk Invitations of User",
+    "description": "Bulk Invitations of User",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-task",
+    "shortDescription": "Create Task",
+    "description": "Ability to create a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-subtask",
+    "shortDescription": "Create Subtask",
+    "description": "Ability to create a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "attach-documents-to-task",
+    "shortDescription": "Attach Documents To Task",
+    "description": "Ability to attach documents to a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-task",
+    "shortDescription": "Add Tag To Task",
+    "description": "Ability to add tag to a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "link-task",
+    "shortDescription": "Link Task",
+    "description": "Ability to link task with other task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-message",
+    "shortDescription": "Create Message",
+    "description": "Ability to create a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "reply-message",
+    "shortDescription": "Reply To Message",
+    "description": "Ability to reply to message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "reply-all-message",
+    "shortDescription": "Reply All Message",
+    "description": "Ability to Reply All a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "forward-message",
+    "shortDescription": "Forward Message",
+    "description": "Ability to forward a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-message",
+    "shortDescription": "Create Message",
+    "description": "Ability to create a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-cmp-messages",
+    "shortDescription": "View All Cmp Messages",
+    "description": "Ability to view all cmp message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-doc",
+    "shortDescription": "Create Document",
+    "description": "Ability to create a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "project-view",
+    "shortDescription": "Project View",
+    "description": "Project View",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-folder",
+    "shortDescription": "Create Folder",
+    "description": "Ability to create a folder",
+    "category": "Folder Management",
+    "scope": "global"
+  },
+  {
+    "capability": "delete-doc",
+    "shortDescription": "Delete Document",
+    "description": "Ability to delete a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-task-progress-dates",
+    "shortDescription": "Edit Task Progress Dates",
+    "description": "Edit Task Progress Percentage",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-citiis-grants",
+    "shortDescription": "Edit Citiis Grants",
+    "description": "Edit Citiis Grants",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-project-cost",
+    "shortDescription": "Edit Project Cost",
+    "description": "Edit Project Cost",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-project",
+    "shortDescription": "Create Project",
+    "description": "Create Project",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "display-role-management",
+    "shortDescription": "Display Role Management",
+    "description": "Display Role Management",
+    "category": "Role Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-project",
+    "shortDescription": "create Project",
+    "description": "create Project",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-project",
+    "shortDescription": "edit Project",
+    "description": "edit Project",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-document",
+    "shortDescription": "Add Tag To Document",
+    "description": "Ability to add tags to a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-tag",
+    "shortDescription": "edit tag",
+    "description": "edit tag",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "project-create-task",
+    "shortDescription": "project create task",
+    "description": "project create task",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "publish-document",
+    "shortDescription": "published documents",
+    "description": "published documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "unpublish-document",
+    "shortDescription": "unpublished documents",
+    "description": "unpublished documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-group",
+    "shortDescription": "create group",
+    "description": "create group",
+    "category": "Group Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-group",
+    "shortDescription": "edit group",
+    "description": "edit group",
+    "category": "Group Management",
+    "scope": "global"
+  },
+  {
+    "capability": "deactivate-group",
+    "shortDescription": "deactivate group",
+    "description": "deactivate group",
+    "category": "Group Management",
+    "scope": "global"
+  },
+  {
+    "capability": "project-add-core-team",
+    "shortDescription": "add core team",
+    "description": "add core team",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "suggest-tag",
+    "shortDescription": "Suggest Tag",
+    "description": "Ability to suggest Tag",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "replace-document",
+    "shortDescription": "Replace Document",
+    "description": "Replace Document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-private-group",
+    "shortDescription": "Create Private Group",
+    "description": "Create Private Group ",
+    "category": "Private Group Management",
+    "scope": "global"
+  },
+  {
+    "capability": "delete-message",
+    "shortDescription": "Delete Message",
+    "description": "Ability to delete a message ",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-cmp-documents",
+    "shortDescription": "View All CMP Documents",
+    "description": "Ability to view all cmp documents ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-public-documents",
+    "shortDescription": "View All Public Documents",
+    "description": "Ability to view all public documents ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "mark-as-public-document",
+    "shortDescription": "Mark document as public",
+    "description": "Ability to mark document as public ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-project-released-fund",
+    "shortDescription": "Manage Funds Released",
+    "category": "Project Management",
+    "description": "Manage Funds Released",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-project-utilized-fund",
+    "shortDescription": "Manage Funds Utilized",
+    "category": "Project Management",
+    "description": "Manage Funds Released",
+    "scope": "global"
+  },
+  {
+    "capability": "upload-task-excel",
+    "shortDescription": "Bulk Upload of Tasks",
+    "category": "Project Management",
+    "description": "Bulk Upload of Tasks",
+    "scope": "global"
+  },
+  {
+    "capability": "create-compliance",
+    "shortDescription": "Create Compliance",
+    "category": "Compliances",
+    "description": "Manage Compliances",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-compliance",
+    "shortDescription": "Edit Compliance",
+    "category": "Compliances",
+    "description": "Manage Compliances",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-risk",
+    "shortDescription": "Risk Management",
+    "category": "Risk Management",
+    "description": "Risk Management",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-opportunity",
+    "shortDescription": "Opportunity Management",
+    "category": "Opportunity Management",
+    "description": "Opportunity Management",
+    "scope": "global"
+  },
+  {
+    "capability": "send-message-to-email",
+    "shortDescription": "Send Message To Email",
+    "category": "Message Management",
+    "description": "Ability to send a message to email",
+    "scope": "global"
+  },
+  {
+    "capability": "activate-deactivate-user",
+    "shortDescription": "Activate/Deactivate User",
+    "description": "Activate/Deactivate User",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "attach-documents-to-message",
+    "shortDescription": "Attach Documents To Messages",
+    "description": "Ability to Attach Documents to a Messages",
+    "scope": "global",
+    "category": "Message Management"
+  },
+  {
+    "capability": "merge-tag",
+    "shortDescription": "Merge Tags",
+    "description": "Ability to merge Tags",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-message",
+    "shortDescription": "Add Tag To Message",
+    "description": "Ability to add tags to a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-message",
+    "shortDescription": "Add Tag To Message",
+    "description": "Ability to add tags to a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-project",
+    "shortDescription": "Add Tag To Project",
+    "description": "Ability to add tags to a project",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-template",
+    "shortDescription": "Edit Template",
+    "description": "Ability to edit template",
+    "category": "Template Management",
+    "scope": "global"
+  },
+  {
+    "capability": "display-template-management",
+    "shortDescription": "Display Template Management",
+    "description": "Display Template Management ",
+    "category": "Template Management",
+    "scope": "global"
+  },
+  {
+    "capability": "patterns-management",
+    "shortDescription": "patterns Management",
+    "description": "Ability to create patterns",
+    "category": "Template Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-user-profile",
+    "shortDescription": "Edit User Profile",
+    "description": "Ability to user profile",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "change-user-role",
+    "shortDescription": "change user role",
+    "description": "Ability to change user role",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "financial-info-management",
+    "shortDescription": "Financial Info Management",
+    "description": "Ability to add financial info",
+    "category": "Project Management",
+    "scope": "global"
+  }
 ]

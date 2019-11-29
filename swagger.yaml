@@ -369,6 +369,18 @@ paths:
     $ref: ./swagger/opportunity/paths.yaml/#/editOpportunity
   /project/{id}/opportunity/{id}/delete:
     $ref: ./swagger/opportunity/paths.yaml/#/deleteOpportunity
+
+  /project/{id}/financial-info/instalment/create:
+    $ref: ./swagger/financial-info/paths.yaml/#/createFinancialInfo
+  /project/{id}/financial-info/instalment/list:
+    $ref: ./swagger/financial-info/paths.yaml/#/listFinancialInfo
+  /project/{id}/financial-info/{financialId}/instalment/edit:
+    $ref: ./swagger/financial-info/paths.yaml/#/editFinancialInfo
+  /project/{id}/financial-info/{financialId}/instalment/delete:
+    $ref: ./swagger/financial-info/paths.yaml/#/deleteFinancialInfo
+  /project/{id}/financial-info/{financialId}/instalment/details:
+    $ref: ./swagger/financial-info/paths.yaml/#/detailsFinancialInfo
+
 #Phases
   /phases/create:
     $ref: ./swagger/phases/paths.yaml/#/createPhase

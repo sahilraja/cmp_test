@@ -264,8 +264,8 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
             });
             return user 
         })
-        let nonVerifiedUsers = userSort(data.filter(({ emailVerified }: any) => !emailVerified), true)
-        let existUsers = userSort(data.filter(({ emailVerified }: any) => emailVerified))
+        let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
+        let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
         return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
         // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
@@ -621,7 +621,7 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         if (existUsers.length == 1) throw new Error("Minimum one member is required.")
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
-        return { message: RESPONSE.REMOVE_MEMBER }
+         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
         throw err
     };
@@ -1028,8 +1028,6 @@ export async function tokenValidation(token: string) {
 }
 export async function profileEditByAdmin(id: string, body: any, admin: any) {
     try {
-        let admin_scope = await checkRoleScope(admin.role, "create-user");
-        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let user: any = await userFindOne("id", id);
         if (!user.emailVerified) {
             throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
@@ -1057,6 +1055,10 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT);
             }
         }
+        if (body.name) {
+            body.profilePicName = body.name
+            delete body.name;
+        }
         let userInfo = await userEdit(id, body);
         await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id })
         return { message: "successfully profile Updated" }
@@ -1072,7 +1074,6 @@ export function validatePassword(password: string) {
         const NUMBERS_COUNT = Number(constantsInfo.numCount);
         const SPECIAL_COUNT = Number(constantsInfo.specialCharCount);
         const TOTAL_LETTERS = Number(constantsInfo.passwordLength);
-
         let lower = 0, upper = 0, num = 0, special = 0;
         for (var char of password) {
             if (char >= "A" && char <= "Z") {
@@ -1134,6 +1135,7 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
             let { mobileNo, fullName } = getFullNameAndMobile(user);
             sendNotification({
                 id: userId, mobileNo,
+                email: user.email,
                 fullName, groupName,
                 ...templateNamesInfo
             })

@@ -12,10 +12,11 @@ import { FILES_SERVER_BASE } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { OK } from "http-status-codes";
 import { roles_list, role_list } from "../role/module";
-import { SENDER_IDS } from "../utils/error_msg";
+import { SENDER_IDS, USER_ROUTER } from "../utils/error_msg";
 const router = Router();
 import * as multer from "multer";
 import { constantSchema } from "../site-constants/model";
+import { checkRoleScope } from "../utils/role_management";
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         console.log("Dest");
@@ -337,9 +338,9 @@ router.get("/login/history/:id", authenticate, async (req, res, next) => {
         next(new APIError(error.message));
     }
 })
-router.post("/send/mobileOtp",authenticate,async (req, res, next) => {
+router.post("/send/mobileOtp/:id",authenticate,async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileSendOtp(req.body.phone,res.locals.user));
+        res.status(OK).send(await mobileSendOtp(req.body.phone,req.params.id));
     }
     catch (error) {
         next(new APIError(error.message));
@@ -401,7 +402,18 @@ router.get('/validation/:token',async(req,res,next)=>{
 
 router.post('/:id/admin/profile/edit', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await profileEditByAdmin(req.params.id,req.body,res.locals.user));
+
+        let admin_scope = await checkRoleScope(res.locals.user.role, "create-user");
+        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        let payload: any
+        const contentType: any = req.get('content-type');
+        if (contentType.includes('multipart/form-data')) {
+            payload = await uploadToFileService(req)
+        }
+        if (contentType.includes('application/json')) {
+            payload = JSON.stringify(req.body)
+        }
+        res.status(OK).send(await profileEditByAdmin(req.params.id,JSON.parse(payload),res.locals.user));
     } catch (err) {
         next(new APIError(err.message));;
     };
