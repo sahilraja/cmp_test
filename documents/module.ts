@@ -1281,11 +1281,11 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
     return folder[0];
   })
   const filteredDocs = docsList.filter(doc => doc.isDeleted == false)
-
+  const folderName:any = await folders.findById(folderId); 
   const docsData = manualPagination(page, limit, [...subFolderList, ...filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
-  return { page: docsData.page, pages: docsData.pages, subFoldersList: filteredSubFolders, docsList: docsData.docs };
+  return { page: docsData.page, pages: docsData.pages, folderName:folderName.name , subFoldersList: filteredSubFolders, docsList: docsData.docs,};
 }
 
 async function userData(folder: any, host: string) {
@@ -1300,6 +1300,8 @@ async function userData(folder: any, host: string) {
     const data = await Promise.all([{
       _id: folder.doc_id._id,
       name: folder.doc_id.name,
+      fileId: folder.doc_id.fileId,
+      fileName: folder.doc_id.fileName,
       description: folder.doc_id.description,
       tags,
       role: ((userRole as any).data || [""])[0],
