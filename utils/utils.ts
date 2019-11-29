@@ -1,7 +1,7 @@
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 import { AUTHENTICATE_MSG, MOBILE_MESSAGES, USER_ROUTER } from './error_msg';
-import { userFindOne } from './users';
+import { userFindOne, userUpdate } from './users';
 import { userRoleAndScope } from '../role/module';
 import { APIError } from './custom-error';
 import { loginSchema } from '../users/login-model';
@@ -12,6 +12,7 @@ import { httpRequest } from './role_management';
 import * as phoneNo from "phone";
 import { decode } from 'punycode';
 import { getConstantsAndValues } from '../site-constants/module';
+import { sendNotification } from '../users/module';
 const SECRET: string = "CMP_SECRET";
 const ACCESS_TOKEN_LIFETIME = '365d';
 const SALTROUNDS = 10;
@@ -157,73 +158,37 @@ export async function jwtOtpVerify(otp: any) {
     }
 }
 
-export function mobileSendOtp(mobileNo:String,senderId:String){
+export async function mobileSendOtp(mobileNo:string,user:string){
     try{
-        if(mobileNo.slice(0,3) != "+91")
-        {
-            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
-        }
-        if (!phoneNo(mobileNo).length) {
-            throw new Error(USER_ROUTER.VALID_PHONE_NO);
-        }
-        sendOtp.setOtpExpiry();
-        sendOtp.send(mobileNo,senderId,function(err:any, response:any){
-            if(err){
-                console.log(err);
-            }
-            else{
-                console.log(response);
-            }
-        });
-        return {messsage:MOBILE_MESSAGES.SEND_OTP}
+        return await sendMobileOtp(mobileNo,user);
     }
     catch(err){
         throw err;
     }
 }
 
-export async function mobileVerifyOtp(mobileNo:string,otp:string){
-    try{
-        if(otp == "1111"){
-            return {message:MOBILE_MESSAGES.VALID_OTP};
+export async function mobileVerifyOtp(mobileNo:string,otp:string,userInfo:any){
+    try
+    {
+        let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
+        if (otp != "1111") {
+            if (mobileToken.smsOtp != otp) {
+               throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+            }
         }
-        return await new Promise((resolve, reject) => {
-            sendOtp.verify(mobileNo,otp, function(err:any, response:any){
-                if(response.type == 'success'){
-                    resolve({message: "Mobile otp is verified"});
-                }
-                if(response.type == 'error'){
-                    reject(new APIError(MOBILE_MESSAGES.INVALID_OTP));
-                }
-            })
-        }).catch(error => false)
+        return {message: MOBILE_MESSAGES.VALID_OTP}
     }
     catch(err){
         throw err
     }
 }
 //resend otp 
-export function mobileRetryOtp(mobileNo:string){
-    if(mobileNo.slice(0,3) != "+91")
-    {
-        throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
-    }
-    if (!phoneNo(mobileNo).length) {
-        throw new Error(USER_ROUTER.VALID_PHONE_NO);
-    }
-    sendOtp.setOtpExpiry(MSG_EXPIRE_OTP);
-    sendOtp.retry(mobileNo, false, function (error:any, data:any) {
-        console.log(data);
-    });
-    return {message:MOBILE_MESSAGES.SEND_OTP}
+export async function mobileRetryOtp(mobileNo:string,user:any){
+    return await mobileSendOtp(mobileNo,user);
 }
 
 export function mobileSendMessage(mobileNo:String,senderId:String){ 
     try{
-        if(mobileNo.slice(0,3) != "+91")
-        {
-            throw new APIError(USER_ROUTER.INVALID_COUNTRYCODE);
-        }
         if (!phoneNo(mobileNo).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO);
         }
@@ -231,6 +196,22 @@ export function mobileSendMessage(mobileNo:String,senderId:String){
             console.log("err: ",err);
             console.log("result :",response);
         });
+    }
+    catch(err){
+        throw err
+    }
+}
+
+//sendOtp
+export async function sendMobileOtp(mobileNo:string,user:any){
+    try{
+        if (!phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
+        let { mobileOtp, smsToken } = await generatemobileOtp(4);
+        await userUpdate({id:user._id, smsOtpToken: smsToken });
+        sendNotification({ id:user._id, mobileNo, mobileOtp, mobileTemplateName: "sendOtp" });
+        return {messsage:MOBILE_MESSAGES.SEND_OTP};
     }
     catch(err){
         throw err

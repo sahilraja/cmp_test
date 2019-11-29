@@ -37,19 +37,19 @@
     },
     {
         "key" :"specialCharCount",
-        "value" : "8" ,
+        "value" : "1" ,
         "groupName" : "password",
         "displayName" : "Special characters count"
     },
     {
         "key" :"numCount",
-        "value" : "8" ,
+        "value" : "1" ,
         "groupName" : "password",
         "displayName" : "Numbers count"
     },
     {
         "key" :"upperCaseCount",
-        "value" : "8" ,
+        "value" : "1" ,
         "groupName" : "password",
         "displayName" : "Numbers count"
     },

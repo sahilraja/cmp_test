@@ -329,13 +329,6 @@
           "scope":"global"
         },
         {
-          "capability":"patterns-management",
-          "shortDescription":"Pattern management",
-          "category":"Pattern Management",
-          "description":"Pattern management",
-          "scope":"global"
-        },
-        {
           "capability":"send-message-to-email",
           "shortDescription":"Send Message To Email",
           "category":"Message Management",
@@ -383,6 +376,33 @@
           "description":"Ability to add tags to a project",
           "category": "Project Management",
           "scope":"global"
-        }   
-  ]
-  
+        },
+        {
+          "capability":"edit-template",
+          "shortDescription":"Edit Template",
+          "description":"Ability to edit template",
+          "category": "Template Management",
+          "scope":"global"
+        },
+        {
+          "capability":"display-template-management",
+          "shortDescription":"Display Template Management",
+          "description":"Display Template Management ",
+          "category": "Template Management",
+          "scope":"global"
+        },
+        {
+          "capability": "edit-user-profile",
+          "shortDescription": "Edit User Profile",
+          "description": "Ability to user profile",
+          "scope": "global",
+          "category": "User Management"
+        },
+        {
+          "capability": "change-user-role",
+          "shortDescription": "change user role",
+          "description": "Ability to change user role",
+          "scope": "global",
+          "category": "User Management"
+        }
+]
