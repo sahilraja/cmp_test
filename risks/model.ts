@@ -20,7 +20,7 @@ const SchemaDef = new Schema({
     status: { type: String },
     previousTrend: { type: Number, default: 0 },
     deleted: { type: Boolean, default: false },
-    parentId: {type: Types.ObjectId, ref: "risks"},
+    parentId: {type: Types.ObjectId, default: null, ref: "risks"},
     createdBy: { type: String }
 }, { timestamps: true })
 SchemaDef.plugin(plugin)

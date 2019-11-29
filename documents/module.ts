@@ -1923,9 +1923,9 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
     checkRoleScope(userRole, 'mark-as-public-document'),
     documents.findById(docId).exec()
   ])
-  // if(!isEligible){
-  //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
-  // }
+  if(!isEligible){
+    throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
+  }
   if ((docDetail as any).status != 2) {
     throw new APIError(DOCUMENT_ROUTER.UNABLE_TO_MAKE_PUBLIC_DOCUMENT)
   }
