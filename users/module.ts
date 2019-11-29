@@ -1034,8 +1034,6 @@ export async function tokenValidation(token: string) {
 }
 export async function profileEditByAdmin(id: string, body: any, admin: any) {
     try {
-        let admin_scope = await checkRoleScope(admin.role, "create-user");
-        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let user: any = await userFindOne("id", id);
         if (!user.emailVerified) {
             throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
@@ -1063,6 +1061,10 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
                 throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}',constantsList.value));
             }
         }
+        if (body.name) {
+            body.profilePicName = body.name
+            delete body.name;
+        }
         let userInfo = await userEdit(id, body);
         await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id })
         return { message: "successfully profile Updated" }
@@ -1078,7 +1080,6 @@ export async function validatePassword(password: string) {
         const NUMBERS_COUNT = Number(constantsInfo.numCount);
         const SPECIAL_COUNT = Number(constantsInfo.specialCharCount);
         const TOTAL_LETTERS = Number(constantsInfo.passwordLength);
-
         let lower = 0, upper = 0, num = 0, special = 0;
         for (var char of password) {
             if (char >= "A" && char <= "Z") {
