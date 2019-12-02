@@ -32,6 +32,7 @@ import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 import { manualPagination } from "../documents/module";
+import { patternSubstitutions } from "../patterns/module";
  
 // inside middleware handler
 
@@ -1015,10 +1016,12 @@ export async function sendNotification(objBody: any) {
     }
     if (mobileOtp || userNotification.email) {
         let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
+        let subject =  await patternSubstitutions(templatInfo.subject);
+        let content = await patternSubstitutions(templatInfo.content); 
         nodemail({
             email: email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
+            subject: subject.message,
+            html: content.message
         })
     }
 }
