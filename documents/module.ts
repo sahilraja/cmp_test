@@ -1712,7 +1712,7 @@ async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = 
       let groupUsers = await Promise.all(groupIds.map((group: string) => groupUserList(group)));
       userIds = userIds.concat(groupUsers.reduce((main: any[], curr: any) => main.concat(curr), []))
       users = await userFindMany("_id", userIds, selectFields);
-      if (type == "invitePeople" || type == "invitePeopleEdit" || type == "invitePeopleRemove"){
+      if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc"){
         let actionedUsers = users.filter((user: any)=> text.some((acUser: any)=> acUser.id == user._id)).map((user: any)=> `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
         sharedUsers = actionedUsers.length == 1 ? actionedUsers[0] : `${actionedUsers.slice(0, actionedUsers.lastIndexOf(",")) + " and " + actionedUsers.slice(actionedUsers.lastIndexOf(",") + 1)}`
         role = text[0].role
