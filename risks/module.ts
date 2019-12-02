@@ -51,7 +51,7 @@ export async function edit(id: string, updates: any, userObj: any) {
 export async function riskSaveAll(projectId: string, updateObjs: any[], userObj: any): Promise<{ message: string }> {
     try {
         await Promise.all(updateObjs.map((riskObj) => saveaAll(riskObj, projectId, userObj)))
-        return {message: "successfully save all risks"}
+        return { message: "successfully save all risks" }
     } catch (err) {
         throw err
     };
@@ -60,7 +60,7 @@ export async function riskSaveAll(projectId: string, updateObjs: any[], userObj:
 async function saveaAll(riskObj: any, projectId: string, userObj: any) {
     try {
         if ("_id" in riskObj || "id" in riskObj) {
-            const oldObject: any = await RiskSchema.findById(riskObj._id || riskObj._id).exec();
+            const oldObject: any = await RiskSchema.findById(riskObj._id || riskObj.id).exec();
             if (Object.keys(riskObj).some(key => riskObj[key] != oldObject[key])) {
                 if (Object.keys(riskObj).includes('impact'))
                     if (oldObject.impact != riskObj.impact)
@@ -68,7 +68,7 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
                 if (Object.keys(riskObj).includes('probability'))
                     if (oldObject.probability != riskObj.probability)
                         riskObj['previousTrend'] = oldObject.impact * oldObject.probability;
-                let riskDetails: any = await RiskSchema.findByIdAndUpdate(riskObj._id || riskObj._id, { $set: riskObj }, { new: true }).exec()
+                let riskDetails: any = await RiskSchema.findByIdAndUpdate(riskObj._id || riskObj.id, { $set: riskObj }, { new: true }).exec()
                 await RiskSchema.create({ ...riskDetails, parentId: riskDetails._id })
             };
         } else {
