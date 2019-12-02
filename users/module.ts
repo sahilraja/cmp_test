@@ -834,7 +834,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let userInfo = await userUpdate({ otp_token: token, id: user._id, smsOtpToken: smsToken });
         let { fullName, mobileNo } = getFullNameAndMobile(userInfo);
 
-        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
+        //sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
         sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
 
         return { message: RESPONSE.SUCCESS_EMAIL };
@@ -853,10 +853,8 @@ export async function profileOtpVerify(objBody: any, user: any) {
 
         if (objBody.mobileOtp) {
             if (objBody.mobileOtp != "1111") {
-                if (objBody.countryCode && objBody.phone) {
-                    if (mobileToken.smsOtp != objBody.mobileOtp) {
-                        mobile_flag = 1
-                    }
+                if (mobileToken.smsOtp != objBody.mobileOtp) {
+                     mobile_flag = 1
                 }
             }
         }
@@ -878,8 +876,12 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (objBody.phone && objBody.countryCode) {
             temp = { phone: objBody.phone, countryCode: objBody.countryCode }
         }
-        return await userEdit(user._id, { email: token.newEmail, ...temp })
-
+        let userUpdate =await userEdit(user._id, { email: token.newEmail, ...temp });
+        if(token.newEmail){
+            let {mobileNo,fullName} = getFullNameAndMobile(user);
+            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
+        }
+        return userUpdate
     } catch (err) {
         throw err
     }
