@@ -66,13 +66,14 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
     }
 
-    // body.tags = (Array.isArray(body.tags) ? body.tags : body.tags.length ? body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
-    
-    if(body.tags&&Array.isArray(body.tags)){
-      body.tags=body.tags.filter((tag: any) => Types.ObjectId.isValid(tag))
-    }else if(body.tags.length){
-      body.tags = body.tags.split(',').filter((tag: any) => Types.ObjectId.isValid(tag))
-    }
+    body.tags = (Array.isArray(body.tags) ? body.tags : typeof (body.tags) == "string" && body.tags.length ? body.tags.includes("[") ? JSON.parse(body.tags) : body.tags = body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+
+    // if(body.tags && Array.isArray(body.tags)){
+    //   body.tags=body.tags.filter((tag: any) => Types.ObjectId.isValid(tag))
+    // }else if(body.tags.length){
+    //   body.tags = body.tags.split(',').filter((tag: any) => Types.ObjectId.isValid(tag))
+    // }
+
     if (body.tags && body.tags.length) {
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
@@ -516,7 +517,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
-    // objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : objBody.tags.length ? objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
+    objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : typeof (objBody.tags) == "string" && objBody.tags.length ? objBody.tags.includes("[") ? JSON.parse(objBody.tags) : objBody.tags = objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
     if (objBody.tags && objBody.tags.length) {
       let userRoles = await userRoleAndScope(userId);
@@ -1121,10 +1122,7 @@ export async function publishList(userId: string, page: number = 1, limit: numbe
 export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string, publish: boolean = true) {
   search = search.trim();
   try {
-
     let users: any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
-
-    // let { users } = await searchByname(search);
     let userIds = users.map((user: any) => user._id)
     let groups = await userGroupsList(userId)
     let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
@@ -1136,8 +1134,8 @@ export async function docFilter(search: string, userId: string, page: number = 1
     let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
     let docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
     let shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-    if (publish) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
-    else docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    if (publish == true) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
+    else docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))].filter(({ status }: any) => status != 2);
     docs = Object.values(docs.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
     let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     filteredDocs = documentsSort(filteredDocs, "name", false)
@@ -1821,7 +1819,7 @@ export async function requestRaise(docId: string, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id.");
     let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
-    if(existRequest) throw new Error("already request is there.")
+    if (existRequest) throw new Error("already request is there.")
     return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
     throw err;
@@ -1923,7 +1921,7 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
     checkRoleScope(userRole, 'mark-as-public-document'),
     documents.findById(docId).exec()
   ])
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
   }
   if ((docDetail as any).status != 2) {
