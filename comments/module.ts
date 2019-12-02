@@ -20,7 +20,7 @@ export async function addComment(body: any, user: any) {
       });
       if(body.type == "document"){
         const {fullName,mobileNo} = getFullNameAndMobile(user);
-        sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileMessage:"addCommentToDoc"});
+        sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileTemplateName:"addCommentToDoc"});
       }
       return commentInfo
     } catch (error) {

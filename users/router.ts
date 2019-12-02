@@ -338,7 +338,7 @@ router.get("/login/history/:id", authenticate, async (req, res, next) => {
         next(new APIError(error.message));
     }
 })
-router.post("/send/mobileOtp/:id",authenticate,async (req, res, next) => {
+router.post("/send/mobileOtp/:id", async (req, res, next) => {
     try {
         res.status(OK).send(await mobileSendOtp(req.body.phone,req.params.id));
     }
@@ -346,18 +346,18 @@ router.post("/send/mobileOtp/:id",authenticate,async (req, res, next) => {
         next(new APIError(error.message));
     }
 })
-router.post("/resend/mobileOtp",authenticate, async (req, res, next) => {
+router.post("/resend/mobileOtp/:id", async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileRetryOtp(req.body.phone,res.locals.user));
+        res.status(OK).send(await mobileRetryOtp(req.body.phone,req.params.id));
     }
     catch (error) {
         next(new APIError(error.message));
     }
 })
 
-router.post("/mobile/verify",authenticate,async (req, res, next) => {
+router.post("/mobile/verify/:id", async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileVerifyOtp(req.body.phone, req.body.otp,res.locals.user));
+        res.status(OK).send(await mobileVerifyOtp(req.body.phone, req.body.otp,req.params.id));
     }
     catch (error) {
         next(new APIError(error.message));

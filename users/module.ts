@@ -37,39 +37,43 @@ const MESSAGE_URL = process.env.MESSAGE_URL
 const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
 
 export async function bulkInvite(filePath: string, userId: string) {
-    const excelFormattedData = importExcelAndFormatData(filePath)
-    if (!excelFormattedData.length) {
-        throw new APIError(`Uploaded empty document`)
+    let constantsList: any = await constantSchema.findOne({ key: 'bulkInvite' }).exec();
+    if(constantsList.value == "true")
+    {
+        const excelFormattedData = importExcelAndFormatData(filePath)
+        if (!excelFormattedData.length) {
+            throw new APIError(`Uploaded empty document`)
+        }
+        const [roleData, usersList]: any = await Promise.all([
+            role_list(),
+            userList({}, { email: 1 })
+        ])
+        const existingEmails = usersList.map((user: any) => (user.email || '').toLowerCase()).filter((v: any) => !!v)
+        const categories = Array.from(new Set(roleData.roles.map((role: any) => role.category)))
+        const formattedDataWithRoles = excelFormattedData.map(data => {
+            const matchedRole = roleData.roles.find((role: any) => role.roleName == data.role)
+            if (existingEmails.includes(data.email.toLowerCase())) {
+                throw new APIError(`${data.email} already exists`)
+            }
+            if (!categories.includes(data.category)) {
+                throw new APIError(`No category matched with ${data.category}`)
+            }
+            if (!matchedRole) {
+                throw new APIError(`No role matched with ${data.role}`)
+            }
+            return { ...data, role: matchedRole.role }
+        })
+        if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
+            throw new APIError(`Category, Role and Email are mandatory for all`)
+        }
+        formattedDataWithRoles.forEach((role: any) => {
+            if (!validateEmail(role.email)) {
+                throw new APIError(`${role.email} is invalid`)
+            }
+        })
+        await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
+        return { message: 'success' }
     }
-    const [roleData, usersList]: any = await Promise.all([
-        role_list(),
-        userList({}, { email: 1 })
-    ])
-    const existingEmails = usersList.map((user: any) => (user.email || '').toLowerCase()).filter((v: any) => !!v)
-    const categories = Array.from(new Set(roleData.roles.map((role: any) => role.category)))
-    const formattedDataWithRoles = excelFormattedData.map(data => {
-        const matchedRole = roleData.roles.find((role: any) => role.roleName == data.role)
-        if (existingEmails.includes(data.email.toLowerCase())) {
-            throw new APIError(`${data.email} already exists`)
-        }
-        if (!categories.includes(data.category)) {
-            throw new APIError(`No category matched with ${data.category}`)
-        }
-        if (!matchedRole) {
-            throw new APIError(`No role matched with ${data.role}`)
-        }
-        return { ...data, role: matchedRole.role }
-    })
-    if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
-        throw new APIError(`Category, Role and Email are mandatory for all`)
-    }
-    formattedDataWithRoles.forEach((role: any) => {
-        if (!validateEmail(role.email)) {
-            throw new APIError(`${role.email} is invalid`)
-        }
-    })
-    await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
-    return { message: 'success' }
 }
 
 //  Create User
@@ -171,8 +175,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         return { token: await createJWT({ id: success._id, role: token.role }) }
     } catch (err) {
         throw err;
-    };
-};
+    }
+}
 
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
@@ -186,7 +190,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }
         }
         if (id != user._id) {
-            let admin_scope = await checkRoleScope(user.role, "create-user");
+            let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         if (objBody.password) {
@@ -206,6 +210,10 @@ export async function edit_user(id: string, objBody: any, user: any) {
         let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
 
         if (objBody.role &&  objBody.role.length) {
+            if (id != user._id) {
+                let admin_scope = await checkRoleScope(user.role, "change-user-role");
+                if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+            } 
             updateProfile = 0
             const removeRole = await Promise.all(user_roles.roles.map(async (role:any) =>{ 
             let RoleStatus = await revokeRole(id, role)
@@ -222,7 +230,6 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 }));
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
             sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
-    
         }
 
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
@@ -264,7 +271,11 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
                     return false;
                 }
             });
-            return user 
+            // rolesBody.roles.forEach((roleInfo:any)=>{
+            //     if(user.role.indexOf(roleInfo.role)){
+            //         return user
+            //     }
+            // })
         })
         let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
         let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
@@ -1008,13 +1019,13 @@ export async function sendNotification(objBody: any) {
         })
     }
 }
-export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
-    let validateOtp = await mobileVerifyOtp(phone, otp)
-    if (validateOtp == false) {
-        throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
-    }
-    return validateOtp
-}
+// export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
+//     let validateOtp = await mobileVerifyOtp(phone, otp.)
+//     if (validateOtp == false) {
+//         throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+//     }
+//     return validateOtp
+// }
 export async function tokenValidation(token: string) {
     try {
         let tokenInfo: any = await jwt_Verify(token);
@@ -1030,41 +1041,52 @@ export async function tokenValidation(token: string) {
 }
 export async function profileEditByAdmin(id: string, body: any, admin: any) {
     try {
-        let user: any = await userFindOne("id", id);
-        if (!user.emailVerified) {
-            throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
-        }
-        const { firstName, lastName, middleName, phone, aboutme, countryCode, email } = body;
-
-        if (!firstName || !lastName || firstName.trim() == "" || lastName.trim() == "" || !phone || !countryCode) {
-            throw new Error(USER_ROUTER.MANDATORY);
-        };
-        if (email) {
-            if (!validateEmail(email)) {
-                throw Error(USER_ROUTER.EMAIL_WRONG);
+        let constantsList: any = await constantSchema.findOne({key:"replaceProfile"}).exec();
+        if(constantsList.value == "true")
+        {
+            // let eligible = await admin.role.filter((eachRole:any)=> eachRole == "technology-lead")
+            // if(!eligible){
+            //     throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+            // }
+            let admin_scope = await checkRoleScope(admin.role, "edit-user-profile");
+            if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+    
+            let user: any = await userFindOne("id", id);
+            if (!user.emailVerified) {
+                throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
             }
-        }
-        if (phone && countryCode) {
-            let phoneNumber: string = countryCode + phone
-            if (!phoneNo(phoneNumber).length) {
-                throw new Error(USER_ROUTER.VALID_PHONE_NO)
+            const { firstName, lastName, middleName, phone, aboutme, countryCode, email } = body;
+    
+            if (!firstName || !lastName || firstName.trim() == "" || lastName.trim() == "" || !phone || !countryCode) {
+                throw new Error(USER_ROUTER.MANDATORY);
+            };
+            if (email) {
+                if (!validateEmail(email)) {
+                    throw Error(USER_ROUTER.EMAIL_WRONG);
+                }
             }
-
-        }
-        if (aboutme) {
-            let constantsList: any = await constantSchema.findOne().exec();
-            if (aboutme.length > Number(constantsList.aboutMe)) {
-                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+            if (phone && countryCode) {
+                let phoneNumber: string = countryCode + phone
+                if (!phoneNo(phoneNumber).length) {
+                    throw new Error(USER_ROUTER.VALID_PHONE_NO)
+                }
+    
             }
+            if (aboutme) {
+                let constantsList: any = await constantSchema.findOne({key:"aboutMe"}).exec();
+                if (aboutme.length > Number(constantsList.value)) {
+                    throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}',constantsList.value));
+                }
+            }
+            if (body.name) {
+                body.profilePicName = body.name
+                delete body.name;
+            }
+            let userInfo = await userEdit(id, body);
+            let editedKeys = Object.keys(user).filter(key=>{ if( key != "updatedAt") return user[key] != userInfo[key]})
+            await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys })
+            return { message: "successfully profile Updated" }
         }
-        if (body.name) {
-            body.profilePicName = body.name
-            delete body.name;
-        }
-        let userInfo = await userEdit(id, body);
-        let editedKeys = Object.keys(user).filter(key=>{ if( key != "updatedAt") return user[key] != userInfo[key]})
-        await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys })
-        return { message: "successfully profile Updated" }
     } catch (err) {
         throw err
     }

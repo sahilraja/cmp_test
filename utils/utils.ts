@@ -168,9 +168,10 @@ export async function mobileSendOtp(mobileNo:string,id:string){
     }
 }
 
-export async function mobileVerifyOtp(mobileNo:string,otp:string,userInfo:any){
+export async function mobileVerifyOtp(mobileNo:string,otp:string,id:string){
     try
     {
+        let userInfo = await userFindOne('id',id);
         let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
         if (otp != "1111") {
             if (mobileToken.smsOtp != otp) {
@@ -184,7 +185,8 @@ export async function mobileVerifyOtp(mobileNo:string,otp:string,userInfo:any){
     }
 }
 //resend otp 
-export async function mobileRetryOtp(mobileNo:string,user:any){
+export async function mobileRetryOtp(mobileNo:string,id:string){
+    let user = await userFindOne('id',id);
     return await mobileSendOtp(mobileNo,user);
 }
 

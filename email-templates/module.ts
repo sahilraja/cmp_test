@@ -3,6 +3,9 @@ import { USER_ROUTER } from "../utils/error_msg";
 import * as marked from "marked";
 import { SUBSTITUTIONS } from "./substitutions";
 import { nodemail } from "../utils/email";
+import { checkRoleScope } from "../utils/role_management";
+import { APIError } from "../utils/custom-error";
+import { constantSchema } from "../site-constants/model";
 
 export async function templateCreate(body: any) {
     try {
@@ -20,20 +23,26 @@ export async function list() {
     return await TemplateSchema.find({}).exec()
 }
 
-export async function templateEdit(body: any,id:string) {
+export async function templateEdit(user:any,body: any,id:string) {
     try {
-        let objBody: any={};
-        if(body.content){
-            objBody.content=body.content;
+        let constantsList: any = await constantSchema.findOne({ key: 'editTemplate' }).exec();
+        if(constantsList.value == "true")
+        {
+            const isEligible = await checkRoleScope(user.role,"edit-template");
+            if (!isEligible) throw new APIError("Unautherized Action.", 403);
+            let objBody: any = {};
+            if(body.content){
+                objBody.content=body.content;
+            }
+            if(body.displayName){
+                objBody.displayName = body.displayName;
+            }
+            if(body.subject){
+                objBody.subject = body.subject;
+            }
+            let templateCreate  = await TemplateSchema.findByIdAndUpdate(id,{$set:objBody},{new:true});
+            return templateCreate;
         }
-        if(body.displayName){
-            objBody.displayName = body.displayName;
-        }
-        if(body.subject){
-            objBody.subject = body.subject;
-        }
-        let templateCreate  = await TemplateSchema.findByIdAndUpdate(id,{$set:objBody},{new:true});
-        return templateCreate;
     } catch (err) {
         throw err
     };
@@ -46,8 +55,10 @@ export async function templateDelete(body: any,id:string) {
         throw err
     };
 };
-export async function templateGet(id:string) {
+export async function templateGet(user:any,id:string) {
     try {
+        const isEligible = await checkRoleScope(user.role,"display-template-management");
+        if (!isEligible) throw new APIError("Unautherized Action.", 403);
         let template  = await TemplateSchema.findById(id);
         return template;
     } catch (err) {

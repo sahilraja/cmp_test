@@ -67,7 +67,7 @@
     },
     {
         "key" :"docSize",
-        "value" : "25" ,  
+        "value" : "25" ,
         "groupName" : "documents",
         "displayName" : "Document size"
     },
@@ -136,5 +136,17 @@
         "value" : "true",
         "groupName" : "templates",
         "displayName" : "edit template"
+    },
+    {
+        "key" :"replaceDoc",
+        "value" : "true" ,
+        "groupName" : "documents",
+        "displayName" : "Replace documents"
+    },
+    {
+        "key" :"replaceProfile",
+        "value" : "true" ,
+        "groupName" : "userManagement",
+        "displayName" : "Replace profile"
     }
 ]

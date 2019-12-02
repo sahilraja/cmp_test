@@ -190,14 +190,14 @@
   },
   {
     "capability": "publish-document",
-    "shortDescription": "published documents",
+    "shortDescription": "publish documents",
     "description": "published documents",
     "category": "Document Management",
     "scope": "global"
   },
   {
     "capability": "unpublish-document",
-    "shortDescription": "unpublished documents",
+    "shortDescription": "unpublish documents",
     "description": "unpublished documents",
     "category": "Document Management",
     "scope": "global"
@@ -276,6 +276,13 @@
     "capability": "mark-as-public-document",
     "shortDescription": "Mark document as public",
     "description": "Ability to mark document as public ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "mark-as-unpublic-document",
+    "shortDescription": "Mark document as unpublic",
+    "description": "Ability to mark document as unpublic ",
     "category": "Document Management",
     "scope": "global"
   },
@@ -417,6 +424,27 @@
     "shortDescription": "Financial Info Management",
     "description": "Ability to add financial info",
     "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-comments",
+    "shortDescription": "Add comment",
+    "description": "Ability to add comment on document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-comments-publish",
+    "shortDescription": "Add comment on publish document",
+    "description": "Ability to add comment on publish document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tags-publish",
+    "shortDescription": "Add tag on publish document",
+    "description": "Ability to add tag on publish document",
+    "category": "Document Management",
     "scope": "global"
   }
 ]

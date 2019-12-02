@@ -95,10 +95,10 @@ export async function userRolesNotification(userId: any, templateName: string) {
         }))
         //return roleInfo
         let notificationResult: any = roleInfo.reduce((acc: any, roleObj: any) => {
-            if (roleObj.email == false || roleObj.email == true) {
+            if (roleObj.email == true) {
                 acc['email'] = true
             }
-            if (roleObj.mobile == false || roleObj.mobile == true ) {
+            if (roleObj.mobile == true ) {
                 acc['mobile'] = true
             }
             return acc
