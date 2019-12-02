@@ -87,25 +87,25 @@
         "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is published<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "publishDocument",
         "displayName" : "publish document",
-        "subject" : "[documentName] Published"
+        "subject" : "Document Published"
     },
     {
         "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is Unpublished<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "unPublishDocument",
         "displayName" : "unPublish document",
-        "subject" : "[documentName] UnPublished"
+        "subject" : "Document UnPublished"
     },
     {
         "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is replaced.<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "replaceDocument",
         "displayName" : "replace document",
-        "subject" : "[documentName] Replaced"
+        "subject" : "Document Replaced"
     },
     {
         "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, has been updated with [text] <br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "documentUpdate",
         "displayName" : "document Update",
-        "subject" : "[documentName] Updated"
+        "subject" : "Document Updated"
     },
     {        
         "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Your role is replaced with <b>[role]</b><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
