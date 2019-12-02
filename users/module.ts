@@ -32,6 +32,9 @@ import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 import { manualPagination } from "../documents/module";
+ 
+// inside middleware handler
+
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
@@ -357,7 +360,7 @@ export async function user_login(req: any) {
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
-        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
+        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userData._id });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login" });
         return response;
