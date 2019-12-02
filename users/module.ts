@@ -1019,13 +1019,13 @@ export async function sendNotification(objBody: any) {
         })
     }
 }
-export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
-    let validateOtp = await mobileVerifyOtp(phone, otp)
-    if (validateOtp == false) {
-        throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
-    }
-    return validateOtp
-}
+// export async function mobileVerifyOtpicatioin(phone: string, otp: string) {
+//     let validateOtp = await mobileVerifyOtp(phone, otp.)
+//     if (validateOtp == false) {
+//         throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+//     }
+//     return validateOtp
+// }
 export async function tokenValidation(token: string) {
     try {
         let tokenInfo: any = await jwt_Verify(token);
