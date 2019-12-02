@@ -1394,10 +1394,11 @@ export async function deleteDoc(docId: any, userId: string) {
 
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
-    let findDoc = await documents.find({ _id: docId, ownerId: userId })
-    if (!findDoc.length) {
+    let findDoc: any = await documents.findOne({ _id: docId, ownerId: userId })
+    if (!findDoc) {
       throw new Error("File Id is Invalid")
     }
+    if(findDoc.status == 2) throw new Error("Published document can't be deleted.")
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
     await create({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
     if (deletedDoc) {
