@@ -19,7 +19,8 @@ const schema = new Schema(
     isDeleted:{ type: Boolean, default: false },
     isPublic: { type: Boolean, default: false },
     suggestedTags:[{ userId:String, tags:Array }],
-    rejectedTags:[{ userId:String, tags:Array }]
+    rejectedTags:[{ userId:String, tags:Array }],
+    fileSize: { type: String },
   },
   { timestamps: true }
 );
