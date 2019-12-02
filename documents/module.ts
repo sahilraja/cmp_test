@@ -1091,16 +1091,19 @@ export async function unPublished(docId: string, userObj: any) {
   };
 };
 
-export async function replaceDoc(docId: string, replaceDoc: string, userObj: any) {
+export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants:any) {
   try {
-    let admin_scope = await checkRoleScope(userObj.role, "replace-document");
-    if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
-    let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
-    documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true }).exec()]);
-    let success = await published({ ...doc, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
-    await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
-    mailAllCmpUsers("replaceDocument", success)
-    return success
+    if(siteConstants.replaceDoc == "true")
+    {
+        let admin_scope = await checkRoleScope(userObj.role, "replace-document");
+        if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+        let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
+        documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true }).exec()]);
+        let success = await published({ ...doc, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
+        await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
+        mailAllCmpUsers("replaceDocument", success)
+        return success
+    }
   } catch (err) {
     throw err;
   };

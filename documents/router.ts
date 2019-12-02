@@ -90,7 +90,7 @@ const ensureCanViewVersion: RequestHandler = (req, res, next) => {
 };
 
 const siteConstants: RequestHandler = async (req: any, res, next) => {
-  let constantsInfo:any = getConstantsAndValues(['docNameLength','docSize','docDescriptionSize']);
+  let constantsInfo:any = await getConstantsAndValues(['docNameLength','docSize','docDescriptionSize','replaceDoc']);
   req.siteConstants = constantsInfo;
   next();
 };
@@ -137,6 +137,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
   try {
     const isEligible = await checkRoleScope(res.locals.user.role, "create-doc");
     if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
+    req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
     res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants));
   } catch (err) {
@@ -547,14 +548,13 @@ router.put(`/:id/mark-as-public`, authenticate, async (req, res, next) => {
 })
 
 //  update exist doc
-router.post("/:id/replace/:replaceDocId", authenticate, async (req, res, next: NextFunction) => {
+router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user));
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user,(req as any).siteConstants));
   } catch (err) {
     next(new APIError(err.message));
   }
-}
-);
+});
 
 //  update exist doc
 router.get("/:id/cancel", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {

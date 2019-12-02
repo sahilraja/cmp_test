@@ -34,7 +34,7 @@ router.get(`/list`, authenticate, async (req, res, next) => {
 
 router.post("/edit/:id", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await templateEdit(req.body, req.params.id));
+        res.status(OK).send(await templateEdit(res.locals.user,req.body, req.params.id));
     } catch (err) {
         if(err.code == 11000){
             err.message = `Template already exists`
@@ -51,7 +51,7 @@ router.get("/delete/:id", authenticate, async (req: Request, res: Response, next
 })
 router.get("/getTemplate/:id", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await templateGet(req.params.id));
+        res.status(OK).send(await templateGet(res.locals.user,req.params.id));
     } catch (err) {
         next(new APIError(err.message));
     };
