@@ -53,7 +53,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
-    const { id: fileId, name: fileName } = body
+    const { id: fileId, name: fileName, size: fileSize } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {  // add config query
       throw new Error(`Document name should not exceed more than ${siteConstant.docNameLength} characters`)
@@ -80,7 +80,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       }
     }
 
-    let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+    let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize});
     //  Add user as Owner to this Document
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
     if (!role.user) {
@@ -88,7 +88,8 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     body.parentId = doc.id;
-    let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName });
+   
+    let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName,fileSize: fileSize});
     if (body.folderId) {
       await folders.update({ _id: body.folderId }, {
         $push: { doc_id: doc.id }
@@ -144,7 +145,8 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
       ownerId: userId,
       parentId: body.parentId ? body.parentId : null,
       fileId: fileObj ? fileObj.fileId : null,
-      fileName: fileObj ? fileObj.fileName : null
+      fileName: fileObj ? fileObj.fileName : null,
+      fileSize: fileObj ? fileObj.fileSize : null
     });
   } catch (error) {
     console.error(error);
