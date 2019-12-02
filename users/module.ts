@@ -202,6 +202,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         };
         let userRole:any=[];
         let editUserInfo: any = await userFindOne("id", id);
+
         let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
 
         if (objBody.role &&  objBody.role.length) {
@@ -238,9 +239,10 @@ export async function edit_user(id: string, objBody: any, user: any) {
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
         userInfo.role = userRole;
-        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id })
+        let editedKeys = Object.keys(editUserInfo).filter(key=>{ if( key != "updatedAt") return editUserInfo[key] != userInfo[key]})
+        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys})
         if (updateProfile) {
-            sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileMessage: "profile" });
+            sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileTemplateName: "profile" });
         }
         return userInfo
     } catch (err) {
@@ -1060,7 +1062,8 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
             delete body.name;
         }
         let userInfo = await userEdit(id, body);
-        await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id })
+        let editedKeys = Object.keys(user).filter(key=>{ if( key != "updatedAt") return user[key] != userInfo[key]})
+        await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys })
         return { message: "successfully profile Updated" }
     } catch (err) {
         throw err
