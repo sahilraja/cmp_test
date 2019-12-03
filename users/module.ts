@@ -32,6 +32,10 @@ import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 import { manualPagination } from "../documents/module";
+import { patternSubstitutions } from "../patterns/module";
+ 
+// inside middleware handler
+
 const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
@@ -298,8 +302,12 @@ function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
     }
 }
 
-export async function getUserDetail(userId: string) {
+export async function getUserDetail(userId: string,user ?:any) {
     try {
+        if(user._id != userId){
+            let admin_scope = await checkRoleScope(user.role, "create-user");
+            if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        }
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data || [""])[0] }
     } catch (err) {
@@ -357,7 +365,7 @@ export async function user_login(req: any) {
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
-        await loginSchema.create({ ip: objBody.ip, userId: userData._id });
+        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userData._id });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login" });
         return response;
@@ -830,7 +838,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
         let userInfo = await userUpdate({ otp_token: token, id: user._id, smsOtpToken: smsToken });
         let { fullName, mobileNo } = getFullNameAndMobile(userInfo);
 
-        sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
+        //sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
         sendNotification({ id: user._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
 
         return { message: RESPONSE.SUCCESS_EMAIL };
@@ -849,10 +857,8 @@ export async function profileOtpVerify(objBody: any, user: any) {
 
         if (objBody.mobileOtp) {
             if (objBody.mobileOtp != "1111") {
-                if (objBody.countryCode && objBody.phone) {
-                    if (mobileToken.smsOtp != objBody.mobileOtp) {
-                        mobile_flag = 1
-                    }
+                if (mobileToken.smsOtp != objBody.mobileOtp) {
+                     mobile_flag = 1
                 }
             }
         }
@@ -874,8 +880,12 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (objBody.phone && objBody.countryCode) {
             temp = { phone: objBody.phone, countryCode: objBody.countryCode }
         }
-        return await userEdit(user._id, { email: token.newEmail, ...temp })
-
+        let userUpdate =await userEdit(user._id, { email: token.newEmail, ...temp });
+        if(token.newEmail){
+            let {mobileNo,fullName} = getFullNameAndMobile(user);
+            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
+        }
+        return userUpdate
     } catch (err) {
         throw err
     }
@@ -1012,10 +1022,12 @@ export async function sendNotification(objBody: any) {
     }
     if (mobileOtp || userNotification.email) {
         let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
+        let subject =  await patternSubstitutions(templatInfo.subject);
+        let content = await patternSubstitutions(templatInfo.content); 
         nodemail({
             email: email,
-            subject: templatInfo.subject,
-            html: templatInfo.content
+            subject: subject.message,
+            html: content.message
         })
     }
 }

@@ -17,6 +17,9 @@ const router = Router();
 import * as multer from "multer";
 import { constantSchema } from "../site-constants/model";
 import { checkRoleScope } from "../utils/role_management";
+import * as requestIp from "request-ip";
+
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         console.log("Dest");
@@ -27,6 +30,13 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage })
+
+const ipMiddleware = function(req:Request, res:Response, next:NextFunction) {
+    const ip = requestIp.getClientIp(req); 
+    console.log(ip)
+    next();
+};
+
 
 //  Invite User
 router.post('/create', authenticate, async (req: Request, res: Response, next: NextFunction) => {
@@ -80,7 +90,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
 
 router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await getUserDetail(req.params.id));
+        res.status(200).send(await getUserDetail(req.params.id,res.locals.user));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -119,7 +129,7 @@ router.put('/status/:id', authenticate, async (req: Request, res: Response, next
 });
 
 //  login user
-router.post('/email/login', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/email/login', ipMiddleware,async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).send(await user_login(req));
     } catch (err) {
