@@ -28,6 +28,41 @@
     "scope": "global"
   },
   {
+    "capability":"manage-approvers",
+    "shortDescription":"Manage Approvers",
+    "description":"Manage Approvers",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"manage-endorsers",
+    "shortDescription":"Manage Endorsers",
+    "description":"Manage Endorsers",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"manage-viewers",
+    "shortDescription":"Manage Viewers",
+    "description":"Manage Viewers",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"view-activity-log",
+    "shortDescription":"View activity log",
+    "description":"View activity log",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"view-all-cmp-tasks",
+    "shortDescription":"View all CMP Tasks",
+    "description":"View all CMP Tasks",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
     "capability": "attach-documents-to-task",
     "shortDescription": "Attach Documents To Task",
     "description": "Ability to attach documents to a task",

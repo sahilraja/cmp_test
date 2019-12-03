@@ -1935,3 +1935,16 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
   await documents.updateMany({ parentId: docId }, { $set: { isPublic: true } }).exec()
   return { message: 'success' }
 }
+
+export async function markDocumentAsUnPublic(docId: string, userRole: string) {
+  const [isEligible, docDetail] = await Promise.all([
+    checkRoleScope(userRole, 'mark-as-public-document'),
+    documents.findById(docId).exec()
+  ])
+  if(!isEligible){
+    throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
+  }
+  await documents.findByIdAndUpdate(docId, { $set: { isPublic: false } }).exec()
+  await documents.updateMany({ parentId: docId }, { $set: { isPublic: false } }).exec()
+  return { message: 'success' }
+}
