@@ -212,6 +212,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         let editUserInfo: any = await userFindOne("id", id);
 
         let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
+        objBody.role  = (Array.isArray(objBody.role ) ? objBody.role  : typeof (objBody.role ) == "string" && objBody.role .length ? objBody.role .includes("[") ? JSON.parse(objBody.role ) : objBody.role  = objBody.role .split(',') : [])
 
         if (objBody.role &&  objBody.role.length) {
             if (id != user._id) {
@@ -219,12 +220,14 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             } 
             updateProfile = 0
+            if(user_roles.roles && user_roles.roles.length){
             const removeRole = await Promise.all(user_roles.roles.map(async (role:any) =>{ 
             let RoleStatus = await revokeRole(id, role)
                 if (!RoleStatus.status) {
                     throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
                 }
             }));
+        }
             const addrole = await Promise.all(objBody.role.map(async (role:any) =>{ 
                 let RoleStatus = await addRole(id, role)
                 if (!RoleStatus.status) {
