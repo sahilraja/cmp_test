@@ -915,7 +915,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
       })
     );
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
-    mailAllCmpUsers("invitePeople", doc, false, addUsers)
+    mailAllCmpUsers("invitePeopleDoc", doc, false, addUsers)
     return { message: "Shared successfully." };
   } catch (err) {
     throw err;
@@ -932,7 +932,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
-    mailAllCmpUsers("invitePeopleEdit", await documents.findById(docId), false, [{ id: userId, type: type, role: role }], )
+    mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }], )
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
@@ -946,7 +946,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     if (!userRole.includes("owner")) throw new Error("You dont Capability to remove user.")
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
-    mailAllCmpUsers("invitePeopleRemove", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
+    mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
     return { message: "Revoke share successfully." };
   } catch (err) {
     throw err;
@@ -1714,6 +1714,7 @@ async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = 
       users = await userFindMany("_id", userIds, selectFields);
       if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc"){
         let actionedUsers = users.filter((user: any)=> text.some((acUser: any)=> acUser.id == user._id)).map((user: any)=> `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
+        users = users.filter((user: any)=> text.some((acUser: any)=> acUser.id != user._id))
         sharedUsers = actionedUsers.length == 1 ? actionedUsers[0] : `${actionedUsers.slice(0, actionedUsers.lastIndexOf(",")) + " and " + actionedUsers.slice(actionedUsers.lastIndexOf(",") + 1)}`
         role = text[0].role
       }

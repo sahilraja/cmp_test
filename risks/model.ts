@@ -6,6 +6,8 @@ export enum RISK_STATUS {
 }
 
 const SchemaDef = new Schema({
+    riskNumber: {type: Number},
+    riskTrend: {type: Number},
     dateRaised:{type: Date},
     projectId: {type: Schema.Types.ObjectId, ref:'project'},
     riskFamily: { type: String, trim: true },
