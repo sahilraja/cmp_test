@@ -90,7 +90,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
 
 router.get(`/detail/:id`, authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await getUserDetail(req.params.id));
+        res.status(200).send(await getUserDetail(req.params.id,res.locals.user));
     } catch (err) {
         next(new APIError(err.message));
     };

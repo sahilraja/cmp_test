@@ -302,7 +302,7 @@ function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
     }
 }
 
-export async function getUserDetail(userId: string,user:any) {
+export async function getUserDetail(userId: string,user ?:any) {
     try {
         if(user._id != userId){
             let admin_scope = await checkRoleScope(user.role, "create-user");
