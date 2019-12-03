@@ -3,149 +3,174 @@
         "key" :"captcha",
         "value" : "true" ,
         "groupName" : "authentication",
+        "type" : "boolean",
         "displayName" : "Enable/Disable Captcha"
     },
     {
         "key" :"invalidPassword",
         "value" : "true" ,
+        "type" : "boolean",
         "groupName" : "authentication",
         "displayName" : "Enable/Disable wrong password "
     },
     {
         "key" :"linkExpire",
         "value" : "15" ,
+        "type" : "number",
         "groupName" : "authentication",
         "displayName" : "Link expire time"
     },
     {
         "key" :"otpExpire",
         "value" : "15" ,
+        "type" : "number",
         "groupName" : "authentication",
         "displayName" : "OTP expire time"
     },
     {
         "key" :"bulkInvite",
         "value" : "true" ,
+        "type" : "boolean",
         "groupName" : "userManagement",
         "displayName" : "Enable/Disable bulk invitation"
     },
     {
         "key" :"passwordLength",
         "value" : "8" ,
+        "type" : "number",
         "groupName" : "password",
         "displayName" : "Password Length"
     },
     {
         "key" :"specialCharCount",
         "value" : "1" ,
+        "type" : "number",
         "groupName" : "password",
         "displayName" : "Special characters count"
     },
     {
         "key" :"numCount",
         "value" : "1" ,
+        "type" : "number",
         "groupName" : "password",
         "displayName" : "Numbers count"
     },
     {
         "key" :"upperCaseCount",
         "value" : "1" ,
+        "type" : "number",
         "groupName" : "password",
         "displayName" : "Numbers count"
     },
     {
         "key" :"aboutMe",
         "value" : "200" ,
+        "type" : "number",
         "groupName" : "userManagement",
         "displayName" : "aboutMe"
     },
     {
         "key" :"docNameLength",
         "value" : "50" ,
+        "type" : "number",
         "groupName" : "documents",
         "displayName" : "Document Name Length"
     },
     {
         "key" :"docSize",
         "value" : "25" ,
+        "type": "number",
         "groupName" : "documents",
         "displayName" : "Document size"
     },
     {
         "key" :"docDescriptionSize",
         "value" : "200" ,
+        "type": "number",
         "groupName" : "documents",
         "displayName" : "Document description Size"
     },
     {
         "key" :"messageSubjectLength",
         "value" : "30" ,
+        "type":"number",
         "groupName" : "messsages",
         "displayName" : "Message subject Length"
     },
     {
         "key" :"messageExcerptLength",
         "value" : "30" ,
+        "type": "number",
         "groupName" : "messsages",
         "displayName" : "Message excerpt Length"
     },
     {
         "key" :"taskTitleLength",
         "value" : "50" ,
+        "type": "number",
         "groupName" : "task",
         "displayName" : "task title Length"
     },
     {
         "key" :"docNamePg",
         "value" : "50" ,
+        "type": "number",
         "groupName" : "privateGroup",
         "displayName" : "Document Name Length"
     },
     {
         "key" :"docSizePg",
         "value" : "25" ,
+        "type": "number",
         "groupName" : "privateGroup",
         "displayName" : "Document size"
     },
     {
         "key" :"docDescriptionPg",
         "value" : "200" ,
+        "type": "number",
         "groupName" : "privateGroup",
         "displayName" : "Document description Size"
     },
     {
         "key" :"docDescriptionPg",
         "value" : "200" ,
+        "type": "number",
         "groupName" : "privateGroup",
         "displayName" : "Document description Size"
     },
     {
         "key" :"bcc",
         "value" : "jeevan.balla@transerve.com",
+        "type" : "string",
         "groupName" : "email",
         "displayName" : "bcc emails"
     },
     {
         "key" :"editRole",
         "value" : "true",
+        "type" : "boolean",
         "groupName" : "capability",
         "displayName" : "edit role"
     },
     {
         "key" :"editTemplate",
         "value" : "true",
+        "type" : "boolean",
         "groupName" : "templates",
         "displayName" : "edit template"
     },
     {
         "key" :"replaceDoc",
         "value" : "true" ,
+        "type" : "boolean",
         "groupName" : "documents",
         "displayName" : "Replace documents"
     },
     {
         "key" :"replaceProfile",
         "value" : "true" ,
+        "type" :"boolean",
         "groupName" : "userManagement",
         "displayName" : "Replace profile"
     }
