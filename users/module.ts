@@ -302,8 +302,12 @@ function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
     }
 }
 
-export async function getUserDetail(userId: string) {
+export async function getUserDetail(userId: string,user:any) {
     try {
+        if(user._id != userId){
+            let admin_scope = await checkRoleScope(user.role, "create-user");
+            if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        }
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data || [""])[0] }
     } catch (err) {
