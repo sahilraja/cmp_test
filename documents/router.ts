@@ -62,7 +62,8 @@ import {
   getAllPublicDocuments,
   markDocumentAsPublic,
   checkCapabilitiesForUserNew,
-  removeFromFolder
+  removeFromFolder,
+  markDocumentAsUnPublic
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -547,6 +548,13 @@ router.put(`/:id/mark-as-public`, authenticate, async (req, res, next) => {
   }
 })
 
+router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
+  try {
+    res.status(OK).send(await markDocumentAsUnPublic(req.params.id, res.locals.user.role))
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {

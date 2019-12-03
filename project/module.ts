@@ -45,8 +45,8 @@ export async function createProject(reqObject: any, user: any) {
       summary: reqObject.description || "N/A",
       maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
-      fundsReleased: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
-      fundsUtilised: [{ installment: 1 }, { installment: 2 }, { installment: 3 }, { installment: 4 }],
+      fundsReleased: [],
+      fundsUtilised: [],
       phase: reqObject.phase
     });
     createLog({ activityType: ACTIVITY_LOG.PROJECT_CREATED, projectId: createdProject.id, activityBy: user._id })
@@ -436,6 +436,76 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
   return updatedTask
 }
 
+export async function addReleasedInstallment(projectId: string, payload: any) {
+  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  // if(!payload.installment){
+  //   throw new APIError('Installment is required') 
+  // }
+  const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
+    if(!fund.phase){
+      throw new APIError(`Phase is required`)
+    }
+    if(!fund.percentage){
+      throw new APIError(`Percentage is required`)
+    }
+    return {
+      installment: index + 1,
+      phase: fund.phase,
+      percentage: fund.percentage
+    }
+  })
+  const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
+  // if(projectDetail.fundsReleased.some((fund: any) => fund.installment == payload.installment)){
+  //   throw new APIError(`Installment already exists`)
+  // }
+  if(overAllPercentage > 100){
+    throw new APIError(`Percentage should not exceed 100`)
+  }
+  const updated =  await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload } }, { new: true }).exec()
+  return updated
+}
+
+export async function addUtilizedInstallment(projectId: string, payload: any) {
+  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  const finalPayload = payload.fundsUtilised.map((fund: any, index: number) => {
+    if(!fund.phase){
+      throw new APIError(`Phase is required`)
+    }
+    if(!fund.percentage){
+      throw new APIError(`Percentage is required`)
+    }
+    return {
+      installment: index + 1,
+      phase: fund.phase,
+      percentage: fund.percentage
+    }
+  })
+  const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
+  if(overAllPercentage > 100){
+    throw new APIError(`Percentage should not exceed 100`)
+  }
+  // if(projectDetail.fundsUtilised.some((fund: any) => fund.installment == payload.installment)){
+  //   throw new APIError(`Installment already exists`)
+  // }
+  const updated =  await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsUtilised: finalPayload } }, { new: true }).exec()
+  return updated
+}
+
+export async function getInstallments(projectId: string, search: string) {
+  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  let s1: any = []
+    let m = (projectDetail[search] || []).map((s: any) => {
+      if(!s1.includes(s.installment)){
+        s1.push(s.installment)
+        return {
+          phase: s.phase,
+          percentage: s.percentage
+        }
+      }
+    })
+    return m.filter((v: any) => !!v)
+}
+
 export async function ganttChart(projectId: string, userToken: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const options = {
@@ -501,6 +571,7 @@ function getPercentageByInstallment(installment: number) {
       installmentType = `4th Installment`
       break;
     default:
+      installmentType = `${installment}th Installment`
       break;
   }
   return { percentage, installmentType, phase }
@@ -509,31 +580,39 @@ function getPercentageByInstallment(installment: number) {
 export async function getFinancialInfo(projectId: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
-  const documentIds = fundsReleased.map((fund: any) => fund.document).concat(fundsUtilised.map((fund: any) => fund.document)).filter((v: any) => !!v)
+  const documentIds = fundsReleased.map((fund: any) => (fund.documents || [])).concat(fundsUtilised.map((fund: any) => (fund.documents || []))).reduce((p: any,c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
   const documents = await documentsList(documentIds)
-  const fundsReleasedData = Array(4).fill(0).map((it, index) => index + 1).map((fund: any) => {
-    const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
-    const items = fundsReleased.filter((fundReleased: any) =>
-      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
-      )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
-    return {
-      phase,
-      installment: installmentType,
-      percentage,
-      // Filter empty data
-      items,
-      installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
+  let fundsReleasedData = fundsReleased.reduce((p: any, fund: any) => {
+    const { installmentType } = getPercentageByInstallment(fund.installment)
+    // const items = fundsReleased.filter((fund: any) =>
+    //   (!fund.deleted && fund.subInstallment && (fund.installment == fund.installment)
+    //   )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
+      p.push({
+        phase: fund.phase,
+        installment: installmentType,
+        percentage: fund.percentage,
+        // Filter empty data
+        items: fundsReleased,
+        installmentLevelTotal: fundsReleased.reduce((p: number, item: any) => p + (item.cost || 0), 0)
+      })
+    return p
+  }, [])
+  let ins: any = []
+  fundsReleasedData = fundsReleasedData.filter((f: any) => {
+    if(!ins.includes(f.installment)){
+      ins.push(f.installment)
+      return f
     }
   })
-  const fundsUtilisedData = Array(4).fill(0).map((it, index) => index + 1).map((fund: any) => {
-    const { installmentType, percentage, phase } = getPercentageByInstallment(fund)
+  const fundsUtilisedData = fundsUtilised.map((fund: any) => {
+    const { installmentType } = getPercentageByInstallment(fund.installment)
     const items = fundsUtilised.filter((fundReleased: any) =>
       (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
       )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
     return {
-      phase,
+      phase:fund.phase,
       installment: installmentType,
-      percentage,
+      percentage: fund.percentage,
       // Filter empty data
       items,
       installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
@@ -569,6 +648,8 @@ export async function addFundReleased(projectId: string, payload: any, user: any
   const updates = {
     fundsReleased: otherFunds.concat(matchedFundsWithData).concat([
       {
+        phase: matchedFunds[0].phase,
+        percentage: matchedFunds[0].percentage,
         subInstallment: matchedFundsWithData.length + 1,
         installment: payload.installment, document: payload.document, cost: payload.cost,
         createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id

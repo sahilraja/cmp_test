@@ -26,8 +26,10 @@ const schema = new Schema({
         {
             deleted:{type:Boolean, default: false},
             installment:{type:  Number},
+            percentage: {type: String},
+            phase: {type: String},
             subInstallment:{type:  Number},
-            document: {type: String},
+            documents: {type: [String]},
             cost: { type: Number },
             createdAt: { type: Date },
             modifiedAt: { type: Date },
@@ -38,8 +40,10 @@ const schema = new Schema({
         {
             deleted:{type:Boolean, default: false},
             installment:{type:  Number},
+            percentage: {type: String},
+            phase: {type: String},
             subInstallment:{type:  Number},
-            document: {type: String},
+            documents: {type: [String]},
             cost: { type: Number },
             createdAt: { type: Date },
             modifiedAt: { type: Date },
