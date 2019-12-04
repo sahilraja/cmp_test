@@ -5,7 +5,9 @@ import { userFindOne, userUpdate } from './users';
 import { userRoleAndScope } from '../role/module';
 import { APIError } from './custom-error';
 import { loginSchema } from '../users/login-model';
-import {promisify} from "util";
+import { promisify } from "util";
+const TASK_URL = process.env.TASK_HOST || "http://localhost:5052";
+import * as request from "request-promise";
 import * as msg91 from "msg91";
 import * as SendOtp from "sendotp";
 import { httpRequest } from './role_management';
@@ -22,15 +24,15 @@ const ROUTE_NO = "4";
 const MSG_EXPIRE_OTP = 15;
 
 
-const msg = msg91(MSG_API_KEY,SENDER_ID,ROUTE_NO);
+const msg = msg91(MSG_API_KEY, SENDER_ID, ROUTE_NO);
 const sendOtp = new SendOtp(MSG_API_KEY, 'Your Verification code is {{otp}}');
 
-export async function authenticateConstants(){
+export async function authenticateConstants() {
 
-    let {linkExpire,otpExpire} = await getConstantsAndValues(['linkExpire','otpExpire']);
-    return { 
-        ACCESS_TOKEN_FOR_URL : Number(linkExpire) * 60,
-        ACCESS_TOKEN_FOR_OTP : Number(otpExpire) * 60
+    let { linkExpire, otpExpire } = await getConstantsAndValues(['linkExpire', 'otpExpire']);
+    return {
+        ACCESS_TOKEN_FOR_URL: Number(linkExpire) * 60,
+        ACCESS_TOKEN_FOR_OTP: Number(otpExpire) * 60
     }
 }
 
@@ -84,33 +86,33 @@ export async function jwt_create(id: any) {
 
 //  Create JWT One Day
 export async function jwt_for_url(id: any) {
-    const {ACCESS_TOKEN_FOR_URL} = await authenticateConstants();
+    const { ACCESS_TOKEN_FOR_URL } = await authenticateConstants();
     return await jwtSign(id, SECRET, { expiresIn: ACCESS_TOKEN_FOR_URL });
 };
 
 //  JWT VERIFY
 export async function jwt_Verify(id: any) {
-    try{
-        return jwtVerify(id, SECRET,function(err:any,decoded:any) {
+    try {
+        return jwtVerify(id, SECRET, function (err: any, decoded: any) {
             if (err) {
-                if(err.name == "TokenExpiredError") {
+                if (err.name == "TokenExpiredError") {
                     throw new APIError(USER_ROUTER.TOKEN_EXPIRED);
                 }
-                if(err.name == "JsonWebTokenError") {
-                    throw  new APIError(USER_ROUTER.TOKEN_INVALID);
+                if (err.name == "JsonWebTokenError") {
+                    throw new APIError(USER_ROUTER.TOKEN_INVALID);
                 }
             }
-            else{
+            else {
                 return decoded
             }
         });
     }
-    catch(err){
+    catch (err) {
         throw err;
     }
 }
 
-export async function generateOtp(limit: number,objBody?:any) {
+export async function generateOtp(limit: number, objBody?: any) {
     var characters = '0123456789';
     var charactersLength = characters.length;
     var result = "";
@@ -118,105 +120,120 @@ export async function generateOtp(limit: number,objBody?:any) {
     for (var i = 0; i < limit; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-    let authOtp:any = { "otp":result,...objBody};
+    let authOtp: any = { "otp": result, ...objBody };
     let token = await jwtOtpToken(authOtp);
-    return {otp:result,token}
+    return { otp: result, token }
 }
 
-export async function generatemobileOtp(limit:number,objBody?:any) {
-    let timestamp  =(new Date().getTime()).toString()
-    let result =  timestamp.slice(timestamp.length-limit,timestamp.length);
-    let authOtp:any = { "smsOtp": result,...objBody};
+export async function generatemobileOtp(limit: number, objBody?: any) {
+    let timestamp = (new Date().getTime()).toString()
+    let result = timestamp.slice(timestamp.length - limit, timestamp.length);
+    let authOtp: any = { "smsOtp": result, ...objBody };
     let smsToken = await jwtOtpToken(authOtp);
-    return {mobileOtp:result,smsToken}
+    return { mobileOtp: result, smsToken }
 }
 
 export async function jwtOtpToken(otp: any) {
-    const {ACCESS_TOKEN_FOR_OTP} = await authenticateConstants();
+    const { ACCESS_TOKEN_FOR_OTP } = await authenticateConstants();
     return await jwtSign(otp, SECRET, { expiresIn: ACCESS_TOKEN_FOR_OTP });
 }
 
 // verify token for otp
 export async function jwtOtpVerify(otp: any) {
-    try{
-        return await jwtVerify(otp, SECRET,function(err:any,decoded:any) {
+    try {
+        return await jwtVerify(otp, SECRET, function (err: any, decoded: any) {
             if (err) {
-                if(err.name == "TokenExpiredError") {
+                if (err.name == "TokenExpiredError") {
                     throw new APIError(USER_ROUTER.TOKEN_EXPIRED_OTP);
                 }
-                if(err.name == "JsonWebTokenError") {
+                if (err.name == "JsonWebTokenError") {
                     throw new APIError(USER_ROUTER.TOKEN_INVALID);
                 }
             }
-            else{
+            else {
                 return decoded
             }
         })
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
 
-export async function mobileSendOtp(mobileNo:string,id:string){
-    try{
-        let user = await userFindOne('id',id);
-        return await sendMobileOtp(mobileNo,user);
+export async function mobileSendOtp(mobileNo: string, id: string) {
+    try {
+        let user = await userFindOne('id', id);
+        return await sendMobileOtp(mobileNo, user);
     }
-    catch(err){
+    catch (err) {
         throw err;
     }
 }
 
-export async function mobileVerifyOtp(mobileNo:string,otp:string,id:string){
-    try
-    {
-        let userInfo = await userFindOne('id',id);
+export async function mobileVerifyOtp(mobileNo: string, otp: string, id: string) {
+    try {
+        let userInfo = await userFindOne('id', id);
         let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
         if (otp != "1111") {
             if (mobileToken.smsOtp != otp) {
-               throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+                throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
             }
         }
-        return {message: MOBILE_MESSAGES.VALID_OTP}
+        return { message: MOBILE_MESSAGES.VALID_OTP }
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
 //resend otp 
-export async function mobileRetryOtp(mobileNo:string,id:string){
-    let user = await userFindOne('id',id);
-    return await mobileSendOtp(mobileNo,user);
+export async function mobileRetryOtp(mobileNo: string, id: string) {
+    let user = await userFindOne('id', id);
+    return await mobileSendOtp(mobileNo, user);
 }
 
-export function mobileSendMessage(mobileNo:String,senderId:String){ 
-    try{
+export function mobileSendMessage(mobileNo: String, senderId: String) {
+    try {
         if (!phoneNo(mobileNo).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO);
         }
-        msg.send(mobileNo,senderId, function(err:any, response:any){
-            console.log("err: ",err);
-            console.log("result :",response);
+        msg.send(mobileNo, senderId, function (err: any, response: any) {
+            console.log("err: ", err);
+            console.log("result :", response);
         });
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
 
 //sendOtp
-export async function sendMobileOtp(mobileNo:string,user:any){
-    try{
+export async function sendMobileOtp(mobileNo: string, user: any) {
+    try {
         if (!phoneNo(mobileNo).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO);
         }
         let { mobileOtp, smsToken } = await generatemobileOtp(4);
-        await userUpdate({id:user._id, smsOtpToken: smsToken });
-        sendNotification({ id:user._id, mobileNo, mobileOtp, mobileTemplateName: "sendOtp" });
-        return {messsage:MOBILE_MESSAGES.SEND_OTP};
+        await userUpdate({ id: user._id, smsOtpToken: smsToken });
+        sendNotification({ id: user._id, mobileNo, mobileOtp, mobileTemplateName: "sendOtp" });
+        return { messsage: MOBILE_MESSAGES.SEND_OTP };
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
+
+
+// Get group is user ids
+export async function getTasksForDocument(docId: string, token: string): Promise<any[]> {
+    try {
+        let Options = {
+            uri: `${TASK_URL}/getTasksForDocument/${docId}`,
+            headers: { Authorization: `Bearer ${token}` },
+            method: "GET",
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};

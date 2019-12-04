@@ -40,7 +40,7 @@ const MESSAGE_URL = process.env.MESSAGE_URL
 
 const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
 
-export async function bulkInvite(filePath: string, userId: string) {
+export async function bulkInvite(filePath: string, user: any) {
     let constantsList: any = await constantSchema.findOne({ key: 'bulkInvite' }).exec();
     if(constantsList.value == "true")
     {
@@ -65,7 +65,7 @@ export async function bulkInvite(filePath: string, userId: string) {
             if (!matchedRole) {
                 throw new APIError(`No role matched with ${data.role}`)
             }
-            return { ...data, role: matchedRole.role }
+            return { ...data, role: [matchedRole.role] }
         })
         if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
             throw new APIError(`Category, Role and Email are mandatory for all`)
@@ -75,7 +75,7 @@ export async function bulkInvite(filePath: string, userId: string) {
                 throw new APIError(`${role.email} is invalid`)
             }
         })
-        await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, userId)))
+        await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, user)))
         return { message: 'success' }
     }
 }
@@ -92,7 +92,7 @@ export async function inviteUser(objBody: any, user: any) {
             }
         }
         //  Check User Capability
-
+        console.log(`user.role`, user.role)
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({
@@ -307,11 +307,12 @@ function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
 
 export async function getUserDetail(userId: string,user ?:any) {
     try {
-        if(user._id != userId){
+        if(user && (user._id != userId)){
             let admin_scope = await checkRoleScope(user.role, "create-user");
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
+        console.log(detail, `detail`)
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data || [""])[0] }
     } catch (err) {
         throw err;
@@ -695,7 +696,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         }
         let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
         let privateUsersObj = await userFindManyWithRole(privateGroupUser)
-        myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any) => privateGroup.members.includes(user._id)), type: "private-group" } }))
+        myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any) => privateGroup.members.includes(user._id)), type: "private-list" } }))
         publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
         let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
         // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)

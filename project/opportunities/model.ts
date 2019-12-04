@@ -2,6 +2,8 @@ import { Schema, model } from "mongoose";
 import plugin from "mongoose-transform";
 
 const SchemaDef = new Schema({
+    opportunityNumber: {type: Number},
+    opportunityTrend: {type: Number},
     dateRaised:{type: Date},
     projectId: {type: Schema.Types.ObjectId, ref:'project'},
     opportunityFamily: { type: String, trim: true },

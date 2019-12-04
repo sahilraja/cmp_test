@@ -179,5 +179,20 @@
         "content" : "Document [documentName], has been updated with [text] ",
         "templateName" : "documentUpdate",
         "displayName" : "Document updated"
+    },
+    {
+        "content" : "Document [documentName], is shared to [sharedUsers] with [role]. You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
+        "templateName" : "invitePeopleDoc",
+        "displayName" : "share document"
+    },
+    {
+        "content" : "Document [documentName], is edit share capability to [sharedUsers] with [role].You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
+        "templateName" : "invitePeopleEditDoc",
+        "displayName" : "edit share capabilty document"
+    },
+    {
+        "content" : "Document [documentName], is remove share capability to [sharedUsers] with [role]. You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
+        "templateName" : "invitePeopleRemoveDoc",
+        "displayName" : "remove share capabilty document"
     }
 ]
