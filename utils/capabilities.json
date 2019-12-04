@@ -210,13 +210,6 @@
     "scope": "global"
   },
   {
-    "capability": "edit-tag",
-    "shortDescription": "edit tag",
-    "description": "edit tag",
-    "category": "Document Management",
-    "scope": "global"
-  },
-  {
     "capability": "project-create-task",
     "shortDescription": "project create task",
     "description": "project create task",
@@ -297,13 +290,6 @@
     "capability": "view-all-cmp-documents",
     "shortDescription": "View All CMP Documents",
     "description": "Ability to view all cmp documents ",
-    "category": "Document Management",
-    "scope": "global"
-  },
-  {
-    "capability": "view-all-public-documents",
-    "shortDescription": "View All Public Documents",
-    "description": "Ability to view all public documents ",
     "category": "Document Management",
     "scope": "global"
   },
@@ -462,14 +448,14 @@
     "scope": "global"
   },
   {
-    "capability": "add-comments",
+    "capability": "document-comments",
     "shortDescription": "Add comment",
     "description": "Ability to add comment on document",
     "category": "Document Management",
     "scope": "global"
   },
   {
-    "capability": "add-comments-publish",
+    "capability": "document-comments-publish",
     "shortDescription": "Add comment on publish document",
     "description": "Ability to add comment on publish document",
     "category": "Document Management",

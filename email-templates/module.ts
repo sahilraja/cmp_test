@@ -29,7 +29,7 @@ export async function templateEdit(user:any,body: any,id:string) {
         if(constantsList.value == "true")
         {
             const isEligible = await checkRoleScope(user.role,"edit-template");
-            if (!isEligible) throw new APIError("Unautherized Action.", 403);
+            if (!isEligible) throw new APIError("Unauthorized Action.", 403);
             let objBody: any = {};
             if(body.content){
                 objBody.content=body.content;
@@ -58,7 +58,7 @@ export async function templateDelete(body: any,id:string) {
 export async function templateGet(user:any,id:string) {
     try {
         const isEligible = await checkRoleScope(user.role,"display-template-management");
-        if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         let template  = await TemplateSchema.findById(id);
         return template;
     } catch (err) {
