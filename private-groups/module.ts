@@ -18,7 +18,7 @@ export interface privateGroup {
 export async function createPrivateGroup(body: any, userObj: any): Promise<object> {
     try {
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
-        if (!isEligible) throw new APIError("Unautherized Action.", 403);
+        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
         await validateDocument(body);
         if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
@@ -35,7 +35,7 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
     try {
         let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
         if (!groupDetails) throw new Error("Group Not Found.");
-        if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
+        if (groupDetails.createdBy != userId) throw new Error("Unauthorized Action.");
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.");
         await validateDocument(body);
         if(body)
@@ -56,7 +56,7 @@ export async function removePrivateGroup(groupId: string, body: privateGroup, us
     try {
         let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
         if (!groupDetails) throw new Error("Group Not Found.");
-        if (groupDetails.createdBy != userId) throw new Error("Unautherized Action.");
+        if (groupDetails.createdBy != userId) throw new Error("Unauthorized Action.");
         if (Array.isArray(body.members) && body.members.length) {
             body.members = groupDetails.members.filter((userId: string) => !body.members.includes(userId))
         }
@@ -72,7 +72,7 @@ export async function privateGroupStatus(groupId: string, userId: string): Promi
     try {
         let group: any = await privateGroupSchema.findById(groupId).exec();
         if (!group) throw new Error("Group Not Found.");
-        if (group.createdBy != userId) throw new Error("Unautherized Action.")
+        if (group.createdBy != userId) throw new Error("Unauthorized Action.")
         let data: any = await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { is_active: group.is_active ? false : true } });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
