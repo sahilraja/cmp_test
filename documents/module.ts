@@ -21,14 +21,14 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
-import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails } from "../users/module";
+import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, groupList } from "../users/module";
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
@@ -404,8 +404,8 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
     let users = await Promise.all(userData.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
     docList.suggestedTags = users
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
-    docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
-    docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
+      docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
+      docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     docList.taskDetails = await getTasksForDocument(docList.parentId || docList._id, token)
     return docList;
   } catch (err) {
@@ -523,9 +523,10 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : typeof (objBody.tags) == "string" && objBody.tags.length ? objBody.tags.includes("[") ? JSON.parse(objBody.tags) : objBody.tags = objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
     if (objBody.tags && objBody.tags.length) {
+      let document: any = await documents.findById(docId)
       let userRoles = await userRoleAndScope(userId);
       let userRole = userRoles.data[0];
-      const isEligible = await checkRoleScope(userRole, "add-tag-to-document");
+      const isEligible = document.status == 2 ? await checkRoleScope(userRole, "add-tags-publish") : await checkRoleScope(userRole, "add-tag-to-document")
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
@@ -933,7 +934,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
-    mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }], )
+    mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
@@ -1135,18 +1136,28 @@ export async function docFilter(search: string, userId: string, page: number = 1
   try {
     let users: any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
     let userIds = users.map((user: any) => user._id)
+    let collaboratedDocsIds: any = (await Promise.all(userIds.map((userId: string) => GetDocIdsForUser(userId, "user", ["collaborator"])))).reduce((main: any, curr) => main.concat(curr), [])
+    let collaboratorDocs = await documents.find({_id: {$in: collaboratedDocsIds}, parentId: null, isDeleted: false, ownerId: userId})
+    let searchGroupIds = (await groupPatternMatch({},{name: search},{},{}, "updatedAt") as any).map(({_id}: any)=> _id)
     let groups = await userGroupsList(userId)
     let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
     let tags = await Tags.find({ tag: new RegExp(search, "i") });
     let tagIds = tags.map(tag => tag.id)
-    let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
+    let sharedCollaboratorDocs = await documents.find({_id: {$in: collaboratedDocsIds.filter((id: any)=> docIds.includes(id))}, parentId: null, isDeleted: false})
+    let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false, ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 });
     let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
     let docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
     let shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-    if (publish == true) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))];
-    else docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...(shared.concat(sharedWithTag))].filter(({ status }: any) => status != 2);
+    let groupSearchIds: any = await Promise.all(searchGroupIds.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
+    groupSearchIds = groupSearchIds.reduce((main: any, arr: any) => main.concat(arr), [])
+    let groupSearchDocs = await documents.find({_id: {$in: groupSearchIds}, parentId: null, isDeleted: false, ownerId: userId})
+    let sharedGroupSearchDocs = await documents.find({_id: {$in: groupSearchIds.filter((id: any)=> docIds.includes(id))}, parentId: null, isDeleted: false})
+    let myDocs = [...docs, ...docsWithTag, ...collaboratorDocs, ...groupSearchDocs]
+    let shareDocs = [...shared, ...sharedWithTag, ...sharedCollaboratorDocs, ...sharedGroupSearchDocs]
+    if (publish == true) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shareDocs];
+    else docs = [...myDocs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED)), ...shareDocs ].filter(({ status }: any) => status != 2);
     docs = Object.values(docs.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
     let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     filteredDocs = documentsSort(filteredDocs, "name", false)
@@ -1155,6 +1166,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
     throw err;
   };
 };
+
 
 //  Manual Pagination for Doc Filter
 function filterOrdersByPageAndLimit(page: number, limit: number, orders: any): Promise<object[]> {
@@ -1707,15 +1719,15 @@ async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = 
       users = await userList({ is_active: true, emailVerified: true }, selectFields)
     } else {
       let docInvited: any = await invitePeopleList(docDetails._id)
-      if(Array.isArray(text)) docInvited.concat(text)
+      if (Array.isArray(text)) docInvited.concat(text)
       let userIds = docInvited.filter((obj: any) => obj.type == "user").map(({ id }: any) => id)
       let groupIds = docInvited.filter((obj: any) => obj.type == "group").map(({ id }: any) => id)
       let groupUsers = await Promise.all(groupIds.map((group: string) => groupUserList(group)));
       userIds = userIds.concat(groupUsers.reduce((main: any[], curr: any) => main.concat(curr), []))
       users = await userFindMany("_id", userIds, selectFields);
-      if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc"){
-        let actionedUsers = users.filter((user: any)=> text.some((acUser: any)=> acUser.id == user._id)).map((user: any)=> `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
-        users = users.filter((user: any)=> text.some((acUser: any)=> acUser.id != user._id))
+      if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc") {
+        let actionedUsers = users.filter((user: any) => text.some((acUser: any) => acUser.id == user._id)).map((user: any) => `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
+        users = users.filter((user: any) => text.some((acUser: any) => acUser.id != user._id))
         sharedUsers = actionedUsers.length == 1 ? actionedUsers[0] : `${actionedUsers.slice(0, actionedUsers.lastIndexOf(",")) + " and " + actionedUsers.slice(actionedUsers.lastIndexOf(",") + 1)}`
         role = text[0].role
       }

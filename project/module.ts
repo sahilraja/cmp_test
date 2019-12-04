@@ -197,8 +197,8 @@ export async function add_tag(reqObject: any, userObj: any) {
 //  edit tag
 export async function edit_tag(id: any, reqObject: any, userObj: any) {
   try {
-    let isEligible = await checkRoleScope(userObj.role, "edit-tag");
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    // let isEligible = await checkRoleScope(userObj.role, "edit-tag");
+    // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let obj: any = {};
     if (reqObject.tag) {
       obj.tag = reqObject.tag;
@@ -222,8 +222,8 @@ export async function getTagByIds(ids: string[]) {
 //  edit status of tag
 export async function tag_status(id: any, userObj: any) {
   try {
-    let isEligible = await checkRoleScope(userObj.role, "edit-tag");
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    // let isEligible = await checkRoleScope(userObj.role, "edit-tag");
+    // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let city: any = await tags.findById(id);
     if (!city) {
       throw new Error(MISSING);
