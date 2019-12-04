@@ -96,6 +96,24 @@
         "subject" : "Document UnPublished"
     },
     {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is shared to [sharedUsers] with [role].<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "invitePeopleDoc",
+        "displayName" : "share document",
+        "subject" : "[documentName] shared"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is edit share capability to [sharedUsers] with [role].<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "invitePeopleEditDoc",
+        "displayName" : "edit share capabilty document",
+        "subject" : "[documentName] share capability edited"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is remove share capability to [sharedUsers] with [role].<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "templateName" : "invitePeopleRemoveDoc",
+        "displayName" : "remove share capabilty document",
+        "subject" : "[documentName] share capability roemove"
+    },
+    {
         "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is replaced.<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "replaceDocument",
         "displayName" : "replace document",

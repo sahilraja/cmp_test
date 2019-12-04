@@ -584,15 +584,15 @@ export async function getFinancialInfo(projectId: string) {
   const documents = await documentsList(documentIds)
   let fundsReleasedData = fundsReleased.reduce((p: any, fund: any) => {
     const { installmentType } = getPercentageByInstallment(fund.installment)
-    // const items = fundsReleased.filter((fund: any) =>
-    //   (!fund.deleted && fund.subInstallment && (fund.installment == fund.installment)
-    //   )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
+    const items = fundsReleased.filter((_fund: any) =>
+      (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
+      )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => d.id == item.document) }))
       p.push({
         phase: fund.phase,
         installment: installmentType,
         percentage: fund.percentage,
         // Filter empty data
-        items: fundsReleased,
+        items,
         installmentLevelTotal: fundsReleased.reduce((p: number, item: any) => p + (item.cost || 0), 0)
       })
     return p

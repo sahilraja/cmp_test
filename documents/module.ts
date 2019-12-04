@@ -81,7 +81,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       }
     }
 
-    let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize});
+    let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize });
     //  Add user as Owner to this Document
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
     if (!role.user) {
@@ -89,8 +89,8 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     body.parentId = doc.id;
-   
-    let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName,fileSize: fileSize});
+
+    let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize });
     if (body.folderId) {
       await folders.update({ _id: body.folderId }, {
         $push: { doc_id: doc.id }
@@ -915,6 +915,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
       })
     );
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
+    mailAllCmpUsers("invitePeopleDoc", doc, false, addUsers)
     return { message: "Shared successfully." };
   } catch (err) {
     throw err;
@@ -931,6 +932,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
+    mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }], )
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
@@ -944,6 +946,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     if (!userRole.includes("owner")) throw new Error("You dont Capability to remove user.")
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
+    mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
     return { message: "Revoke share successfully." };
   } catch (err) {
     throw err;
@@ -1091,16 +1094,21 @@ export async function unPublished(docId: string, userObj: any) {
   };
 };
 
-export async function replaceDoc(docId: string, replaceDoc: string, userObj: any) {
+export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any) {
   try {
-    let admin_scope = await checkRoleScope(userObj.role, "replace-document");
-    if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
-    let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
-    documents.findByIdAndUpdate(docId, { status: STATES.UNPUBLISHED }, { new: true }).exec()]);
-    let success = await published({ ...doc, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
-    await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
-    mailAllCmpUsers("replaceDocument", success)
-    return success
+    if (siteConstants.replaceDoc == "true") {
+      let admin_scope = await checkRoleScope(userObj.role, "replace-document");
+      if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+      let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
+      documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
+      let success = await published({ ...doc, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
+      await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
+      mailAllCmpUsers("replaceDocument", success)
+      return success
+    }
+    else {
+      throw new APIError("Unauthorized Action.", 403)
+    }
   } catch (err) {
     throw err;
   };
@@ -1129,7 +1137,7 @@ export async function docFilter(search: string, userId: string, page: number = 1
     let groups = await userGroupsList(userId)
     let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
-    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))];
+    docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
     let tags = await Tags.find({ tag: new RegExp(search, "i") });
     let tagIds = tags.map(tag => tag.id)
     let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
@@ -1398,7 +1406,7 @@ export async function deleteDoc(docId: any, userId: string) {
     if (!findDoc) {
       throw new Error("File Id is Invalid")
     }
-    if(findDoc.status == 2) throw new Error("Published document can't be deleted.")
+    if (findDoc.status == 2) throw new Error("Published document can't be deleted.")
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
     await create({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
     if (deletedDoc) {
@@ -1690,26 +1698,34 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
   };
 };
 
-async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = true, text?: string) {
+async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = true, text?: any) {
   try {
     let selectFields = { email: true, firstName: true, middleName: true, lastName: true, phone: true }
-    let users
+    let users, sharedUsers: string, role: string
     if (allcmp) {
       users = await userList({ is_active: true, emailVerified: true }, selectFields)
     } else {
       let docInvited: any = await invitePeopleList(docDetails._id)
+      if(Array.isArray(text)) docInvited.concat(text)
       let userIds = docInvited.filter((obj: any) => obj.type == "user").map(({ id }: any) => id)
       let groupIds = docInvited.filter((obj: any) => obj.type == "group").map(({ id }: any) => id)
       let groupUsers = await Promise.all(groupIds.map((group: string) => groupUserList(group)));
       userIds = userIds.concat(groupUsers.reduce((main: any[], curr: any) => main.concat(curr), []))
       users = await userFindMany("_id", userIds, selectFields);
+      if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc"){
+        let actionedUsers = users.filter((user: any)=> text.some((acUser: any)=> acUser.id == user._id)).map((user: any)=> `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
+        users = users.filter((user: any)=> text.some((acUser: any)=> acUser.id != user._id))
+        sharedUsers = actionedUsers.length == 1 ? actionedUsers[0] : `${actionedUsers.slice(0, actionedUsers.lastIndexOf(",")) + " and " + actionedUsers.slice(actionedUsers.lastIndexOf(",") + 1)}`
+        role = text[0].role
+      }
     }
-    if (users) {
+    if (users.length) {
       let allMailContent = await Promise.all(users.map(async (user: any) => {
         let fullName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
         sendNotification({
           id: user._id,
           fullName, text,
+          sharedUsers, role,
           mobileNo: user.phone,
           email: user.email,
           documentName: docDetails.name,
