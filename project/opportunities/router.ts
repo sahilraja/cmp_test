@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { OK } from "http-status-codes";
-import { create, edit, list, detail } from "./module";
+import { create, edit, list, detail, opportunitySaveAll, logList } from "./module";
 import { APIError } from "../../utils/custom-error";
 const router = Router()
 
@@ -19,6 +19,22 @@ router.get(`/:id/opportunity/list`, async (req, res, next) => {
         next(new APIError(error.message))
     }
 })
+
+router.post(`/:id/opportunity/edit/save-all`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await opportunitySaveAll(req.params.id, req.body.saveAll, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    };
+});
+
+router.get(`/:id/opportunity/:opportunity_id/edit-history/list`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await logList(req.params.id, req.params.opportunity_id))
+    } catch (error) {
+        next(new APIError(error.message))
+    };
+});
 
 router.get(`/:id/opportunity/:opportunity_id`, async (req, res, next) => {
     try {

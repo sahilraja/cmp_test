@@ -437,4 +437,22 @@ router.get('/check/recaptcha',async(req,res,next)=>{
         next(new APIError(err.message));
     }
 })
+
+router.get("/task-endorse/send-otp", authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await mobileSendOtp(`${res.locals.user.countryCode}${res.locals.user.phone}`,res.locals.user._id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/task-endorse/verify-otp", authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await mobileVerifyOtp(req.body.phone, req.body.otp,res.locals.user._id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
 export = router;
