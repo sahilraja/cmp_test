@@ -381,16 +381,21 @@ export async function getDocDetails(docId: any, userId: string) {
       if (!userCapability.length) throw new Error("Unauthorized access.")
     }
     let filteredDocs: any;
+    let filteredDocsToRemove: any;
     const docList = publishDocs.toJSON();
     if (docList.parentId) {
       let parentDoc: any = await documents.findById(docList.parentId)
       docList.tags = parentDoc.tags
-      docList.suggestedTags = parentDoc.suggestedTags
+      docList.suggestedTags = parentDoc.suggestedTags,
+      docList.suggestTagsToAdd = parentDoc.suggestTagsToAdd,
+      docList.suggestTagsToRemove = parentDoc.suggestTagsToRemove
     }
     if (docList.ownerId == userId) {
-      filteredDocs = docList.suggestedTags
+      filteredDocs = docList.suggestTagsToAdd
+      filteredDocsToRemove = docList.suggestTagsToRemove
     } else {
-      filteredDocs = docList.suggestedTags.filter((tag: any) => tag.userId == userId)
+      filteredDocs = docList.suggestTagsToAdd.filter((tag: any) => tag.userId == userId)
+      filteredDocsToRemove = docList.suggestTagsToRemove.filter((tag: any) => tag.userId == userId)
     }
 
     const userData = Array.from(
@@ -402,7 +407,18 @@ export async function getDocDetails(docId: any, userId: string) {
         .reduce((resp: any, eachTag: any) => [...resp, ...eachTag.tags], [])
     }));
     let users = await Promise.all(userData.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
-    docList.suggestedTags = users
+    docList.suggestTagsToAdd = users
+
+    const userDataForRemoveTag = Array.from(
+      new Set(filteredDocsToRemove.map((_respdata: any) => _respdata.userId))
+    ).map((userId: any) => ({
+      userId,
+      tags: filteredDocsToRemove
+        .filter((_respdata: any) => _respdata.userId == userId)
+        .reduce((resp: any, eachTag: any) => [...resp, ...eachTag.tags], [])
+    }));
+    let usersDataForRemoveTag = await Promise.all(userDataForRemoveTag.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
+    docList.suggestTagsToRemove = usersDataForRemoveTag
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
       docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
@@ -1932,3 +1948,49 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
   await documents.updateMany({ parentId: docId }, { $set: { isPublic: true } }).exec()
   return { message: 'success' }
 }
+
+export async function suggestTagsToAddOrRemove(docId: string, body: any, userId: string) {
+  try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    const isEligible = await checkRoleScope(userRole, "suggest-tag");
+    if (!isEligible) {
+      throw new APIError("Unauthorized Access", 403);
+    }
+    if (!body.addTags && !body.removeTags) { throw new Error("Required Mandatory fields") }
+    let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
+    if (!docData) throw new Error("Doc not found");
+    if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
+    let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
+    let userDetails = usersData.find((user: any) => userId == user._id)
+    let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    let [doc, childUpdate]: any = await Promise.all([
+      documents.findByIdAndUpdate(docId, {
+         "$push": 
+             {
+                suggestTagsToAdd: { userId: userId, tags: body.addTags },
+                suggestTagsToRemove: { userId: userId, tags: body.removeTags } 
+              } 
+            }).exec(),
+      documents.findByIdAndUpdate(child[child.length - 1]._id, { 
+        "$push":
+            {
+              suggestTagsToAdd: { userId: userId, tags: body.addTags },
+              suggestedTagsToRemove: { userId: userId, tags: body.removeTags } 
+            } 
+          }).exec()
+    ]);
+    if (doc) {
+      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
+      return {
+        sucess: true,
+        message: "Tag suggested successfully"
+      }
+    }
+  } catch (err) {
+    throw err
+  };
+};

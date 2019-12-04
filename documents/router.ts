@@ -63,7 +63,8 @@ import {
   markDocumentAsPublic,
   checkCapabilitiesForUserNew,
   removeFromFolder,
-  markDocumentAsUnPublic
+  markDocumentAsUnPublic,
+  suggestTagsToAddOrRemove
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -688,6 +689,15 @@ router.post("/:docId/suggest/tags", authenticate, async (req, res, next: NextFun
     next(new APIError(err.message));
   }
 });
+
+router.post("/:docId/suggest/tags/addOrRemove", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await suggestTagsToAddOrRemove(req.params.docId, req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
 router.post("/:docId/approve/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await approveTags(req.params.docId, req.body, res.locals.user._id));
