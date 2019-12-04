@@ -594,9 +594,9 @@ router.post("/:id/new", authenticate, ensureCanEditDocument, siteConstants, asyn
 });
 
 //  Get Document Details
-router.get("/:id", authenticate, ensureCanViewDocument, async (req, res, next: NextFunction) => {
+router.get("/:id", authenticate, ensureCanViewDocument, async (req: any, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocDetails(req.params.id, res.locals.user._id));
+    res.status(200).send(await getDocDetails(req.params.id, res.locals.user._id, req.token));
   } catch (err) {
     next(new APIError(err.message));
   }

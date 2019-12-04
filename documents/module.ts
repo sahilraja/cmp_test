@@ -31,7 +31,7 @@ import { create } from "../log/module";
 import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails } from "../users/module";
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
-import { mobileSendMessage } from "../utils/utils";
+import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
 
 enum STATUS {
   DRAFT = 0,
@@ -371,7 +371,7 @@ export async function ApproveDoc(docId: string, versionId: string) {
 }
 
 //  Get Doc Details
-export async function getDocDetails(docId: any, userId: string) {
+export async function getDocDetails(docId: any, userId: string, token: string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
@@ -404,8 +404,9 @@ export async function getDocDetails(docId: any, userId: string) {
     let users = await Promise.all(userData.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
     docList.suggestedTags = users
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
-      docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
-      docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
+    docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
+    docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
+    docList.taskDetails = await getTasksForDocument(docList.parentId || docList._id, token)
     return docList;
   } catch (err) {
     console.error(err);
