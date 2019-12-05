@@ -140,6 +140,13 @@
     "description":"View All Projects"
   },
   {
+    "capability":"add-open-comments",
+    "shortDescription":"Add Open Comments",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"Add Open Comments"
+  },
+  {
     "capability":"view-open-comments",
     "shortDescription":"View Open Comments",
     "category":"Project Management",

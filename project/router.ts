@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments, getCommentedUsers } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
@@ -131,9 +131,17 @@ router.get(`/:id/my-open-comment-history`, async (req, res, next) => {
     }
 })
 
+router.get(`/:id/view-commented-users`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getCommentedUsers(req.params.id, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
 router.get(`/:id/view-all-open-comments`, async (req, res, next) => {
     try {
-        res.status(OK).send({})
+        res.status(OK).send(await getAllOpenCOmments(res.locals.user, req.params.id, req.query.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -270,7 +278,7 @@ router.post(`/:id/link-task`, async (req, res, next) => {
 
 router.get(`/:id/financial-info`, async (req, res, next) =>  {
     try {
-        res.status(OK).send(await getFinancialInfo(req.params.id))
+        res.status(OK).send(await getFinancialInfo(req.params.id, res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }
