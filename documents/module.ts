@@ -43,7 +43,6 @@ enum STATUS {
   REJECTED = -2,
   PENDING = -3
 }
-const es = require('elasticsearch');
 
 export async function createNewDoc(body: any, userId: any, siteConstant: any) {
   try {
