@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
@@ -25,7 +25,7 @@ router.post("/create", async (req, res, next) => {
 // get projects list
 router.get("/list", async (req, res, next) => {
     try {
-        res.status(OK).send(await getProjectsList(res.locals.user._id, (req as any).token))
+        res.status(OK).send(await getProjectsList(res.locals.user._id, (req as any).token, res.locals.user.role))
     } catch (err) {
         next(new APIError(err.message));
     }
@@ -42,7 +42,7 @@ router.get("/:id/detail", async (req, res, next) => {
 
 router.post(`/:id/add-released-installment`, async (req, res, next) => {
     try {
-        res.status(OK).send(await addReleasedInstallment(req.params.id, req.body))
+        res.status(OK).send(await addReleasedInstallment(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -50,7 +50,7 @@ router.post(`/:id/add-released-installment`, async (req, res, next) => {
 
 router.post(`/:id/add-utilized-installment`, async (req, res, next) => {
     try {
-        res.status(OK).send(await addUtilizedInstallment(req.params.id, req.body))
+        res.status(OK).send(await addUtilizedInstallment(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -107,6 +107,29 @@ router.post(`/:id/manage-members`, async (req, res, next) => {
     }
 })
 
+router.post(`/:id/add-open-comment`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addOpenComment(req.params.id, res.locals.user, req.body))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/:id/my-open-comment-history`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getMyOpenCommentsHistory(req.params.id, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/:id/view-all-open-comments`, async (req, res, next) => {
+    try {
+        res.status(OK).send({})
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 //  edit status of Project
 router.put("/city/code/status/:id", async (req: any, res: any, next: any) => {
     try {
@@ -237,7 +260,7 @@ router.post(`/:id/link-task`, async (req, res, next) => {
     }
 })
 
-router.get(`/:id/finalcial-info`, async (req, res, next) =>  {
+router.get(`/:id/financial-info`, async (req, res, next) =>  {
     try {
         res.status(OK).send(await getFinancialInfo(req.params.id))
     } catch (error) {
