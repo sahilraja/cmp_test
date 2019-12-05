@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status, 
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail, 
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory } from "./module";
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
 import { APIError, FormattedAPIError } from "../utils/custom-error";
@@ -110,6 +110,14 @@ router.post(`/:id/manage-members`, async (req, res, next) => {
 router.post(`/:id/add-open-comment`, async (req, res, next) => {
     try {
         res.status(OK).send(await addOpenComment(req.params.id, res.locals.user, req.body))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/:id/my-open-comments`, async (req, res, next) => {
+    try {
+      res.status(OK).send(await myCommentDetail(req.params.id, res.locals.user._id))  
     } catch (error) {
         next(new APIError(error.message))
     }
