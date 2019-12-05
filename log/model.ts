@@ -39,6 +39,8 @@ const SchemaDef = new Schema({
     documentId: { type: Schema.Types.ObjectId, ref: 'documents' },
     addedDocIds:[{type:Schema.Types.ObjectId, ref:'documents'}],
     removedDocIds:[{type:Schema.Types.ObjectId, ref:'documents'}],
+    tagsToMerge:{type: Array},
+    mergedTag: {type: String}
 }, { timestamps: true })
 
 SchemaDef.index({ projectId: 1 })

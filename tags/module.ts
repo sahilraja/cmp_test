@@ -6,6 +6,7 @@ import { checkRoleScope } from '../utils/role_management' ;
 import { userRoleAndScope } from "../role/module";
 import * as request from "request-promise";
 import { APIError } from "../utils/custom-error";
+import { create } from "../log/module";
 
 
 //  get list of tags
@@ -36,8 +37,9 @@ export async function mergeTags(body: any, token: string, userId:string) {
     }else{
       let mergeTag:any = await tags.create({tag:body.mergeTag,is_active:true});
       mergeTagId =  mergeTag._id;
-      
+
     }
+    let tagData = (await tags.find({_id:{$in:body.tags}})).map(({tag}: any)=>tag)
     let docData = await documents.find({ tags: { "$in": body.tags } })
     let docIds = docData.map((doc) => { return doc._id })
     let updateDocs = await documents.update({ _id: { "$in": docIds } }, {
@@ -57,6 +59,7 @@ export async function mergeTags(body: any, token: string, userId:string) {
     //   $set: { deleted: true }
     // },
     //   { multi: true });
+    await create({ activityType: "MERGED-TAG", activityBy: userId,mergedTag:body.mergeTag,tagsToMerge:tagData})
     return {
       status: true, 
       Message: "Tags Merged Successfully",

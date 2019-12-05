@@ -86,7 +86,7 @@ async function activityFetchDetails(activity: any) {
     }
 }
 
-export async function getProfileLogs(profileId: string, token: string) {
+export async function getProfileLogs(token: string) {
     try {
         const activities: any[] = await ActivitySchema.find({ profileId: Types.ObjectId(profileId) }).exec()
         return await Promise.all(activities.map((activity: any) => {
@@ -109,3 +109,13 @@ async function profileFetchDetails(activity: any){
         throw err;
     };
 };
+export async function getMergedLogs() {
+    try {
+        const activities: any[] = await ActivitySchema.find({mergedTag}).exec()
+        return await Promise.all(activities.map((activity: any) => {
+            return profileFetchDetails(activity.toJSON())
+        }))
+    } catch (err) {
+        throw err
+    };
+}
