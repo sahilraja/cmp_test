@@ -989,10 +989,14 @@ export async function addOpenComment(projectId: string, user: any, payload: any)
   if(!await OpenCommentsModel.findOne({projectId, userId: user._id}).exec()){
     await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: true})
   }
-  await ProjectSchema.findOneAndUpdate({projectId, user:user._id}, {$set:payload}).exec()
-  // Creating first copy
+  await OpenCommentsModel.findOneAndUpdate({projectId, user:user._id, isParent: true}, {$set:payload}).exec()
+  // Creating copy
   await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: false})
   return {message:'success'}
+}
+
+export async function myCommentDetail(projectId: string, userId: string) {
+  return await OpenCommentsModel.findOne({projectId, userId, isParent: true}).exec()
 }
 
 export async function getMyOpenCommentsHistory(projectId: string, userId: string) {
@@ -1000,5 +1004,12 @@ export async function getMyOpenCommentsHistory(projectId: string, userId: string
 }
 
 export async function getAllOpenCOmments(user: any, projectId: string) {
-  return await OpenCommentsModel.find({projectId, isParent: true}).sort({createdAt:1}).exec()
+  const isEligible = await checkRoleScope(user.role, `view-open-comments`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
+  const comments = await OpenCommentsModel.find({projectId, isParent: true}).sort({createdAt:1}).exec()
+  const userIds = comments.map((comment: any) => comment.userId)
+  const usersInfo = await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
+  return comments.map(comment => ({...comment.toJSON(), userId: usersInfo.find((userInfo: any) => userInfo._id == (comment as any).userId)}))
 }
