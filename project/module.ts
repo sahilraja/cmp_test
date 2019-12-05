@@ -20,6 +20,7 @@ import * as xlsx from "xlsx";
 import { userRolesNotification } from "../notifications/module";
 import { nodemail } from "../utils/email";
 import { getTemplateBySubstitutions } from "../email-templates/module";
+import { OpenCommentsModel } from "./open-comments-model";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -197,8 +198,8 @@ export async function add_tag(reqObject: any, userObj: any) {
 //  edit tag
 export async function edit_tag(id: any, reqObject: any, userObj: any) {
   try {
-    let isEligible = await checkRoleScope(userObj.role, "edit-tag");
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    // let isEligible = await checkRoleScope(userObj.role, "edit-tag");
+    // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let obj: any = {};
     if (reqObject.tag) {
       obj.tag = reqObject.tag;
@@ -222,8 +223,8 @@ export async function getTagByIds(ids: string[]) {
 //  edit status of tag
 export async function tag_status(id: any, userObj: any) {
   try {
-    let isEligible = await checkRoleScope(userObj.role, "edit-tag");
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    // let isEligible = await checkRoleScope(userObj.role, "edit-tag");
+    // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let city: any = await tags.findById(id);
     if (!city) {
       throw new Error(MISSING);
@@ -299,12 +300,17 @@ export async function theme_status(id: any) {
 }
 
 //get projects list
-export async function getProjectsList(userId: any, userToken: string) {
+export async function getProjectsList(userId: any, userToken: string, userRole:any) {
   try {
+    let query: any = { $or: [{ createdBy: userId }, { members: { $in: [userId] } }] }
     // let userProjects: any = await userRoleAndScope(userId);
     // if (!userProjects) throw new Error("user have no projects");
     //const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
-    const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] }, { populate: "phase" })
+    const isEligible = await checkRoleScope(userRole, `view-all-projects`)
+    if(isEligible){
+      query = {}
+    }
+    const { docs: list, page, pages } = await ProjectSchema.paginate(query, { populate: "phase" })
     const projectIds = (list || []).map((_list) => _list.id);
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
@@ -436,11 +442,15 @@ export async function linkTask(projectId: string, taskId: string, userToken: str
   return updatedTask
 }
 
-export async function addReleasedInstallment(projectId: string, payload: any) {
+export async function addReleasedInstallment(projectId: string, payload: any, user?: any) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
   // if(!payload.installment){
   //   throw new APIError('Installment is required') 
   // }
+  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
     if(!fund.phase){
       throw new APIError(`Phase is required`)
@@ -465,8 +475,12 @@ export async function addReleasedInstallment(projectId: string, payload: any) {
   return updated
 }
 
-export async function addUtilizedInstallment(projectId: string, payload: any) {
+export async function addUtilizedInstallment(projectId: string, payload: any, user?:any) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  const isEligible = await checkRoleScope(user.role,  `manage-project-utilized-fund`)
+  if (!isEligible || !projectDetail.members.includes(user._id)) {
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
   const finalPayload = payload.fundsUtilised.map((fund: any, index: number) => {
     if(!fund.phase){
       throw new APIError(`Phase is required`)
@@ -577,7 +591,7 @@ function getPercentageByInstallment(installment: number) {
   return { percentage, installmentType, phase }
 }
 
-export async function getFinancialInfo(projectId: string) {
+export async function getFinancialInfo(projectId: string, userId?: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
   const documentIds = fundsReleased.map((fund: any) => (fund.documents || [])).concat(fundsUtilised.map((fund: any) => (fund.documents || []))).reduce((p: any,c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
@@ -586,7 +600,7 @@ export async function getFinancialInfo(projectId: string) {
     const { installmentType } = getPercentageByInstallment(fund.installment)
     const items = fundsReleased.filter((_fund: any) =>
       (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
-      )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => d.id == item.document) }))
+      )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
       p.push({
         phase: fund.phase,
         installment: installmentType,
@@ -608,7 +622,7 @@ export async function getFinancialInfo(projectId: string) {
     const { installmentType } = getPercentageByInstallment(fund.installment)
     const items = fundsUtilised.filter((fundReleased: any) =>
       (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
-      )).map((item: any) => ({ ...item.toJSON(), document: documents.find((d: any) => d.id == item.document) }))
+      )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     return {
       phase:fund.phase,
       installment: installmentType,
@@ -619,6 +633,7 @@ export async function getFinancialInfo(projectId: string) {
     }
   })
   return {
+    isMember: (projectDetail as any).members.includes(userId) || ((projectDetail as any).createdBy == userId),
     projectCost: projectCost,
     citiisGrants: citiisGrants,
     fundsReleased: {
@@ -651,7 +666,7 @@ export async function addFundReleased(projectId: string, payload: any, user: any
         phase: matchedFunds[0].phase,
         percentage: matchedFunds[0].percentage,
         subInstallment: matchedFundsWithData.length + 1,
-        installment: payload.installment, document: payload.document, cost: payload.cost,
+        installment: payload.installment, documents: payload.documents, cost: payload.cost,
         createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id
       }
     ]).sort((a: any, b: any) => a.installment - b.installment)
@@ -662,8 +677,11 @@ export async function addFundReleased(projectId: string, payload: any, user: any
 }
 
 export async function addFundsUtilized(projectId: string, payload: any, user: any) {
-  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
-  if (!isEligible) {
+  const [projectDetail, isEligible]: any = await Promise.all([
+    ProjectSchema.findById(projectId).exec(),
+    checkRoleScope(user.role, `manage-project-utilized-fund`)
+  ])
+  if(!isEligible || !projectDetail.members.includes(user._id)){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   if (!payload.installment) {
@@ -677,7 +695,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
     fundsUtilised: otherFunds.concat(matchedFunds).concat([
       {
         subInstallment: matchedFunds.length + 1,
-        installment: payload.installment, document: payload.document, cost: payload.cost,
+        installment: payload.installment, documents: payload.documents, cost: payload.cost,
         createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id
       }
     ]).sort((a: any, b: any) => a.installment - b.installment)
@@ -692,10 +710,10 @@ export async function updateReleasedFund(projectId: string, payload: any, user: 
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { document, cost, _id } = payload
+  const { documents, cost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
-  updates['fundsReleased.$.document'] = document
+  updates['fundsReleased.$.documents'] = documents
   updates['fundsReleased.$.cost'] = cost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
   createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id })
@@ -717,8 +735,11 @@ export async function updateReleasedFund(projectId: string, payload: any, user: 
 }
 
 export async function updateUtilizedFund(projectId: string, payload: any, user: any) {
-  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
-  if (!isEligible) {
+  const [projectDetail, isEligible]: any = await Promise.all([
+    ProjectSchema.findById(projectId).exec(),
+    checkRoleScope(user.role, `manage-project-utilized-fund`)
+  ])  
+  if(!isEligible || !projectDetail.members.includes(user._id)){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   // if(!payload.installment || !payload.subInstallment){
@@ -735,10 +756,10 @@ export async function updateUtilizedFund(projectId: string, payload: any, user: 
   //   }
   // ]).sort((a: any, b: any) => a.installment - b.installment)}
   // return await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, {new: true}).exec()
-  const { document, cost, _id } = payload
+  const { documents, cost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
-  updates['fundsReleased.$.document'] = document
+  updates['fundsReleased.$.documents'] = documents
   updates['fundsReleased.$.cost'] = cost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
   createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id })
@@ -760,8 +781,11 @@ export async function deleteReleasedFund(projectId: string, payload: any, user: 
 }
 
 export async function deleteUtilizedFund(projectId: string, payload: any, user: any) {
-  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
-  if (!isEligible) {
+  const [projectDetail, isEligible]: any = await Promise.all([
+    ProjectSchema.findById(projectId).exec(),
+    checkRoleScope(user.role, `manage-project-utilized-fund`)
+  ])  
+  if(!isEligible || !projectDetail.members.includes(user._id)){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const { document, cost, _id } = payload
@@ -955,4 +979,37 @@ export async function citiisGrantsInfo(projectId: string, citiisGrants: number, 
   catch (err) {
     throw err
   }
+}
+
+export async function addOpenComment(projectId: string, user: any, payload: any) {
+  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  if(!projectDetail.members.includes(user._id)){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }  
+  if(!await OpenCommentsModel.findOne({projectId, userId: user._id}).exec()){
+    await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: true})
+  }
+  await OpenCommentsModel.findOneAndUpdate({projectId, user:user._id, isParent: true}, {$set:payload}).exec()
+  // Creating copy
+  await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: false})
+  return {message:'success'}
+}
+
+export async function myCommentDetail(projectId: string, userId: string) {
+  return await OpenCommentsModel.findOne({projectId, userId, isParent: true}).exec()
+}
+
+export async function getMyOpenCommentsHistory(projectId: string, userId: string) {
+  return await OpenCommentsModel.find({projectId, userId, isParent: false}).sort({createdAt:1}).exec()
+}
+
+export async function getAllOpenCOmments(user: any, projectId: string) {
+  const isEligible = await checkRoleScope(user.role, `view-open-comments`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
+  const comments = await OpenCommentsModel.find({projectId, isParent: true}).sort({createdAt:1}).exec()
+  const userIds = comments.map((comment: any) => comment.userId)
+  const usersInfo = await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
+  return comments.map(comment => ({...comment.toJSON(), userId: usersInfo.find((userInfo: any) => userInfo._id == (comment as any).userId)}))
 }

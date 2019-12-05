@@ -112,6 +112,7 @@ export const ROLE_NOT_EXIST = "Role not Exist"
 export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 
 export const TASK_ERROR = {
+    UNAUTHORIZED_PERMISSION:`You don't have permission to access this`,
     TASK_NAME_REQUIRED: `Name is mandatory for all tasks`,
     UNAUTHORIZED: `Unauthorized to create task`,
     SUBTASK_UNAUTHORIZED : `Unauthorized to create subtask`,

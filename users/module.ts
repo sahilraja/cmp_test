@@ -2,7 +2,7 @@ import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage, generatemobileOtp } from "../utils/utils";
-import {  userRoleAndScope, roles_list, role_list } from "../role/module";
+import { userRoleAndScope, roles_list, role_list } from "../role/module";
 import { checkRoleScope } from '../utils/role_management'
 import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole, revokeRole, roleUsersList } from "../utils/rbac";
@@ -33,7 +33,7 @@ import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 import { manualPagination } from "../documents/module";
 import { patternSubstitutions } from "../patterns/module";
- 
+
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -42,8 +42,7 @@ const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YReb
 
 export async function bulkInvite(filePath: string, user: any) {
     let constantsList: any = await constantSchema.findOne({ key: 'bulkInvite' }).exec();
-    if(constantsList.value == "true")
-    {
+    if (constantsList.value == "true") {
         const excelFormattedData = importExcelAndFormatData(filePath)
         if (!excelFormattedData.length) {
             throw new APIError(`Uploaded empty document`)
@@ -119,8 +118,8 @@ export async function inviteUser(objBody: any, user: any) {
             email: userData.email,
             role: objBody.role
         });
-        let configLink : any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
-        sendNotification({ id: user._id, fullName, email: objBody.email,linkExpire:Number(configLink.value),role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
+        sendNotification({ id: user._id, fullName, email: objBody.email, linkExpire: Number(configLink.value), role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         await create({ activityType: "INVITE-USER", activityBy: user._id, profileId: userData._id })
         return { userId: userData._id };
     } catch (err) {
@@ -185,7 +184,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
-        let user_roles:any = await userRoles(id)
+        let user_roles: any = await userRoles(id)
         let updateProfile: Number = 1;
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
@@ -208,33 +207,33 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
         };
-        let userRole:any=[];
+        let userRole: any = [];
         let editUserInfo: any = await userFindOne("id", id);
 
         let { fullName, mobileNo }: any = getFullNameAndMobile(editUserInfo);
-        objBody.role  = (Array.isArray(objBody.role ) ? objBody.role  : typeof (objBody.role ) == "string" && objBody.role .length ? objBody.role .includes("[") ? JSON.parse(objBody.role ) : objBody.role  = objBody.role .split(',') : [])
+        objBody.role = (Array.isArray(objBody.role) ? objBody.role : typeof (objBody.role) == "string" && objBody.role.length ? objBody.role.includes("[") ? JSON.parse(objBody.role) : objBody.role = objBody.role.split(',') : [])
 
-        if (objBody.role &&  objBody.role.length) {
+        if (objBody.role && objBody.role.length) {
             if (id != user._id) {
                 let admin_scope = await checkRoleScope(user.role, "change-user-role");
                 if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-            } 
+            }
             updateProfile = 0
-            if(user_roles.roles && user_roles.roles.length){
-            const removeRole = await Promise.all(user_roles.roles.map(async (role:any) =>{ 
-            let RoleStatus = await revokeRole(id, role)
-                if (!RoleStatus.status) {
-                    throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
-                }
-            }));
-        }
-            const addrole = await Promise.all(objBody.role.map(async (role:any) =>{ 
+            if (user_roles.roles && user_roles.roles.length) {
+                const removeRole = await Promise.all(user_roles.roles.map(async (role: any) => {
+                    let RoleStatus = await revokeRole(id, role)
+                    if (!RoleStatus.status) {
+                        throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
+                    }
+                }));
+            }
+            const addrole = await Promise.all(objBody.role.map(async (role: any) => {
                 let RoleStatus = await addRole(id, role)
                 if (!RoleStatus.status) {
                     throw new Error(USER_ROUTER.CREATE_ROLE_FAIL);
                 }
                 userRole.push(role)
-                }));
+            }));
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
             sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
         }
@@ -253,8 +252,8 @@ export async function edit_user(id: string, objBody: any, user: any) {
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
         userInfo.role = userRole;
-        let editedKeys = Object.keys(editUserInfo).filter(key=>{ if( key != "updatedAt") return editUserInfo[key] != userInfo[key]})
-        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys})
+        let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
+        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })
         if (updateProfile) {
             sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileTemplateName: "profile" });
         }
@@ -305,9 +304,9 @@ function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
     }
 }
 
-export async function getUserDetail(userId: string,user ?:any) {
+export async function getUserDetail(userId: string, user?: any) {
     try {
-        if(user && (user._id != userId)){
+        if (user && (user._id != userId)) {
             let admin_scope = await checkRoleScope(user.role, "create-user");
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
@@ -388,8 +387,8 @@ export async function userInviteResend(id: string, role: any, user: any) {
         let token = await jwt_for_url({ id: id, role: role, email: userData.email });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         await create({ activityType: "RESEND-INVITE-USER", activityBy: user.id, profileId: id })
-        let configLink : any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
-        sendNotification({ id: user._id, fullName, email: userData.email, role: role, linkExpire:Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
+        sendNotification({ id: user._id, fullName, email: userData.email, role: role, linkExpire: Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
         throw err;
@@ -456,11 +455,11 @@ export async function userCapabilities(id: any) {
 async function roleData(eachRole: any) {
     try {
         let role = eachRole
-       
-          let resp =await roleCapabilitylist(eachRole)
-          return {
-              role: role,
-              capabilities:resp.data
+
+        let resp = await roleCapabilitylist(eachRole)
+        return {
+            role: role,
+            capabilities: resp.data
         };
     } catch (err) {
         throw err;
@@ -646,7 +645,7 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         if (existUsers.length == 1) throw new Error("Minimum one member is required.")
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
-         return { message: RESPONSE.REMOVE_MEMBER }
+        return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
         throw err
     };
@@ -725,6 +724,22 @@ async function roleFormanting(users: any[]) {
     })
 };
 
+export async function changeRoleToReplaceUser(oldUserId: string, newUserId: string) {
+    try {
+        let [oldUserRoles, newUserRoles] = await Promise.all([getUserRoles(oldUserId), getUserRoles(newUserId)])
+        await Promise.all(oldUserRoles.map(async(role: string)=>{
+            if(!newUserRoles.includes(role)) await addRole(newUserId, role, "global")
+        }))
+        return true
+    } catch (err) {
+        throw err
+    };
+};
+
+async function getUserRoles(userId: string) {
+    return ((await userRoleAndScope(userId) as any).data || [""])[0]
+}
+
 function userSort(data: any[], email: boolean = false) {
     try {
         if (email) return data.sort((a: any, b: any) => (a.email).localeCompare(b.email));
@@ -783,11 +798,11 @@ export async function otpVerification(objBody: any) {
         if (objBody.mobileOtp) {
             if (objBody.mobileOtp != "1111") {
                 if (mobileToken.smsOtp != objBody.mobileOtp) {
-                mobile_flag = 1
+                    mobile_flag = 1
                 }
             }
         }
-        if(objBody.otp != "1111"){    
+        if (objBody.otp != "1111") {
             if ((objBody.otp) != Number(token.otp)) {
                 email_flag = 1
             }
@@ -862,7 +877,7 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (objBody.mobileOtp) {
             if (objBody.mobileOtp != "1111") {
                 if (mobileToken.smsOtp != objBody.mobileOtp) {
-                     mobile_flag = 1
+                    mobile_flag = 1
                 }
             }
         }
@@ -884,9 +899,9 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (objBody.phone && objBody.countryCode) {
             temp = { phone: objBody.phone, countryCode: objBody.countryCode }
         }
-        let userUpdate =await userEdit(user._id, { email: token.newEmail, ...temp });
-        if(token.newEmail){
-            let {mobileNo,fullName} = getFullNameAndMobile(user);
+        let userUpdate = await userEdit(user._id, { email: token.newEmail, ...temp });
+        if (token.newEmail) {
+            let { mobileNo, fullName } = getFullNameAndMobile(user);
             sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
         }
         return userUpdate
@@ -1026,8 +1041,8 @@ export async function sendNotification(objBody: any) {
     }
     if (mobileOtp || userNotification.email) {
         let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
-        let subject =  await patternSubstitutions(templatInfo.subject);
-        let content = await patternSubstitutions(templatInfo.content); 
+        let subject = await patternSubstitutions(templatInfo.subject);
+        let content = await patternSubstitutions(templatInfo.content);
         nodemail({
             email: email,
             subject: subject.message,
@@ -1057,22 +1072,21 @@ export async function tokenValidation(token: string) {
 }
 export async function profileEditByAdmin(id: string, body: any, admin: any) {
     try {
-        let constantsList: any = await constantSchema.findOne({key:"replaceProfile"}).exec();
-        if(constantsList.value == "true")
-        {
+        let constantsList: any = await constantSchema.findOne({ key: "replaceProfile" }).exec();
+        if (constantsList.value == "true") {
             // let eligible = await admin.role.filter((eachRole:any)=> eachRole == "technology-lead")
             // if(!eligible){
             //     throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             // }
             let admin_scope = await checkRoleScope(admin.role, "edit-user-profile");
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-    
+
             let user: any = await userFindOne("id", id);
             if (!user.emailVerified) {
                 throw new APIError(USER_ROUTER.USER_NOT_REGISTER, 401);
             }
             const { firstName, lastName, middleName, phone, aboutme, countryCode, email } = body;
-    
+
             if (!firstName || !lastName || firstName.trim() == "" || lastName.trim() == "" || !phone || !countryCode) {
                 throw new Error(USER_ROUTER.MANDATORY);
             };
@@ -1086,12 +1100,12 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
                 if (!phoneNo(phoneNumber).length) {
                     throw new Error(USER_ROUTER.VALID_PHONE_NO)
                 }
-    
+
             }
             if (aboutme) {
-                let constantsList: any = await constantSchema.findOne({key:"aboutMe"}).exec();
+                let constantsList: any = await constantSchema.findOne({ key: "aboutMe" }).exec();
                 if (aboutme.length > Number(constantsList.value)) {
-                    throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}',constantsList.value));
+                    throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
                 }
             }
             if (body.name) {
@@ -1099,7 +1113,7 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
                 delete body.name;
             }
             let userInfo = await userEdit(id, body);
-            let editedKeys = Object.keys(user).filter(key=>{ if( key != "updatedAt") return user[key] != userInfo[key]})
+            let editedKeys = Object.keys(user).filter(key => { if (key != "updatedAt") return user[key] != userInfo[key] })
             await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys })
             return { message: "successfully profile Updated" }
         }

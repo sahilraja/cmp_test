@@ -133,6 +133,20 @@
     "scope": "global"
   },
   {
+    "capability":"view-all-projects",
+    "shortDescription":"View All Projects",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View All Projects"
+  },
+  {
+    "capability":"view-open-comments",
+    "shortDescription":"View Open Comments",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Open Comments"
+  },
+  {
     "capability": "project-view",
     "shortDescription": "Project View",
     "description": "Project View",
@@ -206,13 +220,6 @@
     "capability": "add-tag-to-document",
     "shortDescription": "Add Tag To Document",
     "description": "Ability to add tags to a document",
-    "category": "Document Management",
-    "scope": "global"
-  },
-  {
-    "capability": "edit-tag",
-    "shortDescription": "edit tag",
-    "description": "edit tag",
     "category": "Document Management",
     "scope": "global"
   },
@@ -297,13 +304,6 @@
     "capability": "view-all-cmp-documents",
     "shortDescription": "View All CMP Documents",
     "description": "Ability to view all cmp documents ",
-    "category": "Document Management",
-    "scope": "global"
-  },
-  {
-    "capability": "view-all-public-documents",
-    "shortDescription": "View All Public Documents",
-    "description": "Ability to view all public documents ",
     "category": "Document Management",
     "scope": "global"
   },
@@ -462,14 +462,14 @@
     "scope": "global"
   },
   {
-    "capability": "add-comments",
+    "capability": "document-comments",
     "shortDescription": "Add comment",
     "description": "Ability to add comment on document",
     "category": "Document Management",
     "scope": "global"
   },
   {
-    "capability": "add-comments-publish",
+    "capability": "document-comments-publish",
     "shortDescription": "Add comment on publish document",
     "description": "Ability to add comment on publish document",
     "category": "Document Management",

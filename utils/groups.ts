@@ -82,16 +82,17 @@ export async function GetUserIdsForDocWithRole(docId: string, role: string) {
     };
 };
 
-export async function GetDocIdsForUser(userId: string, type?:string): Promise<any[]> {
+export async function GetDocIdsForUser(userId: string, type?:string, docRole?: string[]): Promise<any[]> {
     try {
         let userType = type || "user"
+        let docRoles = docRole || ["collaborator", "viewer"] 
         if(userType == "group"){
             let group: any = await groupFindOne("id", userId);
             if(!group || !group.is_active) return []
         }
         let policies = await groupsPolicyFilter(`${userType}/${userId}`, 0, "p")
         let users = policies.data.filter((policy: string[]) => {
-            if (policy[2] == "collaborator" || policy[2] == "viewer")
+            if (docRoles.includes(policy[2]))
                 return policy
         }).map((key: string[]) => key[1].substring(key[1].indexOf("/") + 1))
         return [...new Set(users)]
