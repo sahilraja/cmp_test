@@ -18,7 +18,7 @@ const schema = new Schema(
     sourceId: { type: String },
     isDeleted:{ type: Boolean, default: false },
     isPublic: { type: Boolean, default: false },
-    suggestedTags:[{ userId:String, tags:Array }],
+    // suggestedTags:[{ userId:String, tags:Array }],
     suggestTagsToAdd:[{ userId:String, tags:Array }],
     suggestTagsToRemove:[{ userId:String, tags:Array }],
     rejectedTags:[{ userId:String, tags:Array }],

@@ -1628,7 +1628,7 @@ async function userInfo(docData: any) {
 
 export async function approveTags(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
+    if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
@@ -1636,16 +1636,16 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-
+    if(body.tagIdToAdd){
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
-      docdetails.suggestedTags.filter((tag: any) => tag.userId == body.userId).map(
+      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
         (_respdata: any) => {
           return {
             userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagId)
+            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
           }
         }),
-      docdetails.suggestedTags.filter((tag: any) => tag.userId != body.userId).map(
+      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != body.userId).map(
         (_respdata: any) => {
           return {
             userId: _respdata.userId,
@@ -1654,15 +1654,44 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
         })
     ])
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
-    let doc = await documents.findByIdAndUpdate(docId, { suggestedTags: filteredDocs, "$push": { tags: body.tagId } })
+    let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDocs, "$push": { tags: body.tagIdToAdd } })
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
       sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
       return {
         sucess: true,
-        message: "Tag approved successfully"
+        message: "Tag Adding approved successfully"
       }
     }
+  }
+  if(body.tagIdToRemove){
+    let [suggestedToRemove, suggestedToRemove1]: any = await Promise.all([
+      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToRemove)
+          }
+        }),
+      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId != body.userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags
+          }
+        })
+    ])
+    let filteredDocsRemove = [...suggestedToRemove, ...suggestedToRemove1]
+    let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: filteredDocsRemove, "$pull": { tags: body.tagIdToRemove } })
+    if (doc) {
+      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
+      return {
+        sucess: true,
+        message: "Tag Removal approved successfully"
+      }
+    }
+  }
   } catch (err) {
     throw err
   };
@@ -1670,7 +1699,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
 
 export async function rejectTags(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId || !body.userId || !body.tagId) { throw new Error("All mandatory fields are missing") }
+    if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
@@ -1678,15 +1707,16 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    if(body.tagIdToAdd){
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
-      docdetails.suggestedTags.filter((tag: any) => tag.userId == body.userId).map(
+      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
         (_respdata: any) => {
           return {
             userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagId)
+            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
           }
         }),
-      docdetails.suggestedTags.filter((tag: any) => tag.userId != body.userId).map(
+      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != body.userId).map(
         (_respdata: any) => {
           return {
             userId: _respdata.userId,
@@ -1697,7 +1727,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
     let doc = await documents.findByIdAndUpdate(docId, {
-      suggestedTags: filteredDocs,
+      suggestTagsToAdd: filteredDocs,
       "$push": {
         rejectedTags: { userId: body.userId, tags: body.tagId }
       }
@@ -1707,9 +1737,41 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
       return {
         sucess: true,
-        message: "Tag Rejected"
+        message: "Tag Adding Rejected"
       }
     }
+    }
+    if(body.tagIdToRemove){
+      let [filteredDoc, filteredDoc1]: any = await Promise.all([
+        docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToRemove)
+            }
+          }),
+        docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId != body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags
+            }
+          })
+      ])
+      let filteredDocs = [...filteredDoc, ...filteredDoc1]
+  
+      let doc = await documents.findByIdAndUpdate(docId, {
+        suggestTagsToRemove: filteredDocs,
+      })
+      if (doc) {
+        const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
+        return {
+          sucess: true,
+          message: "Tag Removing Rejected"
+        }
+      }
+      }
   } catch (err) {
     throw err
   };

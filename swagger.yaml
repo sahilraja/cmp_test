@@ -290,7 +290,9 @@ paths:
   /docs/all/me:
     $ref: ./swagger/resources/paths.yaml/#/docsListAll  
   /docs/{docId}/suggest/tags:
-    $ref: ./swagger/resources/paths.yaml/#/suggestTags      
+    $ref: ./swagger/resources/paths.yaml/#/suggestTags  
+  /docs/{docId}/suggest/tags/addOrRemove:
+    $ref: ./swagger/resources/paths.yaml/#/suggestTagsToAddOrRemove       
   /docs/{docId}/approve/tags:
     $ref: ./swagger/resources/paths.yaml/#/approveTags 
   /docs/{docId}/reject/tags:
