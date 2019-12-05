@@ -21,6 +21,7 @@ import { userRolesNotification } from "../notifications/module";
 import { nodemail } from "../utils/email";
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { OpenCommentsModel } from "./open-comments-model";
+import { phaseSchema } from "../phase/model";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -458,6 +459,7 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
     if(!fund.percentage){
       throw new APIError(`Percentage is required`)
     }
+    return {...fund, installment: index + 1}
     return {
       installment: index + 1,
       phase: fund.phase,
@@ -478,7 +480,7 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
 export async function addUtilizedInstallment(projectId: string, payload: any, user?:any) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
   const isEligible = await checkRoleScope(user.role,  `manage-project-utilized-fund`)
-  if (!isEligible || !projectDetail.members.includes(user._id)) {
+  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const finalPayload = payload.fundsUtilised.map((fund: any, index: number) => {
@@ -506,13 +508,18 @@ export async function addUtilizedInstallment(projectId: string, payload: any, us
 }
 
 export async function getInstallments(projectId: string, search: string) {
-  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  const [projectDetail, phases]: any = await Promise.all([
+    ProjectSchema.findById(projectId).exec(),
+    phaseSchema.find({}).exec()
+  ]) 
   let s1: any = []
     let m = (projectDetail[search] || []).map((s: any) => {
       if(!s1.includes(s.installment)){
         s1.push(s.installment)
         return {
-          phase: s.phase,
+          cost: s.cost,
+          documents: s.documents,
+          phase: phases.find((phase: any) => phase._id == s.phase),
           percentage: s.percentage
         }
       }
@@ -607,7 +614,7 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
         percentage: fund.percentage,
         // Filter empty data
         items,
-        installmentLevelTotal: fundsReleased.reduce((p: number, item: any) => p + (item.cost || 0), 0)
+        installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
       })
     return p
   }, [])
@@ -681,7 +688,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
   ])
-  if(!isEligible || !projectDetail.members.includes(user._id)){
+  if(!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   if (!payload.installment) {
@@ -739,7 +746,7 @@ export async function updateUtilizedFund(projectId: string, payload: any, user: 
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
   ])  
-  if(!isEligible || !projectDetail.members.includes(user._id)){
+  if(!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   // if(!payload.installment || !payload.subInstallment){
@@ -785,7 +792,7 @@ export async function deleteUtilizedFund(projectId: string, payload: any, user: 
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
   ])  
-  if(!isEligible || !projectDetail.members.includes(user._id)){
+  if(!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const { document, cost, _id } = payload
@@ -875,6 +882,8 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
 
 function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   let errorRole
+  console.log(data)
+  console.log(data.name)
   if (!data.name || !data.name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }
@@ -982,34 +991,54 @@ export async function citiisGrantsInfo(projectId: string, citiisGrants: number, 
 }
 
 export async function addOpenComment(projectId: string, user: any, payload: any) {
-  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
-  if(!projectDetail.members.includes(user._id)){
+  const [projectDetail, isEligible]: any = await Promise.all([
+    ProjectSchema.findById(projectId).exec(),
+    checkRoleScope(user.role, 'add-open-comments')
+  ]) 
+  if(!isEligible){
+    throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
+  }
+  if(!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id)){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }  
   if(!await OpenCommentsModel.findOne({projectId, userId: user._id}).exec()){
     await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: true})
   }
-  await OpenCommentsModel.findOneAndUpdate({projectId, user:user._id, isParent: true}, {$set:payload}).exec()
+  await OpenCommentsModel.findOneAndUpdate({projectId, userId:user._id, isParent: true}, {$set:payload}).exec()
   // Creating copy
   await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: false})
-  return {message:'success'}
+  return {message:'Comment added successfully'}
 }
 
 export async function myCommentDetail(projectId: string, userId: string) {
-  return await OpenCommentsModel.findOne({projectId, userId, isParent: true}).exec()
+  const detail = await OpenCommentsModel.findOne({projectId, userId, isParent: true}).exec()
+  return (detail || {})
 }
 
 export async function getMyOpenCommentsHistory(projectId: string, userId: string) {
   return await OpenCommentsModel.find({projectId, userId, isParent: false}).sort({createdAt:1}).exec()
 }
 
-export async function getAllOpenCOmments(user: any, projectId: string) {
+export async function getAllOpenCOmments(user: any, projectId: string, userId:string) {
   const isEligible = await checkRoleScope(user.role, `view-open-comments`)
   if(!isEligible){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+  if(!userId){
+    throw new APIError(`User id is required`)
+  }
+  return await OpenCommentsModel.findOne({projectId, isParent: true, userId}).exec()
+  // const userIds = comments.map((comment: any) => comment.userId)
+  // const usersInfo = await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
+  // return comments.map(comment => ({...comment.toJSON(), userId: usersInfo.find((userInfo: any) => userInfo._id == (comment as any).userId)}))
+}
+
+export async function getCommentedUsers(projectId: string, user: any) {
+  const isEligible = await checkRoleScope(user.role, `view-open-comments`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }  
   const comments = await OpenCommentsModel.find({projectId, isParent: true}).sort({createdAt:1}).exec()
-  const userIds = comments.map((comment: any) => comment.userId)
-  const usersInfo = await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
-  return comments.map(comment => ({...comment.toJSON(), userId: usersInfo.find((userInfo: any) => userInfo._id == (comment as any).userId)}))
+  const userIds = comments.map((comment: any) => comment.userId).filter(u => u != user._id)
+  return await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
 }
