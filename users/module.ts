@@ -267,7 +267,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let docs: any = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
-        let  data : any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
+        let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data = await roleFormanting(data)
         let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
@@ -664,8 +664,9 @@ export async function userSuggestions(search: string, userId: string, role: stri
         let roles: any = []
         if (search) roles = JSON.parse(readFileSync(join("__dirname", "..", "utils", "roles.json"), "utf8")).filter(({ description }: any) => description.match(new RegExp(search, "i"))).map(({ role }: any) => role)
         let searchKeyArray = searchKeys.length ? searchKeys.split(",") : []
-        let myPrivateGroups: any = await privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId, is_active: true }).exec();
-        let publicGroups = await groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")
+        let [myPrivateGroups, publicGroups]: any = await Promise.all([
+            privateGroupSchema.find({ name: new RegExp(search, "i"), createdBy: userId, is_active: true }).exec(),
+            groupPatternMatch({ is_active: true }, { name: search }, {}, {}, "updatedAt")])
         const searchQuery = search ? {
             $or: [{
                 firstName: new RegExp(search, "i")
@@ -687,7 +688,6 @@ export async function userSuggestions(search: string, userId: string, role: stri
         let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
         // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
         allUsers = Object.values(allUsers.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
-        // allUsers = allUsers.filter(({emailVerified, is_active}): any=> emailVerified && is_active)
         if (searchKeyArray.length) {
             return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
         }
@@ -702,7 +702,7 @@ export async function roleFormanting(users: any[]) {
     return users.map((user: any) => {
         let roles = user.role ? user.role.map((userRole: string) => {
             let roleObj = rolesBody.roles.find(({ role: rolecode }: any) => rolecode == userRole)
-            return roleObj? roleObj.roleName  : userRole
+            return roleObj ? roleObj.roleName : userRole
         }) : ["N/A"]
         return { ...user, role: roles }
     })
