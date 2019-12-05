@@ -133,6 +133,20 @@
     "scope": "global"
   },
   {
+    "capability":"view-all-projects",
+    "shortDescription":"View All Projects",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View All Projects"
+  },
+  {
+    "capability":"view-open-comments",
+    "shortDescription":"View Open Comments",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Open Comments"
+  },
+  {
     "capability": "project-view",
     "shortDescription": "Project View",
     "description": "Project View",
