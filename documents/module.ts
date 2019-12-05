@@ -1835,18 +1835,19 @@ async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = 
 
 export async function deleteSuggestedTag(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId || !body.tagId) { throw new Error("All mandatory fields are missing") }
+    if (!docId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
+    if(body.tagIdToAdd){
     let [filteredDoc, filteredDoc1]: any = await Promise.all([
-      docdetails.suggestedTags.filter((tag: any) => tag.userId == userId).map(
+      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == userId).map(
         (_respdata: any) => {
           return {
             userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagId)
+            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
           }
         }),
-      docdetails.suggestedTags.filter((tag: any) => tag.userId != userId).map(
+      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != userId).map(
         (_respdata: any) => {
           return {
             userId: _respdata.userId,
@@ -1857,14 +1858,44 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
     let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
     let doc = await documents.findByIdAndUpdate(docId, {
-      suggestedTags: filteredDocs
+      suggestTagsToAdd: filteredDocs
     })
     if (doc) {
       return {
         sucess: true,
-        message: "Tag deleted Successfully"
+        message: "Tag removed Successfully"
       }
     }
+  }
+  if(body.tagIdToRemove){
+    let [filteredDoc, filteredDoc1]: any = await Promise.all([
+      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToRemove)
+          }
+        }),
+      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId != userId).map(
+        (_respdata: any) => {
+          return {
+            userId: _respdata.userId,
+            tags: _respdata.tags
+          }
+        })
+    ])
+    let filteredDocs = [...filteredDoc, ...filteredDoc1]
+
+    let doc = await documents.findByIdAndUpdate(docId, {
+      suggestTagsToRemove: filteredDocs
+    })
+    if (doc) {
+      return {
+        sucess: true,
+        message: "Tag removed Successfully"
+      }
+    }
+  }
   } catch (err) {
     throw err
   };
