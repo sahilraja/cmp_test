@@ -1848,9 +1848,12 @@
             schema:
               type: object
               properties:
-                tagId:
+                tagIdToAdd:
                   type: string
-                  example: tag1234 
+                  example: tag1234
+                tagIdToRemove:
+                  type: string
+                  example: tag1234  
       responses:
         "200":
           description: success
