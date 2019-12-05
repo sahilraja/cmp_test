@@ -2,6 +2,9 @@ import { ActivitySchema } from "./model";
 import { userFindMany, getTasksByIds, groupPatternMatch } from "../utils/users";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
+import { checkRoleScope } from "../utils/role_management";
+import { APIError } from "../utils/custom-error";
+import { TASK_ERROR } from "../utils/error_msg";
 
 export async function create(payload: any) {
     return await ActivitySchema.create(payload)
@@ -23,7 +26,11 @@ export async function paginatedList(query = {}, page = 1, limit = 20) {
     return await ActivitySchema.paginate(query, { page, limit })
 }
 
-export async function getTaskLogs(taskId: string, token: string) {
+export async function getTaskLogs(taskId: string, token: string, userRole: string) {
+    const isEligible = await checkRoleScope(userRole, `view-activity-log`)
+    if(!isEligible){
+        throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
+    }
     const activities = await ActivitySchema.find({ taskId }).sort({createdAt:1}).exec()
     const userIds = activities.reduce((p: any, activity: any) =>
         [...p, ...
