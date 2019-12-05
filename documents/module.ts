@@ -43,6 +43,7 @@ enum STATUS {
   REJECTED = -2,
   PENDING = -3
 }
+const es = require('elasticsearch');
 
 export async function createNewDoc(body: any, userId: any, siteConstant: any) {
   try {
@@ -2073,6 +2074,7 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
 
 export async function suggestTagsToAddOrRemove(docId: string, body: any, userId: string) {
   try {
+
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "suggest-tag");
