@@ -1155,27 +1155,27 @@ export async function docFilter(search: string, userId: string, page: number = 1
     let users: any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
     let userIds = users.map((user: any) => user._id)
     let collaboratedDocsIds: any = (await Promise.all(userIds.map((userId: string) => GetDocIdsForUser(userId, "user", ["collaborator"])))).reduce((main: any, curr) => main.concat(curr), [])
-    let collaboratorDocs = await documents.find({_id: {$in: collaboratedDocsIds}, parentId: null, isDeleted: false, ownerId: userId})
-    let searchGroupIds = (await groupPatternMatch({},{name: search},{},{}, "updatedAt") as any).map(({_id}: any)=> _id)
+    let collaboratorDocs = await documents.find({ _id: { $in: collaboratedDocsIds }, parentId: null, isDeleted: false, ownerId: userId })
+    let searchGroupIds = (await groupPatternMatch({}, { name: search }, {}, {}, "updatedAt") as any).map(({ _id }: any) => _id)
     let groups = await userGroupsList(userId)
     let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
     let tags = await Tags.find({ tag: new RegExp(search, "i") });
     let tagIds = tags.map(tag => tag.id)
-    let sharedCollaboratorDocs = await documents.find({_id: {$in: collaboratedDocsIds.filter((id: any)=> docIds.includes(id))}, parentId: null, isDeleted: false})
+    let sharedCollaboratorDocs = await documents.find({ _id: { $in: collaboratedDocsIds.filter((id: any) => docIds.includes(id)) }, parentId: null, isDeleted: false })
     let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false, ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 });
     let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
     let docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
     let shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
     let groupSearchIds: any = await Promise.all(searchGroupIds.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     groupSearchIds = groupSearchIds.reduce((main: any, arr: any) => main.concat(arr), [])
-    let groupSearchDocs = await documents.find({_id: {$in: groupSearchIds}, parentId: null, isDeleted: false, ownerId: userId})
-    let sharedGroupSearchDocs = await documents.find({_id: {$in: groupSearchIds.filter((id: any)=> docIds.includes(id))}, parentId: null, isDeleted: false})
+    let groupSearchDocs = await documents.find({ _id: { $in: groupSearchIds }, parentId: null, isDeleted: false, ownerId: userId })
+    let sharedGroupSearchDocs = await documents.find({ _id: { $in: groupSearchIds.filter((id: any) => docIds.includes(id)) }, parentId: null, isDeleted: false })
     let myDocs = [...docs, ...docsWithTag, ...collaboratorDocs, ...groupSearchDocs]
     let shareDocs = [...shared, ...sharedWithTag, ...sharedCollaboratorDocs, ...sharedGroupSearchDocs]
     if (publish == true) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shareDocs];
-    else docs = [...myDocs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED)), ...shareDocs ].filter(({ status }: any) => status != 2);
+    else docs = [...myDocs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED)), ...shareDocs].filter(({ status }: any) => status != 2);
     docs = Object.values(docs.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
     let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     filteredDocs = documentsSort(filteredDocs, "name", false)
@@ -1993,11 +1993,9 @@ export async function replaceDocumentUser(ownerId: string, newOwnerId: string, u
       documents.find({ ownerId: ownerId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).exec(),
       documents.find({ _id: { $in: sharedDocIds }, isDeleted: false }).exec()
     ])
-    await Promise.all([
-      mydocs.map((doc: any) => changeOwnerShip(doc, ownerId, newOwnerId, userObj)),
-      sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)),
-    ])
-
+    await Promise.all(mydocs.map((doc: any) => changeOwnerShip(doc, ownerId, newOwnerId, userObj)))
+    await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
+    return { success: true }
   } catch (err) {
     throw err;
   };
@@ -2005,22 +2003,9 @@ export async function replaceDocumentUser(ownerId: string, newOwnerId: string, u
 async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, userObj: any) {
   try {
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
-    if (["no_access", "publish"].includes(capability[0])) {
-      let [document, capability] = await Promise.all([
-        documents.findByIdAndUpdate(doc._id, { $set: { ownerId: newOwnerId } }),
-        groupsRemovePolicy(`user/${ownerId}`, doc._id, "owner")
-      ])
-    } else if (["collaborator", "viewer"].includes(capability[0])) {
-      let [document, ownerCapability, newOwnerCapability] = await Promise.all([
-        documents.findByIdAndUpdate(doc._id, { $set: { ownerId: newOwnerId } }),
-        groupsRemovePolicy(`user/${ownerId}`, doc._id, "owner"),
-        groupsRemovePolicy(`user/${ownerId}`, doc._id, capability[0])
-      ])
-    }
-    await Promise.all([
-      groupsAddPolicy(`user/${newOwnerId}`, doc._id, "owner"),
-      documents.updateMany({ parentId: doc._id }, { $set: { ownerId: newOwnerId } }).exec()
-    ])
+    if (["no_access", "publish", "viewer"].includes(capability[0])) {
+      let document = await Promise.all( groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator") as any )
+    } 
     await create({
       activityType: "CHANGE_OWNERSHIP",
       activityBy: userObj._id,
@@ -2036,12 +2021,50 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
 
 async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: string, userObj: any) {
   try {
-    let capability: any[] = await documnetCapabilities(doc._id, newOwnerId);
-
+    let [addingUserCapability, existingUserCapability]: any = await Promise.all([
+      documnetCapabilities(doc._id, newOwnerId),
+      documnetCapabilities(doc._id, ownerId)
+    ])
+    const newOwnerCapabilityNumber = getCapabilityPriority(addingUserCapability[0])
+    const oldOwnerCapabilityNumber = getCapabilityPriority(existingUserCapability[0])
+    // Removing existing user capability for the doc
+    await groupsRemovePolicy(`user/${ownerId}`, doc._id, existingUserCapability[0])
+    // If the Old user capability is higher than adding user capability
+    if (oldOwnerCapabilityNumber > newOwnerCapabilityNumber) {
+      await groupsRemovePolicy(`user/${newOwnerId}`, doc._id, addingUserCapability[0])
+      await groupsAddPolicy(`user/${newOwnerId}`, doc._id, existingUserCapability[0])
+    }
+    await create({
+      activityType: "REPLACE_USER",
+      activityBy: userObj._id,
+      documentId: doc._id,
+      documentAddedUsers: [{ id: newOwnerId, type: "user", role: existingUserCapability[0] }],
+      documentRemovedUsers: [{ id: ownerId, type: "user", role: existingUserCapability[0] }]
+    })
+    return true
   } catch (err) {
     throw err;
   };
 };
+
+function getCapabilityPriority(capability: string){
+  let capabilityNumber = 1
+  switch (capability) {
+    case 'collaborator':
+      capabilityNumber = 2
+      break;
+    case 'owner':
+      capabilityNumber = 3
+      break;
+    case 'no_access':
+      capabilityNumber = 0
+      break;
+    default:
+      break;
+  }
+  return capabilityNumber
+}
+
 
 export async function getAllPublicDocuments(userRole: string, currentPage = 1, limit = 20, host: string) {
   // const isEligible = await checkRoleScope(userRole, 'view-all-public-documents')
