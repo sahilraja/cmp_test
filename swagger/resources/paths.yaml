@@ -1637,9 +1637,12 @@
             schema:
               type: object
               properties:
-                tagId:
+                tagIdToAdd:
                   type: string
                   example: tag1234
+                tagIdToRemove:
+                  type: string
+                  example: tag1234  
                 userId:
                   type: string
                   example: user1234  
@@ -1682,9 +1685,12 @@
             schema:
               type: object
               properties:
-                tagId:
+                tagIdToAdd:
                   type: string
                   example: tag1234
+                tagIdToRemove:
+                  type: string
+                  example: tag1234  
                 userId:
                   type: string
                   example: user1234  
@@ -1949,6 +1955,56 @@
                             id:
                               type: string
                               example: 5968574635575c547q74
+  suggestTagsToAddOrRemove:
+  # "/docs/{docId}/suggest/tags/addOrRemove":
+    post:
+      security:
+        - token: []
+      summary: suggest tags for a shared document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: docId
+          schema:
+            type: string
+          required: true
+          description: DocumentId     
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                addTags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - "Tag123"
+                    - "Tag456"  
+                removeTags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - "Tag123"
+                    - "Tag456"     
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      success:
+                        type: boolean
+                        example: true
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
          
            
           
