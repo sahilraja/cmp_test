@@ -267,21 +267,9 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let docs: any = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
-        const data = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
+        let  data : any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
-        data.map((user: any) => {
-            rolesBody.roles.forEach((roleInfo: any) => {
-                if (roleInfo.role == user.role) {
-                    user.role = roleInfo.roleName;
-                    return false;
-                }
-            });
-            // rolesBody.roles.forEach((roleInfo:any)=>{
-            //     if(user.role.indexOf(roleInfo.role)){
-            //         return user
-            //     }
-            // })
-        })
+        data = await roleFormanting(data)
         let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
         let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
         return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
@@ -709,25 +697,22 @@ export async function userSuggestions(search: string, userId: string, role: stri
     };
 };
 
-async function roleFormanting(users: any[]) {
+export async function roleFormanting(users: any[]) {
     let rolesBody: any = await role_list();
     return users.map((user: any) => {
-        rolesBody.roles.forEach((roleInfo: any) => {
-            if (roleInfo.role == user.role) {
-                user.role = roleInfo.roleName;
-                user.nonDisplaybleRole = roleInfo.role
-                return false;
-            }
-        });
-        return user
+        let roles = user.role.map((userRole: string) => {
+            let roleObj = rolesBody.roles.find(({ role: rolecode }: any) => rolecode == userRole)
+            return roleObj.roleName
+        })
+        return { ...user, role: roles }
     })
 };
 
 export async function changeRoleToReplaceUser(oldUserId: string, newUserId: string) {
     try {
         let [oldUserRoles, newUserRoles] = await Promise.all([getUserRoles(oldUserId), getUserRoles(newUserId)])
-        await Promise.all(oldUserRoles.map(async(role: string)=>{
-            if(!newUserRoles.includes(role)) await addRole(newUserId, role, "global")
+        await Promise.all(oldUserRoles.map(async (role: string) => {
+            if (!newUserRoles.includes(role)) await addRole(newUserId, role, "global")
         }))
         return true
     } catch (err) {
