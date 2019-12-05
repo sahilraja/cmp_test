@@ -617,11 +617,11 @@ export async function approvalList(host: string) {
   }
 }
 
-export async function uploadToFileService(request: any) {
+export async function uploadToFileService(request: any, size: number) {
   const options: any = {
     hostname: process.env.FILE_SERVICE_HOST,
     port: process.env.FILE_SERVICE_PORT,
-    path: "/files",
+    path: `/files?size=${size}`,
     method: "POST",
     headers: request.headers
   };
