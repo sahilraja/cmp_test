@@ -817,8 +817,10 @@ export async function sharedList(userId: string, page: number = 1, limit: number
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let data = await Promise.all(
       docs.map(async (doc: any) => {
-        const filteredDocs = doc.suggestedTags.filter((tag: any) => tag.userId == userId)
-        doc.suggestedTags = filteredDocs
+        const filteredDocs = doc.suggestTagsToAdd.filter((tag: any) => tag.userId == userId)
+        const filteredDocsForRemove = doc.suggestTagsToRemove.filter((tag: any) => tag.userId == userId)
+        doc.suggestTagsToAdd = filteredDocs
+        doc.suggestedTagsToRemove = filteredDocsForRemove
         return await docData(doc, host);
       })
     );
