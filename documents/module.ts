@@ -816,8 +816,8 @@ export async function sharedList(userId: string, page: number = 1, limit: number
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let data = await Promise.all(
       docs.map(async (doc: any) => {
-        const filteredDocs = doc.suggestTagsToAdd.filter((tag: any) => tag.userId == userId)
-        const filteredDocsForRemove = doc.suggestTagsToRemove.filter((tag: any) => tag.userId == userId)
+        const filteredDocs = doc.suggestTagsToAdd ? doc.suggestTagsToAdd.filter((tag: any) => tag.userId == userId) : []
+        const filteredDocsForRemove = doc.suggestTagsToRemove ? doc.suggestTagsToRemove.filter((tag: any) => tag.userId == userId) : []
         doc.suggestTagsToAdd = filteredDocs
         doc.suggestedTagsToRemove = filteredDocsForRemove
         return await docData(doc, host);
@@ -1166,19 +1166,19 @@ export async function docFilter(search: string, userId: string, page: number = 1
     docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
     let tagIds = tags.map((tag: any) => tag.id)
-    let [sharedCollaboratorDocs, docsWithTag, sharedWithTag,  docs, shared] = await Promise.all([
+    let [sharedCollaboratorDocs, docsWithTag, sharedWithTag, docs, shared] = await Promise.all([
       documents.find({ _id: { $in: collaboratedDocsIds.filter((id: any) => docIds.includes(id)) }, parentId: null, isDeleted: false }).exec(),
       documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false, ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
       documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
       documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
       documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 }).exec()
-    ]) 
+    ])
     let groupSearchIds: any = await Promise.all(searchGroupIds.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     groupSearchIds = groupSearchIds.reduce((main: any, arr: any) => main.concat(arr), [])
-    let [groupSearchDocs, sharedGroupSearchDocs] =  await Promise.all([
+    let [groupSearchDocs, sharedGroupSearchDocs] = await Promise.all([
       documents.find({ _id: { $in: groupSearchIds }, parentId: null, isDeleted: false, ownerId: userId }).exec(),
       documents.find({ _id: { $in: groupSearchIds.filter((id: any) => docIds.includes(id)) }, parentId: null, isDeleted: false }).exec()
-    ]) 
+    ])
     let myDocs = [...docs, ...docsWithTag, ...collaboratorDocs, ...groupSearchDocs]
     let shareDocs = [...shared, ...sharedWithTag, ...sharedCollaboratorDocs, ...sharedGroupSearchDocs]
     if (publish == true) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shareDocs];
@@ -2100,6 +2100,19 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
   }
   await documents.findByIdAndUpdate(docId, { $set: { isPublic: true } }).exec()
   await documents.updateMany({ parentId: docId }, { $set: { isPublic: true } }).exec()
+  return { message: 'success' }
+}
+
+export async function markDocumentAsUnPublic(docId: string, userRole: string) {
+  const [isEligible, docDetail] = await Promise.all([
+    checkRoleScope(userRole, 'mark-as-unpublic-document'),
+    documents.findById(docId).exec()
+  ])
+  if (!isEligible) {
+    throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
+  }
+  await documents.findByIdAndUpdate(docId, { $set: { isPublic: false } }).exec()
+  await documents.updateMany({ parentId: docId }, { $set: { isPublic: false } }).exec()
   return { message: 'success' }
 }
 
