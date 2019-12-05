@@ -700,10 +700,10 @@ export async function userSuggestions(search: string, userId: string, role: stri
 export async function roleFormanting(users: any[]) {
     let rolesBody: any = await role_list();
     return users.map((user: any) => {
-        let roles = user.role.map((userRole: string) => {
+        let roles = user.role ? user.role.map((userRole: string) => {
             let roleObj = rolesBody.roles.find(({ role: rolecode }: any) => rolecode == userRole)
-            return roleObj.roleName
-        })
+            return roleObj? roleObj.roleName  : userRole
+        }) : ["N/A"]
         return { ...user, role: roles }
     })
 };
