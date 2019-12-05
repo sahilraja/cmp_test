@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo, changeOldPasswordInfo, changeOldPassword, sendOtpByAdmin, verifyOtpByAdmin, setPasswordByAdmin } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -311,7 +311,7 @@ router.get("/userInfo/:id", authenticate, async (req, res, next) => {
 })
 router.post("/changePassword", authenticate, async (req, res, next) => {
     try {
-        res.status(200).send(await setNewPasswordInfo(req.body,res.locals.user._id));
+        res.status(200).send(await changeOldPassword(req.body,res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));
     }
@@ -321,7 +321,7 @@ router.post('/changeEmail', authenticate, async (req, res, next) => {
         res.status(200).send(await changeEmailInfo(req.body, res.locals.user));
     }
     catch (err) {
-        next(new APIError(err.message));;
+        next(new APIError(err.message));
     }
 })
 
@@ -425,7 +425,7 @@ router.post('/:id/admin/profile/edit', authenticate, async (req: Request, res: R
         }
         res.status(OK).send(await profileEditByAdmin(req.params.id,JSON.parse(payload),res.locals.user));
     } catch (err) {
-        next(new APIError(err.message));;
+        next(new APIError(err.message));
     };
 });
 
@@ -450,6 +450,24 @@ router.get("/task-endorse/send-otp", authenticate, async (req, res, next) => {
 router.post("/task-endorse/verify-otp", authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await mobileVerifyOtp(req.body.phone, req.body.otp,res.locals.user._id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/setPassword/admin/:id",authenticate,async (req, res, next) => {
+    try {
+        res.status(OK).send(await setPasswordByAdmin(res.locals.user,req.body,req.params.id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/otp/verify/admin/:id", authenticate,async (req, res, next) => {
+    try {
+        res.status(OK).send(await verifyOtpByAdmin(res.locals.user,req.body,req.params.id));
     }
     catch (error) {
         next(new APIError(error.message));

@@ -31,7 +31,8 @@ export const USER_ROUTER = {
     BOTH_INVALID : "Mobile and email otps are invalid",
     TOKEN_EXPIRED:"Verification link is expired. Please contact Admin",
     TOKEN_EXPIRED_OTP:"OTP verification link is expired",
-    USER_EXIST: "User already registered."
+    USER_EXIST: "User already registered.",
+    CONSTANT_INVALID:"Invalid constant value"
 };
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
