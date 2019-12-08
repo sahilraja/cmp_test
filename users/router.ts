@@ -390,7 +390,8 @@ router.post(`/:id/replace`,authenticate, async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-})
+});
+
 router.post('/send/notification', async (req, res, next) => {
     try {
         res.status(OK).send(sendNotification(req.body))

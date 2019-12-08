@@ -999,7 +999,7 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
         }),
         changeGroupOwnerShip(userId, replaceTo)
     ])
-    return{message: "successfully replaced."}
+    return { message: "successfully replaced." }
 }
 export function getFullNameAndMobile(userObj: any) {
     let { firstName, lastName, middleName, countryCode, phone } = userObj;
@@ -1235,9 +1235,9 @@ export async function changeOldPassword(body: any, userId: string) {
         throw err
     }
 }
-export async function verifyOtpByAdmin(admin:any,objBody:any,id:string) {
-    try{
-        let result,obj;
+export async function verifyOtpByAdmin(admin: any, objBody: any, id: string) {
+    try {
+        let result, obj;
         //let admin_scope = await checkRoleScope(admin.role, "edit-user-profile");
         //if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
 
@@ -1268,17 +1268,17 @@ export async function verifyOtpByAdmin(admin:any,objBody:any,id:string) {
         if (mobile_flag == 1) {
             throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
         }
-        if(token.password){
-            result = await changePasswordInfo({password:token.password},id);
+        if (token.password) {
+            result = await changePasswordInfo({ password: token.password }, id);
         }
-        else{
-            if(token.email){
-                obj = {email: token.email};
+        else {
+            if (token.email) {
+                obj = { email: token.email };
             }
-            if(token.countryCode && token.phone){
-                obj = {countryCode:token.countryCode,phone:token.phone}
+            if (token.countryCode && token.phone) {
+                obj = { countryCode: token.countryCode, phone: token.phone }
             }
-            result = await userEdit(id,obj);
+            result = await userEdit(id, obj);
         }
         return result
     }
@@ -1294,23 +1294,23 @@ export async function setPasswordByAdmin(admin: any, body: any, id: string) {
             throw new APIError(USER_ROUTER.MANDATORY);
         }
         await validatePassword(body.password);
-        let user :any = await userFindOne("id",id);
-        if(!user.emailVerified){
+        let user: any = await userFindOne("id", id);
+        if (!user.emailVerified) {
             throw new APIError(USER_ROUTER.USER_NOT_REGISTER);
         }
-        let {mobileNo,fullName} = await getFullNameAndMobile(user);
-        let { otp, token } = await generateOtp(4,{password:body.password});
-        let { mobileOtp, smsToken } = await generatemobileOtp(4,{password:body.password});
+        let { mobileNo, fullName } = await getFullNameAndMobile(user);
+        let { otp, token } = await generateOtp(4, { password: body.password });
+        let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.password });
         sendNotification({ id: admin._id, email: user.email, mobileNo, otp, mobileOtp, templateName: "changePasswordOTP", mobileTemplateName: "sendOtp" });
-        await userUpdate({ id,otp_token: token, smsOtpToken: smsToken });
+        await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
         return { message: "Otp is sent successfully" }
     }
     catch (err) {
         throw err
     }
 }
-export async function changeEmailByAdmin(admin:any,objBody:any,id:string) {
-    let otpDisplay:boolean = true;
+export async function changeEmailByAdmin(admin: any, objBody: any, id: string) {
+    let otpDisplay: boolean = true;
     if (!objBody.email) {
         throw Error(USER_ROUTER.MANDATORY);
     }
@@ -1319,34 +1319,34 @@ export async function changeEmailByAdmin(admin:any,objBody:any,id:string) {
             throw Error(USER_ROUTER.EMAIL_WRONG);
         }
     }
-    let user :any =await userFindOne("id",id);
-    if(!user.emailVerified){
+    let user: any = await userFindOne("id", id);
+    if (!user.emailVerified) {
         throw new APIError(USER_ROUTER.USER_NOT_REGISTER);
     }
-    let {mobileNo,fullName} = await getFullNameAndMobile(user);
-    let { otp, token } = await generateOtp(4,{email:objBody.email});
-    let { mobileOtp, smsToken } = await generatemobileOtp(4,{email:objBody.email});;
+    let { mobileNo, fullName } = await getFullNameAndMobile(user);
+    let { otp, token } = await generateOtp(4, { email: objBody.email });
+    let { mobileOtp, smsToken } = await generatemobileOtp(4, { email: objBody.email });;
     sendNotification({ id: admin._id, email: user.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
-    await userUpdate({ id,otp_token: token, smsOtpToken: smsToken });
+    await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
     return { message: "Otp is sent successfully" }
 }
 
-export async function changeMobileByAdmin(admin:any,objBody:any,id:string) {
-    let otpDisplay:boolean = true;
+export async function changeMobileByAdmin(admin: any, objBody: any, id: string) {
+    let otpDisplay: boolean = true;
     if (!objBody.countryCode || !objBody.phone) {
         throw Error(USER_ROUTER.MANDATORY);
     }
-    let user :any =await userFindOne("id",id);
-    if(!user.emailVerified){
+    let user: any = await userFindOne("id", id);
+    if (!user.emailVerified) {
         throw new APIError(USER_ROUTER.USER_NOT_REGISTER);
     }
-    let {mobileNo,fullName} = await getFullNameAndMobile(user);
+    let { mobileNo, fullName } = await getFullNameAndMobile(user);
     if (objBody.countryCode + objBody.phone == mobileNo) {
         throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
     }
-    let { otp, token } = await generateOtp(4,{countryCode:objBody.countryCode,phone:objBody.phone});
-    let { mobileOtp, smsToken } = await generatemobileOtp(4,{countryCode:objBody.countryCode,phone:objBody.phone});
+    let { otp, token } = await generateOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
+    let { mobileOtp, smsToken } = await generatemobileOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
     sendNotification({ id: admin._id, email: user.email, mobileNo, otp, mobileOtp, templateName: "changeMobileOTP", mobileTemplateName: "sendOtp" });
-    await userUpdate({ id,otp_token: token, smsOtpToken: smsToken });
-    return { message: "Otp is sent successfully"}
+    await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
+    return { message: "Otp is sent successfully" }
 }
