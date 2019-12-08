@@ -5440,7 +5440,7 @@ paths:
         $ref: '#/definitions/ErrorResponse/BadRequest'
       security:
         - token: []
-      summary: Invite users
+      summary: Get templates
       tags:
         - Templates
       parameters:
@@ -5463,6 +5463,31 @@ paths:
                         type: string
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
+          description: Success
+  '/template/testTemplate/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: Test Templates
+      tags:
+        - Templates
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: success
           description: Success
   /pillars/create: &ref_13
     post:
