@@ -263,7 +263,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
 };
 
 // Get User List
-export async function user_list(query: any, userId: string, page = 1, limit: any = 100, sort = "createdAt", ascending = false) {
+export async function user_list(query: any, userId: string, page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
     try {
         let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
         let docs: any = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
@@ -272,7 +272,8 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         data = await roleFormanting(data)
         let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
         let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
-        return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
+        if(pagination)return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
+        return [...nonVerifiedUsers, ...existUsers]
         // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;

@@ -423,6 +423,7 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
       docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
       docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     docList.taskDetails = await getTasksForDocument(docList.parentId || docList._id, token)
+    await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return docList;
   } catch (err) {
     console.error(err);
@@ -433,7 +434,9 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
 export async function getDocumentById(docId: string): Promise<any> {
   if (!Types.ObjectId.isValid(docId))
     throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
-  return await documents.findById(docId);
+  let details: any = await documents.findById(docId);
+  if (!details) throw new Error("File not found.")
+  return details;
 }
 
 export async function getDocumentVersionById(versionId: string): Promise<any> {
@@ -1580,12 +1583,12 @@ export async function shareDocForUsersNew(obj: any, userObj: any) {
   try {
     if ("add" in obj && obj.add.length) {
       await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, { _id: obj.userId, type: obj.type }, obj.role, userObj._id,=)))
-    }if("edit" in obj && obj.edit.length){
-      await Promise.all(obj.edit.map((obj:any)=> invitePeopleEdit(obj.docId, obj.userId, obj.type, obj.role, userObj)))
-    }if("remove" in obj && obj.edit.length){
-      await Promise.all(obj.edit.map((obj:any)=> invitePeopleRemove(obj.docId, obj.userId, obj.type, obj.role, userObj)))
+    } if ("edit" in obj && obj.edit.length) {
+      await Promise.all(obj.edit.map((obj: any) => invitePeopleEdit(obj.docId, obj.userId, obj.type, obj.role, userObj)))
+    } if ("remove" in obj && obj.edit.length) {
+      await Promise.all(obj.edit.map((obj: any) => invitePeopleRemove(obj.docId, obj.userId, obj.type, obj.role, userObj)))
     }
-    return { message : "successfully updated the roles."}
+    return { message: "successfully updated the roles." }
   } catch (err) {
     throw err
   };
