@@ -112,7 +112,7 @@
     get:
       security:
         - token: []
-      summary: Invite users
+      summary: Get templates
       tags:
         - Templates
       parameters:
@@ -165,5 +165,30 @@
                     example: successfully deleted template
           description: Success
   
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  templateTest:
+    get:
+      security:
+        - token: []
+      summary: Test Templates
+      tags:
+        - Templates
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: template id
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: "success"
+          description: Success
       "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"

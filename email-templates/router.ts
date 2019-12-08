@@ -57,7 +57,7 @@ router.get("/getTemplate/:id", authenticate, async (req: Request, res: Response,
     };
 })
 
-router.get("/testTemplate/:id",authenticate,async (req: Request, res: Response, next: NextFunction) => {
+router.post("/testTemplate/:id",authenticate,async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(OK).send(await testTemplate(req.params.id,res.locals.user));
     } catch (err) {
