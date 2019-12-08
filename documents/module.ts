@@ -535,7 +535,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       }
       obj.name = objBody.docName.toLowerCase();
     }
-    if (objBody.description) {
+    if (objBody.description || objBody.description == "") {
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
