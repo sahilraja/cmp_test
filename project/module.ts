@@ -102,8 +102,12 @@ export async function editProject(id: any, reqObject: any, user: any) {
 }
 
 
-export async function manageProjectMembers(id: string, members: string[], userId: string) {
+export async function manageProjectMembers(id: string, members: string[], userId: string, userRole: any) {
   members = Array.from(new Set(members))
+  const isEligible = await checkRoleScope(`project-add-core-team`, userRole)
+  if(!isEligible){
+    throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
+  }
   if (members.includes(userId)) {
     throw new APIError(`You are trying to add yourself as project member`)
   }
@@ -603,13 +607,14 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
   const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
   const documentIds = fundsReleased.map((fund: any) => (fund.documents || [])).concat(fundsUtilised.map((fund: any) => (fund.documents || []))).reduce((p: any,c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
   const documents = await documentsList(documentIds)
+  let phases = await phaseSchema.find({}).exec()
   let fundsReleasedData = fundsReleased.reduce((p: any, fund: any) => {
     const { installmentType } = getPercentageByInstallment(fund.installment)
     const items = fundsReleased.filter((_fund: any) =>
       (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
       p.push({
-        phase: fund.phase,
+        phase: phases.find(phase => phase.id == fund.phase),
         installment: installmentType,
         percentage: fund.percentage,
         // Filter empty data
@@ -631,7 +636,7 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
       (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     return {
-      phase:fund.phase,
+      phase: phases.find(phase => phase.id == fund.phase),
       installment: installmentType,
       percentage: fund.percentage,
       // Filter empty data
