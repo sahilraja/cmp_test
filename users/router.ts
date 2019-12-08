@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo, changeOldPasswordInfo, changeOldPassword, sendOtpByAdmin, verifyOtpByAdmin, setPasswordByAdmin } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo, changeOldPasswordInfo, changeOldPassword, sendOtpByAdmin, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -468,6 +468,22 @@ router.post("/setPassword/admin/:id",authenticate,async (req, res, next) => {
 router.post("/otp/verify/admin/:id", authenticate,async (req, res, next) => {
     try {
         res.status(OK).send(await verifyOtpByAdmin(res.locals.user,req.body,req.params.id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+router.post("/changeEmail/admin/:id",authenticate,async (req, res, next) => {
+    try {
+        res.status(OK).send(await changeEmailByAdmin(res.locals.user,req.body,req.params.id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+router.post("/changeMobile/admin/:id",authenticate,async (req, res, next) => {
+    try {
+        res.status(OK).send(await changeMobileByAdmin(res.locals.user,req.body,req.params.id));
     }
     catch (error) {
         next(new APIError(error.message));
