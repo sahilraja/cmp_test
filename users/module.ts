@@ -1210,6 +1210,11 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
         let userObjs = await userFindMany("_id", userIds)
         userObjs.forEach((user: any) => {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
+            if(userId == user._id && templateNamesInfo.templateName == "youAddTOGroup"){  
+                sendNotification({ id: userId, mobileNo, email: user.email, fullName, groupName,
+                    templateName: "youAddTOGroup", mobileTemplateName: "youAddTOGroup" 
+                })
+            }
             sendNotification({
                 id: userId, mobileNo,
                 email: user.email,
