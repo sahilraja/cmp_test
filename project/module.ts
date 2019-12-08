@@ -104,8 +104,8 @@ export async function editProject(id: any, reqObject: any, user: any) {
 
 export async function manageProjectMembers(id: string, members: string[], userId: string, userRole: any) {
   members = Array.from(new Set(members))
-  const isEligible = await checkRoleScope(`project-add-core-team`, userRole)
-  if(!isEligible){
+  const isEligible = await checkRoleScope(userRole, `project-add-core-team`)
+  if (!isEligible) {
     throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
   }
   if (members.includes(userId)) {
@@ -126,9 +126,9 @@ export async function getProjectMembers(id: string) {
     role_list()
   ])
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
-  return members.map((user: any, i: number) => ({ 
-    ...(users.find((_user: any) => _user._id == user)), 
-    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles) 
+  return members.map((user: any, i: number) => ({
+    ...(users.find((_user: any) => _user._id == user)),
+    role: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles)
   }))
   // return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
 }
@@ -305,14 +305,14 @@ export async function theme_status(id: any) {
 }
 
 //get projects list
-export async function getProjectsList(userId: any, userToken: string, userRole:any) {
+export async function getProjectsList(userId: any, userToken: string, userRole: any) {
   try {
     let query: any = { $or: [{ createdBy: userId }, { members: { $in: [userId] } }] }
     // let userProjects: any = await userRoleAndScope(userId);
     // if (!userProjects) throw new Error("user have no projects");
     //const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
     const isEligible = await checkRoleScope(userRole, `view-all-projects`)
-    if(isEligible){
+    if (isEligible) {
       query = {}
     }
     const { docs: list, page, pages } = await ProjectSchema.paginate(query, { populate: "phase" })
@@ -453,17 +453,17 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
   //   throw new APIError('Installment is required') 
   // }
   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
-    if(!fund.phase){
+    if (!fund.phase) {
       throw new APIError(`Phase is required`)
     }
-    if(!fund.percentage){
+    if (!fund.percentage) {
       throw new APIError(`Percentage is required`)
     }
-    return {...fund, installment: index + 1}
+    return { ...fund, installment: index + 1 }
     return {
       installment: index + 1,
       phase: fund.phase,
@@ -474,24 +474,24 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
   // if(projectDetail.fundsReleased.some((fund: any) => fund.installment == payload.installment)){
   //   throw new APIError(`Installment already exists`)
   // }
-  if(overAllPercentage > 100){
+  if (overAllPercentage > 100) {
     throw new APIError(`Percentage should not exceed 100`)
   }
-  const updated =  await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload } }, { new: true }).exec()
+  const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload } }, { new: true }).exec()
   return updated
 }
 
-export async function addUtilizedInstallment(projectId: string, payload: any, user?:any) {
+export async function addUtilizedInstallment(projectId: string, payload: any, user?: any) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
-  const isEligible = await checkRoleScope(user.role,  `manage-project-utilized-fund`)
+  const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
   if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const finalPayload = payload.fundsUtilised.map((fund: any, index: number) => {
-    if(!fund.phase){
+    if (!fund.phase) {
       throw new APIError(`Phase is required`)
     }
-    if(!fund.percentage){
+    if (!fund.percentage) {
       throw new APIError(`Percentage is required`)
     }
     return {
@@ -501,13 +501,13 @@ export async function addUtilizedInstallment(projectId: string, payload: any, us
     }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
-  if(overAllPercentage > 100){
+  if (overAllPercentage > 100) {
     throw new APIError(`Percentage should not exceed 100`)
   }
   // if(projectDetail.fundsUtilised.some((fund: any) => fund.installment == payload.installment)){
   //   throw new APIError(`Installment already exists`)
   // }
-  const updated =  await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsUtilised: finalPayload } }, { new: true }).exec()
+  const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsUtilised: finalPayload } }, { new: true }).exec()
   return updated
 }
 
@@ -515,20 +515,20 @@ export async function getInstallments(projectId: string, search: string) {
   const [projectDetail, phases]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     phaseSchema.find({}).exec()
-  ]) 
+  ])
   let s1: any = []
-    let m = (projectDetail[search] || []).map((s: any) => {
-      if(!s1.includes(s.installment)){
-        s1.push(s.installment)
-        return {
-          cost: s.cost,
-          documents: s.documents,
-          phase: phases.find((phase: any) => phase._id == s.phase),
-          percentage: s.percentage
-        }
+  let m = (projectDetail[search] || []).map((s: any) => {
+    if (!s1.includes(s.installment)) {
+      s1.push(s.installment)
+      return {
+        cost: s.cost,
+        documents: s.documents,
+        phase: phases.find((phase: any) => phase._id == s.phase),
+        percentage: s.percentage
       }
-    })
-    return m.filter((v: any) => !!v)
+    }
+  })
+  return m.filter((v: any) => !!v)
 }
 
 export async function ganttChart(projectId: string, userToken: string) {
@@ -605,7 +605,7 @@ function getPercentageByInstallment(installment: number) {
 export async function getFinancialInfo(projectId: string, userId?: string) {
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
-  const documentIds = fundsReleased.map((fund: any) => (fund.documents || [])).concat(fundsUtilised.map((fund: any) => (fund.documents || []))).reduce((p: any,c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
+  const documentIds = fundsReleased.map((fund: any) => (fund.documents || [])).concat(fundsUtilised.map((fund: any) => (fund.documents || []))).reduce((p: any, c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
   const documents = await documentsList(documentIds)
   let phases = await phaseSchema.find({}).exec()
   let fundsReleasedData = fundsReleased.reduce((p: any, fund: any) => {
@@ -613,19 +613,19 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
     const items = fundsReleased.filter((_fund: any) =>
       (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
-      p.push({
-        phase: phases.find(phase => phase.id == fund.phase),
-        installment: installmentType,
-        percentage: fund.percentage,
-        // Filter empty data
-        items,
-        installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
-      })
+    p.push({
+      phase: phases.find(phase => phase.id == fund.phase),
+      installment: installmentType,
+      percentage: fund.percentage,
+      // Filter empty data
+      items,
+      installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
+    })
     return p
   }, [])
   let ins: any = []
   fundsReleasedData = fundsReleasedData.filter((f: any) => {
-    if(!ins.includes(f.installment)){
+    if (!ins.includes(f.installment)) {
       ins.push(f.installment)
       return f
     }
@@ -693,7 +693,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
   ])
-  if(!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))){
+  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   if (!payload.installment) {
@@ -750,8 +750,8 @@ export async function updateUtilizedFund(projectId: string, payload: any, user: 
   const [projectDetail, isEligible]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
-  ])  
-  if(!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))){
+  ])
+  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   // if(!payload.installment || !payload.subInstallment){
@@ -796,8 +796,8 @@ export async function deleteUtilizedFund(projectId: string, payload: any, user: 
   const [projectDetail, isEligible]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
-  ])  
-  if(!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))){
+  ])
+  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const { document, cost, _id } = payload
@@ -951,7 +951,7 @@ export async function projectCostInfo(projectId: string, projectCost: number, us
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }).exec()
     createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: (updatedProject as any).projectCost, updatedCost: projectCost, projectId });
-    
+
     let userDetails = await userFindOne("id", userId);
     let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
     sendNotification({
@@ -959,7 +959,7 @@ export async function projectCostInfo(projectId: string, projectCost: number, us
       oldCost: (updatedProject as any).projectCost, updatedCost: projectCost,
       templateName: "updateFinancial", mobileTemplateName: "updateFinancial"
     })
-    
+
     return updatedProject
   }
   catch (err) {
@@ -979,7 +979,7 @@ export async function citiisGrantsInfo(projectId: string, citiisGrants: number, 
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
     createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost: citiisGrants, projectId })
-    
+
     // let userDetails = await userFindOne("id", userId);
     // let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
     // sendNotification({
@@ -999,40 +999,40 @@ export async function addOpenComment(projectId: string, user: any, payload: any)
   const [projectDetail, isEligible]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, 'add-open-comments')
-  ]) 
-  if(!isEligible){
+  ])
+  if (!isEligible) {
     throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
   }
-  if(!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id)){
+  if (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id)) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
-  }  
-  if(!await OpenCommentsModel.findOne({projectId, userId: user._id}).exec()){
-    await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: true})
   }
-  await OpenCommentsModel.findOneAndUpdate({projectId, userId:user._id, isParent: true}, {$set:payload}).exec()
+  if (!await OpenCommentsModel.findOne({ projectId, userId: user._id }).exec()) {
+    await OpenCommentsModel.create({ ...payload, projectId, userId: user._id, isParent: true })
+  }
+  await OpenCommentsModel.findOneAndUpdate({ projectId, userId: user._id, isParent: true }, { $set: payload }).exec()
   // Creating copy
-  await OpenCommentsModel.create({...payload, projectId, userId: user._id, isParent: false})
-  return {message:'Comment added successfully'}
+  await OpenCommentsModel.create({ ...payload, projectId, userId: user._id, isParent: false })
+  return { message: 'Comment added successfully' }
 }
 
 export async function myCommentDetail(projectId: string, userId: string) {
-  const detail = await OpenCommentsModel.findOne({projectId, userId, isParent: true}).exec()
+  const detail = await OpenCommentsModel.findOne({ projectId, userId, isParent: true }).exec()
   return (detail || {})
 }
 
 export async function getMyOpenCommentsHistory(projectId: string, userId: string) {
-  return await OpenCommentsModel.find({projectId, userId, isParent: false}).sort({createdAt:1}).exec()
+  return await OpenCommentsModel.find({ projectId, userId, isParent: false }).sort({ createdAt: 1 }).exec()
 }
 
-export async function getAllOpenCOmments(user: any, projectId: string, userId:string) {
+export async function getAllOpenCOmments(user: any, projectId: string, userId: string) {
   const isEligible = await checkRoleScope(user.role, `view-open-comments`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  if(!userId){
+  if (!userId) {
     throw new APIError(`User id is required`)
   }
-  return await OpenCommentsModel.findOne({projectId, isParent: true, userId}).exec()
+  return await OpenCommentsModel.findOne({ projectId, isParent: true, userId }).exec()
   // const userIds = comments.map((comment: any) => comment.userId)
   // const usersInfo = await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
   // return comments.map(comment => ({...comment.toJSON(), userId: usersInfo.find((userInfo: any) => userInfo._id == (comment as any).userId)}))
@@ -1040,10 +1040,10 @@ export async function getAllOpenCOmments(user: any, projectId: string, userId:st
 
 export async function getCommentedUsers(projectId: string, user: any) {
   const isEligible = await checkRoleScope(user.role, `view-open-comments`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
-  }  
-  const comments = await OpenCommentsModel.find({projectId, isParent: true}).sort({createdAt:1}).exec()
+  }
+  const comments = await OpenCommentsModel.find({ projectId, isParent: true }).sort({ createdAt: 1 }).exec()
   const userIds = comments.map((comment: any) => comment.userId).filter(u => u != user._id)
   return await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
 }

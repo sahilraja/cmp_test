@@ -82,7 +82,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
     try {
         req.query.page = req.query.page || 1;
         req.query.limit = 50;
-        res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.page, req.query.limit));
+        res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.page, req.query.limit, req.query.pagination));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -390,7 +390,8 @@ router.post(`/:id/replace`,authenticate, async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-})
+});
+
 router.post('/send/notification', async (req, res, next) => {
     try {
         res.status(OK).send(sendNotification(req.body))
