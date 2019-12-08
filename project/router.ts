@@ -95,7 +95,7 @@ router.get("/:id/get-member-roles", async (req: any, res: any, next: any) => {
 
 router.post(`/:id/manage-members`, async (req, res, next) => {
     try {
-        res.status(OK).send(await manageProjectMembers(req.params.id, req.body.members, res.locals.user._id))
+        res.status(OK).send(await manageProjectMembers(req.params.id, req.body.members, res.locals.user._id, res.locals.user.role))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -141,7 +141,7 @@ router.get(`/:id/view-commented-users`, async (req, res, next) => {
 
 router.get(`/:id/view-all-open-comments`, async (req, res, next) => {
     try {
-        res.status(OK).send(await getAllOpenCOmments(res.locals.user, req.params.id, req.query.user))
+        res.status(OK).send(await getAllOpenCOmments(res.locals.user, req.params.id, req.query.userId))
     } catch (error) {
         next(new APIError(error.message))
     }
