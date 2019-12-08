@@ -272,7 +272,7 @@ export async function user_list(query: any, userId: string, page = 1, limit: any
         data = await roleFormanting(data)
         let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
         let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
-        if(pagination)return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
+        if (pagination) return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
         return [...nonVerifiedUsers, ...existUsers]
         // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
@@ -643,16 +643,21 @@ export async function changeGroupOwnerShip(oldUser: string, newUser: string) {
     try {
         let myCreatedGroups = await groupPatternMatch({}, {}, { createdBy: oldUser }, {})
         let groupIds = myCreatedGroups.map(({ _id }: any) => _id)
-        groupUpdateMany({}, { createdBy: newUser }, { _id: groupIds })
+        if (groupIds.length) await groupUpdateMany({}, { createdBy: newUser }, { _id: groupIds })
         let olduseGroupIds = await userGroupsList(oldUser);
-        Promise.all(olduseGroupIds.map((groupId) => changeOwner(groupId, oldUser, newUser)))
+        let newUseGroupIds = await userGroupsList(newUser)
+        Promise.all(olduseGroupIds.map((groupId) => changeOwner(groupId, oldUser, newUser, newUseGroupIds)))
+        return true
     } catch (err) {
         throw err
     };
 };
-async function changeOwner(groupId: string, oldUser: string, newUser: string) {
+async function changeOwner(groupId: string, oldUser: string, newUser: string, newUseGroupIds: any[]) {
     try {
+        if (newUseGroupIds.includes(groupId)) return true
+        let olduseGroupIds = await userGroupsList(oldUser)
         await Promise.all([removeUserToGroup(oldUser, groupId), addUserToGroup(newUser, groupId)])
+        return true
     } catch (err) {
         throw err
     };
@@ -981,26 +986,30 @@ export async function changeMobileNumber(objBody: any, userData: any) {
 }
 
 export async function replaceUser(userId: string, replaceTo: string, userToken: string, userObj: any) {
-    let eligible = await checkRoleScope(userObj.role, "replace-user");
-    if (!eligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-    await Promise.all([
-        changeRoleToReplaceUser(userId, replaceTo),
-        replaceDocumentUser(userId, replaceTo, userObj),
-        httpRequest({
-            url: `${MESSAGE_URL}/v1/replace-user`,
-            body: { oldUser: userId, updatedUser: replaceTo },
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${userToken}` }
-        }),
-        httpRequest({
-            url: `${TASKS_URL}/replace-user`,
-            body: { oldUser: userId, updatedUser: replaceTo },
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${userToken}` }
-        }),
-        changeGroupOwnerShip(userId, replaceTo)
-    ])
-    return { message: "successfully replaced." }
+    try {
+        let eligible = await checkRoleScope(userObj.role, "replace-user");
+        if (!eligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        await Promise.all([
+            changeRoleToReplaceUser(userId, replaceTo),
+            replaceDocumentUser(userId, replaceTo, userObj),
+            httpRequest({
+                url: `${MESSAGE_URL}/v1/replace-user`,
+                body: { oldUser: userId, updatedUser: replaceTo },
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            }),
+            httpRequest({
+                url: `${TASKS_URL}/replace-user`,
+                body: { oldUser: userId, updatedUser: replaceTo },
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            }),
+            changeGroupOwnerShip(userId, replaceTo)
+        ])
+        return { message: "successfully replaced." }
+    } catch (err) {
+        throw err
+    }
 }
 export function getFullNameAndMobile(userObj: any) {
     let { firstName, lastName, middleName, countryCode, phone } = userObj;
