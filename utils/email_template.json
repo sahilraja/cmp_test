@@ -24,7 +24,7 @@
         "subject" : "Invitation for [documentName] document"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You have received a new message in CMP. Here is an excerpt.<br/>[content] <br/><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You have received a new message in CMP. Here is an excerpt.<br/>[content] <br/><a href=[link]>Click here to view the full message.</a>.<br/><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inboxMessage",
         "displayName" : "New Message",
         "subject" : "You have a new message | CMP"
@@ -150,7 +150,7 @@
         "subject" : "Group Status"
     },
     {
-        "content" : "Hi <b>[userName]</b>,<br/><br><br/> A new comment is added on Document in CMP.<br/><br/>Click on the <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br><br/> A new comment is added on Document in CMP.<br/><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "addCommentToDoc",
         "displayName" : "add New Comment ",
         "subject" : "New comment on Document"

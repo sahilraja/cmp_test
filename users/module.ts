@@ -1220,12 +1220,19 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
         let userObjs = await userFindMany("_id", userIds)
         userObjs.forEach((user: any) => {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
-            sendNotification({
-                id: userId, mobileNo,
-                email: user.email,
-                fullName, groupName,
-                ...templateNamesInfo
-            })
+            if(userId == user._id && templateNamesInfo.templateName == "youAddTOGroup"){  
+                sendNotification({ id: userId, mobileNo, email: user.email, fullName, groupName,
+                    templateName: "youAddTOGroup", mobileTemplateName: "youAddTOGroup" 
+                })
+            }
+            else{
+                sendNotification({
+                    id: userId, mobileNo,
+                    email: user.email,
+                    fullName, groupName,
+                    ...templateNamesInfo
+                })
+            }
         })
     }
     catch (err) {

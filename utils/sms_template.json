@@ -194,5 +194,10 @@
         "content" : "Document [documentName], is remove share capability to [sharedUsers] with [role]. You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
         "templateName" : "invitePeopleRemoveDoc",
         "displayName" : "remove share capabilty document"
+    },
+    {
+        "content" : "You are added to a group [groupName]",
+        "templateName" : "youAddTOGroup",
+        "displayName" : "you are added to group"
     }
 ]
