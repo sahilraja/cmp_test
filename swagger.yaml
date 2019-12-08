@@ -78,6 +78,11 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/verifyOtpByAdmin
   /user/setPassword/admin/{id}:
     $ref: ./swagger/users/paths.yaml/#/setPasswordByAdmin
+  /user/changeEmail/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/changeEmailByAdmin
+  /user/changeMobile/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/changeMobileByAdmin
+
 # Groups APIs
   /user/group/create:
     $ref: ./swagger/groups/paths.yaml/#/createGroup

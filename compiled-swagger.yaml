@@ -1046,7 +1046,89 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: successfully password updated
+                    example: successfully sent otp
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/changeEmail/admin/{id}':
+    post:
+      security:
+        - token: []
+      summary: admin set user password
+      tags:
+        - USERS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: eswar@transerve.com
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully sent otp
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/changeMobile/admin/{id}':
+    post:
+      security:
+        - token: []
+      summary: admin set user password
+      tags:
+        - USERS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - countryCode
+                - phone
+              properties:
+                countryCode:
+                  type: string
+                  example: '+91'
+                phone:
+                  type: string
+                  example: '1234567890'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully sent otp
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   /user/group/create:

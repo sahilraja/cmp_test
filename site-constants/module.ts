@@ -23,7 +23,7 @@ export async function addConstants(objBody:any) {
             }
         }
         if (constantInfo.type && constantInfo.type == "number" ) {
-            if (Number(objBody[keys[0]]) == objBody[keys[0]]) { constantValue = Number(objBody[keys[0]])}
+            if (Number(objBody[keys[0]]) == objBody[keys[0]] && Number(objBody[keys[0]])>0) { constantValue = Number(objBody[keys[0]])}
             else{
                 throw new APIError(USER_ROUTER.CONSTANT_INVALID);
              }
