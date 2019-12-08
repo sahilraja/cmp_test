@@ -92,7 +92,7 @@ const ensureCanViewVersion: RequestHandler = (req, res, next) => {
 };
 
 const siteConstants: RequestHandler = async (req: any, res, next) => {
-  let constantsInfo:any = await getConstantsAndValues(['docNameLength','docSize','docDescriptionSize','replaceDoc']);
+  let constantsInfo: any = await getConstantsAndValues(['docNameLength', 'docSize', 'docDescriptionSize', 'replaceDoc']);
   req.siteConstants = constantsInfo;
   next();
 };
@@ -140,7 +140,8 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
     const isEligible = await checkRoleScope(res.locals.user.role, "create-doc");
     if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     req.body.constants = siteConstants;
-    const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
+    const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
+    if (fileObj.errors) throw new Error("file size cant be exceeded.")
     res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants));
   } catch (err) {
     next(new APIError(err.message));
@@ -267,6 +268,26 @@ router.get(`/get-document/:docId`, async (request, response, next) => {
   };
 });
 
+// router.get("/get-doc-view/:docId", async (request, response, next) => {
+//   try {
+//     const req = (FILES_SERVER_BASE as string).startsWith("https")
+//       ? httpsGet(`${FILES_SERVER_BASE}/files/${request.params.docId}`, (res: any) => {
+//         response.writeHead(200, res.headers);
+//         res.pipe(response);
+//       })
+//       : httpGet(`${FILES_SERVER_BASE}/files/${request.params.docId}`, (res: any) => {
+//         console.log(res)
+//         response.writeHead(200, res.headers);
+//         res.pipe(response);
+//       });
+//     req.on('error', (e: Error) => {
+//       next(e);
+//     });
+//     req.end();
+//   } catch (err) {
+//     throw err
+//   }
+// })
 
 //  Create new Version
 // router.post("/:id/versions/:versionId/create", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
@@ -288,6 +309,8 @@ router.get("/:id/versions", authenticate, ensureCanPublishDocument, async (req, 
   }
 }
 );
+
+
 
 // Publish a specific version to public.
 // router.post("/:id/versions/:versionId/publish", authenticate, ensureCanPublishDocument, async (req, res, next: NextFunction) => {
@@ -559,7 +582,7 @@ router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user,(req as any).siteConstants));
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants));
   } catch (err) {
     next(new APIError(err.message));
   }

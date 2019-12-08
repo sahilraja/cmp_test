@@ -99,7 +99,7 @@ export async function getProfileLogs(profileId: string, token: string) {
 
 async function profileFetchDetails(activity: any){
     try {
-        let userObj = await userFindMany("_id", [activity.activityBy, activity.profileId])
+        let userObj = await userFindMany("_id", [activity.activityBy, activity.profileId].filter(id=>Types.ObjectId.isValid(id)))
         return {
             ...activity,
             activityBy: userObj.find((users: any)=> activity.activityBy == users._id),
@@ -109,3 +109,15 @@ async function profileFetchDetails(activity: any){
         throw err;
     };
 };
+
+
+export async function getMergedLogs() {
+    try {
+        const activities: any[] = await ActivitySchema.find({activityType: "MERGED-TAG"},{activityType: 1, activityBy: 1, mergedTag: 1, tagsToMerge: 1}).exec()
+        return await Promise.all(activities.map((activity: any) => {
+            return profileFetchDetails(activity.toJSON())
+        }))
+    } catch (err) {
+        throw err
+    };
+}
