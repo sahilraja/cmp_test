@@ -1215,12 +1215,14 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
                     templateName: "youAddTOGroup", mobileTemplateName: "youAddTOGroup" 
                 })
             }
-            sendNotification({
-                id: userId, mobileNo,
-                email: user.email,
-                fullName, groupName,
-                ...templateNamesInfo
-            })
+            else{
+                sendNotification({
+                    id: userId, mobileNo,
+                    email: user.email,
+                    fullName, groupName,
+                    ...templateNamesInfo
+                })
+            }
         })
     }
     catch (err) {
