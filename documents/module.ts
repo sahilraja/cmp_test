@@ -451,8 +451,8 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
       let parentDoc: any = await documents.findById(docList.parentId)
       docList.tags = parentDoc.tags
       docList.suggestedTags = parentDoc.suggestedTags,
-      docList.suggestTagsToAdd = parentDoc.suggestTagsToAdd,
-      docList.suggestTagsToRemove = parentDoc.suggestTagsToRemove
+        docList.suggestTagsToAdd = parentDoc.suggestTagsToAdd,
+        docList.suggestTagsToRemove = parentDoc.suggestTagsToRemove
     }
     if (docList.ownerId == userId) {
       filteredDocs = docList.suggestTagsToAdd
@@ -487,6 +487,7 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
       docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
       docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1 });
     docList.taskDetails = await getTasksForDocument(docList.parentId || docList._id, token)
+    await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return docList;
   } catch (err) {
     console.error(err);
@@ -497,7 +498,9 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
 export async function getDocumentById(docId: string): Promise<any> {
   if (!Types.ObjectId.isValid(docId))
     throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
-  return await documents.findById(docId);
+  let details: any = await documents.findById(docId);
+  if (!details) throw new Error("File not found.")
+  return details;
 }
 
 export async function getDocumentVersionById(versionId: string): Promise<any> {
@@ -596,10 +599,11 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       }
       obj.name = objBody.docName.toLowerCase();
     }
-    if (objBody.description) {
+    if (objBody.description || objBody.description == "") {
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
       obj.description = objBody.description;
     }
+
     objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : typeof (objBody.tags) == "string" && objBody.tags.length ? objBody.tags.includes("[") ? JSON.parse(objBody.tags) : objBody.tags = objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
     if (objBody.tags && objBody.tags.length) {
@@ -613,6 +617,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (!capability.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
+
     if (objBody.name && objBody.id) {
       obj.fileId = objBody.id
       obj.fileName = objBody.name
@@ -681,11 +686,11 @@ export async function approvalList(host: string) {
   }
 }
 
-export async function uploadToFileService(request: any) {
+export async function uploadToFileService(request: any, size?: number) {
   const options: any = {
     hostname: process.env.FILE_SERVICE_HOST,
     port: process.env.FILE_SERVICE_PORT,
-    path: "/files",
+    path: `/files?size=${size}`,
     method: "POST",
     headers: request.headers
   };
@@ -880,8 +885,8 @@ export async function sharedList(userId: string, page: number = 1, limit: number
     let docs = await documents.find({ _id: { $in: docIds }, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
     let data = await Promise.all(
       docs.map(async (doc: any) => {
-        const filteredDocs = doc.suggestTagsToAdd.filter((tag: any) => tag.userId == userId)
-        const filteredDocsForRemove = doc.suggestTagsToRemove.filter((tag: any) => tag.userId == userId)
+        const filteredDocs = doc.suggestTagsToAdd ? doc.suggestTagsToAdd.filter((tag: any) => tag.userId == userId) : []
+        const filteredDocsForRemove = doc.suggestTagsToRemove ? doc.suggestTagsToRemove.filter((tag: any) => tag.userId == userId) : []
         doc.suggestTagsToAdd = filteredDocs
         doc.suggestedTagsToRemove = filteredDocsForRemove
         return await docData(doc, host);
@@ -1219,27 +1224,34 @@ export async function docFilter(search: string, userId: string, page: number = 1
     let users: any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
     let userIds = users.map((user: any) => user._id)
     let collaboratedDocsIds: any = (await Promise.all(userIds.map((userId: string) => GetDocIdsForUser(userId, "user", ["collaborator"])))).reduce((main: any, curr) => main.concat(curr), [])
-    let collaboratorDocs = await documents.find({_id: {$in: collaboratedDocsIds}, parentId: null, isDeleted: false, ownerId: userId})
-    let searchGroupIds = (await groupPatternMatch({},{name: search},{},{}, "updatedAt") as any).map(({_id}: any)=> _id)
-    let groups = await userGroupsList(userId)
-    let docIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
+    let [collaboratorDocs, searchGroupIds, groups, tags]: any = await Promise.all([
+      documents.find({ _id: { $in: collaboratedDocsIds }, parentId: null, isDeleted: false, ownerId: userId }).exec(),
+      groupPatternMatch({}, { name: search }, {}, {}, "updatedAt"),
+      userGroupsList(userId),
+      Tags.find({ tag: new RegExp(search, "i") }).exec()
+    ])
+    searchGroupIds = searchGroupIds.map(({ _id }: any) => _id)
+    let docIds: any = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     docIds = docIds.reduce((main: any, arr: any) => main.concat(arr), [])
     docIds = [... new Set(docIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
-    let tags = await Tags.find({ tag: new RegExp(search, "i") });
-    let tagIds = tags.map(tag => tag.id)
-    let sharedCollaboratorDocs = await documents.find({_id: {$in: collaboratedDocsIds.filter((id: any)=> docIds.includes(id))}, parentId: null, isDeleted: false})
-    let docsWithTag = await documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false, ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 });
-    let sharedWithTag = await documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 });
-    let docs = await documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
-    let shared = await documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 });
+    let tagIds = tags.map((tag: any) => tag.id)
+    let [sharedCollaboratorDocs, docsWithTag, sharedWithTag, docs, shared] = await Promise.all([
+      documents.find({ _id: { $in: collaboratedDocsIds.filter((id: any) => docIds.includes(id)) }, parentId: null, isDeleted: false }).exec(),
+      documents.find({ tags: { $in: tagIds }, parentId: null, isDeleted: false, ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+      documents.find({ _id: { $in: docIds }, isDeleted: false, tags: { $in: tagIds } }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+      documents.find({ parentId: null, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+      documents.find({ _id: { $in: docIds }, isDeleted: false, $or: [{ name: new RegExp(search, "i") }, { description: new RegExp(search, "i") }, { ownerId: { $in: userIds } }] }).collation({ locale: 'en' }).sort({ name: 1 }).exec()
+    ])
     let groupSearchIds: any = await Promise.all(searchGroupIds.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
     groupSearchIds = groupSearchIds.reduce((main: any, arr: any) => main.concat(arr), [])
-    let groupSearchDocs = await documents.find({_id: {$in: groupSearchIds}, parentId: null, isDeleted: false, ownerId: userId})
-    let sharedGroupSearchDocs = await documents.find({_id: {$in: groupSearchIds.filter((id: any)=> docIds.includes(id))}, parentId: null, isDeleted: false})
+    let [groupSearchDocs, sharedGroupSearchDocs] = await Promise.all([
+      documents.find({ _id: { $in: groupSearchIds }, parentId: null, isDeleted: false, ownerId: userId }).exec(),
+      documents.find({ _id: { $in: groupSearchIds.filter((id: any) => docIds.includes(id)) }, parentId: null, isDeleted: false }).exec()
+    ])
     let myDocs = [...docs, ...docsWithTag, ...collaboratorDocs, ...groupSearchDocs]
     let shareDocs = [...shared, ...sharedWithTag, ...sharedCollaboratorDocs, ...sharedGroupSearchDocs]
     if (publish == true) docs = [...((docs.concat(docsWithTag)).filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || doc.status == STATUS.PUBLISHED || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED))), ...shareDocs];
-    else docs = [...myDocs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED)), ...shareDocs ].filter(({ status }: any) => status != 2);
+    else docs = [...myDocs.filter((doc: any) => (doc.ownerId == userId && doc.status == STATUS.DONE) || (doc.ownerId == userId && doc.status == STATUS.UNPUBLISHED)), ...shareDocs].filter(({ status }: any) => status != 2);
     docs = Object.values(docs.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
     let filteredDocs: any = await Promise.all(docs.map((doc: any) => docData(doc, host)));
     filteredDocs = documentsSort(filteredDocs, "name", false)
@@ -1633,6 +1645,21 @@ async function userWithDocRole(docId: string, userId: string, usersObjects: any[
   };
 };
 
+export async function shareDocForUsersNew(obj: any, userObj: any) {
+  try {
+    if ("add" in obj && obj.add.length) {
+      await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, { _id: obj.userId, type: obj.type }, obj.role, userObj._id,=)))
+    } if ("edit" in obj && obj.edit.length) {
+      await Promise.all(obj.edit.map((obj: any) => invitePeopleEdit(obj.docId, obj.userId, obj.type, obj.role, userObj)))
+    } if ("remove" in obj && obj.edit.length) {
+      await Promise.all(obj.edit.map((obj: any) => invitePeopleRemove(obj.docId, obj.userId, obj.type, obj.role, userObj)))
+    }
+    return { message: "successfully updated the roles." }
+  } catch (err) {
+    throw err
+  };
+};
+
 export async function shareDocForUsers(obj: any) {
   try {
     if (!obj) throw new Error("Missing data.")
@@ -1714,62 +1741,62 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-    if(body.tagIdToAdd){
-    let [filteredDoc, filteredDoc1]: any = await Promise.all([
-      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
-          }
-        }),
-      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != body.userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags
-          }
-        })
-    ])
-    let filteredDocs = [...filteredDoc, ...filteredDoc1]
-    let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDocs, "$push": { tags: body.tagIdToAdd } })
-    if (doc) {
-      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
-      return {
-        sucess: true,
-        message: "Tag Adding approved successfully"
+    if (body.tagIdToAdd) {
+      let [filteredDoc, filteredDoc1]: any = await Promise.all([
+        docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
+            }
+          }),
+        docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags
+            }
+          })
+      ])
+      let filteredDocs = [...filteredDoc, ...filteredDoc1]
+      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDocs, "$push": { tags: body.tagIdToAdd } })
+      if (doc) {
+        const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
+        return {
+          sucess: true,
+          message: "Tag Adding approved successfully"
+        }
       }
     }
-  }
-  if(body.tagIdToRemove){
-    let [suggestedToRemove, suggestedToRemove1]: any = await Promise.all([
-      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToRemove)
-          }
-        }),
-      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId != body.userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags
-          }
-        })
-    ])
-    let filteredDocsRemove = [...suggestedToRemove, ...suggestedToRemove1]
-    let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: filteredDocsRemove, "$pull": { tags: body.tagIdToRemove } })
-    if (doc) {
-      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
-      return {
-        sucess: true,
-        message: "Tag Removal approved successfully"
+    if (body.tagIdToRemove) {
+      let [suggestedToRemove, suggestedToRemove1]: any = await Promise.all([
+        docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToRemove)
+            }
+          }),
+        docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId != body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags
+            }
+          })
+      ])
+      let filteredDocsRemove = [...suggestedToRemove, ...suggestedToRemove1]
+      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: filteredDocsRemove, "$pull": { tags: body.tagIdToRemove } })
+      if (doc) {
+        const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
+        return {
+          sucess: true,
+          message: "Tag Removal approved successfully"
+        }
       }
     }
-  }
   } catch (err) {
     throw err
   };
@@ -1785,41 +1812,41 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-    if(body.tagIdToAdd){
-    let [filteredDoc, filteredDoc1]: any = await Promise.all([
-      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
-          }
-        }),
-      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != body.userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags
-          }
-        })
-    ])
-    let filteredDocs = [...filteredDoc, ...filteredDoc1]
+    if (body.tagIdToAdd) {
+      let [filteredDoc, filteredDoc1]: any = await Promise.all([
+        docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
+            }
+          }),
+        docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != body.userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags
+            }
+          })
+      ])
+      let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
-    let doc = await documents.findByIdAndUpdate(docId, {
-      suggestTagsToAdd: filteredDocs,
-      "$push": {
-        rejectedTags: { userId: body.userId, tags: body.tagId }
-      }
-    })
-    if (doc) {
-      const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
-      return {
-        sucess: true,
-        message: "Tag Adding Rejected"
+      let doc = await documents.findByIdAndUpdate(docId, {
+        suggestTagsToAdd: filteredDocs,
+        "$push": {
+          rejectedTags: { userId: body.userId, tags: body.tagId }
+        }
+      })
+      if (doc) {
+        const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
+        return {
+          sucess: true,
+          message: "Tag Adding Rejected"
+        }
       }
     }
-    }
-    if(body.tagIdToRemove){
+    if (body.tagIdToRemove) {
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -1837,7 +1864,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
           })
       ])
       let filteredDocs = [...filteredDoc, ...filteredDoc1]
-  
+
       let doc = await documents.findByIdAndUpdate(docId, {
         suggestTagsToRemove: filteredDocs,
       })
@@ -1849,7 +1876,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
           message: "Tag Removing Rejected"
         }
       }
-      }
+    }
   } catch (err) {
     throw err
   };
@@ -1904,64 +1931,64 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
     if (!docId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
-    if(body.tagIdToAdd){
-    let [filteredDoc, filteredDoc1]: any = await Promise.all([
-      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
-          }
-        }),
-      docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags
-          }
-        })
-    ])
-    let filteredDocs = [...filteredDoc, ...filteredDoc1]
+    if (body.tagIdToAdd) {
+      let [filteredDoc, filteredDoc1]: any = await Promise.all([
+        docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToAdd)
+            }
+          }),
+        docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId != userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags
+            }
+          })
+      ])
+      let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
-    let doc = await documents.findByIdAndUpdate(docId, {
-      suggestTagsToAdd: filteredDocs
-    })
-    if (doc) {
-      return {
-        sucess: true,
-        message: "Tag removed Successfully"
+      let doc = await documents.findByIdAndUpdate(docId, {
+        suggestTagsToAdd: filteredDocs
+      })
+      if (doc) {
+        return {
+          sucess: true,
+          message: "Tag removed Successfully"
+        }
       }
     }
-  }
-  if(body.tagIdToRemove){
-    let [filteredDoc, filteredDoc1]: any = await Promise.all([
-      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToRemove)
-          }
-        }),
-      docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId != userId).map(
-        (_respdata: any) => {
-          return {
-            userId: _respdata.userId,
-            tags: _respdata.tags
-          }
-        })
-    ])
-    let filteredDocs = [...filteredDoc, ...filteredDoc1]
+    if (body.tagIdToRemove) {
+      let [filteredDoc, filteredDoc1]: any = await Promise.all([
+        docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => tag != body.tagIdToRemove)
+            }
+          }),
+        docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId != userId).map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags
+            }
+          })
+      ])
+      let filteredDocs = [...filteredDoc, ...filteredDoc1]
 
-    let doc = await documents.findByIdAndUpdate(docId, {
-      suggestTagsToRemove: filteredDocs
-    })
-    if (doc) {
-      return {
-        sucess: true,
-        message: "Tag removed Successfully"
+      let doc = await documents.findByIdAndUpdate(docId, {
+        suggestTagsToRemove: filteredDocs
+      })
+      if (doc) {
+        return {
+          sucess: true,
+          message: "Tag removed Successfully"
+        }
       }
     }
-  }
   } catch (err) {
     throw err
   };
@@ -2052,16 +2079,14 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
 
 export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any) {
   try {
-    let sharedDocIds = await GetDocIdsForUser(ownerId)
+    let sharedDocIds = (await GetDocIdsForUser(ownerId)).filter(id => Types.ObjectId.isValid(id))
     let [mydocs, sharedDocs]: any = await Promise.all([
       documents.find({ ownerId: ownerId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).exec(),
       documents.find({ _id: { $in: sharedDocIds }, isDeleted: false }).exec()
     ])
-    await Promise.all([
-      mydocs.map((doc: any) => changeOwnerShip(doc, ownerId, newOwnerId, userObj)),
-      sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)),
-    ])
-
+    await Promise.all(mydocs.map((doc: any) => changeOwnerShip(doc, ownerId, newOwnerId, userObj)))
+    await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
+    return { success: true }
   } catch (err) {
     throw err;
   };
@@ -2069,22 +2094,9 @@ export async function replaceDocumentUser(ownerId: string, newOwnerId: string, u
 async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, userObj: any) {
   try {
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
-    if (["no_access", "publish"].includes(capability[0])) {
-      let [document, capability] = await Promise.all([
-        documents.findByIdAndUpdate(doc._id, { $set: { ownerId: newOwnerId } }),
-        groupsRemovePolicy(`user/${ownerId}`, doc._id, "owner")
-      ])
-    } else if (["collaborator", "viewer"].includes(capability[0])) {
-      let [document, ownerCapability, newOwnerCapability] = await Promise.all([
-        documents.findByIdAndUpdate(doc._id, { $set: { ownerId: newOwnerId } }),
-        groupsRemovePolicy(`user/${ownerId}`, doc._id, "owner"),
-        groupsRemovePolicy(`user/${ownerId}`, doc._id, capability[0])
-      ])
+    if (["no_access", "publish", "viewer"].includes(capability[0])) {
+      let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
     }
-    await Promise.all([
-      groupsAddPolicy(`user/${newOwnerId}`, doc._id, "owner"),
-      documents.updateMany({ parentId: doc._id }, { $set: { ownerId: newOwnerId } }).exec()
-    ])
     await create({
       activityType: "CHANGE_OWNERSHIP",
       activityBy: userObj._id,
@@ -2100,12 +2112,50 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
 
 async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: string, userObj: any) {
   try {
-    let capability: any[] = await documnetCapabilities(doc._id, newOwnerId);
-
+    let [addingUserCapability, existingUserCapability]: any = await Promise.all([
+      documnetCapabilities(doc._id, newOwnerId),
+      documnetCapabilities(doc._id, ownerId)
+    ])
+    const newOwnerCapabilityNumber = getCapabilityPriority(addingUserCapability[0])
+    const oldOwnerCapabilityNumber = getCapabilityPriority(existingUserCapability[0])
+    // Removing existing user capability for the doc
+    await groupsRemovePolicy(`user/${ownerId}`, doc._id, existingUserCapability[0])
+    // If the Old user capability is higher than adding user capability
+    if (oldOwnerCapabilityNumber > newOwnerCapabilityNumber) {
+      if (newOwnerCapabilityNumber) await groupsRemovePolicy(`user/${newOwnerId}`, doc._id, addingUserCapability[0])
+      await groupsAddPolicy(`user/${newOwnerId}`, doc._id, existingUserCapability[0])
+    }
+    await create({
+      activityType: "REPLACE_USER",
+      activityBy: userObj._id,
+      documentId: doc._id,
+      documentAddedUsers: [{ id: newOwnerId, type: "user", role: existingUserCapability[0] }],
+      documentRemovedUsers: [{ id: ownerId, type: "user", role: existingUserCapability[0] }]
+    })
+    return true
   } catch (err) {
     throw err;
   };
 };
+
+function getCapabilityPriority(capability: string) {
+  let capabilityNumber = 1
+  switch (capability) {
+    case 'collaborator':
+      capabilityNumber = 2
+      break;
+    case 'owner':
+      capabilityNumber = 3
+      break;
+    case 'no_access':
+      capabilityNumber = 0
+      break;
+    default:
+      break;
+  }
+  return capabilityNumber
+}
+
 
 export async function getAllPublicDocuments(userRole: string, currentPage = 1, limit = 20, host: string) {
   // const isEligible = await checkRoleScope(userRole, 'view-all-public-documents')
@@ -2137,6 +2187,19 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
   return { message: 'success' }
 }
 
+export async function markDocumentAsUnPublic(docId: string, userRole: string) {
+  const [isEligible, docDetail] = await Promise.all([
+    checkRoleScope(userRole, 'mark-as-unpublic-document'),
+    documents.findById(docId).exec()
+  ])
+  if (!isEligible) {
+    throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
+  }
+  await documents.findByIdAndUpdate(docId, { $set: { isPublic: false } }).exec()
+  await documents.updateMany({ parentId: docId }, { $set: { isPublic: false } }).exec()
+  return { message: 'success' }
+}
+
 export async function suggestTagsToAddOrRemove(docId: string, body: any, userId: string) {
   try {
 
@@ -2157,19 +2220,19 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
     let [doc, childUpdate]: any = await Promise.all([
       documents.findByIdAndUpdate(docId, {
-         "$push": 
-             {
-                suggestTagsToAdd: { userId: userId, tags: body.addTags },
-                suggestTagsToRemove: { userId: userId, tags: body.removeTags } 
-              } 
-            }).exec(),
-      documents.findByIdAndUpdate(child[child.length - 1]._id, { 
         "$push":
-            {
-              suggestTagsToAdd: { userId: userId, tags: body.addTags },
-              suggestedTagsToRemove: { userId: userId, tags: body.removeTags } 
-            } 
-          }).exec()
+        {
+          suggestTagsToAdd: { userId: userId, tags: body.addTags },
+          suggestTagsToRemove: { userId: userId, tags: body.removeTags }
+        }
+      }).exec(),
+      documents.findByIdAndUpdate(child[child.length - 1]._id, {
+        "$push":
+        {
+          suggestTagsToAdd: { userId: userId, tags: body.addTags },
+          suggestedTagsToRemove: { userId: userId, tags: body.removeTags }
+        }
+      }).exec()
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);

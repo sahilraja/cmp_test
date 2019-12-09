@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 import plugin from "mongoose-transform";
 
 const SchemaDef = new Schema({
@@ -16,6 +16,7 @@ const SchemaDef = new Schema({
     opportunityProvision: { type: Number, default: 0 },
     opportunityOwner: { type: String },
     status: { type: String },
+    parentId: {type: Types.ObjectId, ref: "opportunities", default: null},
     previousTrend: { type: Number, default: 0 },
     deleted: { type: Boolean, default: false },
     createdBy: { type: String }

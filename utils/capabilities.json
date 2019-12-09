@@ -14,6 +14,13 @@
     "scope": "global"
   },
   {
+    "capability": "replace-user",
+    "shortDescription": "Replace New User",
+    "description": "Replace old user to new User",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
     "capability": "create-task",
     "shortDescription": "Create Task",
     "description": "Ability to create a task",
@@ -487,6 +494,13 @@
     "shortDescription": "Add tag on publish document",
     "description": "Ability to add tag on publish document",
     "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "bypass-otp",
+    "shortDescription": "BypassOtp",
+    "description": "Ability to disable otp on change email and change mobile Number",
+    "category": "User Management",
     "scope": "global"
   }
 ]

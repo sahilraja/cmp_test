@@ -13,7 +13,7 @@ export async function create(payload: any, projectId: string, userObj: any) {
 }
 
 export async function list(projectId: string) {
-    return await OpportunitySchema.find({ deleted: false, projectId }).populate({ path: 'phase'}).sort({ createdAt: 1 }).exec()
+    return await OpportunitySchema.find({ deleted: false, projectId, parentId: null }).populate({ path: 'phase'}).sort({ createdAt: 1 }).exec()
 }
 
 export async function detail(id: string) {

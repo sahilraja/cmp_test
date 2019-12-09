@@ -965,6 +965,172 @@ paths:
                   - message: successfully profile Update
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/otp/verify/admin/{id}':
+    post:
+      security:
+        - token: []
+      summary: verify Otp
+      tags:
+        - USERS
+      required:
+        - otp
+        - mobileOtp
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mobileOtp:
+                  type: number
+                  example: 1234
+                otp:
+                  type: number
+                  example: 1234
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messsge:
+                    type: string
+                    example: successfully verified
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/setPassword/admin/{id}':
+    post:
+      security:
+        - token: []
+      summary: admin set user password
+      tags:
+        - USERS
+      required:
+        - password
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  example: password
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully sent otp
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/changeEmail/admin/{id}':
+    post:
+      security:
+        - token: []
+      summary: admin set user password
+      tags:
+        - USERS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: eswar@transerve.com
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully sent otp
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/user/changeMobile/admin/{id}':
+    post:
+      security:
+        - token: []
+      summary: admin set user password
+      tags:
+        - USERS
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - countryCode
+                - phone
+              properties:
+                countryCode:
+                  type: string
+                  example: '+91'
+                phone:
+                  type: string
+                  example: '1234567890'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: successfully sent otp
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   /user/group/create:
     post:
       security:
@@ -5274,7 +5440,7 @@ paths:
         $ref: '#/definitions/ErrorResponse/BadRequest'
       security:
         - token: []
-      summary: Invite users
+      summary: Get templates
       tags:
         - Templates
       parameters:
@@ -5297,6 +5463,31 @@ paths:
                         type: string
                         example: 5d68875cc006bf53125ec36d
                         description: Record Id
+          description: Success
+  '/template/testTemplate/{id}':
+    get:
+      '400':
+        $ref: '#/definitions/ErrorResponse/BadRequest'
+      security:
+        - token: []
+      summary: Test Templates
+      tags:
+        - Templates
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: template id
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: success
           description: Success
   /pillars/create: &ref_13
     post:

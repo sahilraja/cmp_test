@@ -24,7 +24,7 @@
         "subject" : "Invitation for [documentName] document"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You have received a new message in CMP. Here is an excerpt.<br/>[content] <br/><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You have received a new message in CMP. Here is an excerpt.<br/>[content] <br/><a href=[link]>Click here to view the full message.</a>.<br/><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inboxMessage",
         "displayName" : "New Message",
         "subject" : "You have a new message | CMP"
@@ -150,67 +150,67 @@
         "subject" : "Group Status"
     },
     {
-        "content" : "Hi <b>[userName]</b>,<br/><br><br/> A new comment is added on Document in CMP.<br/><br/>Click on the <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br><br/> A new comment is added on Document in CMP.<br/><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "addCommentToDoc",
         "displayName" : "add New Comment ",
         "subject" : "New comment on Document"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>[creatorName] assigned a task to you in CMP<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/><b>[creatorName]<b> assigned a task to you in CMP<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "taskAssign",
         "displayName" : "Task Assign",
         "subject" : "You have a new Task in CMP"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Status of [taskId] is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Status of <b>[taskId]</b> is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "taskProgress",
         "displayName" : "Update Task",
         "subject" : "[taskId] updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New document is attached to task [taskId].<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New document is attached to task <b>[taskId]</b>.<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "docAddToTask",
         "displayName" : "Document attached",
         "subject" : "Document attached to task"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Another task is linked to task [taskId].<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Another task is linked to task <b>[taskId]</b>.<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "linkTask",
         "displayName" : "Link Task",
         "subject" : "Link Task added"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New tag is added to [taskId].<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New tag is added to <b>[taskId]</b>.<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "addTaskTag",
         "displayName" : "Add Tag",
         "subject" : "Tag Added"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Title updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Title updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "updateTaskTitle",
         "displayName" : "Update Task Title",
         "subject" : "Task Title Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Due Date updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Due Date updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "updateTaskDueDate",
         "displayName" : "Update Task Duedate",
         "subject" : "Task Duedate Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Start Date updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Start Date updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "updateTaskStartDate",
         "displayName" : "Update Task Start date",
         "subject" : "Task Start date Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Description updated for task [taskId]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Description updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "updateTaskDescription",
         "displayName" : "Update Task Description",
         "subject" : "Task Description Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>A task [taskId] in Maturation Phase is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>A task <b>[taskId]</b> in Maturation Phase is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "updateMaturationTask",
         "displayName" : "Update Maturation Task",
         "subject" : "Task Updated"
@@ -250,5 +250,11 @@
         "templateName" : "youAddTOGroup",
         "displayName" : "you are added to group",
         "subject" : "You are added to Group"
+    },
+    {
+        "content" : "Hello <b>[fullName]</b>,<br><br> As per your request, <u>[otp]</u> is the One Time Password (OTP) to update your password.<br/><br/>Best Regards,<br/>CMP Support.",
+        "templateName" : "changePasswordOTP",
+        "displayName" : "change password otp",
+        "subject" : "OTP to update password"
     }
 ]

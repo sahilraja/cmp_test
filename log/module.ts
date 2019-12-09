@@ -28,17 +28,17 @@ export async function paginatedList(query = {}, page = 1, limit = 20) {
 
 export async function getTaskLogs(taskId: string, token: string, userRole: string) {
     const isEligible = await checkRoleScope(userRole, `view-activity-log`)
-    if(!isEligible){
+    if (!isEligible) {
         throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
     }
-    const activities = await ActivitySchema.find({ taskId }).sort({createdAt:1}).exec()
+    const activities = await ActivitySchema.find({ taskId }).sort({ createdAt: 1 }).exec()
     const userIds = activities.reduce((p: any, activity: any) =>
         [...p, ...
             ((activity.addedUserIds || []).concat(activity.removedUserIds || []).concat([activity.activityBy]))
         ], []).filter((v: string) => v)
     const subTaskIds = activities.map((activity: any) => activity.subTask).filter(v => !!v)
     const [usersInfo, subTasks] = await Promise.all([
-        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic:1 }),
+        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 }),
         getTasksByIds(subTaskIds, token)
     ])
     return activities.map((activity: any) => ({
@@ -47,12 +47,12 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         activityBy: usersInfo.find((user: any) => user._id == activity.activityBy),
         addedUserIds: usersInfo.filter((s: any) => (activity.addedUserIds || []).includes(s._id)),
         removedUserIds: usersInfo.filter((s: any) => (activity.removedUserIds || []).includes(s._id)),
-    })).sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 };
 
 export async function getDocumentsLogs(DocID: string, token: string) {
     try {
-        const select = {name: true, description: true}
+        const select = { name: true, description: true }
         const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(DocID) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
         return await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
@@ -63,11 +63,11 @@ export async function getDocumentsLogs(DocID: string, token: string) {
 };
 
 async function activityFetchDetails(activity: any) {
-    const  userObj = (activity.documentAddedUsers || []).concat(activity.documentRemovedUsers || []).filter(({type}: any)=> type == "user")
-    const  groupObj = (activity.documentAddedUsers || []).concat(activity.documentRemovedUsers || []).filter(({type}: any)=> type == "group")
+    const userObj = (activity.documentAddedUsers || []).concat(activity.documentRemovedUsers || []).filter(({ type }: any) => type == "user")
+    const groupObj = (activity.documentAddedUsers || []).concat(activity.documentRemovedUsers || []).filter(({ type }: any) => type == "group")
     const userIds = userObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
     const groupIds = groupObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
-    let groupsData = await groupPatternMatch({},{},{"_id": groupIds},{})
+    let groupsData = await groupPatternMatch({}, {}, { "_id": groupIds }, {})
     let usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 });
     usersData = groupsData.concat(usersData)
     const tagIds = (activity.tagsAdded || []).concat(activity.tagsRemoved || [])
@@ -75,7 +75,7 @@ async function activityFetchDetails(activity: any) {
     try {
         return {
             ...activity.toJSON(),
-            activityBy: usersData.find((users: any)=> activity.activityBy == users._id),
+            activityBy: usersData.find((users: any) => activity.activityBy == users._id),
             documentAddedUsers: usersData.filter((obj: any) => (activity.documentAddedUsers || []).map((d: any) => d.id).includes(obj._id)),
             documentRemovedUsers: usersData.filter((obj: any) => (activity.documentRemovedUsers || []).map((d: any) => d.id).includes(obj._id)),
             tagsAdded: tagsData.filter((obj: any) => (activity.tagsAdded || []).includes(obj.id)),
@@ -97,15 +97,27 @@ export async function getProfileLogs(profileId: string, token: string) {
     };
 };
 
-async function profileFetchDetails(activity: any){
+async function profileFetchDetails(activity: any) {
     try {
-        let userObj = await userFindMany("_id", [activity.activityBy, activity.profileId])
+        let userObj = (activity.profileId) ? await userFindMany("_id", [activity.activityBy, activity.profileId]) : await userFindMany("_id", [activity.activityBy])
         return {
             ...activity,
-            activityBy: userObj.find((users: any)=> activity.activityBy == users._id),
-            profileId: userObj.find((users: any)=> activity.profileId == users._id)
+            activityBy: userObj.find((users: any) => activity.activityBy == users._id),
+            profileId: (activity.profileId) ? userObj.find((users: any) => activity.profileId == users._id) : ""
         }
     } catch (err) {
         throw err;
     };
 };
+
+
+export async function getMergedLogs() {
+    try {
+        const activities: any[] = await ActivitySchema.find({ activityType: "MERGED-TAG" }, { activityType: 1, activityBy: 1, mergedTag: 1, tagsToMerge: 1 }).exec()
+        return await Promise.all(activities.map((activity: any) => {
+            return profileFetchDetails(activity.toJSON())
+        }))
+    } catch (err) {
+        throw err
+    };
+}

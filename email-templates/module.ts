@@ -67,18 +67,22 @@ export async function templateGet(user:any,id:string) {
 };
 export async function testTemplate(id:string,user: any){
     let template:any  = await TemplateSchema.findById(id);
-    let templatInfo = await getTemplateBySubstitutions(template.templateName);
+    let templatInfo = await getTemplateBySubstitutions(template.templateName,{});
     nodemail({
         email: user.email,
         subject: templatInfo.subject,
         html: templatInfo.content
     })
+    return {message:"success"}
 }
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
         if (!template) {
             throw new Error(`Invalid email template ${templateId}`);
+        }
+        if(!substitutions){
+            substitutions = {};
         }
         return {
             subject: Object.keys(substitutions).reduce((prev, key) => {

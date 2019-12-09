@@ -72,9 +72,16 @@ paths:
     $ref: ./swagger/users/paths.yaml/#/mobileOtp
   /user/change/mobile:
     $ref: ./swagger/users/paths.yaml/#/changeMobile
-  /user/{id}/admin/profile/edit:
+  /user/{id}/admin/profile/edit:      
     $ref: ./swagger/users/paths.yaml/#/editAdminProfile
-
+  /user/otp/verify/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/verifyOtpByAdmin
+  /user/setPassword/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/setPasswordByAdmin
+  /user/changeEmail/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/changeEmailByAdmin
+  /user/changeMobile/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/changeMobileByAdmin
 # Groups APIs
   /user/group/create:
     $ref: ./swagger/groups/paths.yaml/#/createGroup
@@ -321,7 +328,8 @@ paths:
     $ref: ./swagger/templates/paths.yaml/#/templateDelete
   /template/getTemplate/{id}:
     $ref: ./swagger/templates/paths.yaml/#/templateGet
-
+  /template/testTemplate/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateTest
 # Pillars
   /pillars/create:
     $ref: ./swagger/pillars/paths.yaml/#/createPillar
