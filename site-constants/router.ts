@@ -8,7 +8,7 @@ const router = Router();
 
 router.post(`/create`,authenticate,async (req, res, next) => {
     try {
-        res.status(OK).send(await createConstant(req.body));
+        res.status(OK).send(await createConstant(req.body, res.locals.user._id));
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -24,7 +24,7 @@ router.get(`/groupBy`,authenticate, async (req, res, next) => {
 
 router.post("/update", authenticate,async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await addConstants(req.body));
+        res.status(OK).send(await addConstants(req.body,res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -32,7 +32,7 @@ router.post("/update", authenticate,async (req: Request, res: Response, next: Ne
 
 router.get("/list", async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await constantsList());
+        res.status(OK).send(await constantsList(res.locals.user._id));
     } catch (err) {
         next(new APIError(err.message));
     };
