@@ -2,13 +2,27 @@ import { constantSchema } from "./model"
 import { constants } from "perf_hooks";
 import { APIError } from "../utils/custom-error";
 import { USER_ROUTER } from "../utils/error_msg";
+import { checkRoleScope } from '../utils/role_management'
+import { userRoleAndScope } from "../role/module";
 
-export async function createConstant(objBody: any) {
+export async function createConstant(objBody: any,userId: string) {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    const isEligible = await checkRoleScope(userRole, "view-edit-configurations");
+        if (!isEligible) {
+        throw new APIError("Unauthorized for this Action", 403);
+    }
     return await constantSchema.create(objBody)
 }
 
-export async function addConstants(objBody:any) {
+export async function addConstants(objBody:any, userId: string) {
     try{
+        let userRoles = await userRoleAndScope(userId);
+        let userRole = userRoles.data[0];
+        const isEligible = await checkRoleScope(userRole, "view-edit-configurations");
+            if (!isEligible) {
+            throw new APIError("Unauthorized for this Action", 403);
+        }
         let constantValue
         const keys = Object.keys(objBody)
         if(!objBody[keys[0]]){
@@ -36,8 +50,14 @@ export async function addConstants(objBody:any) {
     }
 
 }
-export async function constantsList() {
+export async function constantsList(userId: string) {
     try{
+        let userRoles = await userRoleAndScope(userId);
+        let userRole = userRoles.data[0];
+        const isEligible = await checkRoleScope(userRole, "view-edit-configurations");
+            if (!isEligible) {
+            throw new APIError("Unauthorized for this Action", 403);
+        }
         return await constantSchema.find({}).exec()
     }
     catch(err){
