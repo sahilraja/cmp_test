@@ -73,6 +73,7 @@ export async function testTemplate(id:string,user: any){
         subject: templatInfo.subject,
         html: templatInfo.content
     })
+    return {message:"success"}
 }
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
