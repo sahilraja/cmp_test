@@ -287,7 +287,9 @@ paths:
   /docs/folder/{folderId}/list:
     $ref: ./swagger/resources/paths.yaml/#/foldersdocList
   /docs/moveTo/folder/{id}: 
-    $ref: ./swagger/resources/paths.yaml/#/moveToFolder 
+    $ref: ./swagger/resources/paths.yaml/#/moveToFolder
+  /docs/folder/rename/{folderId}:
+    $ref: ./swagger/resources/paths.yaml/#/renameFolder   
   /docs/folder/delete/{id}:
     $ref: ./swagger/resources/paths.yaml/#/deleteFolder   
   /docs/removeFrom/folder/{id}: 
