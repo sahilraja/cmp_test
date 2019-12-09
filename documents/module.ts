@@ -1584,7 +1584,7 @@ async function userWithDocRole(docId: string, userId: string, usersObjects: any[
 export async function shareDocForUsersNew(obj: any, userObj: any) {
   try {
     if ("add" in obj && obj.add.length) {
-      await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, { _id: obj.userId, type: obj.type }, obj.role, userObj._id,=)))
+      await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, { _id: obj.userId, type: obj.type }, obj.role, userObj._id)))
     } if ("edit" in obj && obj.edit.length) {
       await Promise.all(obj.edit.map((obj: any) => invitePeopleEdit(obj.docId, obj.userId, obj.type, obj.role, userObj)))
     } if ("remove" in obj && obj.edit.length) {
@@ -2182,3 +2182,14 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     throw err
   };
 };
+export async function renameFolder(folderId:string ,body: any, userId: string) {
+  try {
+    // let folderId =  Types.ObjectId(id)
+    if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+    let folder = await folders.findByIdAndUpdate({_id:folderId, ownerId:userId},{name: body.name},{ new: true }).exec()
+    return { success: true, folder: folder }
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

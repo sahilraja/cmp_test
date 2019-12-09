@@ -4696,6 +4696,43 @@ paths:
                     example: true
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
+  '/docs/folder/rename/{folderId}':
+    put:
+      security:
+        - token: []
+      summary: Rename Folder
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: folderId
+          schema:
+            type: string
+          required: true
+          description: Folder Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Annula Report Folder
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  folder_id:
+                    type: string
+                    example: 343544
+        '400':
+          $ref: '#/definitions/ErrorResponse/BadRequest'
   '/docs/folder/delete/{id}':
     delete:
       security:

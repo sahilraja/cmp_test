@@ -502,5 +502,12 @@
     "description": "Ability to disable otp on change email and change mobile Number",
     "category": "User Management",
     "scope": "global"
+  },
+  {
+    "capability": "suggest-tag-to-task",
+    "shortDescription": "Suggest Tag To Task",
+    "description": "Ability to suggest a tag to task",
+    "category": "Task Management",
+    "scope": "global"
   }
 ]
