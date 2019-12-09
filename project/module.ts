@@ -820,7 +820,12 @@ export function importExcelAndFormatData(filePath: string) {
     unlinkSync(filePath);
     throw new APIError(`please upload valid xlsx/csv file`)
   }
-  let workBook = xlsx.readFile(filePath);
+  let workBook = xlsx.readFile(filePath, {
+    type: 'binary',
+    cellDates: true,
+    cellNF: false,
+    cellText: false
+  });
   xlsx.writeFile(workBook, filePath)
   unlinkSync(filePath);
   if (!workBook.SheetNames) { throw new APIError("not a valid sheet") }
@@ -874,8 +879,8 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     approvers: approverIds,
     endorsers: endorserIds,
     viewers: viewerIds,
-    initialStartDate: new Date(taskObj.initialStartDate),
-    initialDueDate: new Date(taskObj.initialDueDate)
+    startDate: new Date(taskObj.initialStartDate || taskObj.startDate),
+    dueDate: new Date(taskObj.initialDueDate || taskObj.dueDate)
   }
   const { assignee, approvers, endorsers } = taskObj
   if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {
