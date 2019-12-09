@@ -36,6 +36,7 @@ import {
   docFilter,
   createNewDoc,
   createFolder,
+  renameFolder,
   moveToFolder,
   listFolders,
   getFolderDetails,
@@ -808,5 +809,14 @@ router.get(`/public`, authenticate, async (req, res, next) => {
     next(new APIError(error.message))
   }
 })
+
+//  Create Folder
+router.put("/folder/rename/:folderId", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await renameFolder(req.params.folderId,req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
 
 export = router;
