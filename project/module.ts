@@ -556,6 +556,7 @@ export async function projectMembers(id: string) {
   ])
   if (!project) throw new Error("Project Not Found.");
   const userIds = [...project.members, project.createdBy]
+  // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
     value: user,
@@ -849,10 +850,10 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
   // }
   // taskObj.approvers = Object.keys(taskObj).filter(key => key == `approvers`).map
-  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.approvers.includes(role))).map(val => val.value)
-  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.endorsers.includes(role))).map(val => val.value)
-  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.viewers.includes(role))).map(val => val.value)
-  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> [taskObj.assignee].includes(role))).map(val => val.value)
+  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
+  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
+  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
+  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => [taskObj.assignee].includes(role))).map((val: any) => val.value).pop()
 
   if (approverIds.length != taskObj.approvers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
@@ -873,6 +874,8 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     approvers: approverIds,
     endorsers: endorserIds,
     viewers: viewerIds,
+    initialStartDate: new Date(taskObj.initialStartDate),
+    initialDueDate: new Date(taskObj.initialDueDate)
   }
   const { assignee, approvers, endorsers } = taskObj
   if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {

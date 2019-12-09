@@ -542,7 +542,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
 
     objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : typeof (objBody.tags) == "string" && objBody.tags.length ? objBody.tags.includes("[") ? JSON.parse(objBody.tags) : objBody.tags = objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
-    if (objBody.tags && objBody.tags.length) {
+    if (objBody.tags && !objBody.docName && !objBody.description) {
       let document: any = await documents.findById(docId)
       let userRoles = await userRoleAndScope(userId);
       let userRole = userRoles.data[0];
@@ -1957,7 +1957,8 @@ export async function requestAccept(requestId: string, userObj: any) {
     if (capability.includes("no_access")) {
       addedCapability = await shareDoc(requestDetails.requestedBy, "user", requestDetails.docId.id, "viewer")
     } else if (capability.includes("viewer")) {
-      await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "viewer");
+      let userCapability = await GetDocCapabilitiesForUser(requestDetails.requestedBy, requestDetails.docId.id)
+      if (userCapability.length) await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "viewer");
       addedCapability = await groupsAddPolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "collaborator");
     } else {
       throw new Error("Invalid Action Performed.")
@@ -2182,11 +2183,11 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     throw err
   };
 };
-export async function renameFolder(folderId:string ,body: any, userId: string) {
+export async function renameFolder(folderId: string, body: any, userId: string) {
   try {
     // let folderId =  Types.ObjectId(id)
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    let folder = await folders.findByIdAndUpdate({_id:folderId, ownerId:userId},{name: body.name},{ new: true }).exec()
+    let folder = await folders.findByIdAndUpdate({ _id: folderId, ownerId: userId }, { name: body.name }, { new: true }).exec()
     return { success: true, folder: folder }
   } catch (error) {
     console.error(error);
