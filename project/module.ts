@@ -22,6 +22,7 @@ import { nodemail } from "../utils/email";
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { OpenCommentsModel } from "./open-comments-model";
 import { phaseSchema } from "../phase/model";
+import { some } from "bluebird";
 
 //  Add city Code
 export async function createProject(reqObject: any, user: any) {
@@ -133,9 +134,13 @@ export async function getProjectMembers(id: string) {
   // return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
 }
 
-function formatUserRole(role: string, formattedRoleObjs: any) {
-  let userRole: any = formattedRoleObjs.find((roleObj: any) => roleObj.role === role);
-  return userRole ? userRole.roleName : role;
+function formatUserRole(role: string[], formattedRoleObjs: any) {
+  // let userRole: any = formattedRoleObjs.find((roleObj: any) => roleObj.role === role);
+  // return userRole ? userRole.roleName : role;
+  return role ? role.map((userRole: string) => {
+    let roleObj = formattedRoleObjs.find(({ role: rolecode }: any) => rolecode == userRole)
+    return roleObj ? roleObj.roleName : userRole
+  }) : ["N/A"]
 }
 
 //  Get List of city Codes
@@ -843,11 +848,11 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   // if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
   // }
-  taskObj.approvers = Object.keys(taskObj).filter(key => key == `approver`)
-  const approverIds = memberRoles.filter((memberRole: any) => taskObj.approvers.includes(memberRole.key)).map(val => val.key)
-  const endorserIds = memberRoles.filter((memberRole: any) => taskObj.endorsers.includes(memberRole.key)).map(val => val.key)
-  const viewerIds = memberRoles.filter((memberRole: any) => taskObj.viewers.includes(memberRole.key)).map(val => val.key)
-  const assigneeId = memberRoles.filter((memberRole: any) => [taskObj.assignee].includes(memberRole.key)).map(val => val.key)
+  // taskObj.approvers = Object.keys(taskObj).filter(key => key == `approvers`).map
+  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.approvers.includes(role))).map(val => val.key)
+  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.endorsers.includes(role))).map(val => val.key)
+  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.viewers.includes(role))).map(val => val.key)
+  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> [taskObj.assignee].includes(role))).map(val => val.key)
 
   if (approverIds.length != taskObj.approvers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
@@ -892,15 +897,15 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   if (!data.name || !data.name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }
-  data.approvers = Object.keys(data).filter(key => ['approver1', `approver2`, `approver3`].includes(key)).reduce((p, c) => p.concat(`, ${data[c]}`), '')
-  data.endorsers = Object.keys(data).filter(key => ['endorser1', `endorser2`, `endorser3`].includes(key)).reduce((p, c) => p.concat(`, ${data[c]}`), '')
-  data.viewers = Object.keys(data).filter(key => ['viewer1', `viewer2`, `viewer3`].includes(key)).reduce((p, c) => p.concat(`, ${data[c]}`), '')
+  const approvers = Object.keys(data).filter(key => ['approver1', `approver2`, `approver3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
+  const endorsers = Object.keys(data).filter(key => ['endorser1', `endorser2`, `endorser3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
+  const viewers = Object.keys(data).filter(key => ['viewer1', `viewer2`, `viewer3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
   if (!data.assignee || !data.assignee.trim().length) {
     throw new APIError(`Assignee is required for task ${data.name}`)
   }
-  const approvers = data.approvers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
-  const endorsers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
-  const viewers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
+  // const approvers = data.approvers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
+  // const endorsers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
+  // const viewers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   if (!roleNames.includes(data.assignee.trim())) {
     throw new APIError(`Assignee not exists for task ${data.name}`)
   }
@@ -933,9 +938,9 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
     // Validate ids
     // tags: data.tags,
     assignee: data.assignee,
-    viewers: data.viewers,
-    approvers: data.approvers,
-    endorsers: data.endorsers,
+    viewers: viewers || data.viewers,
+    approvers: approvers || data.approvers,
+    endorsers: endorsers || data.endorsers,
     stepId: data.stepId,
     pillarId: data.pillarId,
     isFromExcel: true,
