@@ -44,6 +44,22 @@ enum STATUS {
   PENDING = -3
 }
 
+const es = require('elasticsearch');
+const esClient = new es.Client({
+    host: 'localhost:9200',
+    log: 'trace'
+});
+
+esClient.ping({
+  // ping usually has a 3000ms timeout
+      requestTimeout: 1000
+  }, function (error:any) {
+      if (error) {
+          console.trace('elasticsearch cluster is down!');
+      } else {
+          console.log('All is well');
+      }
+  });
 export async function createNewDoc(body: any, userId: any, siteConstant: any) {
   try {
     let userRoles = await userRoleAndScope(userId);
@@ -74,12 +90,12 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     //   body.tags = body.tags.split(',').filter((tag: any) => Types.ObjectId.isValid(tag))
     // }
 
-    if (body.tags && body.tags.length) {
-      let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
-      if (!isEligible) {
-        throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
-      }
-    }
+    // if (body.tags && body.tags.length) {
+    //   let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
+    //   if (!isEligible) {
+    //     throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
+    //   }
+    // }
 
     let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize });
     //  Add user as Owner to this Document
@@ -89,7 +105,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     body.parentId = doc.id;
-
+    
     let response: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize });
     if (body.folderId) {
       await folders.update({ _id: body.folderId }, {
@@ -97,6 +113,33 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       })
     }
     await create({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
+    // const insertDoc = async function(indexName, _id, mappingType, data){
+      let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1,name: 1})
+      let userName;  
+      if(userDetails.firstName)
+       userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+      else{
+        userName = userDetails.name
+      }
+       let tags = await getTags((body.tags && body.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+       tags = tags.map((tagData:any)=>{return tagData.tag})
+    let docObj={
+      type:'private',
+      accessedBy:[userId],
+      userName:[userName],
+      name:body.docName,
+      description:body.description,
+      mapId:doc.id,
+      tags : tags
+
+    } 
+    let result = await esClient.index({
+          index: "documents",
+          body: docObj
+      });
+      console.log(result);
+      
+  // }
     return doc;
   } catch (err) {
     throw err
@@ -194,6 +237,27 @@ async function docData(docData: any, host: string) {
 //  Get My Documents
 export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
+    let data = {
+      query: {
+        multi_match: {
+              "query": "private",
+              "fields": ['name','description','userName','tags','type']
+          }
+      }
+  }
+    // const searchDoc = async function(indexName, mappingType, payload){
+      let searchdoc = await esClient.search({
+          index: "documents",
+          body: data
+      });
+      console.log(searchdoc);
+      
+      // let deleteObj =await esClient.delete({  
+      //   index: 'documents',
+      //   id: 'FdVq5G4Bgd7wFF2gbLnC',
+      // });
+      // console.log(deleteObj);
+      
     let folderList = await folders.find({ ownerId: userId, isDeleted: false }, { _id: 0, doc_id: 1 })
     let folder_files = folderList.map(({ doc_id }: any) => doc_id)
     var merged = [].concat.apply([], folder_files);
