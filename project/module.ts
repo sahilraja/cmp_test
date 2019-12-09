@@ -849,10 +849,10 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
   // }
   // taskObj.approvers = Object.keys(taskObj).filter(key => key == `approvers`).map
-  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.approvers.includes(role))).map(val => val.key)
-  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.endorsers.includes(role))).map(val => val.key)
-  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.viewers.includes(role))).map(val => val.key)
-  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> [taskObj.assignee].includes(role))).map(val => val.key)
+  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.approvers.includes(role))).map(val => val.value)
+  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.endorsers.includes(role))).map(val => val.value)
+  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.viewers.includes(role))).map(val => val.value)
+  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> [taskObj.assignee].includes(role))).map(val => val.value)
 
   if (approverIds.length != taskObj.approvers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
