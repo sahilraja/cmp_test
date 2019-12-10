@@ -509,5 +509,12 @@
     "description": "Ability to suggest a tag to task",
     "category": "Task Management",
     "scope": "global"
+  },
+  {
+    "capability": "view-edit-configurations",
+    "shortDescription": "View Edit Configurations",
+    "description": "View Edit Configurations",
+    "scope": "global",
+    "category": "User Management"
   }
 ]

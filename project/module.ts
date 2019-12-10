@@ -556,6 +556,7 @@ export async function projectMembers(id: string) {
   ])
   if (!project) throw new Error("Project Not Found.");
   const userIds = [...project.members, project.createdBy]
+  // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
     value: user,
@@ -819,7 +820,12 @@ export function importExcelAndFormatData(filePath: string) {
     unlinkSync(filePath);
     throw new APIError(`please upload valid xlsx/csv file`)
   }
-  let workBook = xlsx.readFile(filePath);
+  let workBook = xlsx.readFile(filePath, {
+    type: 'binary',
+    cellDates: true,
+    cellNF: false,
+    cellText: false
+  });
   xlsx.writeFile(workBook, filePath)
   unlinkSync(filePath);
   if (!workBook.SheetNames) { throw new APIError("not a valid sheet") }
@@ -836,7 +842,10 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
-  await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
+  for(let taskData of tasksDataWithIds){
+    await createTask(taskData, projectId, userToken, userObj)
+  }
+  // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
   return { message: 'success' }
 }
 
@@ -849,10 +858,10 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
   // }
   // taskObj.approvers = Object.keys(taskObj).filter(key => key == `approvers`).map
-  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.approvers.includes(role))).map(val => val.value)
-  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.endorsers.includes(role))).map(val => val.value)
-  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> taskObj.viewers.includes(role))).map(val => val.value)
-  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string)=> [taskObj.assignee].includes(role))).map(val => val.value)
+  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
+  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
+  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
+  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => [taskObj.assignee].includes(role))).map((val: any) => val.value).pop()
 
   if (approverIds.length != taskObj.approvers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
@@ -873,6 +882,8 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     approvers: approverIds,
     endorsers: endorserIds,
     viewers: viewerIds,
+    startDate: new Date(taskObj.initialStartDate || taskObj.startDate),
+    dueDate: new Date(taskObj.initialDueDate || taskObj.dueDate)
   }
   const { assignee, approvers, endorsers } = taskObj
   if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {
