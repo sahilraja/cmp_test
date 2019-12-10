@@ -65,7 +65,8 @@ import {
   checkCapabilitiesForUserNew,
   removeFromFolder,
   markDocumentAsUnPublic,
-  suggestTagsToAddOrRemove
+  suggestTagsToAddOrRemove,
+  shareDocForUsersNew
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -244,6 +245,14 @@ router.post("/user-capabilities-new", authenticate, async (req, res, next) => {
 router.post("/add-user-capabilities", authenticate, async (req, res, next) => {
   try {
     res.status(200).send(await shareDocForUsers(req.body))
+  } catch (err) {
+    next(new APIError(err.message));
+  };
+});
+
+router.post("/add-user-capabilities-new", authenticate, async (req, res, next) => {
+  try {
+    res.status(200).send(await shareDocForUsersNew(req.body, res.locals.user))
   } catch (err) {
     next(new APIError(err.message));
   };
