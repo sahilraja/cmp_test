@@ -50,10 +50,12 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
     })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 };
 
-export async function getDocumentsLogs(DocID: string, token: string) {
+export async function getDocumentsLogs(docId: string, token: string, userObj: any) {
     try {
+        const isEligible = await checkRoleScope(userObj.role, `document-activity-log`)
+        if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
         const select = { name: true, description: true }
-        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(DocID) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
+        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(docId) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
         return await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
