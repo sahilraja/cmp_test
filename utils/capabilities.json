@@ -512,8 +512,8 @@
   },
   {
     "capability": "view-edit-configurations",
-    "shortDescription": "Create User",
-    "description": "Create User",
+    "shortDescription": "View Edit Configurations",
+    "description": "View Edit Configurations",
     "scope": "global",
     "category": "User Management"
   }
