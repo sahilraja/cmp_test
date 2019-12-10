@@ -556,10 +556,12 @@ export async function projectMembers(id: string) {
   ])
   if (!project) throw new Error("Project Not Found.");
   const userIds = [...project.members, project.createdBy]
+  let userObjs = (await userFindMany("_id", userIds)).map((user: any)=>{return{...user, fullName: (user.firstName ? user.firstName + " " : "") + (user.middleName ? user.middleName + " " : "") + (user.lastName ? user.lastName : "")}})
   // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
     value: user,
+    fullName: (userObjs.find(({_id}: any)=> _id == user)).fullName,
     key: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles)
   }))
 }
