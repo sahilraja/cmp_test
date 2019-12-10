@@ -1,4 +1,4 @@
-import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES } from "../utils/error_msg";
+import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES, GROUP_ROUTER, PASSWORD } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage, generatemobileOtp } from "../utils/utils";
@@ -316,7 +316,7 @@ export async function user_status(id: string, user: any) {
 
         let userData: any = await userFindOne("id", id);
         if (!userData) throw new Error(USER_ROUTER.USER_NOT_EXIST);
-        if (!userData.emailVerified) throw new Error("User not registered Yet.")
+        if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated";
@@ -487,7 +487,7 @@ export async function forgotPassword(objBody: any) {
 export async function setNewPassword(objBody: any) {
     try {
         if (!objBody.password) {
-            throw new Error("required password field")
+            throw new Error(USER_ROUTER.MANDATORY)
         };
         //  verified the token
         if (objBody.password) {
@@ -504,7 +504,7 @@ export async function setNewPassword(objBody: any) {
         //if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND)
         //  create life Time Token
         //return { token: await createJWT({ id: userDetails.id, role: role.data[0].role }) }
-        return { message: "succefully updated password" };
+        return { message: RESPONSE.UPDATE_PASSWORD };
 
     } catch (err) {
         console.error(err);
@@ -517,7 +517,7 @@ export async function setNewPassword(objBody: any) {
 export async function createGroup(objBody: any, userObj: any) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "create-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         const { name, description, users } = objBody
         if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         let group: any = await groupCreate({
@@ -538,7 +538,7 @@ export async function groupStatus(id: any, userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "deactivate-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
@@ -555,8 +555,8 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        if (objBody.name) throw new Error("Group Name not Modified")
+        if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
         let groupData: any = await groupEdit(id, objBody);
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;
@@ -602,7 +602,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (validation) {
             let isEligible = await checkRoleScope(userObj.role, "edit-group");
-            if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+            if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
@@ -625,12 +625,12 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         if (!id || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (!Array.isArray(users)) throw new Error(USER_ROUTER.USER_ARRAY)
         let data: any = await groupFindOne("id", id)
         let existUsers = await groupUserList(data._id)
-        if (existUsers.length == 1) throw new Error("Minimum one member is required.")
+        if (existUsers.length == 1) throw new Error(GROUP_ROUTER.REMOVE_MEMBER);
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
         return { message: RESPONSE.REMOVE_MEMBER }
@@ -768,15 +768,9 @@ export async function getUsersForProject(search: string, userId: string, role: s
 export async function otpVerification(objBody: any) {
     try {
         let mobile_flag: number = 0, email_flag: number = 0;
-        if (!objBody.otp && !objBody.mobileOtp) {
+        if (!objBody.otp || !objBody.mobileOtp) {
             throw new APIError(USER_ROUTER.MANDATORY)
         }
-        if (!objBody.otp) {
-            throw new Error("Required email otp field");
-        };
-        if (!objBody.mobileOtp) {
-            throw new Error("Required mobile otp field");
-        };
         let userInfo: any = await userFindOne("email", objBody.email);
         if (!userInfo) {
             throw new Error(USER_ROUTER.EMAIL_WRONG);
@@ -838,9 +832,8 @@ export async function changeEmailInfo(objBody: any, user: any) {
         }
         //  find User
         let emailExist = await userFindOne("email", objBody.email);
-        if (emailExist) throw new Error("Already email exist.")
+        if (emailExist) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
         let validUser = await userLogin({ email: user.email, password: objBody.password })
-        if (!validUser.token) throw new Error("Enter valid credentials.");
 
         let { otp, token } = await generateOtp(4, { "newEmail": objBody.email });
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { "newEmail": objBody.email });
@@ -938,7 +931,7 @@ export async function recaptchaValidation(req: any) {
                 console.log(body);
                 // Success will be true or false depending upon captcha validation.
                 if (body.success !== undefined && !body.success) {
-                    reject(new Error("Failed captcha verification"));
+                    reject(new Error(USER_ROUTER.RECAPTCHA_INVALID));
                 }
                 resolve("success");
             });
@@ -1006,7 +999,7 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
             }),
             changeGroupOwnerShip(userId, replaceTo)
         ])
-        return { message: "successfully replaced." }
+        return { message: RESPONSE.REPLACE_USER }
     } catch (err) {
         throw err
     }
@@ -1138,7 +1131,7 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
             let userInfo = await userEdit(id, body);
             let editedKeys = Object.keys(user).filter(key => { if (key != "updatedAt") return user[key] != userInfo[key] })
             await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys })
-            return { message: "successfully profile Updated" }
+            return { message: RESPONSE.PROFILE_UPDATE }
         }
     } catch (err) {
         throw err
@@ -1165,16 +1158,16 @@ export async function validatePassword(password: string) {
             }
         }
         if (upper < UPPER_CASE_COUNT && upper > 0) {
-            throw new APIError("Should be minimum captial letters count ", UPPER_CASE_COUNT);
+            throw new APIError(PASSWORD.SPECIAL_CHAR, UPPER_CASE_COUNT);
         }
         if (num < NUMBERS_COUNT && num > 0) {
-            throw new APIError("Should be minimum numbers count ", NUMBERS_COUNT);
+            throw new APIError(PASSWORD.NUMBERS_COUNT, NUMBERS_COUNT);
         }
         if (special < SPECIAL_COUNT && special > 0) {
-            throw new APIError("Should be minimum special characters count ", SPECIAL_COUNT);
+            throw new APIError(PASSWORD.SPECIAL_COUNT, SPECIAL_COUNT);
         }
         if (password.length < TOTAL_LETTERS && password.length > 0) {
-            throw new APIError("Should be minimum total characters count ", TOTAL_LETTERS);
+            throw new APIError(PASSWORD.TOTAL_LETTERS, TOTAL_LETTERS);
         }
     }
     catch (err) {
@@ -1246,7 +1239,7 @@ export async function changeOldPassword(body: any, userId: string) {
         }
         await validatePassword(body.new_password);
         await changePasswordInfo(body, userId);
-        return { "message": "Successfullly updated password" }
+        return { "message": RESPONSE.UPDATE_PASSWORD }
     }
     catch (err) {
         throw err
@@ -1320,7 +1313,7 @@ export async function setPasswordByAdmin(admin: any, body: any, id: string) {
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.password });
         sendNotification({ id: admin._id, email: user.email, mobileNo, otp, mobileOtp, templateName: "changePasswordOTP", mobileTemplateName: "sendOtp" });
         await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
-        return { message: "Otp is sent successfully" }
+        return { message: RESPONSE.SUCCESS_OTP }
     }
     catch (err) {
         throw err
@@ -1345,7 +1338,7 @@ export async function changeEmailByAdmin(admin: any, objBody: any, id: string) {
     let { mobileOtp, smsToken } = await generatemobileOtp(4, { email: objBody.email });;
     sendNotification({ id: admin._id, email: user.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
     await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
-    return { message: "Otp is sent successfully" }
+    return { message: RESPONSE.SUCCESS_OTP }
 }
 
 export async function changeMobileByAdmin(admin: any, objBody: any, id: string) {
@@ -1365,5 +1358,5 @@ export async function changeMobileByAdmin(admin: any, objBody: any, id: string) 
     let { mobileOtp, smsToken } = await generatemobileOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
     sendNotification({ id: admin._id, email: user.email, mobileNo, otp, mobileOtp, templateName: "changeMobileOTP", mobileTemplateName: "sendOtp" });
     await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
-    return { message: "Otp is sent successfully" }
+    return { message: RESPONSE.SUCCESS_OTP }
 }

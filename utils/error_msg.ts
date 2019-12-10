@@ -32,8 +32,13 @@ export const USER_ROUTER = {
     TOKEN_EXPIRED:"Verification link is expired. Please contact Admin",
     TOKEN_EXPIRED_OTP:"OTP verification link is expired",
     USER_EXIST: "User already registered.",
-    CONSTANT_INVALID:"Invalid constant value"
+    CONSTANT_INVALID:"Invalid constant value",
+    RECAPTCHA_INVALID: "Failed captcha verification"
 };
+export const GROUP_ROUTER = {
+    REMOVE_MEMBER: "Minimum one member is required.",
+    GROUP_NAME:"Group Name not Modified"
+}
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
     SEND_OTP : "Mobile Otp send successfully",
@@ -77,12 +82,23 @@ export const MAIL_SUBJECT = {
     OTP_SUBJECT: "CMP One Time Password"
 };
 
+export const PASSWORD = {
+    SPECIAL_CHAR:"Should be minimum captial letters count ",
+    NUMBERS_COUNT:"Should be minimum numbers count ",
+    SPECIAL_COUNT:"Should be minimum special characters count ",
+    TOTAL_LETTERS:"Should be minimum total characters count "
+}
+
 export const RESPONSE = {
     SUCCESS_EMAIL: "Email send successfully.",
     ACTIVE: "active",
     INACTIVE: "inactive",
     ADD_MEMBER: "Group member added",
-    REMOVE_MEMBER: "Group member removed"
+    REMOVE_MEMBER: "Group member removed",
+    UPDATE_PASSWORD : "succefully updated password",
+    REPLACE_USER : "successfully replaced.",
+    PROFILE_UPDATE : "successfully profile Updated",
+    SUCCESS_OTP : "Otp is sent successfully"
 }
 export const SENDER_IDS = {
     OTP : "CMPOTP",
