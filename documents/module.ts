@@ -55,29 +55,23 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error("Unable to create file or file missing")
     const { id: fileId, name: fileName, size: fileSize } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {  // add config query
+    if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {
       throw new Error(`Document name should not exceed more than ${siteConstant.docNameLength} characters`)
     }
-    if (body.description.length > Number(siteConstant.docDescriptionSize || configLimit.description)) { // add config query
+    if (body.description.length > Number(siteConstant.docDescriptionSize || configLimit.description)) {
       throw new Error(`Document description should not exceed more than ${siteConstant.docDescriptionSize} characters`)
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
     if (data.length) {
-      throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
+      throw new Error(`A document with name "${body.docName}" already exists. Document name should be unique.`);
     }
 
     body.tags = (Array.isArray(body.tags) ? body.tags : typeof (body.tags) == "string" && body.tags.length ? body.tags.includes("[") ? JSON.parse(body.tags) : body.tags = body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
-    // if(body.tags && Array.isArray(body.tags)){
-    //   body.tags=body.tags.filter((tag: any) => Types.ObjectId.isValid(tag))
-    // }else if(body.tags.length){
-    //   body.tags = body.tags.split(',').filter((tag: any) => Types.ObjectId.isValid(tag))
-    // }
-
     if (body.tags && body.tags.length) {
       let isEligible = await checkRoleScope(userRole, "add-tag-to-document");
       if (!isEligible) {
-        throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
+        throw new APIError("You don't have permission to add tags.", 403);
       }
     }
 

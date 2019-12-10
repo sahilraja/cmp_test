@@ -144,7 +144,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
     if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
-    if (fileObj.errors) throw new Error("file size cant be exceeded.")
+    if (fileObj.errors) throw new Error(`File size can't exceed ${req.siteConstants.docSize} MB.`)
     res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants));
   } catch (err) {
     next(new APIError(err.message));
