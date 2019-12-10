@@ -24,25 +24,21 @@ import { OpenCommentsModel } from "./open-comments-model";
 import { phaseSchema } from "../phase/model";
 import { some } from "bluebird";
 
-//  Add city Code
+//  Create Project 
 export async function createProject(reqObject: any, user: any) {
   try {
-    if (!reqObject.reference || !reqObject.name) {
+    if (!reqObject.reference || !reqObject.name || !reqObject.startDate || !reqObject.endDate) {
       throw new Error(MISSING);
     }
+    if(new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
     let isEligible = await checkRoleScope(user.role, "create-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    //  check capability
-    // let capability = await checkCapability({
-    //   role: user.role,
-    //   scope: "global",
-    //   capability: "create-project"
-    // });
-    // if (!capability.status) throw new Error("Invalid User");
 
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
+      startDate: reqObject.startDate,
+      endDate: reqObject.endDate,
       reference: reqObject.reference,
       city: reqObject.cityname,
       summary: reqObject.description || "N/A",
@@ -68,14 +64,12 @@ export async function editProject(id: any, reqObject: any, user: any) {
 
     let isEligible = await checkRoleScope(user.role, "edit-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    //  check capability
-    // let capability = await checkCapability({
-    //   role: user.role,
-    //   scope: "global",
-    //   capability: "create-project"
-    // });
-    // if (!capability.status) throw new Error("Invalid User");
-
+    
+    if(reqObject.startDate || reqObject.endDate){
+      if(new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
+      obj.startDate = reqObject.startDate
+      obj.endDate = reqObject.endDate
+    };
     if (reqObject.reference) {
       obj.reference = reqObject.reference;
     }

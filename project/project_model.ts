@@ -2,16 +2,18 @@ import { Schema, model, Types } from "mongoose";
 import * as mongoosePaginate from "mongoose-paginate";
 
 const schema = new Schema({
-    createdBy:{type: String},
-    name: { type: String, trim:true },
+    createdBy: { type: String },
+    name: { type: String, trim: true },
     city: { type: String, trim: true },
     summary: { type: String },
+    startDate: { type: Date, default: new Date() },
+    endDate: { type: Date, default: new Date() },
     reference: { type: String, unique: true, trim: true, uppercase: true },
     bannerImage: { type: String },
     maturationStartDate: { date: { type: Date }, modifiedBy: { type: String } },
     maturationEndDate: { date: { type: Date }, modifiedBy: { type: String } },
-    thirdParyAggrementDate: { date: { type: Date }, modifiedBy: { type: String }},
-    members:{type: Array},
+    thirdParyAggrementDate: { date: { type: Date }, modifiedBy: { type: String } },
+    members: { type: Array },
     thirdParyAggrementDocument: [
         {
             document: { type: String },
@@ -20,16 +22,16 @@ const schema = new Schema({
             modifiedBy: { type: String }
         }
     ],
-    projectCost: { type: Number ,default:0},
-    citiisGrants: { type: Number , default:0},
+    projectCost: { type: Number, default: 0 },
+    citiisGrants: { type: Number, default: 0 },
     fundsReleased: [
         {
-            deleted:{type:Boolean, default: false},
-            installment:{type:  Number},
-            percentage: {type: String},
-            phase: {type: String},
-            subInstallment:{type:  Number},
-            documents: {type: [String]},
+            deleted: { type: Boolean, default: false },
+            installment: { type: Number },
+            percentage: { type: String },
+            phase: { type: String },
+            subInstallment: { type: Number },
+            documents: { type: [String] },
             cost: { type: Number },
             createdAt: { type: Date },
             modifiedAt: { type: Date },
@@ -38,12 +40,12 @@ const schema = new Schema({
     ],
     fundsUtilised: [
         {
-            deleted:{type:Boolean, default: false},
-            installment:{type:  Number},
-            percentage: {type: String},
-            phase: {type: String},
-            subInstallment:{type:  Number},
-            documents: {type: [String]},
+            deleted: { type: Boolean, default: false },
+            installment: { type: Number },
+            percentage: { type: String },
+            phase: { type: String },
+            subInstallment: { type: Number },
+            documents: { type: [String] },
             cost: { type: Number },
             createdAt: { type: Date },
             modifiedAt: { type: Date },
@@ -52,7 +54,7 @@ const schema = new Schema({
     ],
     themes: { type: Schema.Types.ObjectId, ref: 'themes' },
     is_active: { type: Boolean, default: true },
-    phase:{type:Types.ObjectId,ref:"phase"}
+    phase: { type: Types.ObjectId, ref: "phase" }
 }, { timestamps: true });
 
 schema.plugin(mongoosePaginate)
