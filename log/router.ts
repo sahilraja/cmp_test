@@ -15,7 +15,7 @@ router.post('/create', async (req, res, next) => {
 
 router.post(`/list`, async (req, res, next) => {
     try {
-        res.status(OK).send(await list(req.body))        
+        res.status(OK).send(await list(req.body))
     } catch (error) {
         next(error)
     }
@@ -31,7 +31,7 @@ router.post(`/paginated-list`, async (req, res, next) => {
 
 router.get(`/get-task-logs`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await getTaskLogs(req.query.taskId, (req as  any).token, res.locals.user.role))
+        res.status(OK).send(await getTaskLogs(req.query.taskId, (req as any).token, res.locals.user.role))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -39,7 +39,7 @@ router.get(`/get-task-logs`, authenticate, async (req, res, next) => {
 
 router.get(`/get-document-logs`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await getDocumentsLogs(req.query.docId, (req as  any).token))
+        res.status(OK).send(await getDocumentsLogs(req.query.docId, (req as any).token, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -47,7 +47,7 @@ router.get(`/get-document-logs`, authenticate, async (req, res, next) => {
 
 router.get(`/get-profile-edit-logs`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await getProfileLogs(req.query.userId, (req as  any).token))
+        res.status(OK).send(await getProfileLogs(req.query.userId, (req as any).token))
     } catch (error) {
         next(new APIError(error.message))
     }
