@@ -52,12 +52,12 @@ export async function addConstants(objBody:any, userId: string) {
 }
 export async function constantsList(userId: string) {
     try{
-        let userRoles = await userRoleAndScope(userId);
-        let userRole = userRoles.data[0];
-        const isEligible = await checkRoleScope(userRole, "view-edit-configurations");
-            if (!isEligible) {
-            throw new APIError("Unauthorized for this Action", 403);
-        }
+        // let userRoles = await userRoleAndScope(userId);
+        // let userRole = userRoles.data[0];
+        // const isEligible = await checkRoleScope(userRole, "view-edit-configurations");
+        //     if (!isEligible) {
+        //     throw new APIError("Unauthorized for this Action", 403);
+        // }
         return await constantSchema.find({}).exec()
     }
     catch(err){
