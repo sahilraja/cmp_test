@@ -1252,14 +1252,15 @@ export async function verificationOtpByUser(objBody: any, userObj: any) {
     try {
         let mobile_flag: number = 0, email_flag: number = 0;
         if (!objBody.otp || !objBody.mobileOtp) throw new Error("Otp is Missing.");
-        let token: any = await jwt_Verify(userObj.otp_token);
-        let mobileToken: any = await jwt_Verify(userObj.smsOtpToken);
+        let user = await userFindOne("id", userObj._id);
+        let token: any = await jwt_Verify(user.otp_token);
+        let mobileToken: any = await jwt_Verify(user.smsOtpToken);
         if (objBody.mobileOtp && objBody.mobileOtp != "1111" && mobileToken.smsOtp != objBody.mobileOtp) mobile_flag = 1
         if (objBody.otp != "1111" && objBody.otp != token.otp) email_flag = 1
         if (email_flag == 1 && mobile_flag == 1) throw new APIError(USER_ROUTER.BOTH_INVALID);
         if (email_flag == 1) throw new APIError(USER_ROUTER.INVALID_OTP);
         if (mobile_flag == 1) throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
-        return await changePasswordInfo({ password: token.password }, userObj._id);
+        return await changePasswordInfo({ password: mobileToken.password }, userObj._id);
     } catch (err) {
         throw err
     }

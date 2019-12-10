@@ -377,7 +377,7 @@ router.post("/:id/file", authenticate, ensureCanEditDocument, async (req, res, n
 router.get("/:id/file-download-log", authenticate, async (req: any, res, next) => {
   try {
     let documentDetails = await getDocumentById(req.params.id)
-    await create({ activityType: `DOCUMENT_VIEWED`, activityBy: res.locals.user._id, documentId: documentDetails.parentId || documentDetails._id })
+    await create({ activityType: `DOCUMENT_DOWNLOAD`, activityBy: res.locals.user._id, documentId: documentDetails.parentId || documentDetails._id })
     res.status(OK).send({success: true})
   } catch (err) {
     throw err

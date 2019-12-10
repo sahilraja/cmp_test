@@ -123,3 +123,26 @@ export async function getMergedLogs() {
         throw err
     };
 }
+
+export async function projectLogs(projectId: string) {
+    try {
+        const activities: any[] = await ActivitySchema.find({ projectId }).populate({ path: 'projectId' }).exec()
+        return await Promise.all(activities.map((activity: any) => {
+            return fetchProjectLogDetails(activity.toJSON())
+        }))
+    } catch (err) {
+        throw err
+    };
+}
+
+async function fetchProjectLogDetails(activity: any) {
+    try {
+        let userObj = await userFindMany("_id", [activity.activityBy])
+        return {
+            ...activity,
+            activityBy: userObj.find(({_id}: any)=> _id == activity.activityBy)
+        };
+    } catch (err) {
+        throw err
+    };
+};
