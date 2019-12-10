@@ -173,6 +173,9 @@ export const RISK = {
 export const OPPORTUNITY = {
     UNAUTHORIZED_ACCESS: `Unauthorized to manage opportunity`
 }
+export const TEMPLATE = {
+    INVALID_TEMPLATE : "Invalid email template"
+}
 
 export const ACTIVITY_LOG = {
     TASK_DATES_UPDATED: `TASK_DATES_UPDATED`,
