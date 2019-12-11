@@ -42,6 +42,10 @@ export const MOBILE_MESSAGES = {
 }
 
 export const DOCUMENT_ROUTER = {
+    FILE_SIZE: (size: number)=> `File size can't exceed ${size} MB.`,
+    DOCUMENT_NAME_LENGTH: (nameLength: number)=> `Document name should not exceed more than ${nameLength} characters.`,
+    DOCUMENT_DESCRIPTION_LENGTH: (descriptionLenth: number)=> `Document description should not exceed more than ${descriptionLenth} characters.`,
+    DOCUMENT_NAME_UNIQUE: (name: string)=> `A document with name "${name}" already exists. Document name should be unique.`,
     MANDATORY: "All mandatory fields are required",
     CREATE_ROLE_FAIL: "Failed to create role",
     CHILD_NOT_FOUND: "Couldn't find child document",
@@ -57,7 +61,20 @@ export const DOCUMENT_ROUTER = {
     DOC_ALREADY_EXIST: "A document with same name already exists",
     VIEW_PUBLIC_DOCS_DENIED:"Unauthorized to view public documents",
     UNPUBLISH_PUBLIC_DOCUMENT:`You can't unpublish a public document`,
-    UNABLE_TO_MAKE_PUBLIC_DOCUMENT: `You can't mark unpublished document as public document`
+    UNABLE_TO_MAKE_PUBLIC_DOCUMENT: `You can't mark unpublished document as public document`,
+    UNABLE_TO_CREATE: "Unable to create file or file missing",
+    ADD_TAG_PERMISSION: "You don't have permission to add tags.",
+    DOCUMENT_DELETED: "Document is deleted",
+    USER_HAVE_NO_ACCESS: "Unauthorized access.",
+    DOCUMENT_NOT_FOUND: "File not found.",
+    DOCUMENT_ID_NOT_FOUND: "Missing Doc ID",
+    DOCUMENTS_NOT_THERE: "Docs Not there",
+    SHARE_PUBLISHED_DOCUMENT: "Unauthorized action on published document.",
+    INVALID_OR_MISSING_DATA: "Missing fields or Invalid Data.",
+    INVALID_COLLABORATOR_ACTION: "You have Capability to give view access.",
+    INVALID_VIEWER_ACTION: "You dont have Capability any access.",
+    INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY: "You dont  have Capability to remove user.",
+    PUBLISH_CAPABILITY: "Unauthorized Action."
 }
 
 export const COMMENT_ROUTER = {

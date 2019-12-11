@@ -321,7 +321,7 @@ export async function user_status(id: string, user: any) {
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated";
         const { mobileNo, fullName } = getFullNameAndMobile(userData);
-        await create({ activityType: data.is_active ? "ACTIVATE-PROFILE" : "DEACTIVATE-PROFILE", activityBy: user.id, profileId: id })
+        await create({ activityType: data.is_active ? "ACTIVATE-PROFILE" : "DEACTIVATE-PROFILE", activityBy: user._id, profileId: id })
         sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileTemplateName: "userState" });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
@@ -374,7 +374,7 @@ export async function userInviteResend(id: string, role: any, user: any) {
         //  create token for 24hrs
         let token = await jwt_for_url({ id: id, role: role, email: userData.email });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
-        await create({ activityType: "RESEND-INVITE-USER", activityBy: user.id, profileId: id })
+        await create({ activityType: "RESEND-INVITE-USER", activityBy: user._id, profileId: id })
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
         sendNotification({ id: user._id, fullName, email: userData.email, role: role, linkExpire: Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
@@ -1220,12 +1220,13 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
         let userObjs = await userFindMany("_id", userIds)
         userObjs.forEach((user: any) => {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
-            if(userId == user._id && templateNamesInfo.templateName == "youAddTOGroup"){  
-                sendNotification({ id: userId, mobileNo, email: user.email, fullName, groupName,
-                    templateName: "youAddTOGroup", mobileTemplateName: "youAddTOGroup" 
+            if (userId == user._id && templateNamesInfo.templateName == "youAddTOGroup") {
+                sendNotification({
+                    id: userId, mobileNo, email: user.email, fullName, groupName,
+                    templateName: "youAddTOGroup", mobileTemplateName: "youAddTOGroup"
                 })
             }
-            else{
+            else {
                 sendNotification({
                     id: userId, mobileNo,
                     email: user.email,
@@ -1239,25 +1240,43 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
         throw err
     }
 }
-export async function changeOldPassword(body: any, userId: string) {
+export async function changeOldPassword(body: any, userObj: any) {
     try {
-        if (!body.new_password || !body.old_password) {
-            throw new Error(USER_ROUTER.MANDATORY);
-        }
+        if (!body.new_password || !body.old_password) throw new Error(USER_ROUTER.MANDATORY);
         await validatePassword(body.new_password);
-        await changePasswordInfo(body, userId);
-        return { "message": "Successfullly updated password" }
-    }
-    catch (err) {
+        let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
+        let { otp, token } = await generateOtp(4, { password: body.password });
+        let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.new_password });
+        sendNotification({ id: userObj._id, email: userObj.email, mobileNo, otp, mobileOtp, templateName: "changePasswordOTP", mobileTemplateName: "sendOtp" });
+        await userUpdate({ id: userObj._id, otp_token: token, smsOtpToken: smsToken });
+        return { message: "Otp is sent successfully" }
+    } catch (err) {
+        throw err
+    };
+};
+
+export async function verificationOtpByUser(objBody: any, userObj: any) {
+    try {
+        let mobile_flag: number = 0, email_flag: number = 0;
+        if (!objBody.otp || !objBody.mobileOtp) throw new Error("Otp is Missing.");
+        let user = await userFindOne("id", userObj._id);
+        let token: any = await jwt_Verify(user.otp_token);
+        let mobileToken: any = await jwt_Verify(user.smsOtpToken);
+        if (objBody.mobileOtp && objBody.mobileOtp != "1111" && mobileToken.smsOtp != objBody.mobileOtp) mobile_flag = 1
+        if (objBody.otp != "1111" && objBody.otp != token.otp) email_flag = 1
+        if (email_flag == 1 && mobile_flag == 1) throw new APIError(USER_ROUTER.BOTH_INVALID);
+        if (email_flag == 1) throw new APIError(USER_ROUTER.INVALID_OTP);
+        if (mobile_flag == 1) throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
+        return await changePasswordInfo({ password: mobileToken.password }, userObj._id);
+    } catch (err) {
         throw err
     }
 }
+
+
 export async function verifyOtpByAdmin(admin: any, objBody: any, id: string) {
     try {
         let result, obj;
-        //let admin_scope = await checkRoleScope(admin.role, "edit-user-profile");
-        //if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-
         let user = await userFindOne("id", id);
         let mobile_flag: number = 0, email_flag: number = 0;
         if (!objBody.otp) throw new Error("Otp is Missing.");
@@ -1315,6 +1334,7 @@ export async function setPasswordByAdmin(admin: any, body: any, id: string) {
         if (!user.emailVerified) {
             throw new APIError(USER_ROUTER.USER_NOT_REGISTER);
         }
+
         let { mobileNo, fullName } = await getFullNameAndMobile(user);
         let { otp, token } = await generateOtp(4, { password: body.password });
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.password });

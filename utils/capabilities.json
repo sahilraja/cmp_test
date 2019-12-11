@@ -140,6 +140,13 @@
     "scope": "global"
   },
   {
+    "capability": "document-activity-log",
+    "shortDescription": "Document Activity Log",
+    "description": "Ability to view Document activity log",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
     "capability":"view-all-projects",
     "shortDescription":"View All Projects",
     "category":"Project Management",
