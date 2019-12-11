@@ -1,5 +1,5 @@
 import {TemplateSchema} from "./model"; 
-import { USER_ROUTER } from "../utils/error_msg";
+import { USER_ROUTER, TEMPLATE } from "../utils/error_msg";
 import * as marked from "marked";
 import { SUBSTITUTIONS } from "./substitutions";
 import { nodemail } from "../utils/email";
@@ -29,7 +29,7 @@ export async function templateEdit(user:any,body: any,id:string) {
         if(constantsList.value == "true")
         {
             const isEligible = await checkRoleScope(user.role,"edit-template");
-            if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+            if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             let objBody: any = {};
             if(body.content){
                 objBody.content=body.content;
@@ -58,7 +58,7 @@ export async function templateDelete(body: any,id:string) {
 export async function templateGet(user:any,id:string) {
     try {
         const isEligible = await checkRoleScope(user.role,"display-template-management");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let template  = await TemplateSchema.findById(id);
         return template;
     } catch (err) {
@@ -79,7 +79,7 @@ export async function getTemplateBySubstitutions(templateId: string, substitutio
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
         if (!template) {
-            throw new Error(`Invalid email template ${templateId}`);
+            throw new Error(TEMPLATE.INVALID_TEMPLATE+`${templateId}`);
         }
         if(!substitutions){
             substitutions = {};
