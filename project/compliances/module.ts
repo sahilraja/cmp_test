@@ -18,7 +18,7 @@ export async function createCompliance(payload: any, projectId: string, userObj:
 
 export async function listCompliances(userToken: string, projectId: string) {
     const compliances = await ComplianceSchema.find({ projectId }).exec()
-    const projectDetails = await project.findById(projectId).select({ miscomlianceSpv: 1, miscomlianceProject: 1 })
+    const projectDetails = await project.findById(projectId).select({ miscomplianceSpv: 1, miscomplianceProject: 1 })
     const taskIds = compliances.map((compliance: any) => compliance.taskId).filter(v => !!v)
     const tasks: any = await httpRequest({
         url: `${TASKS_URL}/task/getTasksDocs`,
@@ -40,7 +40,7 @@ export async function listCompliances(userToken: string, projectId: string) {
         spvPercentage: spvCompliance ? ((spvCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / spvCompliance.length) * 100 : 0,
         projectPercentage: projectCompliance ? ((projectCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / projectCompliance.length) * 100 : 0,
         spvCompliance, projectCompliance,
-        miscomliance: projectDetails
+        miscompliance: projectDetails
     }
 }
 
