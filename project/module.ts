@@ -632,10 +632,10 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
       return f
     }
   })
-  const fundsUtilisedData = fundsUtilised.map((fund: any) => {
+  let fundsUtilisedData = fundsUtilised.map((fund: any) => {
     const { installmentType } = getPercentageByInstallment(fund.installment)
     const items = fundsUtilised.filter((fundReleased: any) =>
-      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund.installment == fundReleased.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     return {
       phase: phases.find(phase => phase.id == fund.phase),
@@ -646,6 +646,12 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
       installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
     }
   })
+  fundsUtilisedData = fundsUtilisedData.reduce((unique: any, o: any) => {
+    if (!unique.some((obj: any) => obj.installment === o.installment)) {
+      unique.push(o);
+    }
+    return unique;
+  }, [])
   return {
     isMember: (projectDetail as any).members.includes(userId) || ((projectDetail as any).createdBy == userId),
     projectCost: projectCost,
@@ -701,8 +707,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
   if (!payload.installment) {
     throw new Error(`Installment is required`)
   }
-  const project: any = await ProjectSchema.findById(projectId).exec()
-  const { fundsUtilised } = project
+  const { fundsUtilised } = projectDetail
   const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsUtilised.filter((fund: any) => fund.installment == payload.installment)
   const updates = {
