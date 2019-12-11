@@ -119,7 +119,7 @@ export async function inviteUser(objBody: any, user: any) {
             role: objBody.role
         });
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
-        sendNotification({ id: user._id, fullName, email: objBody.email, linkExpire: Number(configLink.value), role: objBody.role, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        sendNotification({ id: user._id, fullName, email: objBody.email, linkExpire: Number(configLink.value), role: await formateRoles(objBody.role), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         await create({ activityType: "INVITE-USER", activityBy: user._id, profileId: userData._id })
         return { userId: userData._id };
     } catch (err) {
@@ -712,6 +712,18 @@ export async function roleFormanting(users: any[]) {
         }) : ["N/A"]
         return { ...user, role: roles }
     })
+};
+
+export async function formateRoles(roles: string[]) {
+    try {
+        let rolesBody: any = await role_list();
+        return roles.map((role: string) => {
+            let roleObj = rolesBody.roles.find(({ role: rolecode }: any) => rolecode == role)
+            return roleObj ? roleObj.roleName : role
+        })
+    } catch (err) {
+        throw err
+    };
 };
 
 export async function changeRoleToReplaceUser(oldUserId: string, newUserId: string) {

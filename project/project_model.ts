@@ -14,6 +14,8 @@ const schema = new Schema({
     maturationEndDate: { date: { type: Date }, modifiedBy: { type: String } },
     thirdParyAggrementDate: { date: { type: Date }, modifiedBy: { type: String } },
     members: { type: Array },
+    miscomplianceSpv: {type: String, trim: true, default: null},
+    miscomplianceProject: {type: String, trim: true, default: null},
     thirdParyAggrementDocument: [
         {
             document: { type: String },

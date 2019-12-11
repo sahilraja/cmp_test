@@ -2012,7 +2012,7 @@ export async function replaceDocumentUser(ownerId: string, newOwnerId: string, u
       documents.find({ _id: { $in: sharedDocIds }, isDeleted: false }).exec()
     ])
     await Promise.all(mydocs.map((doc: any) => changeOwnerShip(doc, ownerId, newOwnerId, userObj)))
-    await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
+    // await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
     return { success: true }
   } catch (err) {
     throw err;
@@ -2023,14 +2023,14 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
     if (["no_access", "publish", "viewer"].includes(capability[0])) {
       let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
+      // await create({
+      //   activityType: "CHANGE_OWNERSHIP",
+      //   activityBy: userObj._id,
+      //   documentId: doc._id,
+      //   documentAddedUsers: [{ id: newOwnerId, type: "user", role: "owner" }],
+      //   documentRemovedUsers: [{ id: ownerId, type: "user", role: "owner" }]
+      // })
     }
-    await create({
-      activityType: "CHANGE_OWNERSHIP",
-      activityBy: userObj._id,
-      documentId: doc._id,
-      documentAddedUsers: [{ id: newOwnerId, type: "user", role: "owner" }],
-      documentRemovedUsers: [{ id: ownerId, type: "user", role: "owner" }]
-    })
     return { success: true, doc: doc._id }
   } catch (err) {
     throw err

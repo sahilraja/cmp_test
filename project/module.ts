@@ -1,5 +1,5 @@
 import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR } from "../utils/error_msg";
-import { project as ProjectSchema } from "./project_model";
+import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
@@ -30,7 +30,7 @@ export async function createProject(reqObject: any, user: any) {
     if (!reqObject.reference || !reqObject.name || !reqObject.startDate || !reqObject.endDate) {
       throw new Error(MISSING);
     }
-    if(new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
+    if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
     let isEligible = await checkRoleScope(user.role, "create-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
 
@@ -64,9 +64,9 @@ export async function editProject(id: any, reqObject: any, user: any) {
 
     let isEligible = await checkRoleScope(user.role, "edit-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    
-    if(reqObject.startDate || reqObject.endDate){
-      if(new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
+
+    if (reqObject.startDate || reqObject.endDate) {
+      if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
       obj.startDate = reqObject.startDate
       obj.endDate = reqObject.endDate
     };
@@ -550,12 +550,12 @@ export async function projectMembers(id: string) {
   ])
   if (!project) throw new Error("Project Not Found.");
   const userIds = [...project.members, project.createdBy]
-  let userObjs = (await userFindMany("_id", userIds)).map((user: any)=>{return{...user, fullName: (user.firstName ? user.firstName + " " : "") + (user.middleName ? user.middleName + " " : "") + (user.lastName ? user.lastName : "")}})
+  let userObjs = (await userFindMany("_id", userIds)).map((user: any) => { return { ...user, fullName: (user.firstName ? user.firstName + " " : "") + (user.middleName ? user.middleName + " " : "") + (user.lastName ? user.lastName : "") } })
   // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
     value: user,
-    fullName: (userObjs.find(({_id}: any)=> _id == user)).fullName,
+    fullName: (userObjs.find(({ _id }: any) => _id == user)).fullName,
     key: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles)
   }))
 }
@@ -838,7 +838,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
-  for(let taskData of tasksDataWithIds){
+  for (let taskData of tasksDataWithIds) {
     await createTask(taskData, projectId, userToken, userObj)
   }
   // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
@@ -1059,3 +1059,16 @@ export async function getCommentedUsers(projectId: string, user: any) {
   const userIds = comments.map((comment: any) => comment.userId).filter(u => u != user._id)
   return await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
 }
+
+export async function editProjectMiscompliance(projectId: string, payload: any, userObj: any) {
+  try {
+    if (Types.ObjectId.isValid(projectId)) throw new Error("Invalid Project Id.")
+    let obj: any = {};
+    if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
+    if ("miscomplianceProject" in payload) obj.miscomplianceProject = payload.miscomplianceProject
+    await project.findByIdAndUpdate(projectId, obj);
+    return { message: `successfully ${"miscomplianceProject" in payload ? "miscomplianceProject" : "miscomplianceSpv"} updated.` }
+  } catch (err) {
+    throw err
+  };
+};
