@@ -1008,9 +1008,9 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
                 body: { oldUser: userId, updatedUser: replaceTo },
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${userToken}` }
-            }),
-            changeGroupOwnerShip(userId, replaceTo)
+            })
         ])
+        // changeGroupOwnerShip(userId, replaceTo)
         return { message: RESPONSE.REPLACE_USER }
     } catch (err) {
         throw err
