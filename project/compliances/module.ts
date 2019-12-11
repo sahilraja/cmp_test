@@ -3,6 +3,7 @@ import { checkRoleScope, httpRequest } from "../../utils/role_management";
 import { APIError } from "../../utils/custom-error";
 import { COMPLIANCES } from "../../utils/error_msg";
 import { TASKS_URL } from "../../utils/urls";
+import { project } from "../project_model";
 
 export async function createCompliance(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, 'create-compliance')
@@ -17,6 +18,7 @@ export async function createCompliance(payload: any, projectId: string, userObj:
 
 export async function listCompliances(userToken: string, projectId: string) {
     const compliances = await ComplianceSchema.find({ projectId }).exec()
+    const projectDetails = await project.findById(projectId).select({ miscomlianceSpv: 1, miscomlianceProject: 1 })
     const taskIds = compliances.map((compliance: any) => compliance.taskId).filter(v => !!v)
     const tasks: any = await httpRequest({
         url: `${TASKS_URL}/task/getTasksDocs`,
@@ -32,12 +34,13 @@ export async function listCompliances(userToken: string, projectId: string) {
             taskStatus: tasks.find((task: any) => task._id == compliance.taskId).status
         }
     })
-    let SpvCompliance = complianceData.filter(({complianceType})=> complianceType == "SPV")
-    let ProjectCompliance = complianceData.filter(({complianceType})=> complianceType == "PROJECT")
+    let spvCompliance = complianceData.filter(({ complianceType }) => complianceType == "SPV")
+    let projectCompliance = complianceData.filter(({ complianceType }) => complianceType == "PROJECT")
     return {
-        SpvPercentage: SpvCompliance? ((SpvCompliance.filter(({taskStatus})=> taskStatus == 4 || taskStatus == 5)).length/SpvCompliance.length)/100: 0,
-        ProjectPercentage: ProjectCompliance? ((ProjectCompliance.filter(({taskStatus})=> taskStatus == 4 || taskStatus == 5)).length/ProjectCompliance.length)/100: 0,
-        SpvCompliance, ProjectCompliance
+        spvPercentage: spvCompliance ? ((spvCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / spvCompliance.length) * 100 : 0,
+        projectPercentage: projectCompliance ? ((projectCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / projectCompliance.length) * 100 : 0,
+        spvCompliance, projectCompliance,
+        miscomliance: projectDetails
     }
 }
 
