@@ -56,15 +56,13 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     const { id: fileId, name: fileName, size: fileSize } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {
-      throw new Error(`Document name should not exceed more than ${siteConstant.docNameLength} characters`)
+      throw new Error(DOCUMENT_ROUTER.DOCUMENT_NAME_LENGTH(siteConstant.docNameLength));
     }
     if (body.description.length > Number(siteConstant.docDescriptionSize || configLimit.description)) {
-      throw new Error(`Document description should not exceed more than ${siteConstant.docDescriptionSize} characters`)
+      throw new Error(DOCUMENT_ROUTER.DOCUMENT_DESCRIPTION_LENGTH(siteConstant.docDescriptionSize))
     }
     let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
-    if (data.length) {
-      throw new Error(`A document with name "${body.docName}" already exists. Document name should be unique.`);
-    }
+    if (data.length) throw new Error(DOCUMENT_ROUTER.DOCUMENT_NAME_UNIQUE(body.docName));
 
     body.tags = (Array.isArray(body.tags) ? body.tags : typeof (body.tags) == "string" && body.tags.length ? body.tags.includes("[") ? JSON.parse(body.tags) : body.tags = body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
