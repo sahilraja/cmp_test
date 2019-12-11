@@ -321,7 +321,7 @@ export async function user_status(id: string, user: any) {
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
         let state = data.is_active ? "Activated" : "Inactivated";
         const { mobileNo, fullName } = getFullNameAndMobile(userData);
-        await create({ activityType: data.is_active ? "ACTIVATE-PROFILE" : "DEACTIVATE-PROFILE", activityBy: user.id, profileId: id })
+        await create({ activityType: data.is_active ? "ACTIVATE-PROFILE" : "DEACTIVATE-PROFILE", activityBy: user._id, profileId: id })
         sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileTemplateName: "userState" });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE }
     } catch (err) {
@@ -374,7 +374,7 @@ export async function userInviteResend(id: string, role: any, user: any) {
         //  create token for 24hrs
         let token = await jwt_for_url({ id: id, role: role, email: userData.email });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
-        await create({ activityType: "RESEND-INVITE-USER", activityBy: user.id, profileId: id })
+        await create({ activityType: "RESEND-INVITE-USER", activityBy: user._id, profileId: id })
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
         sendNotification({ id: user._id, fullName, email: userData.email, role: role, linkExpire: Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
