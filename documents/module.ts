@@ -1574,7 +1574,7 @@ async function userWithDocRole(docId: string, userId: string, usersObjects: any[
 export async function shareDocForUsersNew(obj: any, userObj: any) {
   try {
     if ("add" in obj && obj.add.length) {
-      await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, { _id: obj.userId, type: obj.type }, obj.role, userObj._id)))
+      await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, [{ _id: obj.userId, type: obj.type }], obj.role, userObj._id)))
     } if ("edit" in obj && obj.edit.length) {
       await Promise.all(obj.edit.map((obj: any) => invitePeopleEdit(obj.docId, obj.userId, obj.type, obj.role, userObj)))
     } if ("remove" in obj && obj.edit.length) {

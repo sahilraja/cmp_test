@@ -116,7 +116,7 @@ export async function inviteUser(objBody: any, user: any) {
         let token = await jwt_for_url({
             id: userData._id,
             email: userData.email,
-            role: objBody.role
+            role: await formateRoles(objBody.role)
         });
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
         sendNotification({ id: user._id, fullName, email: objBody.email, linkExpire: Number(configLink.value), role: await formateRoles(objBody.role), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
@@ -404,8 +404,8 @@ export async function userRoles(id: any) {
         ])
         if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
         // const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
-        // return { roles: formattedRole ? formattedRole.roleName : role.data[0].role }
-        return { roles: role.data[0] }
+        // return { roles: formattedRole ? formattedRole.roleName : role.data[0].role 
+        return { roles: await formateRoles(role.data[0]) }
     } catch (err) {
         throw err
     };
@@ -1035,7 +1035,7 @@ export async function sendNotification(objBody: any) {
     if (config) {
 
         if (mobileNo && mobileNo.slice(0, 3) == "+91") {
-            if (!mobileOtp) {
+            if (!mobileOtp && templateName) {
                 userNotification = await userRolesNotification(id, templateName);
             }
             if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
@@ -1052,7 +1052,9 @@ export async function sendNotification(objBody: any) {
         }
         else {
             if (!mobileOtp) {
-                userNotification = await userRolesNotification(id, templateName);
+                if (templateName) {
+                    userNotification = await userRolesNotification(id, templateName);
+                }
             }
             if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
                 //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
@@ -1066,7 +1068,7 @@ export async function sendNotification(objBody: any) {
                 }
             }
         }
-        if (mobileOtp || userNotification.email) {
+        if ((mobileOtp && templateName) || (userNotification && userNotification.email && templateName)) {
             let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
             let subject = await patternSubstitutions(templatInfo.subject);
             let content = await patternSubstitutions(templatInfo.content);
