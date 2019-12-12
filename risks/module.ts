@@ -17,7 +17,7 @@ export async function create(payload: any, projectId: string, userObj: any) {
 
 export async function list(projectId: string) {
     let details = await RiskSchema.find({ deleted: false, projectId, parentId: null }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
-    return details.map((riskObj: any) => { return { ...riskObj, age: dateDifference(riskObj.createdAt) } })
+    return details.map((riskObj: any) => { return { ...riskObj.toJSON(), age: dateDifference(riskObj.createdAt) } })
 }
 
 export async function detail(riskId: string) {
