@@ -154,6 +154,13 @@
     "description":"View All Projects"
   },
   {
+    "capability": "phase-manage",
+    "shortDescription":"add/edit phase",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"manage phase add/edit permission"
+  },
+  {
     "capability":"add-open-comments",
     "shortDescription":"Add Open Comments",
     "category":"Project Management",
@@ -318,6 +325,13 @@
     "capability": "delete-message",
     "shortDescription": "Delete Message",
     "description": "Ability to delete a message ",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-replace-user-messages",
+    "shortDescription": "View Replace User Messages",
+    "description": "Ability to view a message ",
     "category": "Message Management",
     "scope": "global"
   },
