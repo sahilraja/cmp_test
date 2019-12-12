@@ -3,6 +3,7 @@ import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
 import { RISK } from "../utils/error_msg";
 import { userFindOne } from "../utils/users";
+import { dateDifference } from "../utils/utils";
 
 export async function create(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
@@ -15,14 +16,15 @@ export async function create(payload: any, projectId: string, userObj: any) {
 }
 
 export async function list(projectId: string) {
-    return await RiskSchema.find({ deleted: false, projectId, parentId: null }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
+    let details = await RiskSchema.find({ deleted: false, projectId, parentId: null }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
+    return details.map((riskObj: any) => { return { ...riskObj, age: dateDifference(riskObj.createdAt) } })
 }
 
 export async function detail(riskId: string) {
     const detail: any = await RiskSchema.findById(riskId).populate({ path: 'phase' }).exec()
     const { riskOwner } = detail.toJSON()
     if (riskOwner) {
-        return { ...detail.toJSON(), riskOwner: await userFindOne('_id', riskOwner) }
+        return { ...detail.toJSON(), riskOwner: await userFindOne('_id', riskOwner), age: dateDifference(detail.createdAt) }
     }
     return detail
 }
