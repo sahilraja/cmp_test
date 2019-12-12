@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo, changeOldPasswordInfo, changeOldPassword, sendOtpByAdmin, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo, changeOldPasswordInfo, changeOldPassword, sendOtpByAdmin, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser, userLogout } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -18,6 +18,7 @@ import * as multer from "multer";
 import { constantSchema } from "../site-constants/model";
 import { checkRoleScope } from "../utils/role_management";
 import * as requestIp from "request-ip";
+import request = require("request");
 
 
 const storage = multer.diskStorage({
@@ -136,6 +137,14 @@ router.post('/email/login', ipMiddleware, async (req: Request, res: Response, ne
         next(new APIError(err.message));
     };
 });
+
+router.post("email/logout", ipMiddleware, authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).send(await userLogout(req, res.locals.user))
+    } catch (err) {
+        next(new APIError(err.message))
+    }
+})
 
 router.get(`/getImage/:userId`, async (request, response, next) => {
     try {

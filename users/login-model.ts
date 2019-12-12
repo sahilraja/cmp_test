@@ -1,10 +1,11 @@
-import {Schema,model} from "mongoose";
+import { Schema, model } from "mongoose";
 import * as mongoosePaginate from "mongoose-paginate";
 
 const schema = new Schema({
-    userId: {type: String},
+    type: { type: String , enum: ["LOGIN", "LOGOUT"]},
+    userId: { type: String },
     ip: { type: String }
-    },{ timestamps: true }
+}, { timestamps: true }
 );
 schema.plugin(mongoosePaginate);
 export const loginSchema = model("login_time", schema);
