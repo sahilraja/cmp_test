@@ -8,6 +8,7 @@ router.post(`/create`, async (req, res, next) => {
     try {
         res.status(OK).send(await create(res.locals.user._id, req.body))
     } catch (error) {
+        if (error.code == 11000) error.message = `${error.message.match(/{ : "(.*?)" }/g).pop().split('"')[1]} already exists`
         next(processMongooseErrors(error)[0] || processMongooseErrors(error))
     }
 })
@@ -40,6 +41,7 @@ router.post(`/:id/edit`, async (req, res, next) => {
     try {
         res.status(OK).send(await updateStep(req.params.id, req.body))
     } catch (error) {
+        if (error.code == 11000) error.message = `${error.message.match(/{ : "(.*?)" }/g).pop().split('"')[1]} already exists`
         next(processMongooseErrors(error)[0] || processMongooseErrors(error))        
     }
 })
