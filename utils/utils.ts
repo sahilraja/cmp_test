@@ -237,3 +237,14 @@ export async function getTasksForDocument(docId: string, token: string): Promise
         throw err;
     };
 };
+
+export function dateDifference(oldDate: any, newDate?: any){
+    try {
+        const date1: any = new Date(oldDate);
+        const date2: any = newDate? new Date(newDate): new Date();
+        const diffTime = Math.abs(date2 - date1);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    } catch (err) {
+        throw err
+    }
+}
