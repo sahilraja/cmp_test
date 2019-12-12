@@ -356,10 +356,19 @@ export async function user_login(req: any) {
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
         if (!userData.is_active) throw new Error(USER_ROUTER.DEACTIVATED_BY_ADMIN)
         const response = await userLogin({ message: RESPONSE.SUCCESS_EMAIL, email: objBody.email, password: objBody.password })
-        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userData._id });
+        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userData._id, type: "LOGIN" });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login" });
         return response;
+    } catch (err) {
+        throw err;
+    };
+};
+
+export async function userLogout(req: any, userObj: any){
+    try {
+        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userObj._id, type: "LOGOUT" }); 
+        return { message: "logout successfully."}
     } catch (err) {
         throw err;
     };
