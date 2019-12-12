@@ -950,6 +950,9 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   })) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
+  
+  if(data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
+  if(data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
 
   return {
     name: data.name,
