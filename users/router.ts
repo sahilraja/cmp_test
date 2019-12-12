@@ -138,7 +138,7 @@ router.post('/email/login', ipMiddleware, async (req: Request, res: Response, ne
     };
 });
 
-router.post("email/logout", ipMiddleware, authenticate, async (req: Request, res: Response, next: NextFunction) => {
+router.post("/email/logout", ipMiddleware, authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).send(await userLogout(req, res.locals.user))
     } catch (err) {
