@@ -15,7 +15,7 @@ export async function create(payload: any, projectId: string, userObj: any) {
 
 export async function list(projectId: string) {
     let details = await OpportunitySchema.find({ deleted: false, projectId, parentId: null }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
-    return details.map((obj: any) => { return { ...obj, age: dateDifference(obj.createdAt) } })
+    return details.map((obj: any) => { return { ...obj.toJSON(), age: dateDifference(obj.createdAt) } })
 }
 
 export async function detail(id: string) {

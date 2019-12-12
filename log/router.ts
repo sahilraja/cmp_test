@@ -62,7 +62,7 @@ router.get(`/get-merged-tags-logs`, authenticate, async (req, res, next) => {
 
 router.get(`/get-Project-logs`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await projectLogs(req.query.projectId));
+        res.status(OK).send(await projectLogs(req.query.projectId, (req as any).token));
     } catch (error) {
         next(new APIError(error.message))
     }
