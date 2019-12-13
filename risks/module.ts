@@ -64,6 +64,13 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
         if ("_id" in riskObj || "id" in riskObj) {
             const oldObject: any = await RiskSchema.findById(riskObj._id || riskObj.id).exec();
             if (Object.keys(riskObj).some(key => riskObj[key] != oldObject[key])) {
+                if (!riskObj.riskTrend && riskObj.riskTrend != 0) {
+                    riskObj.trend = 0
+                } else {
+                    let lastUpdatedObj: any = (await RiskSchema.find({ parentId: riskObj._id || riskObj.id })).pop()
+                    riskObj.riskTrend = Math.abs((lastUpdatedObj.impact || 0) * (lastUpdatedObj.probability || 0) - (riskObj.impact || 0) * (riskObj.probability || 0))
+
+                }
                 if (Object.keys(riskObj).includes('impact'))
                     if (oldObject.impact != riskObj.impact)
                         riskObj['previousTrend'] = oldObject.impact * oldObject.probability;
