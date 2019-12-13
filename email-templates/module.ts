@@ -6,6 +6,7 @@ import { nodemail } from "../utils/email";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
+import { validateEmail } from "../users/module";
 
 export async function templateCreate(body: any) {
     try {
@@ -65,16 +66,19 @@ export async function templateGet(user:any,id:string) {
         throw err
     };
 };
-export async function testTemplate(id:string,user: any){
+
+export async function testTemplate(id:string, email: any){
     let template:any  = await TemplateSchema.findById(id);
     let templatInfo = await getTemplateBySubstitutions(template.templateName,{});
+    if(!validateEmail(email)) throw new Error("Enter Valid email Id.")
     nodemail({
-        email: user.email,
+        email: email,
         subject: templatInfo.subject,
         html: templatInfo.content
     })
     return {message:"success"}
 }
+
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
