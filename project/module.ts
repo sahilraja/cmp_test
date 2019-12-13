@@ -23,6 +23,8 @@ import { getTemplateBySubstitutions } from "../email-templates/module";
 import { OpenCommentsModel } from "./open-comments-model";
 import { phaseSchema } from "../phase/model";
 import { some } from "bluebird";
+import { PillarSchema } from "../pillars/model";
+import { StepsSchema } from "../steps/model";
 
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
@@ -338,9 +340,10 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 }
 
 // get project details
-export async function getProjectDetail(projectId: string) {
+export async function getProjectDetail(projectId: string, userToken: string) {
   try {
-    return await ProjectSchema.findById(projectId).populate({ path: 'phase' }).exec()
+    let projectDetail = await ProjectSchema.findById(projectId).populate({ path: 'phase' }).exec()
+    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
   } catch (error) {
     console.error(error)
     throw error
@@ -876,6 +879,9 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
+  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: new RegExp(taskObj.pillarId) }).exec() as any || { _id: undefinedÎÎ })._id || undefined
+  if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: new RegExp(taskObj.stepId) }).exec() as any || { _id: undefined })._id || undefined
+
   taskObj = {
     ...taskObj,
     projectId,
@@ -883,6 +889,8 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     approvers: approverIds,
     endorsers: endorserIds,
     viewers: viewerIds,
+    pillarId: taskObj.pillarId,
+    stepId: taskObj.stepId,
     startDate: new Date(taskObj.initialStartDate || taskObj.startDate),
     dueDate: new Date(taskObj.initialDueDate || taskObj.dueDate)
   }
@@ -942,6 +950,10 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   })) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
+  
+  if(data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
+  if(data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
+
   return {
     name: data.name,
     description: data.description,
@@ -953,8 +965,8 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
     viewers: viewers || data.viewers,
     approvers: approvers || data.approvers,
     endorsers: endorsers || data.endorsers,
-    stepId: data.stepId,
-    pillarId: data.pillarId,
+    stepId: data.stepId || data.step,
+    pillarId: data.pillarId || data.pillar,
     isFromExcel: true,
     documents: data.documents
   }
@@ -1067,7 +1079,7 @@ export async function getCommentedUsers(projectId: string, user: any) {
 
 export async function editProjectMiscompliance(projectId: string, payload: any, userObj: any) {
   try {
-    if (Types.ObjectId.isValid(projectId)) throw new Error("Invalid Project Id.")
+    if (!Types.ObjectId.isValid(projectId)) throw new Error("Invalid Project Id.")
     let obj: any = {};
     if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
     if ("miscomplianceProject" in payload) obj.miscomplianceProject = payload.miscomplianceProject

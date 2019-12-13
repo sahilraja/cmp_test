@@ -3,31 +3,33 @@ import { APIError } from "../../utils/custom-error";
 import { OPPORTUNITY } from "../../utils/error_msg";
 import { userFindOne } from "../../utils/users";
 import { checkRoleScope } from "../../utils/role_management";
+import { dateDifference } from "../../utils/utils";
 
 export async function create(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-opportunity`)
-    if(!isEligible){
+    if (!isEligible) {
         throw new APIError(OPPORTUNITY.UNAUTHORIZED_ACCESS)
     }
-    return await OpportunitySchema.create({...payload, projectId, createdBy: userObj._id})
+    return await OpportunitySchema.create({ ...payload, projectId, createdBy: userObj._id })
 }
 
 export async function list(projectId: string) {
-    return await OpportunitySchema.find({ deleted: false, projectId, parentId: null }).populate({ path: 'phase'}).sort({ createdAt: 1 }).exec()
+    let details = await OpportunitySchema.find({ deleted: false, projectId, parentId: null }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
+    return details.map((obj: any) => { return { ...obj.toJSON(), age: dateDifference(obj.createdAt) } })
 }
 
 export async function detail(id: string) {
-    const detail: any = await OpportunitySchema.findById(id).populate({path:'phase'}).exec()
-    const {opportunityOwner} = detail.toJSON()  
-    if(opportunityOwner){
-        return {...detail.toJSON(), opportunityOwner: await userFindOne('_id', opportunityOwner)}
+    const detail: any = await OpportunitySchema.findById(id).populate({ path: 'phase' }).exec()
+    const { opportunityOwner } = detail.toJSON()
+    if (opportunityOwner) {
+        return { ...detail.toJSON(), opportunityOwner: await userFindOne('_id', opportunityOwner), age: dateDifference(detail.createdAt) }
     }
     return detail
 }
 
 export async function edit(id: string, updates: any, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-opportunity`)
-    if(!isEligible){
+    if (!isEligible) {
         throw new APIError(OPPORTUNITY.UNAUTHORIZED_ACCESS)
     }
     const oldObject: any = await OpportunitySchema.findById(id).exec()

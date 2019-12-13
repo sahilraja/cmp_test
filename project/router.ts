@@ -34,7 +34,7 @@ router.get("/list", async (req, res, next) => {
 //get project details
 router.get("/:id/detail", async (req, res, next) => {
     try {
-        res.status(OK).send(await getProjectDetail(req.params.id))
+        res.status(OK).send(await getProjectDetail(req.params.id, (req as any).token))
     } catch (err) {
         next(new APIError(err.message));
     }
