@@ -141,12 +141,12 @@ export async function projectLogs(projectId: string, token: string) {
 
 async function fetchProjectLogDetails(activity: any, token: string) {
     try {
-        let userObj = await userFindMany("_id", [activity.activityBy, activity.addedDocIds, activity.removedUserIds])
+        let userObj = await userFindMany("_id", [activity.activityBy, ...(activity.addedUserIds || []), ...(activity.removedUserIds || [])])
         return {
             ...activity,
             activityBy: userObj.find(({ _id }: any) => _id == activity.activityBy),
-            addedDocIds: userObj.filter(({ _id }: any) => activity.addedDocIds.includes(_id)),
-            removedUserIds: userObj.filter(({ _id }: any) => activity.removedUserIds.includes(_id)),
+            addedUserIds: userObj.filter(({ _id }: any) => (activity.addedUserIds || []).includes(_id)),
+            removedUserIds: userObj.filter(({ _id }: any) => (activity.removedUserIds || []).includes(_id)),
             tasksId: activity.tasksId ? await getTasksByIds(activity.tasksId, token) : []
         };
     } catch (err) {
