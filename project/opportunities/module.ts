@@ -60,6 +60,12 @@ async function saveaAllOpportunities(opportunityObj: any, projectId: string, use
         if ("_id" in opportunityObj || "id" in opportunityObj) {
             const oldObject: any = await OpportunitySchema.findById(opportunityObj._id || opportunityObj.id).exec();
             if (Object.keys(opportunityObj).some(key => opportunityObj[key] != oldObject[key])) {
+                if (!opportunityObj.opportunityTrend && opportunityObj.opportunityTrend != 0) {
+                    opportunityObj.opportunityTrend = 0
+                } else {
+                    let lastUpdatedObj: any = (await OpportunitySchema.find({ parentId: opportunityObj._id || opportunityObj.id })).pop()
+                    opportunityObj.opportunityTrend = Math.abs((lastUpdatedObj.impact || 0) * (lastUpdatedObj.probability || 0) - (opportunityObj.impact || 0) * (opportunityObj.probability || 0))
+                }
                 if (Object.keys(opportunityObj).includes('impact'))
                     if (oldObject.impact != opportunityObj.impact)
                         opportunityObj['previousTrend'] = oldObject.impact * oldObject.probability;
