@@ -145,7 +145,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
     if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
-    if (fileObj.errors) throw new Error("file size cant be exceeded.")
+    if (fileObj.errors) throw new Error(DOCUMENT_ROUTER.FILE_SIZE(req.siteConstants.docSize))
     res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants,`${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
@@ -378,7 +378,7 @@ router.post("/:id/file", authenticate, ensureCanEditDocument, async (req, res, n
 router.get("/:id/file-download-log", authenticate, async (req: any, res, next) => {
   try {
     let documentDetails = await getDocumentById(req.params.id)
-    await create({ activityType: `DOCUMENT_VIEWED`, activityBy: res.locals.user._id, documentId: documentDetails.parentId || documentDetails._id })
+    await create({ activityType: `DOCUMENT_DOWNLOAD`, activityBy: res.locals.user._id, documentId: documentDetails.parentId || documentDetails._id })
     res.status(OK).send({success: true})
   } catch (err) {
     throw err

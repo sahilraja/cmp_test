@@ -30,9 +30,9 @@ router.post("/update", authenticate,async (req: Request, res: Response, next: Ne
     };
 })
 
-router.get("/list",authenticate, async (req: Request, res: Response, next: NextFunction) => {
+router.get("/list", async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(OK).send(await constantsList(res.locals.user._id));
+        res.status(OK).send(await constantsList());
     } catch (err) {
         next(new APIError(err.message));
     };

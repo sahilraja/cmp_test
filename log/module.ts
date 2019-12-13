@@ -5,6 +5,7 @@ import { tags } from "../tags/tag_model";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
 import { TASK_ERROR } from "../utils/error_msg";
+import { TASKS_URL } from "../utils/urls";
 
 export async function create(payload: any) {
     return await ActivitySchema.create(payload)
@@ -50,10 +51,12 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
     })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 };
 
-export async function getDocumentsLogs(DocID: string, token: string) {
+export async function getDocumentsLogs(docId: string, token: string, userObj: any) {
     try {
+        const isEligible = await checkRoleScope(userObj.role, `document-activity-log`)
+        if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
         const select = { name: true, description: true }
-        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(DocID) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
+        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(docId) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
         return await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
@@ -121,3 +124,29 @@ export async function getMergedLogs() {
         throw err
     };
 }
+
+export async function projectLogs(projectId: string, token: string) {
+    try {
+        const activities: any[] = await ActivitySchema.find({ projectId }).populate({ path: 'projectId' }).exec()
+        return await Promise.all(activities.map((activity: any) => {
+            return fetchProjectLogDetails(activity.toJSON(), token)
+        }))
+    } catch (err) {
+        throw err
+    };
+}
+
+async function fetchProjectLogDetails(activity: any, token: string) {
+    try {
+        let userObj = await userFindMany("_id", [activity.activityBy, activity.addedDocIds, activity.removedUserIds])
+        return {
+            ...activity,
+            activityBy: userObj.find(({ _id }: any) => _id == activity.activityBy),
+            addedDocIds: userObj.filter(({ _id }: any) => activity.addedDocIds.includes(_id)),
+            removedUserIds: userObj.filter(({ _id }: any) => activity.removedUserIds.includes(_id)),
+            tasksId: activity.tasksId? await getTasksByIds(activity.tasksId, token) : []
+        };
+    } catch (err) {
+        throw err
+    };
+};

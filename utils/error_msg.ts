@@ -32,8 +32,13 @@ export const USER_ROUTER = {
     TOKEN_EXPIRED:"Verification link is expired. Please contact Admin",
     TOKEN_EXPIRED_OTP:"OTP verification link is expired",
     USER_EXIST: "User already registered.",
-    CONSTANT_INVALID:"Invalid constant value"
+    CONSTANT_INVALID:"Invalid constant value",
+    RECAPTCHA_INVALID: "Failed captcha verification"
 };
+export const GROUP_ROUTER = {
+    REMOVE_MEMBER: "Minimum one member is required.",
+    GROUP_NAME:"Group Name not Modified"
+}
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
     SEND_OTP : "Mobile Otp send successfully",
@@ -42,6 +47,10 @@ export const MOBILE_MESSAGES = {
 }
 
 export const DOCUMENT_ROUTER = {
+    FILE_SIZE: (size: number)=> `File size can't exceed ${size} MB.`,
+    DOCUMENT_NAME_LENGTH: (nameLength: number)=> `Document name should not exceed more than ${nameLength} characters.`,
+    DOCUMENT_DESCRIPTION_LENGTH: (descriptionLenth: number)=> `Document description should not exceed more than ${descriptionLenth} characters.`,
+    DOCUMENT_NAME_UNIQUE: (name: string)=> `A document with name "${name}" already exists. Document name should be unique.`,
     MANDATORY: "All mandatory fields are required",
     CREATE_ROLE_FAIL: "Failed to create role",
     CHILD_NOT_FOUND: "Couldn't find child document",
@@ -57,7 +66,20 @@ export const DOCUMENT_ROUTER = {
     DOC_ALREADY_EXIST: "A document with same name already exists",
     VIEW_PUBLIC_DOCS_DENIED:"Unauthorized to view public documents",
     UNPUBLISH_PUBLIC_DOCUMENT:`You can't unpublish a public document`,
-    UNABLE_TO_MAKE_PUBLIC_DOCUMENT: `You can't mark unpublished document as public document`
+    UNABLE_TO_MAKE_PUBLIC_DOCUMENT: `You can't mark unpublished document as public document`,
+    UNABLE_TO_CREATE: "Unable to create file or file missing",
+    ADD_TAG_PERMISSION: "You don't have permission to add tags.",
+    DOCUMENT_DELETED: "Document is deleted",
+    USER_HAVE_NO_ACCESS: "Unauthorized access.",
+    DOCUMENT_NOT_FOUND: "File not found.",
+    DOCUMENT_ID_NOT_FOUND: "Missing Doc ID",
+    DOCUMENTS_NOT_THERE: "Docs Not there",
+    SHARE_PUBLISHED_DOCUMENT: "Unauthorized action on published document.",
+    INVALID_OR_MISSING_DATA: "Missing fields or Invalid Data.",
+    INVALID_COLLABORATOR_ACTION: "You have Capability to give view access.",
+    INVALID_VIEWER_ACTION: "You dont have Capability any access.",
+    INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY: "You dont  have Capability to remove user.",
+    PUBLISH_CAPABILITY: "Unauthorized Action."
 }
 
 export const COMMENT_ROUTER = {
@@ -77,12 +99,23 @@ export const MAIL_SUBJECT = {
     OTP_SUBJECT: "CMP One Time Password"
 };
 
+export const PASSWORD = {
+    SPECIAL_CHAR:"Should be minimum captial letters count ",
+    NUMBERS_COUNT:"Should be minimum numbers count ",
+    SPECIAL_COUNT:"Should be minimum special characters count ",
+    TOTAL_LETTERS:"Should be minimum total characters count "
+}
+
 export const RESPONSE = {
     SUCCESS_EMAIL: "Email send successfully.",
     ACTIVE: "active",
     INACTIVE: "inactive",
     ADD_MEMBER: "Group member added",
-    REMOVE_MEMBER: "Group member removed"
+    REMOVE_MEMBER: "Group member removed",
+    UPDATE_PASSWORD : "succefully updated password",
+    REPLACE_USER : "successfully replaced.",
+    PROFILE_UPDATE : "successfully profile Updated",
+    SUCCESS_OTP : "Otp is sent successfully"
 }
 export const SENDER_IDS = {
     OTP : "CMPOTP",
@@ -156,6 +189,9 @@ export const RISK = {
 
 export const OPPORTUNITY = {
     UNAUTHORIZED_ACCESS: `Unauthorized to manage opportunity`
+}
+export const TEMPLATE = {
+    INVALID_TEMPLATE : "Invalid email template"
 }
 
 export const ACTIVITY_LOG = {

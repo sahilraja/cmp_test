@@ -140,11 +140,25 @@
     "scope": "global"
   },
   {
+    "capability": "document-activity-log",
+    "shortDescription": "Document Activity Log",
+    "description": "Ability to view Document activity log",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
     "capability":"view-all-projects",
     "shortDescription":"View All Projects",
     "category":"Project Management",
     "scope":"global",
     "description":"View All Projects"
+  },
+  {
+    "capability": "phase-manage",
+    "shortDescription":"add/edit phase",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"manage phase add/edit permission"
   },
   {
     "capability":"add-open-comments",
@@ -311,6 +325,13 @@
     "capability": "delete-message",
     "shortDescription": "Delete Message",
     "description": "Ability to delete a message ",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-replace-user-messages",
+    "shortDescription": "View Replace User Messages",
+    "description": "Ability to view a message ",
     "category": "Message Management",
     "scope": "global"
   },

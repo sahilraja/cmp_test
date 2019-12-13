@@ -1,5 +1,5 @@
 import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR } from "../utils/error_msg";
-import { project as ProjectSchema } from "./project_model";
+import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
 import { themes } from "./theme_model";
@@ -23,26 +23,24 @@ import { getTemplateBySubstitutions } from "../email-templates/module";
 import { OpenCommentsModel } from "./open-comments-model";
 import { phaseSchema } from "../phase/model";
 import { some } from "bluebird";
+import { PillarSchema } from "../pillars/model";
+import { StepsSchema } from "../steps/model";
 
-//  Add city Code
+//  Create Project 
 export async function createProject(reqObject: any, user: any) {
   try {
-    if (!reqObject.reference || !reqObject.name) {
+    if (!reqObject.reference || !reqObject.name || !reqObject.startDate || !reqObject.endDate) {
       throw new Error(MISSING);
     }
+    if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
     let isEligible = await checkRoleScope(user.role, "create-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    //  check capability
-    // let capability = await checkCapability({
-    //   role: user.role,
-    //   scope: "global",
-    //   capability: "create-project"
-    // });
-    // if (!capability.status) throw new Error("Invalid User");
 
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
+      startDate: reqObject.startDate,
+      endDate: reqObject.endDate,
       reference: reqObject.reference,
       city: reqObject.cityname,
       summary: reqObject.description || "N/A",
@@ -68,14 +66,12 @@ export async function editProject(id: any, reqObject: any, user: any) {
 
     let isEligible = await checkRoleScope(user.role, "edit-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    //  check capability
-    // let capability = await checkCapability({
-    //   role: user.role,
-    //   scope: "global",
-    //   capability: "create-project"
-    // });
-    // if (!capability.status) throw new Error("Invalid User");
 
+    if (reqObject.startDate || reqObject.endDate) {
+      if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
+      obj.startDate = reqObject.startDate
+      obj.endDate = reqObject.endDate
+    };
     if (reqObject.reference) {
       obj.reference = reqObject.reference;
     }
@@ -344,9 +340,10 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 }
 
 // get project details
-export async function getProjectDetail(projectId: string) {
+export async function getProjectDetail(projectId: string, userToken: string) {
   try {
-    return await ProjectSchema.findById(projectId).populate({ path: 'phase' }).exec()
+    let projectDetail = await ProjectSchema.findById(projectId).populate({ path: 'phase' }).exec()
+    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
   } catch (error) {
     console.error(error)
     throw error
@@ -556,10 +553,12 @@ export async function projectMembers(id: string) {
   ])
   if (!project) throw new Error("Project Not Found.");
   const userIds = [...project.members, project.createdBy]
+  let userObjs = (await userFindMany("_id", userIds)).map((user: any) => { return { ...user, fullName: (user.firstName ? user.firstName + " " : "") + (user.middleName ? user.middleName + " " : "") + (user.lastName ? user.lastName : "") } })
   // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
     value: user,
+    fullName: (userObjs.find(({ _id }: any) => _id == user)).fullName,
     key: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles)
   }))
 }
@@ -636,10 +635,10 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
       return f
     }
   })
-  const fundsUtilisedData = fundsUtilised.map((fund: any) => {
+  let fundsUtilisedData = fundsUtilised.map((fund: any) => {
     const { installmentType } = getPercentageByInstallment(fund.installment)
     const items = fundsUtilised.filter((fundReleased: any) =>
-      (!fundReleased.deleted && fundReleased.subInstallment && (fund == fundReleased.installment)
+      (!fundReleased.deleted && fundReleased.subInstallment && (fund.installment == fundReleased.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     return {
       phase: phases.find(phase => phase.id == fund.phase),
@@ -650,6 +649,12 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
       installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
     }
   })
+  fundsUtilisedData = fundsUtilisedData.reduce((unique: any, o: any) => {
+    if (!unique.some((obj: any) => obj.installment === o.installment)) {
+      unique.push(o);
+    }
+    return unique;
+  }, [])
   return {
     isMember: (projectDetail as any).members.includes(userId) || ((projectDetail as any).createdBy == userId),
     projectCost: projectCost,
@@ -705,8 +710,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
   if (!payload.installment) {
     throw new Error(`Installment is required`)
   }
-  const project: any = await ProjectSchema.findById(projectId).exec()
-  const { fundsUtilised } = project
+  const { fundsUtilised } = projectDetail
   const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsUtilised.filter((fund: any) => fund.installment == payload.installment)
   const updates = {
@@ -842,7 +846,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
-  for(let taskData of tasksDataWithIds){
+  for (let taskData of tasksDataWithIds) {
     await createTask(taskData, projectId, userToken, userObj)
   }
   // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
@@ -875,6 +879,9 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
+  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: new RegExp(taskObj.pillarId) }).exec() as any || { _id: undefinedÎÎ })._id || undefined
+  if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: new RegExp(taskObj.stepId) }).exec() as any || { _id: undefined })._id || undefined
+
   taskObj = {
     ...taskObj,
     projectId,
@@ -882,6 +889,8 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     approvers: approverIds,
     endorsers: endorserIds,
     viewers: viewerIds,
+    pillarId: taskObj.pillarId,
+    stepId: taskObj.stepId,
     startDate: new Date(taskObj.initialStartDate || taskObj.startDate),
     dueDate: new Date(taskObj.initialDueDate || taskObj.dueDate)
   }
@@ -941,6 +950,10 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   })) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
+  
+  if(data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
+  if(data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
+
   return {
     name: data.name,
     description: data.description,
@@ -952,8 +965,8 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
     viewers: viewers || data.viewers,
     approvers: approvers || data.approvers,
     endorsers: endorsers || data.endorsers,
-    stepId: data.stepId,
-    pillarId: data.pillarId,
+    stepId: data.stepId || data.step,
+    pillarId: data.pillarId || data.pillar,
     isFromExcel: true,
     documents: data.documents
   }
@@ -1063,3 +1076,16 @@ export async function getCommentedUsers(projectId: string, user: any) {
   const userIds = comments.map((comment: any) => comment.userId).filter(u => u != user._id)
   return await userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
 }
+
+export async function editProjectMiscompliance(projectId: string, payload: any, userObj: any) {
+  try {
+    if (!Types.ObjectId.isValid(projectId)) throw new Error("Invalid Project Id.")
+    let obj: any = {};
+    if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
+    if ("miscomplianceProject" in payload) obj.miscomplianceProject = payload.miscomplianceProject
+    await project.findByIdAndUpdate(projectId, obj);
+    return { message: `successfully ${"miscomplianceProject" in payload ? "miscomplianceProject" : "miscomplianceSpv"} updated.` }
+  } catch (err) {
+    throw err
+  };
+};
