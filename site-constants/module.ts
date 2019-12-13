@@ -50,7 +50,7 @@ export async function addConstants(objBody:any, userId: string) {
     }
 
 }
-export async function constantsList(userId: string) {
+export async function constantsList() {
     try{
         // let userRoles = await userRoleAndScope(userId);
         // let userRole = userRoles.data[0];
