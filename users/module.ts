@@ -33,7 +33,7 @@ import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 import { manualPagination, replaceDocumentUser } from "../documents/module";
 import { patternSubstitutions } from "../patterns/module";
-
+import { updateUserInDOcs } from "../documents/module"
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -250,6 +250,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         // update user with edited fields
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
+        let updateUserInElasticSearch = await updateUserInDOcs(id,user._id)
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })

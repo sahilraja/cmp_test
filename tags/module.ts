@@ -1,5 +1,6 @@
 import { tags } from "./tag_model";
 import { documents } from "../documents/model"
+import { getTags, getAllTags,updateTagsInDOcs } from "../documents/module"
 const MESSAGE_URL = process.env.MESSAGE_URL || "http://localhost:4001";
 const TASK_URL = process.env.TASK_HOST || "http://localhost:5052";
 import { checkRoleScope } from '../utils/role_management';
@@ -7,6 +8,7 @@ import { userRoleAndScope } from "../role/module";
 import * as request from "request-promise";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
+import { Types, STATES, set } from "mongoose";
 
 
 //  get list of tags
@@ -59,6 +61,15 @@ export async function mergeTags(body: any, token: string, userId: string) {
     //   $set: { deleted: true }
     // },
     //   { multi: true });
+    let val = await Promise.all(docIds.map(async (docId:any) => {
+      let doc: any = await documents.findById(docId);
+      let tags = await getTags((doc.tags && doc.tags.length) ? doc.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+      return {
+        docId: JSON.parse(JSON.stringify(docId)),
+        tags: tags.map((tagData: any) => { return tagData.tag })
+      }
+    }))
+    let updateTagsInElasticSearch = await updateTagsInDOcs(val,userId)
     await create({ activityType: "MERGED-TAG", activityBy: userId, mergedTag: body.mergeTag, tagsToMerge: tagData })
     return {
       status: true,
