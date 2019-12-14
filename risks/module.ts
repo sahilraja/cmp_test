@@ -52,6 +52,8 @@ export async function edit(id: string, updates: any, userObj: any) {
 
 export async function riskSaveAll(projectId: string, updateObjs: any[], userObj: any): Promise<{ message: string }> {
     try {
+        const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
+        if (!isEligible) throw new APIError(RISK.UNAUTHORIZED_ACCESS)
         await Promise.all(updateObjs.map((riskObj) => saveaAll(riskObj, projectId, userObj)))
         return { message: "successfully save all risks" }
     } catch (err) {
