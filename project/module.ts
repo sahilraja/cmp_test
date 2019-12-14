@@ -98,6 +98,29 @@ export async function editProject(id: any, reqObject: any, user: any) {
   }
 }
 
+export async function RemoveProjectMembers(projectId: string, userId: string, token: string) {
+  try {
+    let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
+    if (projectTasks.success) return { success: false, tasks: projectTasks.tasks}
+    const previousProjectData: any = await ProjectSchema.findById(projectId).exec()
+    let members = previousProjectData.members.filter((id: any) => id != userId)
+    const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
+    return { success: true, project: updatedProject}
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function memberExistInProjectTask(projectId: string, userId: string, userToken: string) {
+  const options = {
+    url: `${TASKS_URL}/task/memberExistInProjectTask`,
+    body: { projectId, userId },
+    headers: { 'Authorization': `Bearer ${userToken}` },
+    method: 'POST',
+    json: true
+  }
+  return await httpRequest(options)
+}
 
 export async function manageProjectMembers(id: string, members: string[], userId: string, userRole: any) {
   members = Array.from(new Set(members))
@@ -950,9 +973,9 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   })) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
-  
-  if(data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
-  if(data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
+
+  if (data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
+  if (data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
 
   return {
     name: data.name,
