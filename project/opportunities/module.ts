@@ -48,6 +48,8 @@ export async function edit(id: string, updates: any, userObj: any) {
 
 export async function opportunitySaveAll(projectId: string, updateObjs: any[], userObj: any): Promise<{ message: string }> {
     try {
+        const isEligible = await checkRoleScope(userObj.role, `manage-opportunity`)
+        if (!isEligible) throw new APIError(OPPORTUNITY.UNAUTHORIZED_ACCESS)
         await Promise.all(updateObjs.map((opportunityObj) => saveaAllOpportunities(opportunityObj, projectId, userObj)))
         return { message: "successfully save all opportunities" }
     } catch (err) {
