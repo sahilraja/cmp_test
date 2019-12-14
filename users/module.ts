@@ -1013,7 +1013,7 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
                 headers: { 'Authorization': `Bearer ${userToken}` }
             }),
             httpRequest({
-                url: `${TASKS_URL}/replace-user`,
+                url: `${TASKS_URL}/task/replace-user`,
                 body: { oldUser: userId, updatedUser: replaceTo },
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${userToken}` }
