@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
     createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status,
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail,
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments, getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments, getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -299,6 +299,14 @@ router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
 router.post(`/:id/link-task`, async (req, res, next) => {
     try {
         res.status(OK).send(await linkTask(req.params.id, req.body.taskId, (req as any).token, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/:id/task-project-detail`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await taskProjectDetails(req.params.id))
     } catch (error) {
         next(new APIError(error.message))
     }

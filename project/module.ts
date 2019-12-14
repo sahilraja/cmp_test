@@ -117,7 +117,7 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
     const ProjectData: any = await ProjectSchema.findById(projectId).exec()
     if (!ProjectData.members.includes(objBody.newUser)) throw new Error("member is not a project member.")
     let success: any = await replaceProjectTaskUser(projectId, objBody.oldUser, objBody.newUser, token)
-    if(success && !success.success) throw new Error(success)
+    if (success && !success.success) throw new Error(success)
     let members = ProjectData.members.filter((id: any) => id != objBody.oldUser)
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
     return { message: "Replaced new user successfully." }
@@ -481,6 +481,10 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
   createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
 }
+
+export async function taskProjectDetails(projectId: string) {
+    return project.findById(projectId).exec()
+};
 
 export async function linkTask(projectId: string, taskId: string, userToken: string, userId: string) {
   if (!taskId) {
