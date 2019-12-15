@@ -1261,6 +1261,11 @@ export async function changeOldPassword(body: any, userObj: any) {
     try {
         if (!body.new_password || !body.old_password) throw new Error(USER_ROUTER.MANDATORY);
         await validatePassword(body.new_password);
+        let admin_scope = await checkRoleScope(userObj.role, "bypass-otp");
+        if (admin_scope){
+            await changePasswordInfo({ password: body.new_password}, userObj._id);
+            return {message : "Password updated successfully."}
+        }
         let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
         let { otp, token } = await generateOtp(4, { password: body.password });
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.new_password });
