@@ -12,6 +12,7 @@ export async function createPhase(payload: any, userObj: any) {
         if (!payload.phaseName && !payload.colorCode) {
             throw new APIError(USER_ROUTER.MANDATORY)
         }
+        if (payload.phaseName && (/[ ]{2,}/.test(payload.phaseName) || /[A-Za-z0-9  -]+$/.test(payload.phaseName))) throw new Error("you have entered invalid name. please try again.")
         let phaseInfo: any = await phaseSchema.create({ ...payload, createdBy: userObj._id });
         let { disable, ...phaseResult } = phaseInfo.toObject();
         return phaseResult
@@ -25,6 +26,7 @@ export async function editPhase(phaseId: string, body: any, userObj: any) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "phase-manage");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (body.phaseName && (/[ ]{2,}/.test(body.phaseName) || /[A-Za-z0-9  -]+$/.test(body.phaseName))) throw new Error("you have entered invalid name. please try again.")
         let phaseInfo: any = await phaseSchema.findByIdAndUpdate(phaseId, { $set: { phaseName: body.phaseName, colorCode: body.colorCode } }, { new: true }).exec()
         let { disable, ...phaseResult } = phaseInfo.toObject();
         return phaseResult
