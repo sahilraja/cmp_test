@@ -366,10 +366,10 @@ export async function user_login(req: any) {
     };
 };
 
-export async function userLogout(req: any, userObj: any){
+export async function userLogout(req: any, userObj: any) {
     try {
-        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userObj._id, type: "LOGOUT" }); 
-        return { message: "logout successfully."}
+        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userObj._id, type: "LOGOUT" });
+        return { message: "logout successfully." }
     } catch (err) {
         throw err;
     };
@@ -530,6 +530,7 @@ export async function createGroup(objBody: any, userObj: any) {
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         const { name, description, users } = objBody
         if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
+        if (name && (/[ ]{2,}/.test(name) || /[A-Za-z0-9  -]+$/.test(name))) throw new Error("you have entered invalid name. please try again.")
         let group: any = await groupCreate({
             name: name.toLowerCase().trim(),
             description: description.trim(),
@@ -1262,9 +1263,9 @@ export async function changeOldPassword(body: any, userObj: any) {
         if (!body.new_password || !body.old_password) throw new Error(USER_ROUTER.MANDATORY);
         await validatePassword(body.new_password);
         let admin_scope = await checkRoleScope(userObj.role, "bypass-otp");
-        if (admin_scope){
-            await changePasswordInfo({ password: body.new_password}, userObj._id);
-            return {message : "Password updated successfully."}
+        if (admin_scope) {
+            await changePasswordInfo({ password: body.new_password }, userObj._id);
+            return { message: "Password updated successfully." }
         }
         let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
         let { otp, token } = await generateOtp(4, { password: body.password });
