@@ -366,9 +366,9 @@ export async function user_login(req: any) {
     };
 };
 
-export async function userLogout(req: any, userObj: any) {
+export async function userLogout(req: any, userId: any) {
     try {
-        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userObj._id, type: "LOGOUT" });
+        await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userId, type: "LOGOUT" });
         return { message: "logout successfully." }
     } catch (err) {
         throw err;
