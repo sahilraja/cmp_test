@@ -20,15 +20,7 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
-<<<<<<< HEAD
-<<<<<<< HEAD
         if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
-=======
-        if (body.name && (/[ ]{2,}/.test(body.name) || /[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> fic name validation
-=======
-        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> 33fd196da531d15e5aa423426040d613dfbd8ac6
         await validatePrivateMembersConstants(body);
         if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
         let existGroups = await privateGroupSchema.find({ name: body.name, createdBy: userObj._id, is_active: true })
@@ -113,7 +105,7 @@ export async function privateGroupList(userId: string, search?: string): Promise
 
 async function groupDetails(group: any) {
     try {
-        let userData = await userFindMany('_id', group.members.concat([group.createdBy]), { firstName: 1, lastName: 1, middleName: 1, email: 1 })
+        let userData = await userFindMany('_id', group.members.concat([group.createdBy]), { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, is_active: 1 })
         userData = await Promise.all(userData.map((user: any) => getUserDateWithRole(user)));
         return {
             ...group.toJSON(),

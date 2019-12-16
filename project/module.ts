@@ -84,15 +84,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.reference = reqObject.reference;
     }
     if (reqObject.name) {
-<<<<<<< HEAD
-<<<<<<< HEAD
       if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
-=======
-      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || /[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> fic name validation
-=======
-      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> 33fd196da531d15e5aa423426040d613dfbd8ac6
       obj.name = reqObject.name;
     }
     if (reqObject.cityname) {
@@ -184,7 +176,7 @@ export async function manageProjectMembers(id: string, members: string[], userId
 export async function getProjectMembers(id: string) {
   const { members }: any = await ProjectSchema.findById(id).exec()
   const [users, formattedRoleObjs]: any = await Promise.all([
-    userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1 }),
+    userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, is_active: 1 }),
     role_list()
   ])
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
