@@ -61,13 +61,13 @@ esClient.ping({
   }
 });
 
-export async function createIndex(){
-    return await esClient.indices.create({index: 'documents'});   
+export async function createIndex(index:string){
+    return await esClient.indices.create({index: index});   
    
 }
 
-export async function removeIndex(){
-  return await esClient.indices.delete({index: 'documents'});   
+export async function removeIndex(index:string){
+  return await esClient.indices.delete({index: index});   
  
 }
 export async function createNewDoc(body: any, userId: any, siteConstant: any, host: string) {
