@@ -35,7 +35,15 @@ export async function createProject(reqObject: any, user: any) {
     if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
     let isEligible = await checkRoleScope(user.role, "create-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-
+<<<<<<< HEAD
+<<<<<<< HEAD
+    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+=======
+    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || /[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+>>>>>>> fic name validation
+=======
+    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+>>>>>>> 33fd196da531d15e5aa423426040d613dfbd8ac6
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
@@ -76,6 +84,15 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.reference = reqObject.reference;
     }
     if (reqObject.name) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+=======
+      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || /[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+>>>>>>> fic name validation
+=======
+      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+>>>>>>> 33fd196da531d15e5aa423426040d613dfbd8ac6
       obj.name = reqObject.name;
     }
     if (reqObject.cityname) {
@@ -98,6 +115,54 @@ export async function editProject(id: any, reqObject: any, user: any) {
   }
 }
 
+export async function RemoveProjectMembers(projectId: string, userId: string, token: string) {
+  try {
+    let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
+    if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
+    const previousProjectData: any = await ProjectSchema.findById(projectId).exec()
+    let members = previousProjectData.members.filter((id: any) => id != userId)
+    const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
+    return { success: true, project: updatedProject }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function replaceProjectMember(projectId: string, objBody: any, token: string) {
+  try {
+    if (!objBody || !objBody.oldUser || !objBody.newUser || !projectId) throw new Error("Required mandatory fields.")
+    const ProjectData: any = await ProjectSchema.findById(projectId).exec()
+    let success: any = await replaceProjectTaskUser(projectId, objBody.oldUser, objBody.newUser, token)
+    if (success && !success.success) throw new Error(success)
+    let members = [... new Set((ProjectData.members.filter((id: any) => id != objBody.oldUser)).concat([objBody.newUser]))]
+    const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
+    return { message: "Replaced new user successfully." }
+  } catch (err) {
+    throw err
+  }
+}
+
+export async function replaceProjectTaskUser(projectId: string, userId: string, replaceTo: string, userToken: string) {
+  const options = {
+    url: `${TASKS_URL}/task/replace-user/?projectId=${projectId}`,
+    body: { oldUser: userId, updatedUser: replaceTo },
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${userToken}` },
+    json: true
+  }
+  return await httpRequest(options)
+}
+
+export async function memberExistInProjectTask(projectId: string, userId: string, userToken: string) {
+  const options = {
+    url: `${TASKS_URL}/task/memberExistInProjectTask`,
+    body: { projectId, userId },
+    headers: { 'Authorization': `Bearer ${userToken}` },
+    method: 'POST',
+    json: true
+  }
+  return await httpRequest(options)
+}
 
 export async function manageProjectMembers(id: string, members: string[], userId: string, userRole: any) {
   members = Array.from(new Set(members))
@@ -368,7 +433,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
     json: true
   }
   const createdTask: any = await httpRequest(options)
-  createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask.id, projectId, activityBy: userObj._id })
+  createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask._id, projectId, activityBy: userObj._id })
   return createdTask
 }
 
@@ -432,6 +497,10 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
   createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
 }
+
+export async function taskProjectDetails(projectId: string) {
+    return project.findById(projectId).exec()
+};
 
 export async function linkTask(projectId: string, taskId: string, userToken: string, userId: string) {
   if (!taskId) {
@@ -950,9 +1019,9 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   })) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
-  
-  if(data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
-  if(data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
+
+  if (data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
+  if (data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
 
   return {
     name: data.name,

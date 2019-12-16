@@ -20,7 +20,16 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
-        await validateDocument(body);
+<<<<<<< HEAD
+<<<<<<< HEAD
+        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+=======
+        if (body.name && (/[ ]{2,}/.test(body.name) || /[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+>>>>>>> fic name validation
+=======
+        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+>>>>>>> 33fd196da531d15e5aa423426040d613dfbd8ac6
+        await validatePrivateMembersConstants(body);
         if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
         let existGroups = await privateGroupSchema.find({ name: body.name, createdBy: userObj._id, is_active: true })
         if (existGroups.length) throw new Error("A private group with same name already exists.")
@@ -37,14 +46,15 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         if (!groupDetails) throw new Error("Group Not Found.");
         if (groupDetails.createdBy != userId) throw new Error("Unauthorized Action.");
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.");
-        await validateDocument(body);
-        if(body)
-        if (body.members) {
-            let existUsersRemoved = body.members.filter((user: any) => !groupDetails.members.includes(user))
-            if (!existUsersRemoved.length) throw new Error("Member already exist in this group.")
-            body.members = [...new Set(groupDetails.members.concat(body.members))]
-            if (body.members.includes(userId)) throw new Error("Owner can't be group member.")
-        }
+        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+        await validatePrivateMembersConstants(body);
+        if (body)
+            if (body.members) {
+                let existUsersRemoved = body.members.filter((user: any) => !groupDetails.members.includes(user))
+                if (!existUsersRemoved.length) throw new Error("Member already exist in this group.")
+                body.members = [...new Set(groupDetails.members.concat(body.members))]
+                if (body.members.includes(userId)) throw new Error("Owner can't be group member.")
+            }
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
         throw err
@@ -60,7 +70,7 @@ export async function removePrivateGroup(groupId: string, body: privateGroup, us
         if (Array.isArray(body.members) && body.members.length) {
             body.members = groupDetails.members.filter((userId: string) => !body.members.includes(userId))
         }
-        if(groupDetails.members.length == 1) throw new Error("Minimum one member is required.")
+        if (groupDetails.members.length == 1) throw new Error("Minimum one member is required.")
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
         throw err
@@ -122,17 +132,17 @@ async function getUserDateWithRole(userData: any) {
     };
 };
 
-async function validateDocument(body:any) {
-    try{
-        let {docNamePg,docDescriptionPg}:any = await getConstantsAndValues(["docNamePg", "docSizePg","docDescriptionPg"])
-        if (body.name > Number(docNamePg)){
-            throw new Error(`Document Name should not exceed more than ${docNamePg} characters`);
+async function validatePrivateMembersConstants(body: any) {
+    try {
+        let { docNamePg, docDescriptionPg }: any = await getConstantsAndValues(["docNamePg", "docSizePg", "docDescriptionPg"])
+        if (body.name > Number(docNamePg)) {
+            throw new Error(`Private members name should not exceed more than ${docNamePg} characters`);
         }
-        if (body.description > Number(docDescriptionPg)){
-            throw new Error(`Document description should not exceed more than ${docDescriptionPg} characters`);
+        if (body.description > Number(docDescriptionPg)) {
+            throw new Error(`Private members description should not exceed more than ${docDescriptionPg} characters`);
         }
     }
-    catch(err){
+    catch (err) {
         throw err
     }
 }
