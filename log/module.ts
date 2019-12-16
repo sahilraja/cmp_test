@@ -39,7 +39,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         ], []).filter((v: string) => v)
     const subTaskIds = activities.map((activity: any) => activity.subTask).filter(v => !!v)
     const [usersInfo, subTasks] = await Promise.all([
-        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 }),
+        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 }),
         getTasksByIds(subTaskIds, token)
     ])
     const tagObjects = await tags.find({ _id: { $in: [...new Set(activities.reduce((main: any, curr: any) => [...main, ...(curr.tagsAdded || []), ...(curr.tagsRemoved || [])], []))] } }).exec()
@@ -74,7 +74,7 @@ async function activityFetchDetails(activity: any) {
     const userIds = userObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
     const groupIds = groupObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
     let groupsData = await groupPatternMatch({}, {}, { "_id": groupIds }, {})
-    let usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 });
+    let usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 });
     usersData = groupsData.concat(usersData)
     const tagIds = (activity.tagsAdded || []).concat(activity.tagsRemoved || [])
     const tagsData = await tags.find({ _id: { $in: tagIds } })
