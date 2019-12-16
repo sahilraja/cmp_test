@@ -35,15 +35,7 @@ export async function createProject(reqObject: any, user: any) {
     if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
     let isEligible = await checkRoleScope(user.role, "create-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-<<<<<<< HEAD
-<<<<<<< HEAD
     if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
-=======
-    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || /[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> fic name validation
-=======
-    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> 33fd196da531d15e5aa423426040d613dfbd8ac6
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
