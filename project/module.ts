@@ -35,7 +35,7 @@ export async function createProject(reqObject: any, user: any) {
     if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
     let isEligible = await checkRoleScope(user.role, "create-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || /[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
@@ -76,7 +76,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.reference = reqObject.reference;
     }
     if (reqObject.name) {
-      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || /[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
       obj.name = reqObject.name;
     }
     if (reqObject.cityname) {
@@ -116,7 +116,6 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
   try {
     if (!objBody || !objBody.oldUser || !objBody.newUser || !projectId) throw new Error("Required mandatory fields.")
     const ProjectData: any = await ProjectSchema.findById(projectId).exec()
-    if (!ProjectData.members.includes(objBody.newUser)) throw new Error("member is not a project member.")
     let success: any = await replaceProjectTaskUser(projectId, objBody.oldUser, objBody.newUser, token)
     if (success && !success.success) throw new Error(success)
     let members = ProjectData.members.filter((id: any) => id != objBody.oldUser)
