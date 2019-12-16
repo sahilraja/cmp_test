@@ -118,7 +118,7 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
     const ProjectData: any = await ProjectSchema.findById(projectId).exec()
     let success: any = await replaceProjectTaskUser(projectId, objBody.oldUser, objBody.newUser, token)
     if (success && !success.success) throw new Error(success)
-    let members = ProjectData.members.filter((id: any) => id != objBody.oldUser)
+    let members = [... new Set((ProjectData.members.filter((id: any) => id != objBody.oldUser)).concat([objBody.newUser]))]
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
     return { message: "Replaced new user successfully." }
   } catch (err) {
