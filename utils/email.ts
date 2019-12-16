@@ -3,11 +3,11 @@ import { constantSchema } from "../site-constants/model";
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 
-const EMAIL = process.env.EMAIL || "cmp@niua.org";
-const PASSWORD = process.env.PASSWORD || "hahahaha"
+// const EMAIL = process.env.EMAIL || "cmp@niua.org";
+// const PASSWORD = process.env.PASSWORD || "hahahaha"
 
-// const EMAIL = process.env.EMAIL || 'jeevan.balla@transerve.com';
-// const PASSWORD = process.env.PASSWORD || '7989238348';
+const EMAIL = process.env.EMAIL || 'jeevan.balla@transerve.com';
+const PASSWORD = process.env.PASSWORD || '7989238348';
 
 // let transport = process.env.EMAIL ? smtpTransport({
 //   host: 'smtp.rediffmailpro.com',
@@ -26,17 +26,15 @@ const PASSWORD = process.env.PASSWORD || "hahahaha"
 
 export async function nodemail(objBody: any) {
   try {
-    let constants: any = await constantSchema.findOne({key:'bcc'}).exec();
+    let constants: any = await constantSchema.findOne({ key: 'bcc' }).exec();
     let transporter = nodemailer.createTransport(
       smtpTransport({
-        host: 'smtp.rediffmailpro.com',
-        port: '587',
+        service: 'gmail',
         auth: {
           user: EMAIL,
           pass: PASSWORD
         }
       })
-      // transport
     );
     var mailOptions = {
       from: EMAIL,
