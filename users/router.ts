@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo, changeOldPasswordInfo, changeOldPassword, sendOtpByAdmin, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser, userLogout } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, changeOldPassword, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser, userLogout, updateTaskEndorser } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -50,7 +50,7 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
 
 router.post(`/bulk-invite`, authenticate, upload.single('upfile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await bulkInvite(req.file.path, res.locals.user._id));
+        res.status(200).send(await bulkInvite(req.file.path, res.locals.user));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -461,16 +461,9 @@ router.get("/task-endorse/send-otp", authenticate, async (req, res, next) => {
 
 router.post("/task-endorse/verify-otp", authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileVerifyOtp(req.body.phone, req.body.otp, res.locals.user._id));
-    }
-    catch (error) {
-        next(new APIError(error.message));
-    }
-})
-
-router.post("/setPassword/admin/:id", authenticate, async (req, res, next) => {
-    try {
-        res.status(OK).send(await setPasswordByAdmin(res.locals.user, req.body, req.params.id));
+        const verifiedToken = await mobileVerifyOtp(req.body.phone, req.body.otp,res.locals.user._id)
+        await updateTaskEndorser(res.locals.user._id, req.query.task, (req as  any).token)
+        res.status(OK).send(verifiedToken);
     }
     catch (error) {
         next(new APIError(error.message));
