@@ -254,7 +254,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         // update user with edited fields
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
-        let updateUserInElasticSearch = await updateUserInDOcs(id,user._id)
+        let updateUserInElasticSearch = await updateUserInDOcs(id, user._id)
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })
@@ -705,7 +705,7 @@ export async function userSuggestions(search: string, userId: string, role: stri
         let privateGroupUser: any = [... new Set(myPrivateGroups.reduce((main: any, curr: any) => main.concat(curr.members), []))]
         let privateUsersObj = await userFindManyWithRole(privateGroupUser)
         myPrivateGroups = await Promise.all(myPrivateGroups.map((privateGroup: any) => { return { ...privateGroup.toJSON(), members: privateUsersObj.filter((user: any) => privateGroup.members.includes(user._id)), type: "private-list" } }))
-        publicGroups = publicGroups.map((group: any) => { return { ...group, type: "group" } })
+        publicGroups = await Promise.all(publicGroups.map((group: any) => groupUsers(group)))
         let allUsers = await roleFormanting([...users, ...publicGroups, ...myPrivateGroups, ...roles])
         // allUsers = [...new Set(allUsers.map(JSON.stringify as any))].map(JSON.parse as any)
         allUsers = Object.values(allUsers.reduce((acc, cur) => Object.assign(acc, { [cur._id]: cur }), {}))
@@ -713,6 +713,19 @@ export async function userSuggestions(search: string, userId: string, role: stri
             return userSort(allUsers.filter((user: any) => searchKeyArray.includes(user.type)))
         }
         return userSort(allUsers)
+    } catch (err) {
+        throw err
+    };
+};
+
+async function groupUsers(groupObj: any) {
+    try {
+        let userId = await groupUserList(groupObj._id) || [];
+        return {
+            ...groupObj,
+            type: "group",
+            members: (await userFindMany("_id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }) || []).map((obj: any) => { return { ...obj, type: "user" } })
+        }
     } catch (err) {
         throw err
     };
