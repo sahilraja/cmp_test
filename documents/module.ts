@@ -44,7 +44,33 @@ enum STATUS {
   PENDING = -3
 }
 
-export async function createNewDoc(body: any, userId: any, siteConstant: any) {
+const es = require('elasticsearch');
+const esClient = new es.Client({
+  host: 'localhost:9200',
+  log: 'trace'
+});
+
+esClient.ping({
+  // ping usually has a 3000ms timeout
+  requestTimeout: Infinity
+}, function (error: any) {
+  if (error) {
+    console.trace('elasticsearch cluster is down!');
+  } else {
+    console.log('All is well');
+  }
+});
+
+export async function createIndex(){
+    return await esClient.indices.create({index: 'documents'});   
+   
+}
+
+export async function removeIndex(){
+  return await esClient.indices.delete({index: 'documents'});   
+ 
+}
+export async function createNewDoc(body: any, userId: any, siteConstant: any, host: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
@@ -71,7 +97,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       if (!isEligible) throw new APIError(DOCUMENT_ROUTER.ADD_TAG_PERMISSION, 403);
     }
 
-    let doc = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize });
+    let doc: any = await insertDOC(body, userId, { fileId: fileId, fileName: fileName, fileSize: fileSize });
     //  Add user as Owner to this Document
     let role = await groupsAddPolicy(`user/${userId}`, doc.id, "owner");
     if (!role.user) {
@@ -87,6 +113,38 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
       })
     }
     await create({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
+    // const insertDoc = async function(indexName, _id, mappingType, data){
+    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    let userName;
+    if (userDetails.firstName)
+      userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    else {
+      userName = userDetails.name
+    }
+    let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
+
+    let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${doc.fileId}` : "N/A"
+
+    let tags = await getTags((body.tags && body.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+    tags = tags.map((tagData: any) => { return tagData.tag })
+    let docObj = {
+      accessedBy: [userId],
+      userName: [userName],
+      name: body.docName,
+      description: body.description,
+      tags: tags,
+      thumbnail: thumbnail,
+      status: doc.status,
+      fileName: doc.fileName,
+      updatedAt: doc.updatedAt,
+      id: doc.id
+    }
+    let result = await esClient.index({
+      index: "documents",
+      body: docObj,
+      id: doc.id
+    });
+    // }
     return doc;
   } catch (err) {
     throw err
@@ -495,6 +553,23 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       fileId: parent.fileId,
       fileName: parent.fileName
     })
+    if (objBody.tags && objBody.tags.length) {
+      let tags: any = await getTags(objBody.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
+      let tagNames = tags.map((tag: any) => { return tag.tag })
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.tags=(params.tags)",
+            "lang": "painless",
+            "params": {
+              "tags": tagNames,
+            }
+          }
+        }
+      })
+    }
     return parent;
   } catch (err) {
     console.error(err);
@@ -585,13 +660,29 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
       }
     }
+    if (objBody.tags && objBody.tags.length) {
+      let tags: any = await getTags(objBody.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
+      let tagNames = tags.map((tag: any) => { return tag.tag })
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.tags=(params.tags)",
+            "lang": "painless",
+            "params": {
+              "tags": tagNames,
+            }
+          }
+        }
+      })
+    }
     return parent;
   } catch (err) {
     console.error(err);
     throw err;
   }
 }
-
 export async function approvalList(host: string) {
   try {
     let docList = await documents.find({ parentId: { $ne: null }, status: STATUS.PUBLISHED, isDeleted: false }).collation({ locale: 'en' }).sort({ name: 1 });
@@ -678,7 +769,7 @@ export async function getApprovalDoc(docId: string) {
   }
 }
 
-async function getTags(tagIds: any[]) {
+export async function getTags(tagIds: any[]) {
   try {
     return await Tags.find({ _id: { $in: tagIds }, deleted: false }, { tag: 1 });
   } catch (err) {
@@ -921,14 +1012,34 @@ export async function invitePeople(docId: string, users: any, role: string, user
     if (userRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
     if (userRole.includes("viewer") || userRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
     let addUsers: any = []
+    let userIds: any = []
+    let userNames: any = []
     await Promise.all(
       users.map(async (user: any) => {
         if (doc.ownerId != user._id) {
           addUsers.push({ id: user._id, type: user.type, role: role })
+          userIds.push(user._id);
+          let userDetails: any = await userFindOne("id", user._id, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+          if (role == "collaborator")
+            userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
           return await invite(user, docId, role, doc)
         }
       })
     );
+    let updatedData = await esClient.update({
+      index: "documents",
+      id: docId,
+      body: {
+        "script": {
+          "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+          "lang": "painless",
+          "params": {
+            "userId": userIds,
+            "userNames": userNames
+          }
+        }
+      }
+    })
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     mailAllCmpUsers("invitePeopleDoc", doc, false, addUsers)
     return { message: "Shared successfully." };
@@ -962,6 +1073,25 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
+
+    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
+    let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
+
+    let updatedData = await esClient.update({
+      index: "documents",
+      id: docId,
+      body: {
+        "script": {
+          "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
+          // "source": "ctx._source.accessedBy.remove(params.accessedBy)",
+          "lang": "painless",
+          "params": {
+            "accessedBy": userId,
+            "userName": userName
+          }
+        }
+      }
+    })
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
@@ -1062,6 +1192,19 @@ export async function published(body: any, docId: string, userObj: any, withAuth
     }
     let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc)
     mailAllCmpUsers("publishDocument", publishedDoc)
+    let updatedData = await esClient.update({
+      index: "documents",
+      id: docId,
+      body: {
+        "script": {
+          "source": "ctx._source.status=(params.status)",
+          "lang": "painless",
+          "params": {
+            "status": STATUS.PUBLISHED,
+          }
+        }
+      }
+    })
     return publishedDoc
   } catch (err) {
     throw err;
@@ -1102,6 +1245,19 @@ export async function unPublished(docId: string, userObj: any) {
     }
     let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
     await create({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
+    let updatedData = await esClient.update({
+      index: "documents",
+      id: docId,
+      body: {
+        "script": {
+          "source": "ctx._source.status=(params.status)",
+          "lang": "painless",
+          "params": {
+            "status": STATUS.UNPUBLISHED,
+          }
+        }
+      }
+    })
     mailAllCmpUsers("unPublishDocument", success)
     return success
   } catch (err) {
@@ -1442,12 +1598,17 @@ export async function deleteDoc(docId: any, userId: string) {
     if (findDoc.status == 2) throw new Error("Published document can't be deleted.")
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
     await create({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
+    let deleted =await esClient.delete({
+      index: 'documents',
+      id: docId,
+    })
     if (deletedDoc) {
       return {
         success: true,
         mesage: "File deleted successfully"
       }
     }
+
   } catch (err) {
     console.error(err);
     throw err;
@@ -1686,6 +1847,21 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       ])
       let filteredDocs = [...filteredDoc, ...filteredDoc1]
       let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDocs, "$push": { tags: body.tagIdToAdd } })
+      let tags: any = await getTags([body.tagIdToAdd])
+      let tagNames = tags.map((tag: any) => { return tag.tag })
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.tags.addAll(params.tags)",
+            "lang": "painless",
+            "params": {
+              "tags": tagNames,
+            }
+          }
+        }
+      })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
         sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
@@ -1714,6 +1890,22 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       ])
       let filteredDocsRemove = [...suggestedToRemove, ...suggestedToRemove1]
       let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: filteredDocsRemove, "$pull": { tags: body.tagIdToRemove } })
+      let tags: any = await getTags([body.tagIdToRemove])
+      let tagNames = tags[0].tag
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "inline": "ctx._source.tags.remove(ctx._source.tags.indexOf(params.tags))",
+            // "source": "ctx._source.tags.addAll(params.tags)",
+            "lang": "painless",
+            "params": {
+              "tags": tagNames,
+            }
+          }
+        }
+      })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
         sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
@@ -2179,6 +2371,155 @@ export async function renameFolder(folderId: string, body: any, userId: string) 
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let folder = await folders.findByIdAndUpdate({ _id: folderId, ownerId: userId }, { name: body.name }, { new: true }).exec()
     return { success: true, folder: folder }
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+export async function searchDoc(search: string, userId: string) {
+  try {
+    let data = {
+      query: {
+        bool: {
+          "should": [
+            {
+              "bool": {
+                "must": [
+                  {
+                    multi_match: {
+                      "query": search,
+                      "fields": ['name', 'description', 'userName', 'tags', 'type']
+                    }
+                  },
+                  {
+                    multi_match: {
+                      "query": `${userId} 2`, 
+                      "fields": ['accessedBy', 'status']
+                      // accessedBy: userId,
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+
+    let searchdoc:any = await esClient.search({
+      index: "documents",
+      body: data
+    });
+    console.log(searchdoc);
+    let seachResult = searchdoc.hits.hits.map((doc:any)=>{return doc._source})
+    return seachResult
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function updateUserInDOcs(id: any, userId: string) {
+  try {
+    // let userIds, userNames;
+    let collaboratedDocsIds: any = await GetDocIdsForUser(id, "user", ["collaborator", "owner"])
+    let userIds = await Promise.all(collaboratedDocsIds.map(async (docId: any) => {
+      return {
+        docId: docId,
+        collaboratorIds: await GetUserIdsForDocWithRole(docId, "collaborator"),
+        ownerIds: await GetUserIdsForDocWithRole(docId, "owner"),
+        viewerIds: await GetUserIdsForDocWithRole(docId, "viewer")
+      }
+    })
+    )
+    let idsToUpdate = await Promise.all(userIds.map(async (user: any) => {
+      return {
+        docId: user.docId,
+        userNames: await Promise.all([...user.collaboratorIds, ...user.ownerIds].map(async (eachuser: any) => {
+          let userId = eachuser.split('/')[1]
+          let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+          if (userDetails.firstName)
+            return `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+          else
+            return userDetails.name
+        })),
+        userIds: [...user.collaboratorIds, ...user.ownerIds, ...user.viewerIds].map((eachuser: any) => {
+          return eachuser.split('/')[1]
+        })
+      }
+    }))
+    let allDocs: any = await esClient.search({
+      index: 'documents',
+      body: {
+        query: {
+          "match_all": {}
+        }
+      }
+    })
+
+    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+
+    let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+      if (docIds.includes(user.docId)) {
+        return await esClient.update({
+          index: "documents",
+          id: user.docId,
+          body: {
+            "script": {
+              "source": "ctx._source.accessedBy=(params.userId);ctx._source.userName=(params.userNames)",
+              "lang": "painless",
+              "params": {
+                "userId": user.userIds,
+                "userNames": user.userNames
+              }
+            }
+          }
+        })
+      }
+    }))
+
+    return { userIds, collaboratedDocsIds, idsToUpdate, updateUsers }
+
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function updateTagsInDOcs(bodyObj: any, userId: string) {
+  try {
+
+    let allDocs: any = await esClient.search({
+      index: 'documents',
+      body: {
+        query: {
+          "match_all": {}
+        }
+      }
+    })
+
+    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+
+    let updateTags = await Promise.all(bodyObj.map(async (tag: any) => {
+      if (docIds.includes(tag.docId)) {
+        return await esClient.update({
+          index: "documents",
+          id: tag.docId,
+          body: {
+            "script": {
+              "source": "ctx._source.tags=(params.tags)",
+              "lang": "painless",
+              "params": {
+                "tags": tag.tags
+              }
+            }
+          }
+        })
+      }
+    }))
+
+    return { updateTags }
+
   } catch (error) {
     console.error(error);
     throw error;

@@ -240,3 +240,4 @@ export async function checkCapability(user: string, scope: string, capability: s
         throw err
     };
 };
+

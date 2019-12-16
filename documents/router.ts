@@ -66,7 +66,9 @@ import {
   removeFromFolder,
   markDocumentAsUnPublic,
   suggestTagsToAddOrRemove,
-  shareDocForUsersNew
+  shareDocForUsersNew,
+  searchDoc,updateUserInDOcs,
+  createIndex,removeIndex
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -145,7 +147,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
     req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
     if (fileObj.errors) throw new Error(DOCUMENT_ROUTER.FILE_SIZE(req.siteConstants.docSize))
-    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants));
+    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants,`${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -823,6 +825,39 @@ router.get(`/public`, authenticate, async (req, res, next) => {
 router.put("/folder/rename/:folderId", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await renameFolder(req.params.folderId,req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+
+router.get("/search/doc", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await searchDoc(req.query.search, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/update/userDocs", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await updateUserInDOcs(req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/create/index", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await createIndex())
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/remove/index", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await removeIndex())
   } catch (err) {
     next(new APIError(err.message));
   }
