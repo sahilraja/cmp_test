@@ -63,7 +63,7 @@ async function commentData(commentData: any) {
       type: commentData.type,
       createdAt: commentData.createdAt,
       role: (((await userRoleAndScope(commentData.user_id)) as any).data || [""])[0],
-      user: await userFindOne("id", commentData.user_id, { firstName: 1, middleName: 1, lastName: 1, email: 1 }
+      user: await userFindOne("id", commentData.user_id, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }
       )
     }])
     return data[0]

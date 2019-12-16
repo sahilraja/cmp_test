@@ -184,7 +184,7 @@ export async function manageProjectMembers(id: string, members: string[], userId
 export async function getProjectMembers(id: string) {
   const { members }: any = await ProjectSchema.findById(id).exec()
   const [users, formattedRoleObjs]: any = await Promise.all([
-    userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1 }),
+    userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, is_active: 1 }),
     role_list()
   ])
   const usersRoles = await Promise.all(members.map((user: string) => userRoleAndScope(user)))
