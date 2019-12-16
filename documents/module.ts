@@ -888,7 +888,7 @@ export async function removeViewers(docId: string, viewers: string[]) {
 export async function collaboratorList(docId: string) {
   try {
     let users = await GetUserIdsForDocWithRole(docId, "collaborator");
-    return await userList({ _id: { $in: users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1 });
+    return await userList({ _id: { $in: users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 });
   } catch (err) {
     throw err;
   }
@@ -897,7 +897,7 @@ export async function collaboratorList(docId: string) {
 export async function viewerList(docId: string) {
   try {
     let users = await GetUserIdsForDocWithRole(docId, "viewer");
-    return await userList({ _id: { $in: users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1 });
+    return await userList({ _id: { $in: users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 });
   } catch (err) {
     throw err;
   }
@@ -1133,7 +1133,7 @@ export async function invitePeopleList(docId: string) {
     if (userGroup.user) {
       var userData: any = await userList(
         { _id: { $in: userGroup.user }, is_active: true },
-        { firstName: 1, middleName: 1, lastName: 1, email: 1 }
+        { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }
       );
       userData = await Promise.all(
         userData.map(async (user: any) => {
@@ -1156,18 +1156,7 @@ export async function invitePeopleList(docId: string) {
         { _id: { $in: userGroup.group }, is_active: true },
         { name: 1 }
       );
-      groupData = await Promise.all(
-        groupData.map(async (group: any) => {
-          return {
-            id: group._id,
-            name: group.name,
-            type: "group",
-            email: "N/A",
-            docRole: (((await getRoleOfDoc(group._id, docId, "group")) as any) || Array(2))[2],
-            role: "N/A"
-          };
-        })
-      );
+      groupData = await Promise.all(groupData.map((group: any) => groupUsers(group, docId)));
       total = !total.length ? [...groupData] : total.concat(groupData);
     }
     return total;
@@ -1175,6 +1164,23 @@ export async function invitePeopleList(docId: string) {
     throw err;
   }
 }
+
+async function groupUsers(groupObj: any, docId?: string) {
+  try {
+    let userId = await groupUserList(groupObj._id) || [];
+    return {
+      ...groupObj,
+      id: groupObj._id,
+      name: groupObj.name,
+      type: "group",
+      email: "N/A",
+      members: (await userFindMany("_id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }) || []).map((obj: any) => { return { ...obj, type: "user" } }),
+      docRole: docId ? (((await getRoleOfDoc(groupObj._id, docId, "group")) as any) || Array(2))[2] : "",
+    }
+  } catch (err) {
+    throw err
+  };
+};
 
 export async function docCapabilities(docId: string, userId: string) {
   try {
@@ -2033,7 +2039,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
 
 async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = true, text?: any) {
   try {
-    let selectFields = { email: true, firstName: true, middleName: true, lastName: true, phone: true }
+    let selectFields = { email: true, firstName: true, middleName: true, lastName: true, phone: true, is_active: true }
     let users, sharedUsers: string, role: string
     if (allcmp) {
       users = await userList({ is_active: true, emailVerified: true }, selectFields)
