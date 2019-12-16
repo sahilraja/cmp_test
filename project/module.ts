@@ -84,15 +84,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.reference = reqObject.reference;
     }
     if (reqObject.name) {
-<<<<<<< HEAD
-<<<<<<< HEAD
       if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
-=======
-      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || /[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> fic name validation
-=======
-      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
->>>>>>> 33fd196da531d15e5aa423426040d613dfbd8ac6
       obj.name = reqObject.name;
     }
     if (reqObject.cityname) {
