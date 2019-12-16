@@ -55,7 +55,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any) {
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error(DOCUMENT_ROUTER.UNABLE_TO_CREATE)
     const { id: fileId, name: fileName, size: fileSize } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName && (/[ ]{2,}/.test(body.docName) || /[A-Za-z0-9  -]+$/.test(body.docName))) throw new Error("you have entered invalid name. please try again.")
+    if (body.docName && (/[ ]{2,}/.test(body.docName) || !/[A-Za-z0-9  -]+$/.test(body.docName))) throw new Error("you have entered invalid name. please try again.")
     if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {
       throw new Error(DOCUMENT_ROUTER.DOCUMENT_NAME_LENGTH(siteConstant.docNameLength));
     }
@@ -104,7 +104,7 @@ export async function createDoc(body: any, userId: string) {
       throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.name && (/[ ]{2,}/.test(body.name) || /[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+    if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
     if (body.name.length > configLimit.name) { // added config
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
@@ -520,7 +520,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_ADMIN);
     let obj: any = {};
     if (objBody.docName) {
-      if (objBody.docName && (/[ ]{2,}/.test(objBody.docName) || /[A-Za-z0-9  -]+$/.test(objBody.docName))) throw new Error("you have entered invalid name. please try again.")
+      if (objBody.docName && (/[ ]{2,}/.test(objBody.docName) || !/[A-Za-z0-9  -]+$/.test(objBody.docName))) throw new Error("you have entered invalid name. please try again.")
       if (objBody.docName.length > Number(siteConstants.docNameLength || configLimit.name)) throw new Error(`Document name should not exceed more than ${siteConstants.docNameLength} characters`);
       let data = await documents.findOne({ _id: { $ne: docId }, isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() }).exec()
       if (data) {

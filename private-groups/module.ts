@@ -20,7 +20,7 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
-        if (body.name && (/[ ]{2,}/.test(body.name) || /[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
         await validatePrivateMembersConstants(body);
         if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
         let existGroups = await privateGroupSchema.find({ name: body.name, createdBy: userObj._id, is_active: true })
@@ -38,7 +38,7 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         if (!groupDetails) throw new Error("Group Not Found.");
         if (groupDetails.createdBy != userId) throw new Error("Unauthorized Action.");
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.");
-        if (body.name && (/[ ]{2,}/.test(body.name) || /[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
         await validatePrivateMembersConstants(body);
         if (body)
             if (body.members) {
