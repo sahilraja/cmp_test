@@ -42,12 +42,15 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 }),
         getTasksByIds(subTaskIds, token)
     ])
+    const tagObjects = await tags.find({ _id: { $in: [...new Set(activities.reduce((main: any, curr: any) => [...main, ...(curr.tagsAdded || []), ...(curr.tagsRemoved || [])], []))] } }).exec()
     return activities.map((activity: any) => ({
         ...activity.toJSON(),
         subTask: subTasks.find((subTask: any) => subTask._id == activity.subTask),
         activityBy: usersInfo.find((user: any) => user._id == activity.activityBy),
         addedUserIds: usersInfo.filter((s: any) => (activity.addedUserIds || []).includes(s._id)),
         removedUserIds: usersInfo.filter((s: any) => (activity.removedUserIds || []).includes(s._id)),
+        tagsAdded: tagObjects.filter(({ id }: any) => (activity.tagsAdded || []).includes(id)),
+        tagsRemoved: tagObjects.filter(({ id }: any) => (activity.tagsRemoved || []).includes(id))
     })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 };
 
@@ -144,7 +147,7 @@ async function fetchProjectLogDetails(activity: any, token: string) {
             activityBy: userObj.find(({ _id }: any) => _id == activity.activityBy),
             addedDocIds: userObj.filter(({ _id }: any) => activity.addedDocIds.includes(_id)),
             removedUserIds: userObj.filter(({ _id }: any) => activity.removedUserIds.includes(_id)),
-            tasksId: activity.tasksId? await getTasksByIds(activity.tasksId, token) : []
+            tasksId: activity.tasksId ? await getTasksByIds(activity.tasksId, token) : []
         };
     } catch (err) {
         throw err
