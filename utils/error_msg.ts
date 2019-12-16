@@ -18,72 +18,73 @@ export const USER_ROUTER = {
     ROLE_NOT_FOUND: "Failed to fetch role and access details",
     CAPABILITIES_NOT_FOUND: "Failed to fetch access privileges",
     EMAIL_VERIFIED: "Email ID is already verified",
-    EMAIL_WRONG : "Given email id is invalid",
+    EMAIL_WRONG: "Given email id is invalid",
     GROUP_NOT_FOUND: "Please enter a valid group name",
     USER_ARRAY: "Users must be an Array.",
-    ABOUTME_LIMIT:"Aboutme shall not exceed {} characters",
-    SIMILAR_MOBILE:"Old mobile number and new mobile number is similar",
+    ABOUTME_LIMIT: "Aboutme shall not exceed {} characters",
+    SIMILAR_MOBILE: "Old mobile number and new mobile number is similar",
     INVALID_PASSWORD: "Given password is invalid",
     INVALID_OTP: "Given email otp is invalid",
-    INVALID_COUNTRYCODE:"Given country code is invalid",
+    INVALID_COUNTRYCODE: "Given country code is invalid",
     CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
-    ADD_NOTIFICATION_FAIL : "Failed to add template to notification",
-    BOTH_INVALID : "Mobile and email otps are invalid",
-    TOKEN_EXPIRED:"Verification link is expired. Please contact Admin",
-    TOKEN_EXPIRED_OTP:"OTP verification link is expired",
+    ADD_NOTIFICATION_FAIL: "Failed to add template to notification",
+    BOTH_INVALID: "Mobile and email otps are invalid",
+    TOKEN_EXPIRED: "Verification link is expired. Please contact Admin",
+    TOKEN_EXPIRED_OTP: "OTP verification link is expired",
     USER_EXIST: "User already registered.",
-    CONSTANT_INVALID:"Invalid constant value",
+    CONSTANT_INVALID: "Invalid constant value",
     RECAPTCHA_INVALID: "Failed captcha verification"
 };
 export const GROUP_ROUTER = {
     REMOVE_MEMBER: "Minimum one member is required.",
-    GROUP_NAME:"Group Name not Modified"
+    GROUP_NAME: "Group Name not Modified"
 }
 export const MOBILE_MESSAGES = {
-    VALID_MOBILE_OTP : "Please enter a valid mobileOtp",
-    SEND_OTP : "Mobile Otp send successfully",
+    VALID_MOBILE_OTP: "Please enter a valid mobileOtp",
+    SEND_OTP: "Mobile Otp send successfully",
     VALID_OTP: "Mobile otp is verified",
-    INVALID_OTP : "Mobile otp is invalid",
+    INVALID_OTP: "Mobile otp is invalid",
 }
 
 export const DOCUMENT_ROUTER = {
-    FILE_SIZE: (size: number)=> `File size can't exceed ${size} MB.`,
-    DOCUMENT_NAME_LENGTH: (nameLength: number)=> `Document name should not exceed more than ${nameLength} characters.`,
-    DOCUMENT_DESCRIPTION_LENGTH: (descriptionLenth: number)=> `Document description should not exceed more than ${descriptionLenth} characters.`,
-    DOCUMENT_NAME_UNIQUE: (name: string)=> `A document with name "${name}" already exists. Document name should be unique.`,
-    MANDATORY: "All mandatory fields are required",
-    CREATE_ROLE_FAIL: "Failed to create role",
-    CHILD_NOT_FOUND: "Couldn't find child document",
-    DOCID_NOT_VALID: "Document ID is invalid",
-    FILE_NOT_FOUND: "Document upload is mandatory",
-    INVALID_ADMIN: "You don't have permissions to perform this action",
-    NO_PERMISSION: "Unable to create document, Unauthorized",
+    FILE_SIZE: (size: number) => `File size shouldn't exceed ${size} MB.`,
+    DOCUMENT_NAME_LENGTH: (nameLength: number) => `Document name should not exceed more than ${nameLength} characters.`,
+    DOCUMENT_DESCRIPTION_LENGTH: (descriptionLenth: number) => `Document description should not exceed more than ${descriptionLenth} characters.`,
+    DOCUMENT_NAME_UNIQUE: (name: string) => `A document with name "${name}" already exists. Document name should be unique.`,
+    MANDATORY: "Please fill all mandatory fields.",
+    CREATE_ROLE_FAIL: "Something went wrong. Please try again.",
+    CHILD_NOT_FOUND: "Something went wrong. Please try again.",
+    DOCID_NOT_VALID: "Document ID is invalid.",
+    FILE_NOT_FOUND: "Document upload is mandatory.",
+    INVALID_ADMIN: "You don't have permissions to perform this action.",
+    INVALID_UPDATE_USER: "You don't have permissions to update this document.",
+    NO_PERMISSION: "You don't have permission to create a Document",
     NO_TAGS_PERMISSION: "Unable to create tags, Unauthorized",
     LIMIT_EXCEEDED: "Document name should not exceed more than 30 characters",
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
     NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized",
     DOC_ALREADY_EXIST: "A document with same name already exists",
-    VIEW_PUBLIC_DOCS_DENIED:"Unauthorized to view public documents",
-    UNPUBLISH_PUBLIC_DOCUMENT:`You can't unpublish a public document`,
+    VIEW_PUBLIC_DOCS_DENIED: "Unauthorized to view public documents",
+    UNPUBLISH_PUBLIC_DOCUMENT: `You can't unpublish a public document`,
     UNABLE_TO_MAKE_PUBLIC_DOCUMENT: `You can't mark unpublished document as public document`,
-    UNABLE_TO_CREATE: "Unable to create file or file missing",
+    UNABLE_TO_CREATE: "Document creation failed, please try again",
     ADD_TAG_PERMISSION: "You don't have permission to add tags.",
-    DOCUMENT_DELETED: "Document is deleted",
-    USER_HAVE_NO_ACCESS: "Unauthorized access.",
+    DOCUMENT_DELETED: (docName: any) => `Document ${docName} is deleted`,
+    USER_HAVE_NO_ACCESS: "You don't have permission to access this Document.",
     DOCUMENT_NOT_FOUND: "File not found.",
-    DOCUMENT_ID_NOT_FOUND: "Missing Doc ID",
-    DOCUMENTS_NOT_THERE: "Docs Not there",
+    DOCUMENT_ID_NOT_FOUND: "Something went wrong. Please try again.",
+    DOCUMENTS_NOT_THERE: "Something went wrong. Please try again.",
     SHARE_PUBLISHED_DOCUMENT: "Unauthorized action on published document.",
-    INVALID_OR_MISSING_DATA: "Missing fields or Invalid Data.",
+    INVALID_OR_MISSING_DATA: "Please fill all mandatory fields or Invalid Data.",
     INVALID_COLLABORATOR_ACTION: "You have Capability to give view access.",
-    INVALID_VIEWER_ACTION: "You dont have Capability any access.",
-    INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY: "You dont  have Capability to remove user.",
+    INVALID_VIEWER_ACTION: "You don't have Capability any access.",
+    INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY: "You don't have Capability to remove user.",
     PUBLISH_CAPABILITY: "Unauthorized Action."
 }
 
 export const COMMENT_ROUTER = {
-    MANDATORY: "All mandatory fields are required",
+    MANDATORY: "Please fill all mandatory fields",
 }
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",
@@ -100,10 +101,10 @@ export const MAIL_SUBJECT = {
 };
 
 export const PASSWORD = {
-    SPECIAL_CHAR:"Should be minimum captial letters count ",
-    NUMBERS_COUNT:"Should be minimum numbers count ",
-    SPECIAL_COUNT:"Should be minimum special characters count ",
-    TOTAL_LETTERS:"Should be minimum total characters count "
+    SPECIAL_CHAR: "Should be minimum captial letters count ",
+    NUMBERS_COUNT: "Should be minimum numbers count ",
+    SPECIAL_COUNT: "Should be minimum special characters count ",
+    TOTAL_LETTERS: "Should be minimum total characters count "
 }
 
 export const RESPONSE = {
@@ -112,27 +113,27 @@ export const RESPONSE = {
     INACTIVE: "inactive",
     ADD_MEMBER: "Group member added",
     REMOVE_MEMBER: "Group member removed",
-    UPDATE_PASSWORD : "succefully updated password",
-    REPLACE_USER : "successfully replaced.",
-    PROFILE_UPDATE : "successfully profile Updated",
-    SUCCESS_OTP : "Otp is sent successfully"
+    UPDATE_PASSWORD: "succefully updated password",
+    REPLACE_USER: "successfully replaced.",
+    PROFILE_UPDATE: "successfully profile Updated",
+    SUCCESS_OTP: "Otp is sent successfully"
 }
 export const SENDER_IDS = {
-    OTP : "CMPOTP",
-    FORGOT_OTP:"CMPOTP",
-    CHANGE_MOBILE_OTP:"CMPOTP",
+    OTP: "CMPOTP",
+    FORGOT_OTP: "CMPOTP",
+    CHANGE_MOBILE_OTP: "CMPOTP",
     CHANGE_EMAIL_OTP: "CMPOTP"
 }
 export const MOBILE_TEMPLATES = {
-    LOGIN : "Welcome to CMP",
+    LOGIN: "Welcome to CMP",
     STATE: "STATE",
-    SUGGEST_TAG_NOTIFICATION:"Suggest Tag Notification",
-    INVITE_FOR_DOCUMENT:"Invite for Document ",
+    SUGGEST_TAG_NOTIFICATION: "Suggest Tag Notification",
+    INVITE_FOR_DOCUMENT: "Invite for Document ",
     APPROVE_TAG_NOTIFICATION: "Approve tag notification",
     REJECT_TAG_NOTIFICATION: "Reject tag notification",
     INVALID_PASSWORD: "Invalid password",
-    CHANGE_EMAIL:"Change email",
-    DOCUMENT_STATE: (text: string)=> `Document ${text}`
+    CHANGE_EMAIL: "Change email",
+    DOCUMENT_STATE: (text: string) => `Document ${text}`
 }
 
 export const GLOBAL_SCOPE = "global";
@@ -146,10 +147,10 @@ export const ROLE_NOT_EXIST = "Role not Exist"
 export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 
 export const TASK_ERROR = {
-    UNAUTHORIZED_PERMISSION:`You don't have permission to access this`,
+    UNAUTHORIZED_PERMISSION: `You don't have permission to access this`,
     TASK_NAME_REQUIRED: `Name is mandatory for all tasks`,
     UNAUTHORIZED: `Unauthorized to create task`,
-    SUBTASK_UNAUTHORIZED : `Unauthorized to create subtask`,
+    SUBTASK_UNAUTHORIZED: `Unauthorized to create subtask`,
     ALL_MANDATORY: `Required all mandatory fields.`,
     CREATOR_CANT_BE_ASSIGNEE: `Creator cant be owner`,
     INVALID_ARRAY: `tags, approvers, viewers and supporters must be an Array.`,
@@ -159,12 +160,12 @@ export const TASK_ERROR = {
     APPROVERS_REQUIRED: `Approvers are required for compliance task`,
     DUPLICATE_APPROVERS_FOUND: `Duplicate approvers found`,
     DUPLICATE_ENDORSERS_FOUND: `Duplicate endorsers found`,
-    USER_NOT_PART_OF_PROJECT:`User not found in project members list`,
+    USER_NOT_PART_OF_PROJECT: `User not found in project members list`,
     WFM_CREATION_FAILED: `Fail to create WFM.`,
     INVALID_WFM_BY_USER: `Unauthorized to perform this action`,
-    INVALID_ACTION_PERFORMED : `Invalid action performed`,
+    INVALID_ACTION_PERFORMED: `Invalid action performed`,
     LINKING_SAME_TASK: `Should not add/link same task`,
-    PENDING_SUBTASKS_EXISTS : `All the subtasks to be completed first`,
+    PENDING_SUBTASKS_EXISTS: `All the subtasks to be completed first`,
     CANNOT_REMOVE_APPROVERS: `Some of the approvers or endorsers already approved the task, so they cant be removed`
 }
 
@@ -179,8 +180,8 @@ export const PROJECT_ROUTER = {
 
 export const COMPLIANCES = {
     REQUIRED_TASK: `task ID is required to create compliance`,
-    UNAUTHORIZED_TO_CREATE:`Unauthorized to create compliance`,
-    UNAUTHORIZED_TO_EDIT:`Unauthorized to edit compliance`
+    UNAUTHORIZED_TO_CREATE: `Unauthorized to create compliance`,
+    UNAUTHORIZED_TO_EDIT: `Unauthorized to edit compliance`
 }
 
 export const RISK = {
@@ -191,7 +192,7 @@ export const OPPORTUNITY = {
     UNAUTHORIZED_ACCESS: `Unauthorized to manage opportunity`
 }
 export const TEMPLATE = {
-    INVALID_TEMPLATE : "Invalid email template"
+    INVALID_TEMPLATE: "Invalid email template"
 }
 
 export const ACTIVITY_LOG = {
@@ -203,8 +204,8 @@ export const ACTIVITY_LOG = {
     ADDED_FUND_RELEASE: `ADDED_FUND_RELEASE`,
     ADDED_FUND_UTILIZATION: `ADDED_FUND_UTILIZATION`,
     UPDATED_FUND_RELEASE: `UPDATED_FUND_RELEASE`,
-    UPDATED_FUND_UTILIZATION:`UPDATED_FUND_UTILIZATION`,
-    UPDATED_CITIIS_GRANTS:`UPDATED_CITIIS_GRANTS`,
-    UPDATED_PROJECT_COST:`UPDATED_PROJECT_COST`,
-    REPLACE_USER:`REPLACE_USER`
+    UPDATED_FUND_UTILIZATION: `UPDATED_FUND_UTILIZATION`,
+    UPDATED_CITIIS_GRANTS: `UPDATED_CITIIS_GRANTS`,
+    UPDATED_PROJECT_COST: `UPDATED_PROJECT_COST`,
+    REPLACE_USER: `REPLACE_USER`
 }
