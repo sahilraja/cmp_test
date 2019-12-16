@@ -1,4 +1,4 @@
-import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES, GROUP_ROUTER, PASSWORD } from "../utils/error_msg";
+import { MISSING, USER_ROUTER, MAIL_SUBJECT, RESPONSE, INCORRECT_OTP, SENDER_IDS, MOBILE_MESSAGES, MOBILE_TEMPLATES, GROUP_ROUTER, PASSWORD, TASK_ERROR } from "../utils/error_msg";
 import { nodemail } from "../utils/email";
 import { inviteUserForm, forgotPasswordForm, userLoginForm, userState, profileOtp } from "../utils/email_template";
 import { jwt_create, jwt_Verify, jwt_for_url, hashPassword, comparePassword, generateOtp, jwtOtpToken, jwtOtpVerify, mobileSendOtp, mobileVerifyOtp, mobileSendMessage, generatemobileOtp } from "../utils/utils";
@@ -41,6 +41,10 @@ const MESSAGE_URL = process.env.MESSAGE_URL
 const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YRebYOkT";
 
 export async function bulkInvite(filePath: string, user: any) {
+    const isEligible = await checkRoleScope(user.role, `bulk-invite`)
+    if(!isEligible){
+        throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
+    }
     let constantsList: any = await constantSchema.findOne({ key: 'bulkInvite' }).exec();
     if (constantsList.value == "true") {
         const excelFormattedData = importExcelAndFormatData(filePath)
@@ -74,7 +78,7 @@ export async function bulkInvite(filePath: string, user: any) {
                 throw new APIError(`${role.email} is invalid`)
             }
         })
-        await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, user)))
+        await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, user._id)))
         return { message: 'success' }
     }
 }
@@ -296,7 +300,7 @@ function manualPaginationForUserList(page: number, limit: number, docs: any[]) {
 export async function getUserDetail(userId: string, user?: any) {
     try {
         if (user && (user._id != userId)) {
-            let admin_scope = await checkRoleScope(user.role, "create-user");
+            let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
@@ -1408,5 +1412,14 @@ export async function changeMobileByAdmin(admin: any, objBody: any, id: string) 
     let { mobileOtp, smsToken } = await generatemobileOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
     sendNotification({ id: admin._id, email: user.email, mobileNo, otp, mobileOtp, templateName: "changeMobileOTP", mobileTemplateName: "sendOtp" });
     await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
-    return { message: RESPONSE.SUCCESS_OTP }
+    return { message: "Otp is sent successfully" }
+}
+
+export async function updateTaskEndorser(userId: string, taskId: string, userToken: string) {
+    return await httpRequest({
+        url: `${TASKS_URL}/task/update?task=${taskId}`,
+        body: { $push: { otpVerifiedEndorsers: userId  } },
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${userToken}` }
+    })
 }

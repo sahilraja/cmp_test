@@ -908,6 +908,10 @@ export function importExcelAndFormatData(filePath: string) {
 
 export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any) {
   const roleData: any = await role_list()
+  const isEligible = await checkRoleScope(userObj.role, `upload-task-excel`)
+  if(!isEligible){
+    throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
+  }
   const roleNames = roleData.roles.map((role: any) => role.roleName)
   const excelFormattedData = importExcelAndFormatData(filePath)
   if (!excelFormattedData.length) {
