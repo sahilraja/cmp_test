@@ -60,6 +60,16 @@ esClient.ping({
     console.log('All is well');
   }
 });
+
+export async function createIndex(){
+    return await esClient.indices.create({index: 'documents'});   
+   
+}
+
+export async function removeIndex(){
+  return await esClient.indices.delete({index: 'documents'});   
+ 
+}
 export async function createNewDoc(body: any, userId: any, siteConstant: any, host: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
@@ -118,7 +128,6 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
     let tags = await getTags((body.tags && body.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
     tags = tags.map((tagData: any) => { return tagData.tag })
     let docObj = {
-      type: 'private',
       accessedBy: [userId],
       userName: [userName],
       name: body.docName,
@@ -127,7 +136,8 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       thumbnail: thumbnail,
       status: doc.status,
       fileName: doc.fileName,
-      updatedAt: doc.updatedAt
+      updatedAt: doc.updatedAt,
+      id: doc.id
     }
     let result = await esClient.index({
       index: "documents",
@@ -232,10 +242,6 @@ async function docData(docData: any, host: string) {
 //  Get My Documents
 export async function getDocListOfMe(userId: string, page: number = 1, limit: number = 30, host: string) {
   try {
-
-    // let added = await esClient.indices.create({index: 'documents'});   
-    // console.log(added);
-
     let folderList = await folders.find({ ownerId: userId, isDeleted: false }, { _id: 0, doc_id: 1 })
     let folder_files = folderList.map(({ doc_id }: any) => doc_id)
     var merged = [].concat.apply([], folder_files);
@@ -2399,12 +2405,14 @@ export async function searchDoc(search: string, userId: string) {
         }
       }
     }
-    let searchdoc = await esClient.search({
+
+    let searchdoc:any = await esClient.search({
       index: "documents",
       body: data
     });
     console.log(searchdoc);
-    return searchdoc.hits.hits
+    let seachResult = searchdoc.hits.hits.map((doc:any)=>{return doc._source})
+    return seachResult
   } catch (error) {
     console.error(error);
     throw error;

@@ -67,7 +67,8 @@ import {
   markDocumentAsUnPublic,
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
-  searchDoc,updateUserInDOcs
+  searchDoc,updateUserInDOcs,
+  createIndex,removeIndex
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -841,6 +842,22 @@ router.get("/search/doc", authenticate, async (req, res, next: NextFunction) => 
 router.post("/update/userDocs", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await updateUserInDOcs(req.body, res.locals.user._id));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/create/index", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await createIndex())
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.post("/remove/index", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await removeIndex())
   } catch (err) {
     next(new APIError(err.message));
   }
