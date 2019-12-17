@@ -479,6 +479,15 @@ router.post("/otp/verify/admin/:id", authenticate, async (req, res, next) => {
     }
 })
 
+router.post("/setPassword/admin/:id", authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await setPasswordByAdmin(res.locals.user, req.body, req.params.id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
 router.post("/otp/verify/user", authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await verificationOtpByUser(req.body, res.locals.user));

@@ -233,7 +233,7 @@ async function docData(docData: any, host: string) {
       ...docData.toJSON(),
       tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       role: (((await userRoleAndScope(docData.ownerId)) as any).data || [""])[0],
-      owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1 }),
+      owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }),
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A"
     };
   } catch (err) {
