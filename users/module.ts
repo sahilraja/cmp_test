@@ -1292,14 +1292,14 @@ export async function changeOldPassword(body: any, userObj: any) {
         let admin_scope = await checkRoleScope(userObj.role, "bypass-otp");
         if (admin_scope) {
             await changePasswordInfo({ password: body.new_password }, userObj._id);
-            return { message: "Password updated successfully." }
+            return { message: "Password updated successfully.", bypass_otp: true }
         }
         let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
         let { otp, token } = await generateOtp(4, { password: body.password });
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.new_password });
         sendNotification({ id: userObj._id, email: userObj.email, mobileNo, otp, mobileOtp, templateName: "changePasswordOTP", mobileTemplateName: "sendOtp" });
         await userUpdate({ id: userObj._id, otp_token: token, smsOtpToken: smsToken });
-        return { message: "Otp is sent successfully" }
+        return { message: "Otp is sent successfully", bypass_otp: false }
     } catch (err) {
         throw err
     };
