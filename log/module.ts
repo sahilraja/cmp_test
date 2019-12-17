@@ -109,7 +109,7 @@ async function profileFetchDetails(activity: any) {
         return {
             ...activity,
             activityBy: userObj.find((users: any) => activity.activityBy == users._id),
-            profileId: (activity.profileId) ? userObj.find((users: any) => activity.profileId == users._id) : ""
+            profileId: (activity.profileId) ? {firstName:'', lastName:'', middleName:'', email:'' ,...userObj.find((users: any) => activity.profileId == users._id)} : ""
         }
     } catch (err) {
         throw err;
