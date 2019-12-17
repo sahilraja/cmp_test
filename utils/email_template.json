@@ -256,5 +256,11 @@
         "templateName" : "changePasswordOTP",
         "displayName" : "change password otp",
         "subject" : "OTP to update password"
+    },
+    {
+        "content" : "Hi <b>[fullName]</b>, <br/><br/>You Registration is successful.<br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team.",
+        "templateName" : "registrationSuccess",
+        "displayName" : "Registration Success",
+        "subject" : "Registration Success !!"
     }
 ]
