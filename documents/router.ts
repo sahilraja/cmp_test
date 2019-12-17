@@ -68,8 +68,7 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc,updateUserInDOcs,
-  createIndex,removeIndex,
-  searchAllCmpDoc
+  createIndex,removeIndex
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -834,7 +833,7 @@ router.put("/folder/rename/:folderId", authenticate, async (req, res, next: Next
 
 router.get("/search/doc", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await searchDoc(req.query.search, res.locals.user._id));
+    res.status(200).send(await searchDoc(req.query.search, res.locals.user._id,req.query.page, req.query.limit,req.query.pagination));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -859,14 +858,6 @@ router.post("/create/index", authenticate, async (req, res, next: NextFunction) 
 router.post("/remove/index", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await removeIndex(req.body.index))
-  } catch (err) {
-    next(new APIError(err.message));
-  }
-});
-
-router.get("/search/allcmp/doc", authenticate, async (req, res, next: NextFunction) => {
-  try {
-    res.status(200).send(await searchAllCmpDoc(req.query.search, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

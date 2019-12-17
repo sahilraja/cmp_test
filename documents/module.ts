@@ -471,7 +471,7 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
     docList.suggestTagsToRemove = usersDataForRemoveTag
     docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
-      docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone:1, countryCode:1, is_active: 1 });
+      docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 });
     docList.taskDetails = await getTasksForDocument(docList.parentId || docList._id, token)
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return docList;
@@ -1030,7 +1030,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
         if (doc.ownerId != user._id) {
           addUsers.push({ id: user._id, type: user.type, role: role })
           userIds.push(user._id);
-          let userDetails: any = await userFindOne("id", user._id, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone:1, countryCode:1, is_active: 1 })
+          let userDetails: any = await userFindOne("id", user._id, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
           if (role == "collaborator")
             userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
           return await invite(user, docId, role, doc)
@@ -1088,7 +1088,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
 
-    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone:1, countryCode:1, is_active: 1 })
+    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
@@ -1133,7 +1133,7 @@ export async function invitePeopleList(docId: string) {
     if (userGroup.user) {
       var userData: any = await userList(
         { _id: { $in: userGroup.user }, is_active: true },
-        { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1, countryCode:1 }
+        { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1, countryCode: 1 }
       );
       userData = await Promise.all(
         userData.map(async (user: any) => {
@@ -1334,7 +1334,7 @@ export async function publishList(userId: string, page: number = 1, limit: numbe
 export async function docFilter(search: string, userId: string, page: number = 1, limit: number = 30, host: string, publish: boolean = true) {
   search = search.trim();
   try {
-    let users: any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1, phone:1, countryCode: 1 })
+    let users: any = await getNamePatternMatch(search, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1, phone: 1, countryCode: 1 })
     let userIds = users.map((user: any) => user._id)
     let collaboratedDocsIds: any = (await Promise.all(userIds.map((userId: string) => GetDocIdsForUser(userId, "user", ["collaborator"])))).reduce((main: any, curr) => main.concat(curr), [])
     let [collaboratorDocs, searchGroupIds, groups, tags]: any = await Promise.all([
@@ -1534,7 +1534,7 @@ async function userData(folder: any, host: string) {
       // getTags(folder.doc_id.tags),
       getTags((folder.doc_id.tags && folder.doc_id.tags.length) ? folder.doc_id.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       userRoleAndScope(folder.doc_id.ownerId),
-      userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone:1, countryCode:1, is_active: 1 })
+      userFindOne("id", folder.doc_id.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     ])
     const data = await Promise.all([{
       _id: folder.doc_id._id,
@@ -1817,7 +1817,7 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
     if (!docData) throw new Error("Doc not found");
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
-    let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone:1, countryCode:1, is_active: 1 })
+    let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => userId == user._id)
@@ -1857,7 +1857,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
-    let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone:1, countryCode:1, is_active: 1 })
+    let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
@@ -1965,7 +1965,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error("DocId is Invalid") }
-    let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone:1, countryCode:1, is_active: 1 })
+    let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
@@ -2416,43 +2416,46 @@ export async function renameFolder(folderId: string, body: any, userId: string) 
     throw error;
   }
 }
-export async function searchDoc(search: string, userId: string) {
+export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true) {
   try {
-    let data = {
-      query: {
-        bool: {
-          "should": [
-            {
-              "bool": {
-                "must": [
-                  {
-                    multi_match: {
-                      "query": search,
-                      "fields": ['name', 'description', 'userName', 'tags', 'type']
-                    }
-                  },
-                  {
-                    multi_match: {
-                      "query": `${userId} 2`,
-                      "fields": ['accessedBy', 'status']
-                      // accessedBy: userId,
-                    }
-                  }
-                ]
-              }
-            }
-          ]
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    let data: any;
+    const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
+    if (!isEligible) {
+      data = {
+        query: {
+          bool: {
+            "should": [
+              {
+                "bool": {
+                  "must": [
+                    { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'] } },
+                    { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } }
+                  ]
+                }
+              }]
+          }
+        }
+      }
+    } else {
+      data = {
+        query: {
+          multi_match: {
+            "query": search,
+            "fields": ['name', 'description', 'userName', 'tags', 'type']
+          }
         }
       }
     }
-
     let searchdoc: any = await esClient.search({
       index: "documents",
       body: data
     });
     console.log(searchdoc);
-    let seachResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
-    return seachResult
+    let searchResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
+    if (pagination == true) return manualPagination(page, limit, searchResult);
+    else return { docs: searchResult };
   } catch (error) {
     console.error(error);
     throw error;
@@ -2478,7 +2481,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
         userNames: await Promise.all([...user.collaboratorIds, ...user.ownerIds].map(async (eachuser: any) => {
           let userId = eachuser.split('/')[1]
           let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-          if(userDetails){
+          if (userDetails) {
             if (userDetails.firstName)
               return `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
             else
@@ -2584,32 +2587,3 @@ async function checkDocIdExistsInEs(docId: string) {
   }
 }
 
-export async function searchAllCmpDoc(search: string, userId: string) {
-  try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
-    if (!isEligible) {
-      throw new APIError("Unauthorized access", 403);
-    }
-    let data = {
-      query: {
-        multi_match: {
-          "query": search,
-          "fields": ['name', 'description', 'userName', 'tags', 'type']
-        }
-      }
-    }
-
-    let searchdoc: any = await esClient.search({
-      index: "documents",
-      body: data
-    });
-    console.log(searchdoc);
-    let seachResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
-    return seachResult
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-}
