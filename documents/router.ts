@@ -68,7 +68,8 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc,updateUserInDOcs,
-  createIndex,removeIndex
+  createIndex,removeIndex,
+  searchAllCmpDoc
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -858,6 +859,14 @@ router.post("/create/index", authenticate, async (req, res, next: NextFunction) 
 router.post("/remove/index", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await removeIndex(req.body.index))
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.get("/search/allcmp/doc", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await searchAllCmpDoc(req.query.search, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }

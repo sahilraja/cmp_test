@@ -61,14 +61,14 @@ esClient.ping({
   }
 });
 
-export async function createIndex(index:string){
-    return await esClient.indices.create({index: index});   
-   
+export async function createIndex(index: string) {
+  return await esClient.indices.create({ index: index });
+
 }
 
-export async function removeIndex(index:string){
-  return await esClient.indices.delete({index: index});   
- 
+export async function removeIndex(index: string) {
+  return await esClient.indices.delete({ index: index });
+
 }
 export async function createNewDoc(body: any, userId: any, siteConstant: any, host: string) {
   try {
@@ -554,7 +554,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       fileName: parent.fileName
     })
     let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
+    if (isDocExists) {
       let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
       let tagNames = tags.map((tag: any) => { return tag.tag })
       let updatedData = await esClient.update({
@@ -566,7 +566,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
             "lang": "painless",
             "params": {
               "tags": tagNames,
-              "name":parent.name,
+              "name": parent.name,
               "description": parent.description,
               "fileName": parent.fileName
             }
@@ -665,7 +665,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       }
     }
     let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
+    if (isDocExists) {
       let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
       let tagNames = tags.map((tag: any) => { return tag.tag })
       let updatedData = await esClient.update({
@@ -677,7 +677,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
             "lang": "painless",
             "params": {
               "tags": tagNames,
-              "name":parent.name,
+              "name": parent.name,
               "description": parent.description,
               "fileName": parent.fileName
             }
@@ -1035,22 +1035,22 @@ export async function invitePeople(docId: string, users: any, role: string, user
       })
     );
     let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
-    let updatedData = await esClient.update({
-      index: "documents",
-      id: docId,
-      body: {
-        "script": {
-          "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
-          "lang": "painless",
-          "params": {
-            "userId": userIds,
-            "userNames": userNames
+    if (isDocExists) {
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+            "lang": "painless",
+            "params": {
+              "userId": userIds,
+              "userNames": userNames
+            }
           }
         }
-      }
-    })
-  }
+      })
+    }
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     mailAllCmpUsers("invitePeopleDoc", doc, false, addUsers)
     return { message: "Shared successfully." };
@@ -1088,23 +1088,23 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
     let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
-    let updatedData = await esClient.update({
-      index: "documents",
-      id: docId,
-      body: {
-        "script": {
-          "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
-          // "source": "ctx._source.accessedBy.remove(params.accessedBy)",
-          "lang": "painless",
-          "params": {
-            "accessedBy": userId,
-            "userName": userName
+    if (isDocExists) {
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
+            // "source": "ctx._source.accessedBy.remove(params.accessedBy)",
+            "lang": "painless",
+            "params": {
+              "accessedBy": userId,
+              "userName": userName
+            }
           }
         }
-      }
-    })
-  }
+      })
+    }
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
@@ -1206,21 +1206,21 @@ export async function published(body: any, docId: string, userObj: any, withAuth
     let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc)
     mailAllCmpUsers("publishDocument", publishedDoc)
     let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
-    let updatedData = await esClient.update({
-      index: "documents",
-      id: docId,
-      body: {
-        "script": {
-          "source": "ctx._source.status=(params.status)",
-          "lang": "painless",
-          "params": {
-            "status": STATUS.PUBLISHED,
+    if (isDocExists) {
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.status=(params.status)",
+            "lang": "painless",
+            "params": {
+              "status": STATUS.PUBLISHED,
+            }
           }
         }
-      }
-    })
-  }
+      })
+    }
     return publishedDoc
   } catch (err) {
     throw err;
@@ -1262,21 +1262,21 @@ export async function unPublished(docId: string, userObj: any) {
     let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
     await create({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
     let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
-    let updatedData = await esClient.update({
-      index: "documents",
-      id: docId,
-      body: {
-        "script": {
-          "source": "ctx._source.status=(params.status)",
-          "lang": "painless",
-          "params": {
-            "status": STATUS.UNPUBLISHED,
+    if (isDocExists) {
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.status=(params.status)",
+            "lang": "painless",
+            "params": {
+              "status": STATUS.UNPUBLISHED,
+            }
           }
         }
-      }
-    })
-  }
+      })
+    }
     mailAllCmpUsers("unPublishDocument", success)
     return success
   } catch (err) {
@@ -1618,12 +1618,12 @@ export async function deleteDoc(docId: any, userId: string) {
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
     await create({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
     let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
-    let deleted =await esClient.delete({
-      index: 'documents',
-      id: docId,
-    })
-  }
+    if (isDocExists) {
+      let deleted = await esClient.delete({
+        index: 'documents',
+        id: docId,
+      })
+    }
     if (deletedDoc) {
       return {
         success: true,
@@ -1872,21 +1872,21 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let tags: any = await getTags([body.tagIdToAdd])
       let tagNames = tags.map((tag: any) => { return tag.tag })
       let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
-      let updatedData = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.tags.addAll(params.tags)",
-            "lang": "painless",
-            "params": {
-              "tags": tagNames,
+      if (isDocExists) {
+        let updatedData = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "source": "ctx._source.tags.addAll(params.tags)",
+              "lang": "painless",
+              "params": {
+                "tags": tagNames,
+              }
             }
           }
-        }
-      })
-    }
+        })
+      }
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
         sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
@@ -1918,22 +1918,22 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let tags: any = await getTags([body.tagIdToRemove])
       let tagNames = tags[0].tag
       let isDocExists = await checkDocIdExistsInEs(docId)
-    if(isDocExists){
-      let updatedData = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "inline": "ctx._source.tags.remove(ctx._source.tags.indexOf(params.tags))",
-            // "source": "ctx._source.tags.addAll(params.tags)",
-            "lang": "painless",
-            "params": {
-              "tags": tagNames,
+      if (isDocExists) {
+        let updatedData = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "inline": "ctx._source.tags.remove(ctx._source.tags.indexOf(params.tags))",
+              // "source": "ctx._source.tags.addAll(params.tags)",
+              "lang": "painless",
+              "params": {
+                "tags": tagNames,
+              }
             }
           }
-        }
-      })
-    }
+        })
+      }
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
         sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
@@ -2421,7 +2421,7 @@ export async function searchDoc(search: string, userId: string) {
                   },
                   {
                     multi_match: {
-                      "query": `${userId} 2`, 
+                      "query": `${userId} 2`,
                       "fields": ['accessedBy', 'status']
                       // accessedBy: userId,
                     }
@@ -2434,12 +2434,12 @@ export async function searchDoc(search: string, userId: string) {
       }
     }
 
-    let searchdoc:any = await esClient.search({
+    let searchdoc: any = await esClient.search({
       index: "documents",
       body: data
     });
     console.log(searchdoc);
-    let seachResult = searchdoc.hits.hits.map((doc:any)=>{return doc._source})
+    let seachResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
     return seachResult
   } catch (error) {
     console.error(error);
@@ -2554,18 +2554,48 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
   }
 }
 
-async function checkDocIdExistsInEs(docId:string){
+async function checkDocIdExistsInEs(docId: string) {
   let checkDoc: any = await esClient.search({
     index: 'documents',
     body: {
       query: {
-        "match": {id:docId}
+        "match": { id: docId }
       }
     }
   })
-  if(checkDoc.hits.hits.length){
+  if (checkDoc.hits.hits.length) {
     return true
-  }else{
-    false
+  } else {
+    return false
+  }
+}
+
+export async function searchAllCmpDoc(search: string, userId: string) {
+  try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
+    if (!isEligible) {
+      throw new APIError("Unauthorized access", 403);
+    }
+    let data = {
+      query: {
+        multi_match: {
+          "query": search,
+          "fields": ['name', 'description', 'userName', 'tags', 'type']
+        }
+      }
+    }
+
+    let searchdoc: any = await esClient.search({
+      index: "documents",
+      body: data
+    });
+    console.log(searchdoc);
+    let seachResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
+    return seachResult
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }
