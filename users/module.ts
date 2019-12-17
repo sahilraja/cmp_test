@@ -242,15 +242,15 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 userRole.push(role)
             }));
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
-            // sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
+            sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
         }
 
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
-        // if (objBody.aboutme) {
-        //     if (objBody.aboutme.length > Number(constantsList.value)) {
-        //         throw new Error(USER_ROUTER.ABOUTME_LIMIT);
-        //     }
-        // };
+        if (objBody.aboutme) {
+            if (objBody.aboutme.length > Number(constantsList.value)) {
+                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+            }
+        };
         if (objBody.name) {
             objBody.profilePicName = objBody.name
             delete objBody.name;
