@@ -165,6 +165,6 @@
         "value": "true",
         "type": "boolean",
         "groupName": "userManagement",
-        "displayName": "Replace Profile Permission"
+        "displayName": "User Profile Edit Permission"
     }
 ]
