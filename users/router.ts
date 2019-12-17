@@ -1,5 +1,5 @@
 import { Router, Request, Response, Handler } from "express";
-import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, setNewPasswordInfo, changeOldPasswordInfo, changeOldPassword, sendOtpByAdmin, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser, userLogout } from "./module";
+import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, changeOldPassword, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser, userLogout, updateTaskEndorser, formateRoles } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -50,7 +50,7 @@ router.post('/create', authenticate, async (req: Request, res: Response, next: N
 
 router.post(`/bulk-invite`, authenticate, upload.single('upfile'), async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await bulkInvite(req.file.path, res.locals.user._id));
+        res.status(200).send(await bulkInvite(req.file.path, res.locals.user));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -138,9 +138,10 @@ router.post('/email/login', ipMiddleware, async (req: Request, res: Response, ne
     };
 });
 
-router.post("/email/logout", ipMiddleware, authenticate, async (req: Request, res: Response, next: NextFunction) => {
+router.post("/email/logout", ipMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await userLogout(req, res.locals.user))
+        if(!req.query.userId) throw new Error("required userId")
+        res.status(200).send(await userLogout(req, req.query.userId))
     } catch (err) {
         next(new APIError(err.message))
     }
@@ -424,7 +425,7 @@ router.get('/validation/:token', async (req, res, next) => {
 router.post('/:id/admin/profile/edit', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        let admin_scope = await checkRoleScope(res.locals.user.role, "create-user");
+        let admin_scope = await checkRoleScope(res.locals.user.role, "edit-user-profile");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let payload: any
         const contentType: any = req.get('content-type');
@@ -460,16 +461,9 @@ router.get("/task-endorse/send-otp", authenticate, async (req, res, next) => {
 
 router.post("/task-endorse/verify-otp", authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await mobileVerifyOtp(req.body.phone, req.body.otp, res.locals.user._id));
-    }
-    catch (error) {
-        next(new APIError(error.message));
-    }
-})
-
-router.post("/setPassword/admin/:id", authenticate, async (req, res, next) => {
-    try {
-        res.status(OK).send(await setPasswordByAdmin(res.locals.user, req.body, req.params.id));
+        const verifiedToken = await mobileVerifyOtp(req.body.phone, req.body.otp,res.locals.user._id)
+        await updateTaskEndorser(res.locals.user._id, req.query.task, (req as  any).token)
+        res.status(OK).send(verifiedToken);
     }
     catch (error) {
         next(new APIError(error.message));
@@ -479,6 +473,15 @@ router.post("/setPassword/admin/:id", authenticate, async (req, res, next) => {
 router.post("/otp/verify/admin/:id", authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await verifyOtpByAdmin(res.locals.user, req.body, req.params.id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/setPassword/admin/:id", authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await setPasswordByAdmin(res.locals.user, req.body, req.params.id));
     }
     catch (error) {
         next(new APIError(error.message));
@@ -505,6 +508,15 @@ router.post("/changeEmail/admin/:id", authenticate, async (req, res, next) => {
 router.post("/changeMobile/admin/:id", authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await changeMobileByAdmin(res.locals.user, req.body, req.params.id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/role-formate", authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await formateRoles(req.body.roles));
     }
     catch (error) {
         next(new APIError(error.message));

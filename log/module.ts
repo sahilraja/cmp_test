@@ -39,7 +39,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         ], []).filter((v: string) => v)
     const subTaskIds = activities.map((activity: any) => activity.subTask).filter(v => !!v)
     const [usersInfo, subTasks] = await Promise.all([
-        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 }),
+        userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 }),
         getTasksByIds(subTaskIds, token)
     ])
     const tagObjects = await tags.find({ _id: { $in: [...new Set(activities.reduce((main: any, curr: any) => [...main, ...(curr.tagsAdded || []), ...(curr.tagsRemoved || [])], []))] } }).exec()
@@ -74,7 +74,7 @@ async function activityFetchDetails(activity: any) {
     const userIds = userObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
     const groupIds = groupObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
     let groupsData = await groupPatternMatch({}, {}, { "_id": groupIds }, {})
-    let usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1 });
+    let usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 });
     usersData = groupsData.concat(usersData)
     const tagIds = (activity.tagsAdded || []).concat(activity.tagsRemoved || [])
     const tagsData = await tags.find({ _id: { $in: tagIds } })
@@ -131,23 +131,24 @@ export async function getMergedLogs() {
 export async function projectLogs(projectId: string, token: string) {
     try {
         const activities: any[] = await ActivitySchema.find({ projectId }).populate({ path: 'projectId' }).exec()
+        let taskObjects: any[] = await getTasksByIds([...new Set((activities.reduce((main, curr)=> main.concat([curr.taskId]), [])).filter((id: string) => Types.ObjectId(id)))] as any, token)
         return await Promise.all(activities.map((activity: any) => {
-            return fetchProjectLogDetails(activity.toJSON(), token)
+            return fetchProjectLogDetails(activity.toJSON(), taskObjects)
         }))
     } catch (err) {
         throw err
     };
 }
 
-async function fetchProjectLogDetails(activity: any, token: string) {
+async function fetchProjectLogDetails(activity: any, taskObjects: any[]) {
     try {
-        let userObj = await userFindMany("_id", [activity.activityBy, activity.addedDocIds, activity.removedUserIds])
+        let userObj = await userFindMany("_id", [activity.activityBy, ...(activity.addedUserIds || []), ...(activity.removedUserIds || [])])
         return {
             ...activity,
             activityBy: userObj.find(({ _id }: any) => _id == activity.activityBy),
-            addedDocIds: userObj.filter(({ _id }: any) => activity.addedDocIds.includes(_id)),
-            removedUserIds: userObj.filter(({ _id }: any) => activity.removedUserIds.includes(_id)),
-            tasksId: activity.tasksId ? await getTasksByIds(activity.tasksId, token) : []
+            addedUserIds: userObj.filter(({ _id }: any) => (activity.addedUserIds || []).includes(_id)),
+            removedUserIds: userObj.filter(({ _id }: any) => (activity.removedUserIds || []).includes(_id)),
+            taskId: taskObjects.find(({_id}: any)=> activity.taskId == _id)
         };
     } catch (err) {
         throw err

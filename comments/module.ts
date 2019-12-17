@@ -27,7 +27,7 @@ export async function addComment(body: any, user: any) {
       user_id: user._id
     });
     if (body.type == "document" && doc.status != 2) {
-      await create({ activityType: `DOUCMENT_COMMENT`, activityBy: user._id, documentId: body.entity_id })
+      await create({ activityType: `DOCUMENT_COMMENT`, activityBy: user._id, documentId: body.entity_id })
       const { fullName, mobileNo } = getFullNameAndMobile(user);
       sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileTemplateName: "addCommentToDoc" });
     }
@@ -63,7 +63,7 @@ async function commentData(commentData: any) {
       type: commentData.type,
       createdAt: commentData.createdAt,
       role: (((await userRoleAndScope(commentData.user_id)) as any).data || [""])[0],
-      user: await userFindOne("id", commentData.user_id, { firstName: 1, middleName: 1, lastName: 1, email: 1 }
+      user: await userFindOne("id", commentData.user_id, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }
       )
     }])
     return data[0]

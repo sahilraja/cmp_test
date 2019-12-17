@@ -52,6 +52,8 @@ export async function edit(id: string, updates: any, userObj: any) {
 
 export async function riskSaveAll(projectId: string, updateObjs: any[], userObj: any): Promise<{ message: string }> {
     try {
+        const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
+        if (!isEligible) throw new APIError(RISK.UNAUTHORIZED_ACCESS)
         await Promise.all(updateObjs.map((riskObj) => saveaAll(riskObj, projectId, userObj)))
         return { message: "successfully save all risks" }
     } catch (err) {
@@ -64,6 +66,12 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
         if ("_id" in riskObj || "id" in riskObj) {
             const oldObject: any = await RiskSchema.findById(riskObj._id || riskObj.id).exec();
             if (Object.keys(riskObj).some(key => riskObj[key] != oldObject[key])) {
+                if (!riskObj.riskTrend && riskObj.riskTrend != 0) {
+                    riskObj.riskTrend = 0
+                } else {
+                    let lastUpdatedObj: any = (await RiskSchema.find({ parentId: riskObj._id || riskObj.id })).pop()
+                    riskObj.riskTrend = Math.abs((lastUpdatedObj.impact || 0) * (lastUpdatedObj.probability || 0) - (riskObj.impact || 0) * (riskObj.probability || 0))
+                }
                 if (Object.keys(riskObj).includes('impact'))
                     if (oldObject.impact != riskObj.impact)
                         riskObj['previousTrend'] = oldObject.impact * oldObject.probability;
