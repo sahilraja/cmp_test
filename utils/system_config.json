@@ -1,170 +1,170 @@
 [
     {
-        "key" :"captcha",
-        "value" : "true" ,
-        "groupName" : "authentication",
-        "type" : "boolean",
-        "displayName" : "Enable/Disable Captcha"
+        "key": "captcha",
+        "value": "true",
+        "groupName": "authentication",
+        "type": "boolean",
+        "displayName": "Enable/Disable Captcha"
     },
     {
-        "key" :"invalidPassword",
-        "value" : "true" ,
-        "type" : "boolean",
-        "groupName" : "authentication",
-        "displayName" : "Enable/Disable wrong password "
+        "key": "invalidPassword",
+        "value": "true",
+        "type": "boolean",
+        "groupName": "authentication",
+        "displayName": "Enable/Disable wrong password "
     },
     {
-        "key" :"linkExpire",
-        "value" : "15" ,
-        "type" : "number",
-        "groupName" : "authentication",
-        "displayName" : "Link expire time"
-    },
-    {
-        "key" :"otpExpire",
-        "value" : "15" ,
-        "type" : "number",
-        "groupName" : "authentication",
-        "displayName" : "OTP expire time"
-    },
-    {
-        "key" :"bulkInvite",
-        "value" : "true" ,
-        "type" : "boolean",
-        "groupName" : "userManagement",
-        "displayName" : "Enable/Disable bulk invitation"
-    },
-    {
-        "key" :"passwordLength",
-        "value" : "8" ,
-        "type" : "number",
-        "groupName" : "password",
-        "displayName" : "Password Length"
-    },
-    {
-        "key" :"specialCharCount",
-        "value" : "1" ,
-        "type" : "number",
-        "groupName" : "password",
-        "displayName" : "Special characters count"
-    },
-    {
-        "key" :"numCount",
-        "value" : "1" ,
-        "type" : "number",
-        "groupName" : "password",
-        "displayName" : "Numbers count"
-    },
-    {
-        "key" :"upperCaseCount",
-        "value" : "1" ,
-        "type" : "number",
-        "groupName" : "password",
-        "displayName" : "Numbers count"
-    },
-    {
-        "key" :"aboutMe",
-        "value" : "200" ,
-        "type" : "number",
-        "groupName" : "userManagement",
-        "displayName" : "aboutMe"
-    },
-    {
-        "key" :"docNameLength",
-        "value" : "50" ,
-        "type" : "number",
-        "groupName" : "documents",
-        "displayName" : "Document Name Length"
-    },
-    {
-        "key" :"docSize",
-        "value" : "25" ,
+        "key": "linkExpire",
+        "value": "15",
         "type": "number",
-        "groupName" : "documents",
-        "displayName" : "Document size"
+        "groupName": "authentication",
+        "displayName": "Link expire time ( in minutes )"
     },
     {
-        "key" :"docDescriptionSize",
-        "value" : "200" ,
+        "key": "otpExpire",
+        "value": "15",
         "type": "number",
-        "groupName" : "documents",
-        "displayName" : "Document description Size"
+        "groupName": "authentication",
+        "displayName": "OTP expire time ( in minutes )"
     },
     {
-        "key" :"messageSubjectLength",
-        "value" : "30" ,
-        "type":"number",
-        "groupName" : "messsages",
-        "displayName" : "Message subject Length"
+        "key": "bulkInvite",
+        "value": "true",
+        "type": "boolean",
+        "groupName": "userManagement",
+        "displayName": "Enable/Disable bulk invitation"
     },
     {
-        "key" :"messageExcerptLength",
-        "value" : "30" ,
+        "key": "passwordMinLength",
+        "value": "6",
         "type": "number",
-        "groupName" : "messsages",
-        "displayName" : "Message excerpt Length"
+        "groupName": "password",
+        "displayName": "Password Minimum Length"
     },
     {
-        "key" :"taskTitleLength",
-        "value" : "50" ,
+        "key": "passwordMaxLength",
+        "value": "8",
         "type": "number",
-        "groupName" : "task",
-        "displayName" : "task title Length"
+        "groupName": "password",
+        "displayName": "Password Maximum Length"
     },
     {
-        "key" :"docNamePg",
-        "value" : "50" ,
+        "key": "specialCharCount",
+        "value": "1",
         "type": "number",
-        "groupName" : "privateGroup",
-        "displayName" : "Document Name Length"
+        "groupName": "password",
+        "displayName": "Number of Special characters in password"
     },
     {
-        "key" :"docDescriptionPg",
-        "value" : "200" ,
+        "key": "numCount",
+        "value": "1",
         "type": "number",
-        "groupName" : "privateGroup",
-        "displayName" : "Document description Size"
+        "groupName": "password",
+        "displayName": "Number of Digits in password"
     },
     {
-        "key" :"docDescriptionPg",
-        "value" : "200" ,
+        "key": "upperCaseCount",
+        "value": "1",
         "type": "number",
-        "groupName" : "privateGroup",
-        "displayName" : "Document description Size"
+        "groupName": "password",
+        "displayName": "Number of Upper Case characters in password"
     },
     {
-        "key" :"bcc",
-        "value" : "jeevan.balla@transerve.com",
-        "type" : "string",
-        "groupName" : "email",
-        "displayName" : "bcc emails"
+        "key": "aboutMe",
+        "value": "200",
+        "type": "number",
+        "groupName": "userManagement",
+        "displayName": "About Me ( in characters )"
     },
     {
-        "key" :"editRole",
-        "value" : "true",
-        "type" : "boolean",
-        "groupName" : "capability",
-        "displayName" : "edit role"
+        "key": "docNameLength",
+        "value": "50",
+        "type": "number",
+        "groupName": "documents",
+        "displayName": "Document Name Length ( in characters )"
     },
     {
-        "key" :"editTemplate",
-        "value" : "true",
-        "type" : "boolean",
-        "groupName" : "templates",
-        "displayName" : "edit template"
+        "key": "docSize",
+        "value": "25",
+        "type": "number",
+        "groupName": "documents",
+        "displayName": "Document size ( in MB )"
     },
     {
-        "key" :"replaceDoc",
-        "value" : "true" ,
-        "type" : "boolean",
-        "groupName" : "documents",
-        "displayName" : "Replace documents"
+        "key": "docDescriptionSize",
+        "value": "200",
+        "type": "number",
+        "groupName": "documents",
+        "displayName": "Document description Size ( in characters )"
     },
     {
-        "key" :"replaceProfile",
-        "value" : "true" ,
-        "type" :"boolean",
-        "groupName" : "userManagement",
-        "displayName" : "Replace profile"
+        "key": "messageSubjectLength",
+        "value": "30",
+        "type": "number",
+        "groupName": "messsages",
+        "displayName": "Message subject Length ( in characters )"
+    },
+    {
+        "key": "messageExcerptLength",
+        "value": "30",
+        "type": "number",
+        "groupName": "messsages",
+        "displayName": "Message excerpt Length ( in characters )"
+    },
+    {
+        "key": "taskTitleLength",
+        "value": "50",
+        "type": "number",
+        "groupName": "task",
+        "displayName": "Task Title ( in characters )"
+    },
+    {
+        "key": "docNamePg",
+        "value": "50",
+        "type": "number",
+        "groupName": "privateGroup",
+        "displayName": "Private Member list Title ( in characters )"
+    },
+    {
+        "key": "docDescriptionPg",
+        "value": "200",
+        "type": "number",
+        "groupName": "privateGroup",
+        "displayName": "Private Member Description ( in characters )"
+    },
+    {
+        "key": "bcc",
+        "value": "jeevan.balla@transerve.com",
+        "type": "string",
+        "groupName": "email",
+        "displayName": "bcc Email"
+    },
+    {
+        "key": "editRole",
+        "value": "true",
+        "type": "boolean",
+        "groupName": "capability",
+        "displayName": "Edit Role Permission"
+    },
+    {
+        "key": "editTemplate",
+        "value": "true",
+        "type": "boolean",
+        "groupName": "templates",
+        "displayName": "Edit Template Permission"
+    },
+    {
+        "key": "replaceDoc",
+        "value": "true",
+        "type": "boolean",
+        "groupName": "documents",
+        "displayName": "Replace Documents Permission"
+    },
+    {
+        "key": "replaceProfile",
+        "value": "true",
+        "type": "boolean",
+        "groupName": "userManagement",
+        "displayName": "Replace Profile Permission"
     }
 ]

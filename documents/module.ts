@@ -28,7 +28,7 @@ import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
-import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, groupList } from "../users/module";
+import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, groupList, formateRoles } from "../users/module";
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
@@ -1147,7 +1147,7 @@ export async function invitePeopleList(docId: string) {
             lastName: user.lastName,
             type: "user",
             email: user.email,
-            role: (((await userRoleAndScope(user._id)) as any).data || [""])[0],
+            role: await formateRoles((((await userRoleAndScope(user._id)) as any).data || [""])[0]),
             docRole: (((await getRoleOfDoc(user._id, docId)) as any) || Array(2))[2]
           };
         })

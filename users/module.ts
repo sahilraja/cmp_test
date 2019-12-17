@@ -42,7 +42,7 @@ const secretKey = process.env.MSG91_KEY || "6LfIqcQUAAAAAFU-SiCls_K8Y84mn-A4YReb
 
 export async function bulkInvite(filePath: string, user: any) {
     const isEligible = await checkRoleScope(user.role, `bulk-invite`)
-    if(!isEligible){
+    if (!isEligible) {
         throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
     }
     let constantsList: any = await constantSchema.findOne({ key: 'bulkInvite' }).exec();
@@ -1187,11 +1187,12 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
 
 export async function validatePassword(password: string) {
     try {
-        let constantsInfo: any = await getConstantsAndValues(['passwordLength', 'specialCharCount', 'numCount', 'upperCaseCount']);
+        let constantsInfo: any = await getConstantsAndValues(['passwordMinLength', 'passwordMaxLength', 'specialCharCount', 'numCount', 'upperCaseCount']);
         const UPPER_CASE_COUNT = Number(constantsInfo.upperCaseCount);
         const NUMBERS_COUNT = Number(constantsInfo.numCount);
         const SPECIAL_COUNT = Number(constantsInfo.specialCharCount);
-        const TOTAL_LETTERS = Number(constantsInfo.passwordLength);
+        const PASSWORD_MAX_LENGTH = Number(constantsInfo.passwordMaxLength);
+        const PASSWORD_MIN_LENGTH = Number(constantsInfo.passwordMinLength);
         let lower = 0, upper = 0, num = 0, special = 0;
         for (var char of password) {
             if (char >= "A" && char <= "Z") {
@@ -1205,17 +1206,21 @@ export async function validatePassword(password: string) {
             }
         }
         if (upper < UPPER_CASE_COUNT && upper > 0) {
-            throw new APIError(PASSWORD.SPECIAL_CHAR, UPPER_CASE_COUNT);
+            throw new APIError(`${PASSWORD.SPECIAL_CHAR} ${UPPER_CASE_COUNT}`);
         }
         if (num < NUMBERS_COUNT && num > 0) {
-            throw new APIError(PASSWORD.NUMBERS_COUNT, NUMBERS_COUNT);
+            throw new APIError(`${PASSWORD.NUMBERS_COUNT} ${NUMBERS_COUNT}`);
         }
         if (special < SPECIAL_COUNT && special > 0) {
-            throw new APIError(PASSWORD.SPECIAL_COUNT, SPECIAL_COUNT);
+            throw new APIError(`${PASSWORD.SPECIAL_COUNT} ${SPECIAL_COUNT}`);
         }
-        if (password.length < TOTAL_LETTERS && password.length > 0) {
-            throw new APIError(PASSWORD.TOTAL_LETTERS, TOTAL_LETTERS);
+        if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
+            throw new APIError(PASSWORD.TOTAL_LETTERS(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH));
         }
+
+        // if (password.length < TOTAL_LETTERS && password.length > 0) {
+        //     throw new APIError(PASSWORD.TOTAL_LETTERS, TOTAL_LETTERS);
+        // }
     }
     catch (err) {
         throw err
@@ -1436,7 +1441,7 @@ export async function changeMobileByAdmin(admin: any, objBody: any, id: string) 
 export async function updateTaskEndorser(userId: string, taskId: string, userToken: string) {
     return await httpRequest({
         url: `${TASKS_URL}/task/update?task=${taskId}`,
-        body: { $push: { otpVerifiedEndorsers: userId  } },
+        body: { $push: { otpVerifiedEndorsers: userId } },
         method: 'POST',
         headers: { 'Authorization': `Bearer ${userToken}` }
     })

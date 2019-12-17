@@ -75,11 +75,11 @@ export const DOCUMENT_ROUTER = {
     DOCUMENT_NOT_FOUND: "File not found.",
     DOCUMENT_ID_NOT_FOUND: "Something went wrong. Please try again.",
     DOCUMENTS_NOT_THERE: "Something went wrong. Please try again.",
-    SHARE_PUBLISHED_DOCUMENT: "Unauthorized action on published document.",
-    INVALID_OR_MISSING_DATA: "Please fill all mandatory fields or Invalid Data.",
-    INVALID_COLLABORATOR_ACTION: "You have Capability to give view access.",
-    INVALID_VIEWER_ACTION: "You don't have Capability any access.",
-    INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY: "You don't have Capability to remove user.",
+    SHARE_PUBLISHED_DOCUMENT: "You don't have permission to share this document.",
+    INVALID_OR_MISSING_DATA: "Invalid or missing information found. Please try again.",
+    INVALID_COLLABORATOR_ACTION: "You can only add Viewers to this document.",
+    INVALID_VIEWER_ACTION: "You don't have permission to share this document",
+    INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY: "You don't have permission to remove members",
     PUBLISH_CAPABILITY: "Unauthorized Action."
 }
 
@@ -104,7 +104,7 @@ export const PASSWORD = {
     SPECIAL_CHAR: "Should be minimum captial letters count ",
     NUMBERS_COUNT: "Should be minimum numbers count ",
     SPECIAL_COUNT: "Should be minimum special characters count ",
-    TOTAL_LETTERS: "Should be minimum total characters count "
+    TOTAL_LETTERS: (min: number, max: number) => `Should be minimum ${min} and maximum ${max} characters count `
 }
 
 export const RESPONSE = {
