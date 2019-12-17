@@ -483,6 +483,13 @@
     "category": "User Management"
   },
   {
+    "capability": "view-user-contact-details",
+    "shortDescription": "View User Contact Details",
+    "description": "Ability to view phone and mail details",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
     "capability": "change-user-role",
     "shortDescription": "change user role",
     "description": "Ability to change user role",
