@@ -8,7 +8,7 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole, revokeRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest, changePasswordInfo } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest, changePasswordInfo, validateUserCurrentPassword } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -360,8 +360,6 @@ export async function user_login(req: any) {
         if (constantsList && constantsList.value == "true") {
             //await recaptchaValidation(req);
         }
-
-        //  find User
         let userData: any = await userFindOne("email", objBody.email);
         if (!userData) throw new Error(USER_ROUTER.INVALID_USER);
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
@@ -1182,6 +1180,7 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
             await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys })
             return { message: RESPONSE.PROFILE_UPDATE }
         }
+        throw new Error("Invalid action.")
     } catch (err) {
         throw err
     }
@@ -1291,17 +1290,19 @@ export async function changeOldPassword(body: any, userObj: any) {
     try {
         if (!body.new_password || !body.old_password) throw new Error(USER_ROUTER.MANDATORY);
         await validatePassword(body.new_password);
+        let user = await validateUserCurrentPassword(userObj._id, body.old_password)
+        if(!user) throw new Error("Invalid password. Please try again")
         let admin_scope = await checkRoleScope(userObj.role, "bypass-otp");
         if (admin_scope) {
             await changePasswordInfo({ password: body.new_password }, userObj._id);
-            return { message: "Password updated successfully." }
+            return { message: "Password updated successfully.", bypass_otp: true }
         }
         let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
         let { otp, token } = await generateOtp(4, { password: body.password });
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.new_password });
         sendNotification({ id: userObj._id, email: userObj.email, mobileNo, otp, mobileOtp, templateName: "changePasswordOTP", mobileTemplateName: "sendOtp" });
         await userUpdate({ id: userObj._id, otp_token: token, smsOtpToken: smsToken });
-        return { message: "Otp is sent successfully" }
+        return { message: "Otp is sent successfully", bypass_otp: false }
     } catch (err) {
         throw err
     };

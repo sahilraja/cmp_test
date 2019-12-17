@@ -36,6 +36,20 @@ export async function userLogin(body: any) {
     };
 };
 
+export async function validateUserCurrentPassword(userId: string, password: string): Promise<Boolean> {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/compare-password/${userId}`,
+            method: "POST",
+            body: { password },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
+
 // user find One
 export async function userFindOne(key: string, value: string, selectFields?: any) {
     try {
@@ -396,11 +410,11 @@ export async function getTasksByIds(taskIds: string[], token: string) {
     }
 }
 
-export async function smsRequest(mobileNo:string,smsContent:string) {
+export async function smsRequest(mobileNo: string, smsContent: string) {
     try {
         const options = {
             url: `http://mobicomm.dove-sms.com//submitsms.jsp?user=NationalIN&key=04f397d2daXX&mobile=${mobileNo}&message=${smsContent}&senderid=NTFSMS&accusage=1`,
-            method:'GET',
+            method: 'GET',
             json: true
         }
         return await request(options)
@@ -409,11 +423,11 @@ export async function smsRequest(mobileNo:string,smsContent:string) {
     }
 }
 
-export async function internationalSmsRequest(mobileNo:string,smsContent:string) {
+export async function internationalSmsRequest(mobileNo: string, smsContent: string) {
     try {
         const options = {
-            url:`http://95.216.8.124:8787/msg//submitsms.jsp?user=nainuras&key=9d67e9da3bXX&mobile=${mobileNo}&message=${smsContent}&senderid=INFOSM&accusage=3`,
-            method:'GET',
+            url: `http://95.216.8.124:8787/msg//submitsms.jsp?user=nainuras&key=9d67e9da3bXX&mobile=${mobileNo}&message=${smsContent}&senderid=INFOSM&accusage=3`,
+            method: 'GET',
             json: true
         }
         return await request(options)
