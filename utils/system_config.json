@@ -119,13 +119,6 @@
         "displayName" : "Document Name Length"
     },
     {
-        "key" :"docSizePg",
-        "value" : "25" ,
-        "type": "number",
-        "groupName" : "privateGroup",
-        "displayName" : "Document size"
-    },
-    {
         "key" :"docDescriptionPg",
         "value" : "200" ,
         "type": "number",

@@ -126,7 +126,7 @@ async function getUserDateWithRole(userData: any) {
 
 async function validatePrivateMembersConstants(body: any) {
     try {
-        let { docNamePg, docDescriptionPg }: any = await getConstantsAndValues(["docNamePg", "docSizePg", "docDescriptionPg"])
+        let { docNamePg, docDescriptionPg }: any = await getConstantsAndValues(["docNamePg", "docDescriptionPg"])
         if (body.name > Number(docNamePg)) {
             throw new Error(`Private members name should not exceed more than ${docNamePg} characters`);
         }

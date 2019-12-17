@@ -78,7 +78,7 @@ export async function bulkInvite(filePath: string, user: any) {
                 throw new APIError(`${role.email} is invalid`)
             }
         })
-        await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, user._id)))
+        await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, user)))
         return { message: 'success' }
     }
 }
@@ -178,6 +178,10 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         })
         //  create life time token
         await create({ activityType: "REGISTER-USER", activityBy: token.id, profileId: token.id })
+        // Send email
+        let { fullName, mobileNo }: any = getFullNameAndMobile(success);
+        objBody.role = (Array.isArray(objBody.role) ? objBody.role : typeof (objBody.role) == "string" && objBody.role.length ? objBody.role.includes("[") ? JSON.parse(objBody.role) : objBody.role = objBody.role.split(',') : [])
+        sendNotification({ id: user._id, fullName, email: success.email, role: objBody.role, templateName: "registrationSuccess" });
         return { token: await createJWT({ id: success._id, role: token.role }) }
     } catch (err) {
         throw err;
@@ -238,15 +242,15 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 userRole.push(role)
             }));
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
-            sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
+            // sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
         }
 
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
-        if (objBody.aboutme) {
-            if (objBody.aboutme.length > Number(constantsList.value)) {
-                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
-            }
-        };
+        // if (objBody.aboutme) {
+        //     if (objBody.aboutme.length > Number(constantsList.value)) {
+        //         throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+        //     }
+        // };
         if (objBody.name) {
             objBody.profilePicName = objBody.name
             delete objBody.name;
@@ -1054,6 +1058,7 @@ export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     let userNotification: any;
     let config = 1
+    console.log(`templateName`, templateName, objBody.email)
     if (templateName == "invalidPassword") {
         let constantsList: any = await constantSchema.findOne({ key: "invalidPassword" }).exec();
         if (constantsList.value == "false") {
