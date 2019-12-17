@@ -215,7 +215,7 @@ export async function sendMobileOtp(mobileNo: string, user: any) {
         let { mobileOtp, smsToken } = await generatemobileOtp(4);
         await userUpdate({ id: user._id, smsOtpToken: smsToken });
         sendNotification({ id: user._id, mobileNo, mobileOtp, mobileTemplateName: "sendOtp" });
-        return { messsage: MOBILE_MESSAGES.SEND_OTP };
+        return { message: MOBILE_MESSAGES.SEND_OTP };
     }
     catch (err) {
         throw err
