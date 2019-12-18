@@ -6,100 +6,100 @@
         "subject" : "Invitation from CITIIS Management"
     },
     {
-        "content" : "Your account has been [state] | CMP",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>This is an update on your user account on CITIIS Management Platform.<br/><br/>Your account has been <b>[state]</b><br/><br/>In case of any issues, please contact cmp@niua.org.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "userState",
         "displayName" : "Marking user as active/inactive",
-        "subject" : "Account Status update"
+        "subject" : "[CMP] Updates on your User Account"
     },
     {
-        "content" : "You have logged into <b>CMP</b>",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Welcome to CITIIS Management Platform! This is a confirmation email on your access on CMP.<br/><br/>In case of any issues while using the platform, please contact<b>cmp@niua.org</b>.</br></br>Best Regards,<br/>CMP Administrator",
         "templateName" : "userLogin",
-        "subject" : "Welcome to CMP !!",
+        "subject" : "Welcome to CITIIS Management Platform!",
         "displayName" : "User Login"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You are invited by a user of the CMP to collaborate on the document <b>[documentName]</b>.<br/><br/>You can click on this <a href=[documentUrl]>link</a> to access it. <br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/>You are invited by a user of the CMP to collaborate on the document <b>[documentName]</b>.<br/><br/>You can click on this <a href=[documentUrl]>link</a> to access it. <br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inviteForDocument",
         "displayName" : "invite for document",
-        "subject" : "Invitation for [documentName] document"
+        "subject" : "[CMP] Invitation to Access a New Document"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You have received a new message in CMP. Here is an excerpt.<br/>[content] <br/><a href=[link]>Click here to view the full message.</a>.<br/><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>You have received a new message on CMP. Here is an excerpt.[content]<b><a href=[link]>Click here to view the full message.</a></b>.</br></br>Best Regards,</br>CMP Administrator",
         "templateName" : "inboxMessage",
         "displayName" : "New Message",
-        "subject" : "You have a new message | CMP"
+        "subject" : "Message on CMP"
     },
     {
         "content" : "A task in CMP has been updated",
-        "templateName" : "taskUpdate",
+        "templateName" : "Dear <b>[fullName]</b>,<br/><br/>This is a confirmation email on an update on your task on CMP. Please log on to the platform to check the update.<br/><br/>In case of any issues while using the platform, please contact <b>cmp@niua.org</b>.<br/><br/>Best Regards,</br>CMP Administrator",
         "subject" : "Task Updated",
-        "displayName" : "task updated"
+        "displayName" : "[CMP] Task Updated"
     },
     {
-        "content" : "Hello <b>[fullName]</b>,<br><br> As per your request, <u>[otp]</u> is the One Time Password (OTP) to update your Mobile Number.<br/><br/>Best Regards,<br/>CMP Support.",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <b><u>[otp]</u></b> is the One Time Password (OTP) to update your Mobile Number on CITIIS Management Platform<br/><br/>.Best Regards,<br/>CMP Administrator",
         "templateName" : "changeMobileOTP",
         "displayName" : "change mobile otp",
-        "subject" : "OTP to update Mobile Number"
+        "subject" : "[CMP] OTP to Update Mobile Number"
     },
     {
-        "content" : "Hello <b>[fullName]</b>,<br><br> As per your request, <u>[otp]</u> is the One Time Password (OTP) to update your Email ID.<br/><br/>Best Regards,<br/>CMP Support.",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/> As requested by you, <b><u>[otp]</u></b> is the One Time Password (OTP) to update your Email ID on CITIIS Management Platform.<br/><br/>Best Regards,<br/> CMP Administrator",
         "templateName" : "changeEmailOTP",
         "displayName" : "change email otp",
-        "subject" : "OTP to update Email ID"
+        "subject" : "[CMP] OTP to Update Email ID"
     },
     {
-        "content" : "Hello <b>[fullName]</b>,<br><br> <u>[otp]</u> is the One Time Password (OTP) to create a new Password.<br/><br/>Best Regards,<br/>CMP Support.",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <b><u>[otp]</u></b> is the One Time Password (OTP) to update your Password on CITIIS Management Platform.<br/><br/>Best Regards,<br/> CMP Administrator",
         "templateName" : "forgotPasswordOTP",
         "displayName" : "forgot password otp",
-        "subject" : "OTP to update Password"
+        "subject" : "[CMP] OTP to Update Password"
     },
     {
-        "content" : "Hi <b>[userName]</b>,<br/><br><br/> You have a tag suggestion in CMP.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[userName]</b>,<br/><br>You have a tag suggestion in CMP.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "suggestTagNotification",
         "displayName" : "suggest Tag notification",
         "subject" : "A Tag has been Suggested"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/> A tag you suggested have been approved.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A document task tag you suggested has been approved.You can click this <b><a href=[documentUrl]>link</a></b> to view the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "approveTagNotification",
         "displayName" : "approve tag notification",
-        "subject" : "Tag Approval Notification"
+        "subject" : "[CMP] Tag Approval Notification"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/> A tag you suggested have been rejected.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A document task tag you suggested has been rejected.You can click this <a href=[documentUrl]>link</a> to view it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "rejectTagNotification",
         "displayName" : "reject tag notification",
-        "subject" : "Tag Rejected"
+        "subject" : "[CMP] Tag Rejection Notification"
     },
     {  
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You've entered a wrong password <br/><br/><br/> Click on Forgot Password if you have a problem in accessing your account<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>The password entered by you on CITIIS Management Platform is incorrect. Please click on Forgot Password on CMP's login page to reset your password, if you have a problem in accessing your account.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "invalidPassword",
         "displayName" : "invalid password",
-        "subject" : "Invalid Password"
+        "subject" : "[CMP] Platform Access Error - Invalid Password"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Your Email ID have been updated to [newMail]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As updated on the CITIIS Management Platform, your Email ID has been changed to [newMail].<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "changeEmailMessage",
         "displayName" : "change email notification",
-        "subject" : "Email ID updated"
+        "subject" : "[CMP] Email ID Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is published<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Your document <b>[documentName]</b>, is published on CITIIS Management Platform. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "publishDocument",
         "displayName" : "publish document",
-        "subject" : "Document Published"
+        "subject" : "[CMP] Document Published"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is Unpublished<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Your document <b>[documentName]</b>, is unpublished from CITIIS Management Platform. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "unPublishDocument",
         "displayName" : "unPublish document",
-        "subject" : "Document UnPublished"
+        "subject" : "[CMP] Update on your Published Document"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is shared to [sharedUsers] with [role].<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Your document <b>[documentName]</b> on CITIIS Management Platform, is shared with [sharedUsers] in the capacity of [role].You can click this <a href=[documentUrl]>link</a> to access the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "invitePeopleDoc",
         "displayName" : "share document",
-        "subject" : "[documentName] shared"
+        "subject" : "[CMP] Document Sharing Notification"
     },
     {
         "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is edit share capability to [sharedUsers] with [role].<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
@@ -114,148 +114,148 @@
         "subject" : "[documentName] share capability roemove"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is replaced.<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>The document <b>[documentName]</b> on CITIIS Management Platform, is replaced with a new document.You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "replaceDocument",
         "displayName" : "replace document",
-        "subject" : "Document Replaced"
+        "subject" : "[CMP] Document Replacement Notification"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, has been updated with [text] <br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Document <b>[documentName]</b>, has been updated with [text]. You can click this <a href=[documentUrl]>link</a> to access it.<br><br>Best Regards,<br>CMP Administrator",
         "templateName" : "documentUpdate",
         "displayName" : "document Update",
-        "subject" : "Document Updated"
+        "subject" : "[CMP] Document Update Notification"
     },
     {        
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Your role is replaced with <b>[role]</b><br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Your current role on CITIIS Management Platform is replaced with <b>[role]</b>. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "changeUserRole",
         "displayName" : "change user role",
-        "subject" : "Role Replaced"
+        "subject" : "[CMP] Role Replacement Notification"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br>A new group with name [groupName] have been created in CMP <br/><br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A new user group with the name [groupName] is created on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "createGroup",
         "displayName" : "create group",
-        "subject" : "New Group [groupName] is Created"
+        "subject" : "[CMP] New User Group Created"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br>A new member is added in group [groupName].<br/><br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A new member is added in the user group [groupName] on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "addGroupMember",
         "displayName" : "Add Group Member",
-        "subject" : "New member added to Group"
+        "subject" : "[CMP] New Member added to User Group"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br>Group status for [groupName] has been updated to [groupNewStatus].<br/><br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Group status for [groupName], which you are a part of, has been updated to [groupNewStatus] on CITIIS Management Platform. Please log on to check the details.<br><br>Best Regards,<br>CMP Administrator",
         "templateName" : "groupStatus",
         "displayName" : "Group Status",
-        "subject" : "Group Status"
+        "subject" : "[CMP] User Group Status Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br><br/> A new comment is added on Document in CMP.<br/><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A new comment has been added to the document <b>[documentName]</b> on CITIIS Management Platform. Please log on to check the details and latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "addCommentToDoc",
         "displayName" : "add New Comment ",
-        "subject" : "New comment on Document"
+        "subject" : "[CMP] New Comment on your Document"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/><b>[creatorName]<b> assigned a task to you in CMP<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A new task has been assigned to you by <b>[creatorName]<b> on CITIIS Management Platform. Please log on to check the details and latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "taskAssign",
         "displayName" : "Task Assign",
-        "subject" : "You have a new Task in CMP"
+        "subject" : "[CMP] New Task Assigned"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Status of <b>[taskId]</b> is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Status of the task <b>[taskId]</b> is updated on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "taskProgress",
         "displayName" : "Update Task",
-        "subject" : "[taskId] updated"
+        "subject" : "[CMP] Status Updated for Task [taskId]"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New document is attached to task <b>[taskId]</b>.<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A new document is attached to the task <b>[taskId]</b> on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "docAddToTask",
         "displayName" : "Document attached",
-        "subject" : "Document attached to task"
+        "subject" : "[CMP] Document Attached to Task"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Another task is linked to task <b>[taskId]</b>.<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Another task is linked to the task <b>[taskId]</b> on CITIIS Management Platform. Please log on to check the latest updates.<br/>Best Regards, <br/>CMP Administrator",
         "templateName" : "linkTask",
         "displayName" : "Link Task",
-        "subject" : "Link Task added"
+        "subject" : "[CMP] New Task Linked"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New tag is added to <b>[taskId]</b>.<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>New tag is added to <b>[taskId]</b> on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "addTaskTag",
         "displayName" : "Add Tag",
-        "subject" : "Tag Added"
+        "subject" : "[CMP] New Tag Added to Task"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Title updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Name of the task <b>[taskId]</b> is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "updateTaskTitle",
         "displayName" : "Update Task Title",
-        "subject" : "Task Title Updated"
+        "subject" : "[CMP] Task Name Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Due Date updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Due Date of the task <b>[taskId]</b> is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "updateTaskDueDate",
         "displayName" : "Update Task Duedate",
-        "subject" : "Task Duedate Updated"
+        "subject" : "[CMP] Task Due Date Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Start Date updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Start Date of the task <b>[taskId]</b> is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "updateTaskStartDate",
         "displayName" : "Update Task Start date",
-        "subject" : "Task Start date Updated"
+        "subject" : "[CMP] Task Start date Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Description updated for task <b>[taskId]</b><br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A task <b>[taskId]</b> in the Maturation Phase of the Project [ProjectName] is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "updateTaskDescription",
         "displayName" : "Update Task Description",
-        "subject" : "Task Description Updated"
+        "subject" : "[CMP] Task Description Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>A task <b>[taskId]</b> in Maturation Phase is updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>A task <b>[taskId]</b> in the Maturation Phase of the Project [ProjectName] is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "updateMaturationTask",
         "displayName" : "Update Maturation Task",
-        "subject" : "Task Updated"
+        "subject" : "[CMP] Project Task Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>You are added to the Project [ProjectName] in CMP<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Congratulations! You are added to the Project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "addToProject",
         "displayName" : "Add to Project",
-        "subject" : "Added to [ProjectName]"
+        "subject" : "[CMP] New Project Added"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Financial Information Updated<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Financial Information is updated for the project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "updateFinancial",
         "displayName" : "Financial Info Updated",
-        "subject" : "Financial Information Updated"
+        "subject" : "[CMP] Financial Information Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Risk factor is added to the project [ProjectName]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Risk factor is added to the project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "addRisk",
         "displayName" : "Risk Factor",
-        "subject" : "Risk Factor added"
+        "subject" : "[CMP] Risk Status Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>New comment(s) is added to the project [ProjectName]<br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/><br/>New comment(s) is are added to the project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "addOpenComment",
         "displayName" : "Add Open Comment",
-        "subject" : "New Comment on [ProjectName]"
+        "subject" : "[CMP] Comments Added to your Project"
     },
     {
-        "content" : "Hi <b>[fullName]</b>, <br/><br/>You have updated your profile in <b>CMP</b><br/><br><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>You have updated your user profile on <b>CITIIS Management Platform</b><br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "profile",
         "displayName" : "update profile",
-        "subject" : "Profile Updated"
+        "subject" : "[CMP] Profile Updated"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br>You are added to a group, <b>[groupName]</b>.<br/><br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>You are added to a user group, <b>[groupName]</b>, on CITIIS Management Platform. Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "youAddTOGroup",
         "displayName" : "you are added to group",
-        "subject" : "You are added to Group"
+        "subject" : "[CMP] You're Added to a User Group"
     },
     {
-        "content" : "Hello <b>[fullName]</b>,<br><br> As per your request, <u>[otp]</u> is the One Time Password (OTP) to update your password.<br/><br/>Best Regards,<br/>CMP Support.",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <u>[otp]</u> is the One Time Password (OTP) to update your Password on CITIIS Management Platform.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "changePasswordOTP",
         "displayName" : "change password otp",
-        "subject" : "OTP to update password"
+        "subject" : "[CMP] OTP to Update Password"
     },
     {
         "content" : "Hi <b>[fullName]</b>, <br/><br/>You Registration is successful.<br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team.",
