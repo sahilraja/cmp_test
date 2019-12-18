@@ -7,7 +7,7 @@ import { RBAC_URL } from "./urls";
 import { userList, createUser } from "./users";
 import { constantSchema } from "../site-constants/model";
 import { notificationSchema } from "../notifications/model";
-import { role_list } from "../role/module";
+import { role_list, addRolesFromJSON, addCapability } from "../role/module";
 import { TemplateSchema } from "../email-templates/model";
 import { readFileSync } from "fs";
 import { APIError } from "./custom-error";
@@ -81,6 +81,8 @@ export async function userInit() {
       "is_active":true
     })
     let grants = await addRole(user._id, "technology-lead")
+    let add = await addCapability("technology-lead", 'global', "display-role-management", user._id, false)
+    await addRolesFromJSON()
     console.log("No existing users found. Technology specialist user created successfully");
   }
   else {

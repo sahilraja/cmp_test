@@ -1252,7 +1252,7 @@ export async function published(body: any, docId: string, userObj: any, withAuth
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found");
 
-    if (body.tags && body.tags.length && body.tags.some((tagId: string)=> !doc.tags.includes(tagId) )) {
+    if (body.tags && body.tags.length && body.tags.some((tagId: string)=> !doc.tags.includes(tagId)) && body.tags.length != doc.tags.length) {
       let isEligible = await checkRoleScope(userObj.role, "add-tag-to-document");
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);

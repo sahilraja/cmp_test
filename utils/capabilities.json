@@ -318,7 +318,7 @@
     "capability": "manage-private-group",
     "shortDescription": "Create Private Group",
     "description": "Create Private Group ",
-    "category": "Private Group Management",
+    "category": "Private Member Management",
     "scope": "global"
   },
   {

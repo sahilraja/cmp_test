@@ -88,30 +88,30 @@ export const COMMENT_ROUTER = {
 }
 
 export const PRIVATE_MEMBER = {
-    INVALID: "GroupId is Invalid.",
+    INVALID: "Group ID is invalid, please try again",
     CREATE: {
-        NO_ACCESS: "Unauthorized Action.",
-        MISSING_FIELDS: "Missing Required Fields.",
-        INVALID_NAME: "you have entered invalid name. please try again.",
-        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be group member.",
+        NO_ACCESS: "You don't have permission to create group",
+        MISSING_FIELDS: "Please fill all mandatory fileds ",
+        INVALID_NAME: "You have entered invalid name, please try again",
+        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be added as a group member",
         GROUP_NAME_EXIST: "A private group with same name already exists."
     },
     EDIT: {
-        GROUP_NOT_FOUND: "Group Not Found.",
-        NO_ACCESS: "Unauthorized Action.",
-        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required.",
-        INVALID_NAME: "you have entered invalid name. please try again.",
+        GROUP_NOT_FOUND: "Group not found",
+        NO_ACCESS: "You don't have permission to edit group",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a group",
+        INVALID_NAME: "You have entered invalid group name. please try again.",
         ALREADY_MEMBER: "Member already exist in this group.",
         OWNER_NOT_PRIVATE_MEMBER: "Owner can't be group member.",
     },
     REMOVE: {
         GROUP_NOT_FOUND: "Group Not Found.",
-        NO_ACCESS: "Unauthorized Action.",
-        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required."
+        NO_ACCESS: "You don't have permission to remove group",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a group"
     },
     STATUS: {
         GROUP_NOT_FOUND: "Group Not Found.",
-        NO_ACCESS: "Unauthorized Action." 
+        NO_ACCESS: "You don't have permission to delete group" 
     }
 }
 export const AUTHENTICATE_MSG = {
