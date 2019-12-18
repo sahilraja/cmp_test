@@ -96,7 +96,6 @@ export async function inviteUser(objBody: any, user: any) {
             }
         }
         //  Check User Capability
-        console.log(`user.role`, user.role)
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({
@@ -306,7 +305,6 @@ export async function getUserDetail(userId: string, user?: any) {
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
-        console.log(detail, `detail`)
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data || [""])[0] }
     } catch (err) {
         throw err;
@@ -969,7 +967,6 @@ export async function recaptchaValidation(req: any) {
         return await new Promise((resolve: any, reject: any) => {
             return request(verificationUrl, function (error, response, body) {
                 body = JSON.parse(body);
-                console.log(body);
                 // Success will be true or false depending upon captcha validation.
                 if (body.success !== undefined && !body.success) {
                     reject(new Error(USER_ROUTER.RECAPTCHA_INVALID));
@@ -1055,7 +1052,6 @@ export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     let userNotification: any;
     let config = 1
-    console.log(`templateName`, templateName, objBody.email)
     if (templateName == "invalidPassword") {
         let constantsList: any = await constantSchema.findOne({ key: "invalidPassword" }).exec();
         if (constantsList.value == "false") {

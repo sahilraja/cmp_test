@@ -34,7 +34,6 @@ const upload = multer({ storage })
 
 const ipMiddleware = function (req: Request, res: Response, next: NextFunction) {
     const ip = requestIp.getClientIp(req);
-    console.log(ip)
     next();
 };
 
