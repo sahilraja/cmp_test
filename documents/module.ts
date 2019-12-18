@@ -2482,7 +2482,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
       body: data
     });
     console.log(searchdoc);
-    let searchResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
+    let searchResult = searchdoc.hits.hits.map((doc: any) => { return{_id:doc._source.id,source: doc._source }})
     if (pagination == true) return manualPagination(page, limit, searchResult);
     else return { docs: searchResult };
   } catch (error) {
