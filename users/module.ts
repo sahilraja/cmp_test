@@ -191,8 +191,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 //  Edit user
 export async function edit_user(id: string, objBody: any, user: any) {
     try {
-        let user_roles: any = await userRoles(id)
-        let updateProfile: Number = 1;
+        let user_roles: any = await userRoles(id, true)
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (objBody.email) {
             if (!validateEmail(objBody.email)) {
@@ -207,7 +206,6 @@ export async function edit_user(id: string, objBody: any, user: any) {
             await validatePassword(objBody.password);
 
         }
-
         if (objBody.phone && objBody.countryCode) {
             let phoneNumber = objBody.countryCode + objBody.phone
             if (!phoneNo(phoneNumber).length) {
@@ -225,9 +223,8 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 let admin_scope = await checkRoleScope(user.role, "change-user-role");
                 if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             }
-            updateProfile = 0
-            if (user_roles.roles && user_roles.roles.length) {
-                const removeRole = await Promise.all(user_roles.roles.map(async (role: any) => {
+            if (user_roles && user_roles.length) {
+                const removeRole = await Promise.all(user_roles.map(async (role: any) => {
                     let RoleStatus = await revokeRole(id, role)
                     if (!RoleStatus.status) {
                         throw new Error(USER_ROUTER.REVOKE_ROLE_FAIL);
@@ -243,6 +240,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
             }));
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
             sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
+            return { message: "user roles updated successfully." }
         }
 
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
@@ -262,9 +260,7 @@ export async function edit_user(id: string, objBody: any, user: any) {
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })
-        if (updateProfile) {
-            sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileTemplateName: "profile" });
-        }
+        sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileTemplateName: "profile" });
         return userInfo
     } catch (err) {
         throw err;
@@ -410,7 +406,7 @@ export async function userDetails(id: any) {
 };
 
 //  Get User Roles
-export async function userRoles(id: any) {
+export async function userRoles(id: any, withOutFormate?: boolean) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         //  Get User Roles
@@ -421,6 +417,7 @@ export async function userRoles(id: any) {
         if (!role.status) throw new Error(USER_ROUTER.ROLE_NOT_FOUND);
         // const formattedRole = formattedRolesData.roles.find((roleObj: any) => roleObj.role == role.data[0].role)
         // return { roles: formattedRole ? formattedRole.roleName : role.data[0].role 
+        if (withOutFormate) return role.data[0]
         return { roles: await formateRoles(role.data[0]) }
     } catch (err) {
         throw err
@@ -1289,7 +1286,7 @@ export async function changeOldPassword(body: any, userObj: any) {
         if (!body.new_password || !body.old_password) throw new Error(USER_ROUTER.MANDATORY);
         await validatePassword(body.new_password);
         let user = await validateUserCurrentPassword(userObj._id, body.old_password)
-        if(!user) throw new Error("Invalid password. Please try again")
+        if (!user) throw new Error("Invalid password. Please try again")
         let admin_scope = await checkRoleScope(userObj.role, "bypass-otp");
         if (admin_scope) {
             await changePasswordInfo({ password: body.new_password }, userObj._id);
