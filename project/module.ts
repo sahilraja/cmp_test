@@ -580,6 +580,8 @@ export async function getInstallments(projectId: string, search: string) {
     if (!s1.includes(s.installment)) {
       s1.push(s.installment)
       return {
+        deleted: s.deleted,
+        subInstallment: s.subInstallment,
         cost: s.cost,
         documents: s.documents,
         phase: phases.find((phase: any) => phase._id == s.phase),

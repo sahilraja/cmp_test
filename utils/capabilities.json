@@ -1,8 +1,8 @@
 [
   {
     "capability": "create-user",
-    "shortDescription": "Create User",
-    "description": "Create User",
+    "shortDescription": "Invite User",
+    "description": "Invite User",
     "scope": "global",
     "category": "User Management"
   },
@@ -485,7 +485,7 @@
   {
     "capability": "view-user-contact-details",
     "shortDescription": "View User Contact Details",
-    "description": "Ability to view phone and mail details",
+    "description": "Ability to view phone number and Email details",
     "scope": "global",
     "category": "User Management"
   },
@@ -526,7 +526,7 @@
   },
   {
     "capability": "bypass-otp",
-    "shortDescription": "BypassOtp",
+    "shortDescription": "Bypass OTP",
     "description": "Ability to disable otp on change email and change mobile Number",
     "category": "User Management",
     "scope": "global"

@@ -653,18 +653,29 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     } else {
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
-      if (addtags.length) {
-        let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
-        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag added` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
-        mailAllCmpUsers("documentUpdate", parent, false, message)
-        await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
-      }
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
-      if (removedtags.length) {
-        let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
-        const message = tags.lastIndexOf(",") == -1 ? `${tags} tag removed` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
+      if (addtags.length && removedtags.length) {
+        let tagObjs = await Tags.find({ "_id": { $in: [...addtags, ...removedtags] } })
+        let addTagNames = tagObjs.filter(({ _id }) => addtags.includes(_id)).map(({ tag }: any) => tag).join(",")
+        let removedTagNames = tagObjs.filter(({ _id }) => addtags.includes(_id)).map(({ tag }: any) => tag).join(",")
+        const addMessage = addTagNames.lastIndexOf(",") == -1 ? `${addTagNames} tag added` : `${addTagNames.slice(0, addTagNames.lastIndexOf(",")) + " and " + addTagNames.slice(addTagNames.lastIndexOf(",") + 1)} tags added`
+        const removedMessage = removedTagNames.lastIndexOf(",") == -1 ? `${removedTagNames} tag removed` : `${removedTagNames.slice(0, removedTagNames.lastIndexOf(",")) + " and " + removedTagNames.slice(removedTagNames.lastIndexOf(",") + 1)} tags removed`
+        const message = addMessage + "and" + removedMessage;
         mailAllCmpUsers("documentUpdate", parent, false, message)
-        await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
+        await create({ activityType: `TAGS_ADD_AND_REMOVED`, activityBy: userId, documentId: docId, tagsAdded: addtags, tagsRemoved: removedtags })
+      } else {
+        if (addtags.length) {
+          let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
+          const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
+          mailAllCmpUsers("documentUpdate", parent, false, message)
+          await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
+        }
+        if (removedtags.length) {
+          let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
+          const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
+          mailAllCmpUsers("documentUpdate", parent, false, message)
+          await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
+        }
       }
     }
     let isDocExists = await checkDocIdExistsInEs(docId)
@@ -2056,7 +2067,7 @@ async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = 
       users = await userFindMany("_id", userIds, selectFields);
       if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc") {
         let actionedUsers = users.filter((user: any) => text.some((acUser: any) => acUser.id == user._id)).map((user: any) => `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
-        users = users.filter((user: any) => text.some((acUser: any) => acUser.id != user._id))
+        users = users.filter((user: any) => docDetails.ownerId == user._id )
         sharedUsers = actionedUsers.length == 1 ? actionedUsers[0] : `${actionedUsers.slice(0, actionedUsers.lastIndexOf(",")) + " and " + actionedUsers.slice(actionedUsers.lastIndexOf(",") + 1)}`
         role = text[0].role
       }
