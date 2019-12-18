@@ -491,8 +491,8 @@
   },
   {
     "capability": "change-user-role",
-    "shortDescription": "change user role",
-    "description": "Ability to change user role",
+    "shortDescription": "Edit User Role",
+    "description": "Ability to edit user role",
     "scope": "global",
     "category": "User Management"
   },
