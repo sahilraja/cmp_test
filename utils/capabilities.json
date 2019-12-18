@@ -441,13 +441,6 @@
     "scope": "global"
   },
   {
-    "capability": "add-tag-to-message",
-    "shortDescription": "Add Tag To Message",
-    "description": "Ability to add tags to a message",
-    "category": "Message Management",
-    "scope": "global"
-  },
-  {
     "capability": "add-tag-to-project",
     "shortDescription": "Add Tag To Project",
     "description": "Ability to add tags to a project",

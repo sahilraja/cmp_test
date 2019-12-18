@@ -369,7 +369,7 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible) {
       query = {}
     }
-    const { docs: list, page, pages } = await ProjectSchema.paginate(query, { populate: "phase" })
+    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page:1, limit:60, populate: "phase" })
     const projectIds = (list || []).map((_list) => _list.id);
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
@@ -1014,7 +1014,7 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
 
-  if (data.initialStartDate && new Date() >= new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
+  if (data.initialStartDate && new Date() > new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
   if (data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
 
   return {
