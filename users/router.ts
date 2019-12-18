@@ -114,7 +114,7 @@ router.post('/edit/:id', authenticate, async (req: Request, res: Response, next:
             payload = JSON.stringify(req.body)
         }
         //req.body.profilePic = JSON.parse(imageObj).id
-        res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user));
+        res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user,(req as any).token ));
     } catch (err) {
         next(new APIError(err.message));;
     };

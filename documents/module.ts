@@ -2427,43 +2427,46 @@ export async function renameFolder(folderId: string, body: any, userId: string) 
     throw error;
   }
 }
-export async function searchDoc(search: string, userId: string) {
+export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true) {
   try {
-    let data = {
-      query: {
-        bool: {
-          "should": [
-            {
-              "bool": {
-                "must": [
-                  {
-                    multi_match: {
-                      "query": search,
-                      "fields": ['name', 'description', 'userName', 'tags', 'type']
-                    }
-                  },
-                  {
-                    multi_match: {
-                      "query": `${userId} 2`,
-                      "fields": ['accessedBy', 'status']
-                      // accessedBy: userId,
-                    }
-                  }
-                ]
-              }
-            }
-          ]
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    let data: any;
+    const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
+    if (!isEligible) {
+      data = {
+        query: {
+          bool: {
+            "should": [
+              {
+                "bool": {
+                  "must": [
+                    { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'] } },
+                    { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } }
+                  ]
+                }
+              }]
+          }
+        }
+      }
+    } else {
+      data = {
+        query: {
+          multi_match: {
+            "query": search,
+            "fields": ['name', 'description', 'userName', 'tags', 'type']
+          }
         }
       }
     }
-
     let searchdoc: any = await esClient.search({
       index: "documents",
       body: data
     });
     console.log(searchdoc);
-    let seachResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
-    return seachResult
+    let searchResult = searchdoc.hits.hits.map((doc: any) => { return doc._source })
+    if (pagination == true) return manualPagination(page, limit, searchResult);
+    else return { docs: searchResult };
   } catch (error) {
     console.error(error);
     throw error;
@@ -2591,6 +2594,7 @@ async function checkDocIdExistsInEs(docId: string) {
   if (checkDoc.hits.hits.length) {
     return true
   } else {
-    false
+    return false
   }
 }
+

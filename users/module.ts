@@ -33,7 +33,8 @@ import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
 import { manualPagination, replaceDocumentUser } from "../documents/module";
 import { patternSubstitutions } from "../patterns/module";
-import { updateUserInDOcs } from "../documents/module"
+import { updateUserInDOcs } from "../documents/module";
+import { updateUserInMessages } from "../tags/module"
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -189,7 +190,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 }
 
 //  Edit user
-export async function edit_user(id: string, objBody: any, user: any) {
+export async function edit_user(id: string, objBody: any, user: any,token:any) {
     try {
         let user_roles: any = await userRoles(id, true)
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
@@ -198,10 +199,10 @@ export async function edit_user(id: string, objBody: any, user: any) {
                 throw new Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
-        if (id != user._id) {
-            let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
-            if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-        }
+        // if (id != user._id) {
+        //     let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
+        //     if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        // }
         if (objBody.password) {
             await validatePassword(objBody.password);
 
@@ -243,20 +244,21 @@ export async function edit_user(id: string, objBody: any, user: any) {
             return { message: "user roles updated successfully." }
         }
 
-        let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
-        if (objBody.aboutme) {
-            if (objBody.aboutme.length > Number(constantsList.value)) {
-                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
-            }
-        };
-        if (objBody.name) {
-            objBody.profilePicName = objBody.name
-            delete objBody.name;
-        }
+        // let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
+        // if (objBody.aboutme) {
+        //     if (objBody.aboutme.length > Number(constantsList.value)) {
+        //         throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+        //     }
+        // };
+        // if (objBody.name) {
+        //     objBody.profilePicName = objBody.name
+        //     delete objBody.name;
+        // }
         // update user with edited fields
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
         let updateUserInElasticSearch = await updateUserInDOcs(id, user._id)
+        // let updateUsersInMessages = await updateUserInMessages({id}, token)
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })

@@ -833,7 +833,7 @@ router.put("/folder/rename/:folderId", authenticate, async (req, res, next: Next
 
 router.get("/search/doc", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await searchDoc(req.query.search, res.locals.user._id));
+    res.status(200).send(await searchDoc(req.query.search, res.locals.user._id,req.query.page, req.query.limit,req.query.pagination));
   } catch (err) {
     next(new APIError(err.message));
   }

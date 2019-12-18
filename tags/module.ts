@@ -96,6 +96,21 @@ async function mergeMessageTags(body: any, token: string) {
   };
 };
 
+export async function updateUserInMessages(body: any, token: string) {
+  try {
+    let Options = {
+      uri: `${MESSAGE_URL}/v1/update/userMessages`,
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: body,
+      json: true
+    }
+    return await request(Options);
+  } catch (err) {
+    throw err
+  };
+};
+
 async function mergeTaskTags(body: any, token: string) {
   try {
     let Options = {
