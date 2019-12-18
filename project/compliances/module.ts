@@ -17,6 +17,8 @@ export async function createCompliance(payload: any, projectId: string, userObj:
 }
 
 export async function listCompliances(userToken: string, projectId: string) {
+
+    
     const compliances = await ComplianceSchema.find({ projectId }).exec()
     const projectDetails = await project.findById(projectId).select({ miscomplianceSpv: 1, miscomplianceProject: 1 })
     const taskIds = compliances.map((compliance: any) => compliance.taskId).filter(v => !!v)

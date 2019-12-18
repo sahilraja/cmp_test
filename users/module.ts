@@ -223,6 +223,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
                 let admin_scope = await checkRoleScope(user.role, "change-user-role");
                 if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             }
+            if(!objBody.role.length) throw new Error("Minimum one role is required.")
             if (user_roles && user_roles.length) {
                 const removeRole = await Promise.all(user_roles.map(async (role: any) => {
                     let RoleStatus = await revokeRole(id, role)
@@ -1036,7 +1037,7 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
                 headers: { 'Authorization': `Bearer ${userToken}` }
             })
         ])
-        // changeGroupOwnerShip(userId, replaceTo)
+        // changeGroupOwnerShip(userId, rep      
         return { message: RESPONSE.REPLACE_USER }
     } catch (err) {
         throw err
