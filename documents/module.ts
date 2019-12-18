@@ -1066,22 +1066,39 @@ export async function invitePeople(docId: string, users: any, role: string, user
     );
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-      let updatedData = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames);ctx._source.groupId.addAll(params.groupId);ctx._source.groupName.addAll(params.groupName)",
-            "lang": "painless",
-            "params": {
-              "userId": userIds,
-              "userNames": userNames,
-              "groupId": groupIds,
-              "groupName": groupNames
+      if(groupIds.length && groupNames.length){
+        let update = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames);ctx._source.groupId.addAll(params.groupId);ctx._source.groupName.addAll(params.groupName)",
+              "lang": "painless",
+              "params": {
+                "userId": userIds,
+                "userNames": userNames,
+                "groupId": groupIds,
+                "groupName": groupNames
+              }
             }
           }
-        }
-      })
+        })
+      }else{
+        let updatedData = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+              "lang": "painless",
+              "params": {
+                "userId": userIds,
+                "userNames": userNames,
+              }
+            }
+          }
+        })
+      }
     }
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     mailAllCmpUsers("invitePeopleDoc", doc, false, addUsers)
