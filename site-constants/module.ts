@@ -67,7 +67,6 @@ export async function constantsList() {
 
 export async function getConstantsGroupBy(){
     const data:any = await constantSchema.find({}).exec();
-    console.log(data);
     let ans = data.reduce((p: any,c: any) => {
         c = c.toObject();
         if(p[c.groupName]){
