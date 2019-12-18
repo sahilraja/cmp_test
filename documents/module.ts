@@ -138,7 +138,9 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       status: doc.status,
       fileName: doc.fileName,
       updatedAt: doc.updatedAt,
-      id: doc.id
+      id: doc.id,
+      groupId:[],
+      groupName:[]
     }
     let result = await esClient.index({
       index: "documents",
@@ -1036,17 +1038,31 @@ export async function invitePeople(docId: string, users: any, role: string, user
     let addUsers: any = []
     let userIds: any = []
     let userNames: any = []
+    let groupIds : any = []
+    let groupNames : any = []
     await Promise.all(
       users.map(async (user: any) => {
         if (doc.ownerId != user._id) {
           addUsers.push({ id: user._id, type: user.type, role: role })
-          userIds.push(user._id);
-          let userDetails: any = await userFindOne("id", user._id, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
-          if (role == "collaborator")
-            userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
-          return await invite(user, docId, role, doc)
+          if(user.type == 'user') userIds.push(user._id);
+          else if(user.type == 'group'){
+            groupIds.push(user._id);
+            let groupName:any = await groupFindOne('_id',user._id);  
+            groupNames.push(groupName.name);
+            let groupUserIds = await groupUserList(user._id)
+            groupUserIds = groupUserIds.filter(userId => userId != doc.ownerId)
+            userIds.push(groupUserIds)
+          }
+            return await invite(user, docId, role, doc)
         }
       })
+    );
+    await Promise.all(
+     userIds.map(async (user: any) => {
+          let userDetails: any = await userFindOne("id", user, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
+          if (role == "collaborator")
+            userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
+        })
     );
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
@@ -1055,11 +1071,13 @@ export async function invitePeople(docId: string, users: any, role: string, user
         id: docId,
         body: {
           "script": {
-            "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+            "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames);ctx._source.groupId.addAll(params.groupId);ctx._source.groupName.addAll(params.groupName)",
             "lang": "painless",
             "params": {
               "userId": userIds,
-              "userNames": userNames
+              "userNames": userNames,
+              "groupId": groupIds,
+              "groupName": groupNames
             }
           }
         }
@@ -2454,7 +2472,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
         query: {
           multi_match: {
             "query": search,
-            "fields": ['name', 'description', 'userName', 'tags', 'type']
+            "fields": ['name', 'description', 'userName', 'tags', 'type','groupName']
           }
         }
       }
@@ -2598,3 +2616,115 @@ async function checkDocIdExistsInEs(docId: string) {
   }
 }
 
+export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: string) {
+  try {
+
+    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "owner"])
+    let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
+      return {
+        docId: docId,
+        userNames: await Promise.all(groupUserIds.map(async (eachuser: any) => {
+          let userDetails: any = await userFindOne("id", eachuser, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+          if (userDetails) {
+            if (userDetails.firstName)
+              return `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+            else
+              return userDetails.name
+          }
+        })),
+        userIds: groupUserIds
+      }
+    }))
+    let allDocs: any = await esClient.search({
+      index: 'documents',
+      body: {
+        query: {
+          "match_all": {}
+        }
+      }
+    })
+
+    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+
+    let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+      if (docIds.includes(user.docId)) {
+        return await esClient.update({
+          index: "documents",
+          id: user.docId,
+          body: {
+            "script": {
+              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+              "lang": "painless",
+              "params": {
+                "userId": user.userIds,
+                "userNames": user.userNames
+              }
+            }
+          }
+        })
+      }
+    }))
+
+    return { idsToUpdate, updateUsers }
+
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function removeGroupMembersInDocs(id: any, groupUserId: string, userId: string) {
+  try {
+
+    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "owner"])
+    let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
+      let userDetails: any = await userFindOne("id", groupUserId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+      if (userDetails) {
+        if (userDetails.firstName)
+          userDetails = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+        else
+        userDetails = userDetails.name
+      }
+      return {
+        docId: docId,
+        userName: userDetails,
+        userId: groupUserId
+      }
+    }))
+    let allDocs: any = await esClient.search({
+      index: 'documents',
+      body: {
+        query: {
+          "match_all": {}
+        }
+      }
+    })
+
+    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+
+    let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+      if (docIds.includes(user.docId)) {
+        return await esClient.update({
+          index: "documents",
+          id: user.docId,
+          body: {
+            "script": {
+              "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
+              "lang": "painless",
+              "params": {
+                "userId": user.userId,
+                "userName": user.userName
+              }
+            }
+          }
+        })
+      }
+    }))
+
+    return { idsToUpdate, updateUsers }
+
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
