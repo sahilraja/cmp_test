@@ -23,6 +23,7 @@ import * as phaseRouter from "./phase/router";
 import * as notificationsRouter from "./notifications/router";
 import * as patternRouter from "./patterns/router"
 import * as smsRouter from "./sms/router"
+import * as miscellaneousRouter from "./miscellaneous/router";
 
 // implement multer
 import * as multer from "multer";
@@ -70,6 +71,7 @@ app.use('/constants', constantsRouter);
 app.use('/phases', authenticate, phaseRouter);
 app.use('/notifications/', authenticate, notificationsRouter);
 app.use('/sms', smsRouter);
+app.use(`/miscellaneous`, miscellaneousRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

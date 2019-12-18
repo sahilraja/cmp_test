@@ -1,49 +1,49 @@
 export const USER_ROUTER = {
-    INVALID_USER: "Invalid Credentials.",
-    INVALID_ADMIN: "You do not have necessary permissions to perform this action",
-    CREATE_ROLE_FAIL: "Fail to create role.",
-    REVOKE_ROLE_FAIL: "Fail to remove role.",
-    TOKEN_MISSING: "Missing token",
-    TOKEN_INVALID: "Invalid token.",
-    MANDATORY: "Required all mandatory fields.",
+    INVALID_USER: "Please enter valid Login Credentils",
+    INVALID_ADMIN: "You don't have permissions to perform this action",
+    CREATE_ROLE_FAIL: "Role couldn't be created, please try again",
+    REVOKE_ROLE_FAIL: "Failed to remove role, Please retry",
+    TOKEN_MISSING: "Token found missing, please try again",
+    TOKEN_INVALID: "Something went wrong. Please retry",
+    MANDATORY: "Please fill all mandatory fileds",
     VALID_PHONE_NO: "Please enter valid phone number",
     VALID_PASSWORD: "Password must have one special character and at least 6 characters",
-    ALREADY_REGISTER: "User is already registered",
-    INVALID_PARAMS_ID: "Given ID is invalid",
+    ALREADY_REGISTER: "You are already registered, please use login functionality",
+    INVALID_PARAMS_ID: "Invalid user ID. Please try again",
     USER_NOT_EXIST: "User doesn't exist, please contact the admin",
-    INVALID_FIELDS: "Please enter valid input",
-    USER_NOT_REGISTER: "User is not registered yet",
+    INVALID_FIELDS: "Please enter valid Email/Password",
+    USER_NOT_REGISTER: "User is not registered",
     INVALID_LOGIN_DETAILS: "Invalid login or password",
-    DEACTIVATED_BY_ADMIN: "Your account has been deactivated",
-    ROLE_NOT_FOUND: "Failed to fetch role and access details",
+    DEACTIVATED_BY_ADMIN: "Your account has been deactivated, please contact the admin to reactivate",
+    ROLE_NOT_FOUND: "Failed to fetch user details",
     CAPABILITIES_NOT_FOUND: "Failed to fetch access privileges",
     EMAIL_VERIFIED: "Email ID is already verified",
-    EMAIL_WRONG: "Given email id is invalid",
-    GROUP_NOT_FOUND: "Please enter a valid group name",
+    EMAIL_WRONG: "Invalid Email ID, please enter a valid email ID",
+    GROUP_NOT_FOUND: "Please enter a valid Group Name",
     USER_ARRAY: "Users must be an Array.",
-    ABOUTME_LIMIT: "Aboutme shall not exceed {} characters",
-    SIMILAR_MOBILE: "Old mobile number and new mobile number is similar",
-    INVALID_PASSWORD: "Given password is invalid",
-    INVALID_OTP: "Given email otp is invalid",
+    ABOUTME_LIMIT: "Please limit the response to {} characters",
+    SIMILAR_MOBILE: "This mobile number exists. Please add a new mobile number for the updates",
+    INVALID_PASSWORD: "Please enter valid Password",
+    INVALID_OTP: "Invalid OTP! Please enter valid OTP sent to your email address",
     INVALID_COUNTRYCODE: "Given country code is invalid",
     CREATE_ROLE_NOTIFICATION_FAIL: "Failed to create notification",
     ADD_NOTIFICATION_FAIL: "Failed to add template to notification",
-    BOTH_INVALID: "Mobile and email otps are invalid",
-    TOKEN_EXPIRED: "Verification link is expired. Please contact Admin",
+    BOTH_INVALID: "Invalid OTP ! Please enter valid OTP",
+    TOKEN_EXPIRED: "Verification link has expired. Please request admin to send the link again",
     TOKEN_EXPIRED_OTP: "OTP verification link is expired",
     USER_EXIST: "User already registered.",
-    CONSTANT_INVALID: "Invalid constant value",
-    RECAPTCHA_INVALID: "Failed captcha verification"
+    CONSTANT_INVALID: "Constant type is invalid, please try again",
+    RECAPTCHA_INVALID: "Captcha Verification failed, Please try again"
 };
 export const GROUP_ROUTER = {
-    REMOVE_MEMBER: "Minimum one member is required.",
-    GROUP_NAME: "Group Name not Modified"
+    REMOVE_MEMBER: "Please add at least one Group Member",
+    GROUP_NAME: "Group name cannot be modified"
 }
 export const MOBILE_MESSAGES = {
     VALID_MOBILE_OTP: "Please enter a valid mobileOtp",
     SEND_OTP: "Mobile Otp send successfully",
     VALID_OTP: "Mobile otp is verified",
-    INVALID_OTP: "Mobile otp is invalid",
+    INVALID_OTP: "Invalid OTP! Please enter valid OTP sent to your mobile number",
 }
 
 export const DOCUMENT_ROUTER = {
@@ -88,7 +88,7 @@ export const COMMENT_ROUTER = {
 }
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",
-    INVALID_TOKEN: "Invalid token",
+    INVALID_TOKEN: "Something went wrong. Please retry",
     INVALID_LOGIN: "Invalid login or password",
     USER_INACTIVE: "User deactivated, please contact the admin"
 }
@@ -101,10 +101,10 @@ export const MAIL_SUBJECT = {
 };
 
 export const PASSWORD = {
-    SPECIAL_CHAR: "Should be minimum captial letters count ",
-    NUMBERS_COUNT: "Should be minimum numbers count ",
-    SPECIAL_COUNT: "Should be minimum special characters count ",
-    TOTAL_LETTERS: (min: number, max: number) => `Should be minimum ${min} and maximum ${max} characters count `
+    SPECIAL_CHAR: "Should contain minimum of ",
+    NUMBERS_COUNT: "Should contain minimum ",
+    SPECIAL_COUNT: "Should contain minimum ",
+    TOTAL_LETTERS: (min: number, max: number) => `Password should contain minimum ${min} and maximum ${max} characters `
 }
 
 export const RESPONSE = {
@@ -151,7 +151,7 @@ export const TASK_ERROR = {
     TASK_NAME_REQUIRED: `Name is mandatory for all tasks`,
     UNAUTHORIZED: `Unauthorized to create task`,
     SUBTASK_UNAUTHORIZED: `Unauthorized to create subtask`,
-    ALL_MANDATORY: `Required all mandatory fields.`,
+    ALL_MANDATORY: `Please fill all mandatory fileds`,
     CREATOR_CANT_BE_ASSIGNEE: `Creator cant be owner`,
     INVALID_ARRAY: `tags, approvers, viewers and supporters must be an Array.`,
     ASSIGNEE_REQUIRED: `Assignee is required`,
@@ -192,7 +192,7 @@ export const OPPORTUNITY = {
     UNAUTHORIZED_ACCESS: `Unauthorized to manage opportunity`
 }
 export const TEMPLATE = {
-    INVALID_TEMPLATE: "Invalid email template"
+    INVALID_TEMPLATE: "Email template is invalid, please try again"
 }
 
 export const ACTIVITY_LOG = {

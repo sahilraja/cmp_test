@@ -162,7 +162,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         }
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (aboutme.length > Number(constantsList.value)) {
-            throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+            throw new APIError(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
         }
 
         //  hash the password
@@ -246,7 +246,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (objBody.aboutme) {
             if (objBody.aboutme.length > Number(constantsList.value)) {
-                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+                throw new APIError(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
             }
         };
         if (objBody.name) {
@@ -1154,14 +1154,14 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
             if (phone && countryCode) {
                 let phoneNumber: string = countryCode + phone
                 if (!phoneNo(phoneNumber).length) {
-                    throw new Error(USER_ROUTER.VALID_PHONE_NO)
+                    throw new APIError(USER_ROUTER.VALID_PHONE_NO)
                 }
 
             }
             if (aboutme) {
                 let constantsList: any = await constantSchema.findOne({ key: "aboutMe" }).exec();
                 if (aboutme.length > Number(constantsList.value)) {
-                    throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
+                    throw new APIError(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
                 }
             }
             if (body.name) {
@@ -1200,13 +1200,13 @@ export async function validatePassword(password: string) {
             }
         }
         if (upper < UPPER_CASE_COUNT && upper > 0) {
-            throw new APIError(`${PASSWORD.SPECIAL_CHAR} ${UPPER_CASE_COUNT}`);
+            throw new APIError(`${PASSWORD.SPECIAL_CHAR} ${UPPER_CASE_COUNT} Captial letters`);
         }
         if (num < NUMBERS_COUNT && num > 0) {
-            throw new APIError(`${PASSWORD.NUMBERS_COUNT} ${NUMBERS_COUNT}`);
+            throw new APIError(`${PASSWORD.NUMBERS_COUNT} ${NUMBERS_COUNT} Numbers`);
         }
         if (special < SPECIAL_COUNT && special > 0) {
-            throw new APIError(`${PASSWORD.SPECIAL_COUNT} ${SPECIAL_COUNT}`);
+            throw new APIError(`${PASSWORD.SPECIAL_COUNT} ${SPECIAL_COUNT} Special Characters`);
         }
         if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
             throw new APIError(PASSWORD.TOTAL_LETTERS(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH));
