@@ -4,6 +4,8 @@ import {
     addRolesFromJSON, addRole, addRoleCapabilitiesFromJSON
 } from "./module";
 import { authenticate } from "../utils/utils";
+import { APIError } from "../utils/custom-error";
+import { NextFunction } from "connect";
 const router = Router();
 
 //  list roles
@@ -48,27 +50,27 @@ router.get('/all/capabilities/list', authenticate, async (req: Request, res: Res
     };
 });
 
-router.post('/capability/add', authenticate, async (req: Request, res: Response, next: Handler) => {
+router.post('/capability/add', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         let scope = 'global'
         res.status(200).send(await addCapability(req.body.role, scope, req.body.capability, res.locals.user._id));
     } catch (err) {
-        res.status(400).send({ error: err.error });
+        next(new APIError(err.message, 409))
     };
 });
 
-router.put('/capability/remove', authenticate, async (req: Request, res: Response, next: Handler) => {
+router.put('/capability/remove', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         let scope = 'global'
         res.status(200).send(await removeCapability(req.body.role, scope, req.body.capability, res.locals.user._id));
     } catch (err) {
-        res.status(400).send({ error: err.error });
+        next(new APIError(err.message, 409))
     };
 });
 
 router.put('/:role/edit', authenticate, async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await updaterole(req.params.role, req.body,res.locals.user._id));
+        res.status(200).send(await updaterole(req.params.role, req.body, res.locals.user._id));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
