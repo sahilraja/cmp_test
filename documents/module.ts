@@ -142,11 +142,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupId:[],
       groupName:[]
     }
-    let result = await esClient.index({
-      index: "documents",
-      body: docObj,
-      id: doc.id
-    });
+    // let result = await esClient.index({
+    //   index: "documents",
+    //   body: docObj,
+    //   id: doc.id
+    // });
     // }
     return doc;
   } catch (err) {
@@ -1247,14 +1247,17 @@ export async function published(body: any, docId: string, userObj: any, withAuth
       let admin_scope = await checkRoleScope(userObj.role, "publish-document");
       if (!admin_scope) throw new APIError(DOCUMENT_ROUTER.PUBLISH_CAPABILITY, 403);
     };
-    if (body.tags && body.tags.length) {
+    
+    let doc: any = await documents.findById(docId);
+    if (!doc) throw new Error("Doc Not Found");
+
+    if (body.tags && body.tags.length && body.tags.some((tagId: string)=> !doc.tags.includes(tagId) )) {
       let isEligible = await checkRoleScope(userObj.role, "add-tag-to-document");
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
     }
-    let doc: any = await documents.findById(docId);
-    if (!doc) throw new Error("Doc Not Found")
+
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
     await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
@@ -1343,14 +1346,14 @@ export async function unPublished(docId: string, userObj: any) {
   };
 };
 
-export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any) {
+export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any, payload: any) {
   try {
     if (siteConstants.replaceDoc == "true") {
       let admin_scope = await checkRoleScope(userObj.role, "replace-document");
       if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
       let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
       documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
-      let success = await published({ ...doc, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
+      let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
       await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success)
       return success
@@ -2087,7 +2090,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
   };
 };
 
-async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = true, text?: any) {
+export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boolean = true, text?: any) {
   try {
     let selectFields = { email: true, firstName: true, middleName: true, lastName: true, phone: true, is_active: true, countryCode: true }
     let users, sharedUsers: string, role: string
