@@ -260,7 +260,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
         let updateUserInElasticSearch = await updateUserInDOcs(id, user._id)
-        let updateUsersInMessages = await updateUserInMessages({id}, token)
+        // let updateUsersInMessages = await updateUserInMessages({id}, token)
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })
