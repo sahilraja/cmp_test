@@ -125,3 +125,18 @@ async function mergeTaskTags(body: any, token: string) {
     throw err
   };
 };
+
+export async function updateUserInTasks(body: any, token: string) {
+  try {
+    let Options = {
+      uri: `${TASK_URL}/update/user`,
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: body,
+      json: true
+    }
+    return await request(Options);
+  } catch (err) {
+    throw err
+  };
+};

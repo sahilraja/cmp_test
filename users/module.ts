@@ -31,10 +31,10 @@ import { promises } from "fs";
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
-import { manualPagination, replaceDocumentUser } from "../documents/module";
+import { manualPagination, replaceDocumentUser,addGroupMembersInDocs ,removeGroupMembersInDocs} from "../documents/module";
 import { patternSubstitutions } from "../patterns/module";
 import { updateUserInDOcs } from "../documents/module";
-import { updateUserInMessages } from "../tags/module"
+import { updateUserInMessages ,updateUserInTasks} from "../tags/module"
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -259,6 +259,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
         let userData: any = getFullNameAndMobile(userInfo);
         let updateUserInElasticSearch = await updateUserInDOcs(id, user._id)
         // let updateUsersInMessages = await updateUserInMessages({id}, token)
+        // let updateUsersInTasks = await updateUserInTasks({id},token);
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })
@@ -628,6 +629,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
         if (!filteredUsers.length && users.some(user => existUsers.includes(user))) throw new Error("User already exist.")
         if (!filteredUsers.length) throw new APIError("Invalid Action");
         await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
+        await addGroupMembersInDocs(id, users, userObj._id)
         sendNotificationToGroup(id, data.name, userObj._id, { templateName: "addGroupMember", mobileTemplateName: "addGroupMember" })
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
@@ -647,7 +649,10 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         let existUsers = await groupUserList(data._id)
         if (existUsers.length == 1) throw new Error(GROUP_ROUTER.REMOVE_MEMBER);
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map((user: any) => removeUserToGroup(user, id)))
+        await Promise.all(users.map(async(user: any) => {
+        await removeUserToGroup(user, id),
+        await removeGroupMembersInDocs(id,user,userObj._id)
+        }))
         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
         throw err
