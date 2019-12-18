@@ -199,10 +199,10 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
                 throw new Error(USER_ROUTER.EMAIL_WRONG);
             }
         }
-        // if (id != user._id) {
-        //     let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
-        //     if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-        // }
+        if (id != user._id) {
+            let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
+            if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        }
         if (objBody.password) {
             await validatePassword(objBody.password);
 
@@ -244,16 +244,16 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
             return { message: "user roles updated successfully." }
         }
 
-        // let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
-        // if (objBody.aboutme) {
-        //     if (objBody.aboutme.length > Number(constantsList.value)) {
-        //         throw new Error(USER_ROUTER.ABOUTME_LIMIT);
-        //     }
-        // };
-        // if (objBody.name) {
-        //     objBody.profilePicName = objBody.name
-        //     delete objBody.name;
-        // }
+        let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
+        if (objBody.aboutme) {
+            if (objBody.aboutme.length > Number(constantsList.value)) {
+                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+            }
+        };
+        if (objBody.name) {
+            objBody.profilePicName = objBody.name
+            delete objBody.name;
+        }
         // update user with edited fields
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
