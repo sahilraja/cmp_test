@@ -601,7 +601,7 @@ router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants));
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body));
   } catch (err) {
     next(new APIError(err.message));
   }

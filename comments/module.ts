@@ -11,6 +11,7 @@ import { sendNotification, getFullNameAndMobile } from "../users/module";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
 import { documents } from "../documents/model";
+import { mailAllCmpUsers } from "../documents/module";
 
 export async function addComment(body: any, user: any) {
   try {
@@ -29,7 +30,8 @@ export async function addComment(body: any, user: any) {
     if (body.type == "document" && doc.status != 2) {
       await create({ activityType: `DOCUMENT_COMMENT`, activityBy: user._id, documentId: body.entity_id })
       const { fullName, mobileNo } = getFullNameAndMobile(user);
-      sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileTemplateName: "addCommentToDoc" });
+      mailAllCmpUsers("addCommentToDoc", doc, true)
+      // sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileTemplateName: "addCommentToDoc" });
     }
     return commentInfo
   } catch (error) {
