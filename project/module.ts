@@ -678,6 +678,7 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
       (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     p.push({
+      fundsPlanned:Math.round(citiisGrants* (fund.percentage / 100)),
       phase: phases.find(phase => phase.id == fund.phase),
       installment: installmentType,
       percentage: fund.percentage,
@@ -700,6 +701,7 @@ export async function getFinancialInfo(projectId: string, userId?: string) {
       (!fundReleased.deleted && fundReleased.subInstallment && (fund.installment == fundReleased.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     return {
+      fundsPlanned:Math.round(citiisGrants* (fund.percentage / 100)),
       phase: phases.find(phase => phase.id == fund.phase),
       installment: installmentType,
       percentage: fund.percentage,
@@ -975,8 +977,6 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
 
 function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   let errorRole
-  console.log(data)
-  console.log(data.name)
   if (!data.name || !data.name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }

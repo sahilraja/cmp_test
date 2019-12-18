@@ -96,7 +96,6 @@ export async function inviteUser(objBody: any, user: any) {
             }
         }
         //  Check User Capability
-        console.log(`user.role`, user.role)
         let admin_scope = await checkRoleScope(user.role, "create-user");
         if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({
@@ -163,7 +162,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         }
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (aboutme.length > Number(constantsList.value)) {
-            throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+            throw new APIError(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
         }
 
         //  hash the password
@@ -224,6 +223,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
                 let admin_scope = await checkRoleScope(user.role, "change-user-role");
                 if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             }
+            if(!objBody.role.length) throw new Error("Minimum one role is required.")
             if (user_roles && user_roles.length) {
                 const removeRole = await Promise.all(user_roles.map(async (role: any) => {
                     let RoleStatus = await revokeRole(id, role)
@@ -247,7 +247,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (objBody.aboutme) {
             if (objBody.aboutme.length > Number(constantsList.value)) {
-                throw new Error(USER_ROUTER.ABOUTME_LIMIT);
+                throw new APIError(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
             }
         };
         if (objBody.name) {
@@ -307,7 +307,6 @@ export async function getUserDetail(userId: string, user?: any) {
             if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         let detail = await userFindOne('_id', userId, { firstName: 1, secondName: 1, lastName: 1, middleName: 1, name: 1, email: 1, is_active: 1, phone: 1, countryCode: 1, aboutme: 1, profilePic: 1 });
-        console.log(detail, `detail`)
         return { ...detail, id: detail._id, role: (((await userRoleAndScope(detail._id)) as any).data || [""])[0] }
     } catch (err) {
         throw err;
@@ -974,7 +973,6 @@ export async function recaptchaValidation(req: any) {
         return await new Promise((resolve: any, reject: any) => {
             return request(verificationUrl, function (error, response, body) {
                 body = JSON.parse(body);
-                console.log(body);
                 // Success will be true or false depending upon captcha validation.
                 if (body.success !== undefined && !body.success) {
                     reject(new Error(USER_ROUTER.RECAPTCHA_INVALID));
@@ -1044,7 +1042,7 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
                 headers: { 'Authorization': `Bearer ${userToken}` }
             })
         ])
-        // changeGroupOwnerShip(userId, replaceTo)
+        // changeGroupOwnerShip(userId, rep      
         return { message: RESPONSE.REPLACE_USER }
     } catch (err) {
         throw err
@@ -1060,7 +1058,6 @@ export async function sendNotification(objBody: any) {
     const { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     let userNotification: any;
     let config = 1
-    console.log(`templateName`, templateName, objBody.email)
     if (templateName == "invalidPassword") {
         let constantsList: any = await constantSchema.findOne({ key: "invalidPassword" }).exec();
         if (constantsList.value == "false") {
@@ -1163,14 +1160,14 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
             if (phone && countryCode) {
                 let phoneNumber: string = countryCode + phone
                 if (!phoneNo(phoneNumber).length) {
-                    throw new Error(USER_ROUTER.VALID_PHONE_NO)
+                    throw new APIError(USER_ROUTER.VALID_PHONE_NO)
                 }
 
             }
             if (aboutme) {
                 let constantsList: any = await constantSchema.findOne({ key: "aboutMe" }).exec();
                 if (aboutme.length > Number(constantsList.value)) {
-                    throw new Error(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
+                    throw new APIError(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
                 }
             }
             if (body.name) {
@@ -1209,13 +1206,13 @@ export async function validatePassword(password: string) {
             }
         }
         if (upper < UPPER_CASE_COUNT && upper > 0) {
-            throw new APIError(`${PASSWORD.SPECIAL_CHAR} ${UPPER_CASE_COUNT}`);
+            throw new APIError(`${PASSWORD.SPECIAL_CHAR} ${UPPER_CASE_COUNT} Captial letters`);
         }
         if (num < NUMBERS_COUNT && num > 0) {
-            throw new APIError(`${PASSWORD.NUMBERS_COUNT} ${NUMBERS_COUNT}`);
+            throw new APIError(`${PASSWORD.NUMBERS_COUNT} ${NUMBERS_COUNT} Numbers`);
         }
         if (special < SPECIAL_COUNT && special > 0) {
-            throw new APIError(`${PASSWORD.SPECIAL_COUNT} ${SPECIAL_COUNT}`);
+            throw new APIError(`${PASSWORD.SPECIAL_COUNT} ${SPECIAL_COUNT} Special Characters`);
         }
         if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
             throw new APIError(PASSWORD.TOTAL_LETTERS(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH));
