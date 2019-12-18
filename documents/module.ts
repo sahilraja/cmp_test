@@ -142,11 +142,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupId:[],
       groupName:[]
     }
-    // let result = await esClient.index({
-    //   index: "documents",
-    //   body: docObj,
-    //   id: doc.id
-    // });
+    let result = await esClient.index({
+      index: "documents",
+      body: docObj,
+      id: doc.id
+    });
     // }
     return doc;
   } catch (err) {
@@ -597,7 +597,7 @@ export async function cancelUpdate(docId: string, userId: string) {
 export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
-    let capability = await GetDocCapabilitiesForUser(userId, docId);
+    let capability = await documnetCapabilities(docId, userId);
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_UPDATE_USER);
     let obj: any = {};
     if (objBody.docName) {
@@ -624,7 +624,8 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
-      if (!capability.includes("owner")) throw new Error("Invalid Action")
+      let userCapabilities = await GetDocCapabilitiesForUser(userId, docId)
+      if (!userCapabilities.includes("owner")) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
 

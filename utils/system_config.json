@@ -119,20 +119,6 @@
         "displayName": "Task Title ( in characters )"
     },
     {
-        "key": "docNamePg",
-        "value": "50",
-        "type": "number",
-        "groupName": "privateGroup",
-        "displayName": "Private Member list Title ( in characters )"
-    },
-    {
-        "key": "docDescriptionPg",
-        "value": "200",
-        "type": "number",
-        "groupName": "privateGroup",
-        "displayName": "Private Member Description ( in characters )"
-    },
-    {
         "key": "bcc",
         "value": "jeevan.balla@transerve.com",
         "type": "string",

@@ -86,6 +86,34 @@ export const DOCUMENT_ROUTER = {
 export const COMMENT_ROUTER = {
     MANDATORY: "Please fill all mandatory fields",
 }
+
+export const PRIVATE_MEMBER = {
+    INVALID: "GroupId is Invalid.",
+    CREATE: {
+        NO_ACCESS: "Unauthorized Action.",
+        MISSING_FIELDS: "Missing Required Fields.",
+        INVALID_NAME: "you have entered invalid name. please try again.",
+        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be group member.",
+        GROUP_NAME_EXIST: "A private group with same name already exists."
+    },
+    EDIT: {
+        GROUP_NOT_FOUND: "Group Not Found.",
+        NO_ACCESS: "Unauthorized Action.",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required.",
+        INVALID_NAME: "you have entered invalid name. please try again.",
+        ALREADY_MEMBER: "Member already exist in this group.",
+        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be group member.",
+    },
+    REMOVE: {
+        GROUP_NOT_FOUND: "Group Not Found.",
+        NO_ACCESS: "Unauthorized Action.",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required."
+    },
+    STATUS: {
+        GROUP_NOT_FOUND: "Group Not Found.",
+        NO_ACCESS: "Unauthorized Action." 
+    }
+}
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",
     INVALID_TOKEN: "Something went wrong. Please retry",

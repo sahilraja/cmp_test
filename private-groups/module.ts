@@ -1,5 +1,5 @@
 import { privateGroupSchema } from "./model";
-import { RESPONSE, DOCUMENT_ROUTER } from "../utils/error_msg";
+import { RESPONSE, DOCUMENT_ROUTER, PRIVATE_MEMBER } from "../utils/error_msg";
 import { userFindMany, userFindOne } from "../utils/users";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
@@ -18,13 +18,13 @@ export interface privateGroup {
 export async function createPrivateGroup(body: any, userObj: any): Promise<object> {
     try {
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error("Missing Required Fields.");
-        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
-        await validatePrivateMembersConstants(body);
-        if (body.members.includes(userObj._id)) throw new Error("Owner can't be group member.")
+        if (!isEligible) throw new APIError(PRIVATE_MEMBER.CREATE.NO_ACCESS, 403);
+        if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error(PRIVATE_MEMBER.CREATE.MISSING_FIELDS);
+        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error(PRIVATE_MEMBER.CREATE.INVALID_NAME)
+        // await validatePrivateMembersConstants(body);
+        if (body.members.includes(userObj._id)) throw new Error(PRIVATE_MEMBER.CREATE.OWNER_NOT_PRIVATE_MEMBER)
         let existGroups = await privateGroupSchema.find({ name: body.name, createdBy: userObj._id, is_active: true })
-        if (existGroups.length) throw new Error("A private group with same name already exists.")
+        if (existGroups.length) throw new Error(PRIVATE_MEMBER.CREATE.GROUP_NAME_EXIST)
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
@@ -35,17 +35,17 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
 export async function editPrivateGroup(groupId: string, body: any, userId: string): Promise<any> {
     try {
         let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
-        if (!groupDetails) throw new Error("Group Not Found.");
-        if (groupDetails.createdBy != userId) throw new Error("Unauthorized Action.");
-        if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error("Minimum one member is required.");
-        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
-        await validatePrivateMembersConstants(body);
+        if (!groupDetails) throw new Error(PRIVATE_MEMBER.EDIT.GROUP_NOT_FOUND);
+        if (groupDetails.createdBy != userId) throw new Error(PRIVATE_MEMBER.EDIT.NO_ACCESS);
+        if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error(PRIVATE_MEMBER.EDIT.MINIMUM_ONE_USER_REQUIRED);
+        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error(PRIVATE_MEMBER.EDIT.INVALID_NAME)
+        // await validatePrivateMembersConstants(body);
         if (body)
             if (body.members) {
                 let existUsersRemoved = body.members.filter((user: any) => !groupDetails.members.includes(user))
-                if (!existUsersRemoved.length) throw new Error("Member already exist in this group.")
+                if (!existUsersRemoved.length) throw new Error(PRIVATE_MEMBER.EDIT.ALREADY_MEMBER)
                 body.members = [...new Set(groupDetails.members.concat(body.members))]
-                if (body.members.includes(userId)) throw new Error("Owner can't be group member.")
+                if (body.members.includes(userId)) throw new Error(PRIVATE_MEMBER.EDIT.OWNER_NOT_PRIVATE_MEMBER)
             }
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
@@ -57,12 +57,12 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
 export async function removePrivateGroup(groupId: string, body: privateGroup, userId: string): Promise<any> {
     try {
         let groupDetails: any = await privateGroupSchema.findById(groupId).exec();
-        if (!groupDetails) throw new Error("Group Not Found.");
-        if (groupDetails.createdBy != userId) throw new Error("Unauthorized Action.");
+        if (!groupDetails) throw new Error(PRIVATE_MEMBER.REMOVE.GROUP_NOT_FOUND);
+        if (groupDetails.createdBy != userId) throw new Error(PRIVATE_MEMBER.REMOVE.NO_ACCESS);
         if (Array.isArray(body.members) && body.members.length) {
             body.members = groupDetails.members.filter((userId: string) => !body.members.includes(userId))
         }
-        if (groupDetails.members.length == 1) throw new Error("Minimum one member is required.")
+        if (groupDetails.members.length == 1) throw new Error(PRIVATE_MEMBER.REMOVE.MINIMUM_ONE_USER_REQUIRED)
         return await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { ...body } })
     } catch (err) {
         throw err
@@ -73,8 +73,8 @@ export async function removePrivateGroup(groupId: string, body: privateGroup, us
 export async function privateGroupStatus(groupId: string, userId: string): Promise<any> {
     try {
         let group: any = await privateGroupSchema.findById(groupId).exec();
-        if (!group) throw new Error("Group Not Found.");
-        if (group.createdBy != userId) throw new Error("Unauthorized Action.")
+        if (!group) throw new Error(PRIVATE_MEMBER.STATUS.GROUP_NOT_FOUND);
+        if (group.createdBy != userId) throw new Error(PRIVATE_MEMBER.STATUS.NO_ACCESS)
         let data: any = await privateGroupSchema.findByIdAndUpdate(groupId, { $set: { is_active: group.is_active ? false : true } });
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
