@@ -2515,8 +2515,8 @@ export async function searchDoc(search: string, userId: string, page: number = 1
               {
                 "bool": {
                   "must": [
-                    { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'] } },
-                    { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } }
+                    { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'],type:'phrase_prefix' } },
+                    { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
                   ]
                 }
               }]
@@ -2528,7 +2528,8 @@ export async function searchDoc(search: string, userId: string, page: number = 1
         query: {
           multi_match: {
             "query": search,
-            "fields": ['name', 'description', 'userName', 'tags', 'type','groupName']
+            "fields": ['name', 'description', 'userName', 'tags', 'type','groupName'],
+            "type":'phrase_prefix' 
           }
         }
       }
