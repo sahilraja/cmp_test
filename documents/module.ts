@@ -1294,7 +1294,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any,host:strin
     let createdDoc:any =  await documents.create({
       sourceId: docId || null,
       name: body.name || doc.name,
-      description: body.description || doc.name,
+      description: body.description || doc.description,
       themes: body.themes || doc.theme,
       tags: body.tags || doc.tags,
       versionNum: 1,
@@ -1304,6 +1304,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any,host:strin
       fileName: body.fileName || doc.fileName,
       fileId: body.fileId || doc.fileId
     });
+    if(body.status == 2){
     let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
     let userName;
     if (userDetails.firstName)
@@ -1320,7 +1321,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any,host:strin
     let docObj = {
       accessedBy: [userId],
       userName: [userName],
-      name: createdDoc.docName,
+      name: createdDoc.name,
       description: createdDoc.description,
       tags: tags,
       thumbnail: thumbnail,
@@ -1336,7 +1337,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any,host:strin
       body: docObj,
       id: createdDoc.id
     });
-
+  }
     return createdDoc;
     
   } catch (err) {
