@@ -1598,7 +1598,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   if(checkFolderData.parentId){
      let path:any = await getParentFolderDetails(checkFolderData.parentId,userId,root)
     path = path.reverse();
-    rootPath.push(path);
+    rootPath.push(... path);
     }
   return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs,path:rootPath };
 }
