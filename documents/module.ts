@@ -1315,7 +1315,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any,host:strin
 
     let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${createdDoc.fileId}` : "N/A"
 
-    let tags = await getTags((createdDoc.tags && createdDoc.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+    let tags = await getTags((createdDoc.tags && createdDoc.tags.length) ? createdDoc.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
     tags = tags.map((tagData: any) => { return tagData.tag })
     let docObj = {
       accessedBy: [userId],
