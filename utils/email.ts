@@ -30,6 +30,7 @@ export async function nodemail(objBody: any) {
     let transporter = nodemailer.createTransport(
       smtpTransport({
         service: 'gmail',
+        pool: true,
         auth: {
           user: EMAIL,
           pass: PASSWORD
