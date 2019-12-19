@@ -147,7 +147,6 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       body: docObj,
       id: doc.id
     });
-    // }
     return doc;
   } catch (err) {
     throw err
@@ -1252,13 +1251,12 @@ export async function published(body: any, docId: string, userObj: any, withAuth
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found");
 
-    if (body.tags && body.tags.length && body.tags.some((tagId: string)=> !doc.tags.includes(tagId)) && body.tags.length != doc.tags.length) {
+    if (body.tags && body.tags.length && (body.tags.some((tagId: string)=> !doc.tags.includes(tagId)) || body.tags.length != doc.tags.length)) {
       let isEligible = await checkRoleScope(userObj.role, "add-tag-to-document");
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
     }
-
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
     await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
