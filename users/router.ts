@@ -227,7 +227,7 @@ router.post("/group/create", authenticate, async (req: Request, res: Response, n
         res.status(200).send(await createGroup(req.body, res.locals.user))
     } catch (err) {
         if (err.message.includes("E11000")) {
-            err.message = `Group name already existed.`
+            err.message = `Group name already exists.`
         }
         next(new APIError(err.message));
     };

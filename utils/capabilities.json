@@ -434,6 +434,13 @@
     "scope": "global"
   },
   {
+    "capability": "view-all-tags",
+    "shortDescription": "View All Tags",
+    "description": "Ability to view all Tags",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
     "capability": "add-tag-to-message",
     "shortDescription": "Add Tag To Message",
     "description": "Ability to add tags to a message",

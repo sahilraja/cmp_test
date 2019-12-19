@@ -213,7 +213,7 @@ export async function getDocList(page: number = 1, limit: number = 30, host: str
     let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
     if (pagination) {
-      data = documentsSort(data, "updatedAt", true)
+      data = documentsSort(data, "name", false)
       return manualPagination(page, limit, docList)
     }
     return docList
@@ -423,14 +423,16 @@ export async function ApproveDoc(docId: string, versionId: string) {
 }
 
 //  Get Doc Details
-export async function getDocDetails(docId: any, userId: string, token: string) {
+export async function getDocDetails(docId: any, userId: string, token: string, allCmp:boolean) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
-    if (publishDocs.isDeleted) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DELETED(publishDocs.name))
-    if (publishDocs.status != 2 && publishDocs.parentId == null) {
-      let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
-      if (!userCapability.length) throw new Error(DOCUMENT_ROUTER.USER_HAVE_NO_ACCESS)
+    if(!allCmp){
+      if (publishDocs.isDeleted) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DELETED(publishDocs.name))
+      if (publishDocs.status != 2 && publishDocs.parentId == null) {
+        let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
+        if (!userCapability.length) throw new Error(DOCUMENT_ROUTER.USER_HAVE_NO_ACCESS)
+      }
     }
     let filteredDocs: any;
     let filteredDocsToRemove: any;
@@ -471,12 +473,16 @@ export async function getDocDetails(docId: any, userId: string, token: string) {
     }));
     let usersDataForRemoveTag = await Promise.all(userDataForRemoveTag.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
     docList.suggestTagsToRemove = usersDataForRemoveTag
-    docList.tags = await getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
-      docList.role = (((await userRoleAndScope(docList.ownerId)) as any).data || [""])[0],
-      docList.owner = await userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 });
-    docList.taskDetails = await getTasksForDocument(docList.parentId || docList._id, token)
+    let [tagObjects, ownerRole, ownerObj, taskDetailsObj] = await Promise.all([
+      getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
+      userRoleAndScope(docList.ownerId),
+      userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 }),
+      getTasksForDocument(docList.parentId || docList._id, token)
+    ])
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
-    return docList;
+    return {...docList, tags: tagObjects, 
+      role: (ownerRole.data || [""])[0], owner: ownerObj, taskDetails: taskDetailsObj, 
+      sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''}
   } catch (err) {
     console.error(err);
     throw err;
@@ -936,7 +942,7 @@ export async function sharedList(userId: string, page: number = 1, limit: number
     );
     data = data.filter(({ ownerId }: any) => ownerId != userId)
     if (pagination) {
-      data = documentsSort(data, "updatedAt", true)
+      data = documentsSort(data, "name", false)
       return manualPagination(page, limit, data)
     };
     return data
@@ -1268,10 +1274,10 @@ export async function published(body: any, docId: string, userObj: any, host: st
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found");
 
-    if (body.tags && body.tags.length && (body.tags.some((tagId: string) => !doc.tags.includes(tagId)) || body.tags.length != doc.tags.length)) {
+    if (body.tags && Array.isArray(body.tags) && (body.tags.some((tagId: string) => !doc.tags.includes(tagId)) || body.tags.length != doc.tags.length)) {
       let isEligible = await checkRoleScope(userObj.role, "add-tag-to-document");
       if (!isEligible) {
-        throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
+        throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_UPDATE_TAGS, 403);
       }
     }
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
@@ -1805,7 +1811,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   const docsData = manualPagination(page, limit, [...foldersList, ...docsList])
   const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
-  docsData.docs = documentsSort(docsData.docs, "updatedAt", true)
+  docsData.docs = documentsSort(docsData.docs, "name", false)
   return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
 
@@ -2348,7 +2354,7 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
     if (!isEligible) {
       throw new APIError("Unauthorized access", 403);
     }
-    let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT } }).sort({ updatedAt: -1 });
+    let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT } }).collation({locale:'en'}).sort({ name: 1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
     if (pagination) return manualPagination(page, limit, docList)
     return docList
@@ -2545,44 +2551,28 @@ export async function searchDoc(search: string, userId: string, page: number = 1
     let data: any;
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
     if (!isEligible) {
-      if (search == null) {
-        data = {
-          query: {
-            multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
-          }
-        }
-      } else {
-        data = {
-          query: {
-            bool: {
-              "should": [
-                {
-                  "bool": {
-                    "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'], type: 'phrase_prefix' } },
-                      { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
-                    ]
-                  }
-                }]
-            }
+      data = {
+        query: {
+          bool: {
+            "should": [
+              {
+                "bool": {
+                  "must": [
+                    { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'], type: 'phrase_prefix' } },
+                    { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
+                  ]
+                }
+              }]
           }
         }
       }
     } else {
-      if (search == null) {
-        data = {
-          query: {
-            "match_all": {}
-          }
-        }
-      } else {
-        data = {
-          query: {
-            multi_match: {
-              "query": search,
-              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName'],
-              "type": 'phrase_prefix'
-            }
+      data = {
+        query: {
+          multi_match: {
+            "query": search,
+            "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName'],
+            "type": 'phrase_prefix'
           }
         }
       }
