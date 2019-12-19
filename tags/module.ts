@@ -54,8 +54,8 @@ export async function mergeTags(body: any, token: string, userId: string) {
       tags: body.tags,
       mergeTag: mergeTagId
     }
-    // let messageMergeTags = await mergeMessageTags(bodyObj, token)
-    // let taskMergeTags = await mergeTaskTags(bodyObj, token);
+    let messageMergeTags = await mergeMessageTags(bodyObj, token)
+    let taskMergeTags = await mergeTaskTags(bodyObj, token);
     let removeTagIds = body.tags.filter((tag: any) => tag != mergeTagId)
     let removeTags = await tags.remove({ _id: { "$in": removeTagIds } });
     //   $set: { deleted: true }
