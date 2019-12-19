@@ -33,6 +33,7 @@ import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
 
+
 enum STATUS {
   DRAFT = 0,
   DONE = 1,
@@ -1518,7 +1519,8 @@ export async function listFolders(userId: String) {
     throw error;
   }
 }
-export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30, host: string) {
+
+export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30, host: string,root: any) {
   if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const [fetchedDoc, subfolders] = await Promise.all([
     folders.aggregate([
@@ -1574,7 +1576,25 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   const docsData = manualPagination(page, limit, [...subFolderList, ...filteredDocs])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
-  return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs, };
+  // let rootPath:any = [];
+  let checkFolderData:any = await folders.findById(folderId);
+  // let checkParent = false
+  let rootPath:any =[];
+  if(checkFolderData.parentId){
+      rootPath = await getParentFolderDetails(checkFolderData.parentId,userId,root)
+  }
+  rootPath = rootPath.reverse();
+  return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs,path:rootPath };
+}
+
+async function getParentFolderDetails(parentId:string,userId:string,root:any){
+ 
+   let parentData:any = await folders.findById(parentId);
+   root.push({id:parentData._id,name:parentData.name})
+   if(parentData.parentId){
+      await getParentFolderDetails(parentData.parentId,userId,root);
+   }
+   return root;
 }
 
 async function userData(folder: any, host: string) {

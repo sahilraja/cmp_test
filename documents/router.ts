@@ -685,7 +685,7 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await getFolderDetails(req.params.folderId, res.locals.user._id, req.query.page, req.query.limit, host));
+    res.status(200).send(await getFolderDetails(req.params.folderId, res.locals.user._id, req.query.page, req.query.limit, host,(req as any).rootPath));
   } catch (err) {
     next(new APIError(err.message));
   }
