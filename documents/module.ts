@@ -1257,7 +1257,7 @@ export async function docCapabilities(docId: string, userId: string) {
   }
 }
 
-export async function published(body: any, docId: string, userObj: any, withAuth: boolean = true) {
+export async function published(body: any, docId: string, userObj: any, host:string,withAuth: boolean = true) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID)
     if (withAuth) {
@@ -1274,40 +1274,24 @@ export async function published(body: any, docId: string, userObj: any, withAuth
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
     }
-    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, docId)
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host,docId)
     await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
-    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc)
+    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc,host)
     mailAllCmpUsers("publishDocument", publishedDoc)
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-      let updatedData = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.status=(params.status)",
-            "lang": "painless",
-            "params": {
-              "status": STATUS.PUBLISHED,
-            }
-          }
-        }
-      })
-    }
     return publishedDoc
   } catch (err) {
     throw err;
   };
 };
 
-async function publishedDocCreate(body: any, userId: string, doc: any, docId?: string) {
+async function publishedDocCreate(body: any, userId: string, doc: any,host:string, docId?: string) {
   try {
-    return await documents.create({
+    let createdDoc:any =  await documents.create({
       sourceId: docId || null,
       name: body.name || doc.name,
       description: body.description || doc.name,
@@ -1320,6 +1304,41 @@ async function publishedDocCreate(body: any, userId: string, doc: any, docId?: s
       fileName: body.fileName || doc.fileName,
       fileId: body.fileId || doc.fileId
     });
+    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    let userName;
+    if (userDetails.firstName)
+      userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    else {
+      userName = userDetails.name
+    }
+    let fileType = createdDoc.fileName ? (createdDoc.fileName.split(".")).pop() : ""
+
+    let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${createdDoc.fileId}` : "N/A"
+
+    let tags = await getTags((createdDoc.tags && createdDoc.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+    tags = tags.map((tagData: any) => { return tagData.tag })
+    let docObj = {
+      accessedBy: [userId],
+      userName: [userName],
+      name: createdDoc.docName,
+      description: createdDoc.description,
+      tags: tags,
+      thumbnail: thumbnail,
+      status: createdDoc.status,
+      fileName: createdDoc.fileName,
+      updatedAt: createdDoc.updatedAt,
+      id: createdDoc.id,
+      groupId:[],
+      groupName:[]
+    }
+    let result = await esClient.index({
+      index: "documents",
+      body: docObj,
+      id: createdDoc.id
+    });
+
+    return createdDoc;
+    
   } catch (err) {
     throw err
   }
@@ -1362,14 +1381,14 @@ export async function unPublished(docId: string, userObj: any) {
   };
 };
 
-export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any, payload: any) {
+export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any, payload: any,host: string) {
   try {
     if (siteConstants.replaceDoc == "true") {
       let admin_scope = await checkRoleScope(userObj.role, "replace-document");
       if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
       let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
       documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
-      let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, false)
+      let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj,host, false)
       await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success)
       return success

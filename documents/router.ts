@@ -568,7 +568,8 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 //  update exist doc
 router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await published(req.body, req.params.id, res.locals.user));
+    const host = `${req.protocol}://${req.get('host')}`
+    res.status(200).send(await published(req.body, req.params.id, res.locals.user, host));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -601,7 +602,8 @@ router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body));
+    const host = `${req.protocol}://${req.get('host')}`
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body,host));
   } catch (err) {
     next(new APIError(err.message));
   }
