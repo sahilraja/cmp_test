@@ -6,8 +6,8 @@ var smtpTransport = require('nodemailer-smtp-transport');
 const EMAIL = process.env.EMAIL || "cmp@niua.org";
 const PASSWORD = process.env.PASSWORD || "hahahaha"
 
-// const EMAIL = process.env.EMAIL || `sindhuja.k@transerve.com`;
-// const PASSWORD = process.env.PASSWORD || 'Transerve@123';
+// const EMAIL = process.env.EMAIL || `tony.st3r@gmail.com`;
+// const PASSWORD = process.env.PASSWORD || 'Hello@123';
 
 // let transport = process.env.EMAIL ? smtpTransport({
 //   host: 'smtp.rediffmailpro.com',
@@ -29,11 +29,11 @@ export async function nodemail(objBody: any) {
     let constants: any = await constantSchema.findOne({ key: 'bcc' }).exec();
     let transporter = nodemailer.createTransport(
       smtpTransport({
-        service: 'gmail',
-        pool: true,
-        auth: {
-          user: EMAIL,
-          pass: PASSWORD
+         host: 'smtp.rediffmailpro.com',
+         port: '587',
+         auth: {
+           user: EMAIL,
+           pass: PASSWORD
         }
       })
     );

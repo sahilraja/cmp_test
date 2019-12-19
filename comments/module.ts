@@ -18,8 +18,11 @@ export async function addComment(body: any, user: any) {
     if (!body.type || !body.comment || !body.entity_id) throw new Error("All mandatory fields are required")
     if (body.type == "document") {
       var doc: any = await documents.findById(body.entity_id)
-      let admin_scope = (doc.status == 2)? await checkRoleScope(user.role, "document-comments-publish") : await checkRoleScope(user.role, "document-comments")
-      if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+      // Added if -> add comments to task is also triggering the same API
+      if(doc){
+        let admin_scope = (doc.status == 2)? await checkRoleScope(user.role, "document-comments-publish") : await checkRoleScope(user.role, "document-comments")
+        if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+      }
     }
     let commentInfo = await comments.create({
       type: body.type,
@@ -27,7 +30,7 @@ export async function addComment(body: any, user: any) {
       entity_id: body.entity_id,
       user_id: user._id
     });
-    if (body.type == "document" && doc.status != 2) {
+    if (doc && body.type == "document" && doc.status != 2) {
       await create({ activityType: `DOCUMENT_COMMENT`, activityBy: user._id, documentId: body.entity_id })
       const { fullName, mobileNo } = getFullNameAndMobile(user);
       mailAllCmpUsers("addCommentToDoc", doc, true)
