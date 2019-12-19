@@ -140,8 +140,8 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       fileName: doc.fileName,
       updatedAt: doc.updatedAt,
       id: doc.id,
-      groupId:[],
-      groupName:[]
+      groupId: [],
+      groupName: []
     }
     let result = await esClient.index({
       index: "documents",
@@ -1039,69 +1039,69 @@ export async function invitePeople(docId: string, users: any, role: string, user
     let addUsers: any = []
     let userIds: any = []
     let userNames: any = []
-    let groupIds : any = []
-    let groupNames : any = []
+    let groupIds: any = []
+    let groupNames: any = []
     await Promise.all(
       users.map(async (user: any) => {
         if (doc.ownerId != user._id) {
           addUsers.push({ id: user._id, type: user.type, role: role })
-          if(user.type == 'user') userIds.push(user._id);
-          else if(user.type == 'group'){
+          if (user.type == 'user') userIds.push(user._id);
+          else if (user.type == 'group') {
             groupIds.push(user._id);
-            let groupName:any = await groupFindOne('_id',user._id);  
+            let groupName: any = await groupFindOne('_id', user._id);
             groupNames.push(groupName.name);
             let groupUserIds = await groupUserList(user._id)
             groupUserIds = groupUserIds.filter(userId => userId != doc.ownerId)
             userIds.push(groupUserIds)
           }
-            return await invite(user, docId, role, doc)
+          return await invite(user, docId, role, doc)
         }
       })
     );
     await Promise.all(
-     userIds.map(async (user: any) => {
-          let userDetails: any = await userFindOne("id", user, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
-          if (role == "collaborator")
-            userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
-        })
+      userIds.map(async (user: any) => {
+        let userDetails: any = await userFindOne("id", user, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
+        if (role == "collaborator")
+          userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
+      })
     );
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-     
-   if(groupIds.length && groupNames.length){
-      let update = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames);ctx._source.groupId.addAll(params.groupId);ctx._source.groupName.addAll(params.groupName)",
-            "lang": "painless",
-            "params": {
-              "userId": userIds,
-              "userNames": userNames,
-              "groupId": groupIds,
-              "groupName": groupNames
+
+      if (groupIds.length && groupNames.length) {
+        let update = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames);ctx._source.groupId.addAll(params.groupId);ctx._source.groupName.addAll(params.groupName)",
+              "lang": "painless",
+              "params": {
+                "userId": userIds,
+                "userNames": userNames,
+                "groupId": groupIds,
+                "groupName": groupNames
+              }
             }
           }
-        }
-      })
-    }else{
-      let updatedData = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
-            "lang": "painless",
-            "params": {
-              "userId": userIds,
-              "userNames": userNames,
+        })
+      } else {
+        let updatedData = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+              "lang": "painless",
+              "params": {
+                "userId": userIds,
+                "userNames": userNames,
+              }
             }
           }
-        }
-      })
+        })
+      }
     }
-  }
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     mailAllCmpUsers("invitePeopleDoc", doc, false, addUsers)
     return { message: "Shared successfully." };
@@ -1140,38 +1140,38 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-      if(role == 'collaborator'){
+      if (role == 'collaborator') {
+        let updatedData = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
+              "lang": "painless",
+              "params": {
+                "accessedBy": userId,
+                "userName": userName
+              }
+            }
+          }
+        })
+      }
+    } else {
       let updatedData = await esClient.update({
         index: "documents",
         id: docId,
         body: {
           "script": {
-            "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
+            "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy))",
             "lang": "painless",
             "params": {
-              "accessedBy": userId,
-              "userName": userName
+              "accessedBy": userId
             }
           }
         }
       })
     }
-  }else{
-    let updatedData = await esClient.update({
-      index: "documents",
-      id: docId,
-      body: {
-        "script": {
-          "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy))",
-          "lang": "painless",
-          "params": {
-            "accessedBy": userId
-          }
-        }
-      }
-    })
-  }
-  
+
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
@@ -1257,31 +1257,31 @@ export async function docCapabilities(docId: string, userId: string) {
   }
 }
 
-export async function published(body: any, docId: string, userObj: any, host:string,withAuth: boolean = true) {
+export async function published(body: any, docId: string, userObj: any, host: string, withAuth: boolean = true) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID)
     if (withAuth) {
       let admin_scope = await checkRoleScope(userObj.role, "publish-document");
       if (!admin_scope) throw new APIError(DOCUMENT_ROUTER.PUBLISH_CAPABILITY, 403);
     };
-    
+
     let doc: any = await documents.findById(docId);
     if (!doc) throw new Error("Doc Not Found");
 
-    if (body.tags && body.tags.length && (body.tags.some((tagId: string)=> !doc.tags.includes(tagId)) || body.tags.length != doc.tags.length)) {
+    if (body.tags && body.tags.length && (body.tags.some((tagId: string) => !doc.tags.includes(tagId)) || body.tags.length != doc.tags.length)) {
       let isEligible = await checkRoleScope(userObj.role, "add-tag-to-document");
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
     }
-    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host,docId)
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
     await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
-    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc,host)
+    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc, host)
     mailAllCmpUsers("publishDocument", publishedDoc)
     return publishedDoc
   } catch (err) {
@@ -1289,9 +1289,9 @@ export async function published(body: any, docId: string, userObj: any, host:str
   };
 };
 
-async function publishedDocCreate(body: any, userId: string, doc: any,host:string, docId?: string) {
+async function publishedDocCreate(body: any, userId: string, doc: any, host: string, docId?: string) {
   try {
-    let createdDoc:any =  await documents.create({
+    let createdDoc: any = await documents.create({
       sourceId: docId || null,
       name: body.name || doc.name,
       description: body.description || doc.description,
@@ -1304,42 +1304,42 @@ async function publishedDocCreate(body: any, userId: string, doc: any,host:strin
       fileName: body.fileName || doc.fileName,
       fileId: body.fileId || doc.fileId
     });
-    if(body.status == 2){
-    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-    let userName;
-    if (userDetails.firstName)
-      userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-    else {
-      userName = userDetails.name
-    }
-    let fileType = createdDoc.fileName ? (createdDoc.fileName.split(".")).pop() : ""
+    if (createdDoc.status == 2) {
+      let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+      let userName;
+      if (userDetails.firstName)
+        userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+      else {
+        userName = userDetails.name
+      }
+      let fileType = createdDoc.fileName ? (createdDoc.fileName.split(".")).pop() : ""
 
-    let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${createdDoc.fileId}` : "N/A"
+      let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${createdDoc.fileId}` : "N/A"
 
-    let tags = await getTags((createdDoc.tags && createdDoc.tags.length) ? createdDoc.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
-    tags = tags.map((tagData: any) => { return tagData.tag })
-    let docObj = {
-      accessedBy: [userId],
-      userName: [userName],
-      name: createdDoc.name,
-      description: createdDoc.description,
-      tags: tags,
-      thumbnail: thumbnail,
-      status: createdDoc.status,
-      fileName: createdDoc.fileName,
-      updatedAt: createdDoc.updatedAt,
-      id: createdDoc.id,
-      groupId:[],
-      groupName:[]
+      let tags = await getTags((createdDoc.tags && createdDoc.tags.length) ? createdDoc.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+      tags = tags.map((tagData: any) => { return tagData.tag })
+      let docObj = {
+        accessedBy: [userId],
+        userName: [userName],
+        name: createdDoc.name,
+        description: createdDoc.description,
+        tags: tags,
+        thumbnail: thumbnail,
+        status: createdDoc.status,
+        fileName: createdDoc.fileName,
+        updatedAt: createdDoc.updatedAt,
+        id: createdDoc.id,
+        groupId: [],
+        groupName: []
+      }
+      let result = await esClient.index({
+        index: "documents",
+        body: docObj,
+        id: createdDoc.id
+      });
     }
-    let result = await esClient.index({
-      index: "documents",
-      body: docObj,
-      id: createdDoc.id
-    });
-  }
     return createdDoc;
-    
+
   } catch (err) {
     throw err
   }
@@ -1382,32 +1382,32 @@ export async function unPublished(docId: string, userObj: any) {
   };
 };
 
-export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any, payload: any,host: string) {
+export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any, payload: any, host: string) {
   try {
     if (siteConstants.replaceDoc == "true") {
       let admin_scope = await checkRoleScope(userObj.role, "replace-document");
       if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
       let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
       documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
-      let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj,host, false)
+      let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, host, false)
       await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success)
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
-      let updatedData = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.status=(params.status)",
-            "lang": "painless",
-            "params": {
-              "status": STATUS.UNPUBLISHED,
+        let updatedData = await esClient.update({
+          index: "documents",
+          id: docId,
+          body: {
+            "script": {
+              "source": "ctx._source.status=(params.status)",
+              "lang": "painless",
+              "params": {
+                "status": STATUS.UNPUBLISHED,
+              }
             }
           }
-        }
-      })
-    }
+        })
+      }
       return success
     }
     else {
@@ -1571,7 +1571,7 @@ export async function listFolders(userId: String) {
   }
 }
 
-export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30, host: string,root: any) {
+export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30, host: string, root: any) {
   if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
   const [fetchedDoc, subfolders] = await Promise.all([
     folders.aggregate([
@@ -1628,25 +1628,25 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
   // let rootPath:any = [];
-  let checkFolderData:any = await folders.findById(folderId);
+  let checkFolderData: any = await folders.findById(folderId);
   // let checkParent = false
-  let rootPath:any =[{id:checkFolderData._id,name:checkFolderData.name}];
-  if(checkFolderData.parentId){
-     let path:any = await getParentFolderDetails(checkFolderData.parentId,userId,root)
+  let rootPath: any = [{ id: checkFolderData._id, name: checkFolderData.name }];
+  if (checkFolderData.parentId) {
+    let path: any = await getParentFolderDetails(checkFolderData.parentId, userId, root)
     path = path.reverse();
-    rootPath.push(... path);
-    }
-  return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs,path:rootPath };
+    rootPath.push(...path);
+  }
+  return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs, path: rootPath };
 }
 
-async function getParentFolderDetails(parentId:string,userId:string,root:any){
- 
-   let parentData:any = await folders.findById(parentId);
-   root.push({id:parentData._id,name:parentData.name})
-   if(parentData.parentId){
-      await getParentFolderDetails(parentData.parentId,userId,root);
-   }
-   return root;
+async function getParentFolderDetails(parentId: string, userId: string, root: any) {
+
+  let parentData: any = await folders.findById(parentId);
+  root.push({ id: parentData._id, name: parentData.name })
+  if (parentData.parentId) {
+    await getParentFolderDetails(parentData.parentId, userId, root);
+  }
+  return root;
 }
 
 async function userData(folder: any, host: string) {
@@ -2178,7 +2178,7 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
       users = await userFindMany("_id", userIds, selectFields);
       if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc") {
         let actionedUsers = users.filter((user: any) => text.some((acUser: any) => acUser.id == user._id)).map((user: any) => `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
-        users = users.filter((user: any) => docDetails.ownerId == user._id )
+        users = users.filter((user: any) => docDetails.ownerId == user._id)
         sharedUsers = actionedUsers.length == 1 ? actionedUsers[0] : `${actionedUsers.slice(0, actionedUsers.lastIndexOf(",")) + " and " + actionedUsers.slice(actionedUsers.lastIndexOf(",") + 1)}`
         role = text[0].role
       }
@@ -2545,28 +2545,44 @@ export async function searchDoc(search: string, userId: string, page: number = 1
     let data: any;
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
     if (!isEligible) {
-      data = {
-        query: {
-          bool: {
-            "should": [
-              {
-                "bool": {
-                  "must": [
-                    { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'],type:'phrase_prefix' } },
-                    { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
-                  ]
-                }
-              }]
+      if (search == null) {
+        data = {
+          query: {
+            multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
+          }
+        }
+      } else {
+        data = {
+          query: {
+            bool: {
+              "should": [
+                {
+                  "bool": {
+                    "must": [
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'], type: 'phrase_prefix' } },
+                      { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
+                    ]
+                  }
+                }]
+            }
           }
         }
       }
     } else {
-      data = {
-        query: {
-          multi_match: {
-            "query": search,
-            "fields": ['name', 'description', 'userName', 'tags', 'type','groupName'],
-            "type":'phrase_prefix' 
+      if (search == null) {
+        data = {
+          query: {
+            "match_all": {}
+          }
+        }
+      } else {
+        data = {
+          query: {
+            multi_match: {
+              "query": search,
+              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName'],
+              "type": 'phrase_prefix'
+            }
           }
         }
       }
@@ -2575,7 +2591,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
       index: "documents",
       body: data
     });
-    let searchResult = searchdoc.hits.hits.map((doc: any) => { return{_id:doc._source.id,source: doc._source }})
+    let searchResult = searchdoc.hits.hits.map((doc: any) => { return { _id: doc._source.id, source: doc._source } })
     if (pagination == true) return manualPagination(page, limit, searchResult);
     else return { docs: searchResult };
   } catch (error) {
@@ -2776,7 +2792,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
         if (userDetails.firstName)
           userDetails = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
         else
-        userDetails = userDetails.name
+          userDetails = userDetails.name
       }
       return {
         docId: docId,
