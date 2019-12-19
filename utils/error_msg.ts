@@ -203,7 +203,8 @@ export const PROJECT_ROUTER = {
     NOT_MEMBER_OF_PROJECT: `User is not a member of this project`,
     PROJECT_NOT_EXISTS: `No such project exists`,
     UNAUTHORIZED_ACCESS: `Unauthorized to perform this action`,
-    CITIIS_GRANTS_VALIDATION: `Citiis grants should not exceed project cost`
+    CITIIS_GRANTS_VALIDATION: `Citiis grants should not exceed project cost`,
+    FINANCIAL_INFO_NO_ACCESS:`You don't have access to view Financial info`
 }
 
 export const COMPLIANCES = {
