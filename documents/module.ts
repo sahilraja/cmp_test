@@ -2365,7 +2365,7 @@ function getCapabilityPriority(capability: string) {
 }
 
 
-export async function getAllPublicDocuments(userRole: string, currentPage = 1, limit = 20, host: string) {
+export async function getAllPublicDocuments(currentPage = 1, limit = 20, host: string) {
   // const isEligible = await checkRoleScope(userRole, 'view-all-public-documents')
   // if(!isEligible){
   //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
