@@ -1140,13 +1140,13 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
+      if(role == 'collaborator'){
       let updatedData = await esClient.update({
         index: "documents",
         id: docId,
         body: {
           "script": {
             "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
-            // "source": "ctx._source.accessedBy.remove(params.accessedBy)",
             "lang": "painless",
             "params": {
               "accessedBy": userId,
@@ -1156,6 +1156,22 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
         }
       })
     }
+  }else{
+    let updatedData = await esClient.update({
+      index: "documents",
+      id: docId,
+      body: {
+        "script": {
+          "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy))",
+          "lang": "painless",
+          "params": {
+            "accessedBy": userId
+          }
+        }
+      }
+    })
+  }
+  
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
@@ -1684,10 +1700,10 @@ export async function deleteDoc(docId: any, userId: string) {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
 
-    const isEligible = await checkRoleScope(userRole, "delete-doc");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
-    }
+    // const isEligible = await checkRoleScope(userRole, "delete-doc");
+    // if (!isEligible) {
+    //   throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
+    // }
 
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
@@ -2521,7 +2537,6 @@ export async function searchDoc(search: string, userId: string, page: number = 1
       index: "documents",
       body: data
     });
-    console.log(searchdoc);
     let searchResult = searchdoc.hits.hits.map((doc: any) => { return{_id:doc._source.id,source: doc._source }})
     if (pagination == true) return manualPagination(page, limit, searchResult);
     else return { docs: searchResult };
