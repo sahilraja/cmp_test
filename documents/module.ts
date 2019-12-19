@@ -1391,6 +1391,22 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
       let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj,host, false)
       await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success)
+      let isDocExists = await checkDocIdExistsInEs(docId)
+      if (isDocExists) {
+      let updatedData = await esClient.update({
+        index: "documents",
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.status=(params.status)",
+            "lang": "painless",
+            "params": {
+              "status": STATUS.UNPUBLISHED,
+            }
+          }
+        }
+      })
+    }
       return success
     }
     else {
