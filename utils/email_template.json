@@ -262,5 +262,11 @@
         "templateName" : "registrationSuccess",
         "displayName" : "Registration Success",
         "subject" : "Registration Success !!"
+    },
+    {
+        "templateName":"taskMembersUpdated",
+        "displayName":"Task Members Updated",
+        "subject":"Task Members Updated",
+        "content" : "Members Updated for the task."
     }
 ]
