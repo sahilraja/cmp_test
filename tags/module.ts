@@ -28,9 +28,9 @@ export async function mergeTags(body: any, token: string, userId: string) {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "merge-tag");
-    // if (!isEligible) {
-    //   throw new APIError("Unauhorized Action", 403);
-    // }
+    if (!isEligible) {
+      throw new APIError("Unauhorized Action", 403);
+    }
     let mergeTagId: any;
     if (!body.tags || !body.mergeTag) throw new Error("All Mandatory Fields Required")
     let mergeTag: any = await tags.find({ tag: body.mergeTag, is_active: true, deleted: false });
