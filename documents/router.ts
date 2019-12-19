@@ -568,7 +568,8 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 //  update exist doc
 router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await published(req.body, req.params.id, res.locals.user));
+    const host = `${req.protocol}://${req.get('host')}`
+    res.status(200).send(await published(req.body, req.params.id, res.locals.user, host));
   } catch (err) {
     next(new APIError(err.message));
   }
