@@ -1,5 +1,5 @@
 import { Schema, model, Types } from "mongoose";
-
+import * as  mongoosePaginate from "mongoose-paginate";
 const schema = new Schema(
   {
     name: { type: String, trim: true, lowercase: true },
@@ -26,5 +26,5 @@ const schema = new Schema(
   },
   { timestamps: true }
 );
-
+schema.plugin(mongoosePaginate)
 export const documents = model("documents", schema);

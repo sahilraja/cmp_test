@@ -813,9 +813,9 @@ router.get("/allcmp/list", authenticate, async (req, res, next: NextFunction) =>
   }
 });
 
-router.get(`/public`, authenticate, async (req, res, next) => {
+router.get(`/public/all`, async (req, res, next) => {
   try {
-    res.status(OK).send(await getAllPublicDocuments(res.locals.user.role, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`))
+    res.status(OK).send(await getAllPublicDocuments(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`))
   } catch (error) {
     next(new APIError(error.message))
   }
