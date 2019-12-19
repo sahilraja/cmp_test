@@ -2545,7 +2545,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
     let data: any;
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
     if (!isEligible) {
-      if (search == null) {
+      if (search == (null || "")) {
         data = {
           query: {
             multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
@@ -2569,7 +2569,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
         }
       }
     } else {
-      if (search == null) {
+      if (search ==  (null || "")) {
         data = {
           query: {
             "match_all": {}
