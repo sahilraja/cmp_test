@@ -60,6 +60,7 @@ export const DOCUMENT_ROUTER = {
     INVALID_UPDATE_USER: "You don't have permissions to update this document.",
     NO_PERMISSION: "You don't have permission to create a Document",
     NO_TAGS_PERMISSION: "Unable to create tags, Unauthorized",
+    NO_PERMISSION_TO_UPDATE_TAGS:`You don't have permission to update tags`,
     LIMIT_EXCEEDED: "Document name should not exceed more than 30 characters",
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
