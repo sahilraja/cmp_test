@@ -2551,28 +2551,44 @@ export async function searchDoc(search: string, userId: string, page: number = 1
     let data: any;
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
     if (!isEligible) {
-      data = {
-        query: {
-          bool: {
-            "should": [
-              {
-                "bool": {
-                  "must": [
-                    { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'], type: 'phrase_prefix' } },
-                    { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
-                  ]
-                }
-              }]
+      if (search == null) {
+        data = {
+          query: {
+            multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
+          }
+        }
+      } else {
+        data = {
+          query: {
+            bool: {
+              "should": [
+                {
+                  "bool": {
+                    "must": [
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'], type: 'phrase_prefix' } },
+                      { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
+                    ]
+                  }
+                }]
+            }
           }
         }
       }
     } else {
-      data = {
-        query: {
-          multi_match: {
-            "query": search,
-            "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName'],
-            "type": 'phrase_prefix'
+      if (search == null) {
+        data = {
+          query: {
+            "match_all": {}
+          }
+        }
+      } else {
+        data = {
+          query: {
+            multi_match: {
+              "query": search,
+              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName'],
+              "type": 'phrase_prefix'
+            }
           }
         }
       }
