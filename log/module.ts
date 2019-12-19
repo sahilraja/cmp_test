@@ -37,7 +37,10 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         [...p, ...
             ((activity.addedUserIds || []).concat(activity.removedUserIds || []).concat([activity.activityBy]))
         ], []).filter((v: string) => v)
-    const subTaskIds = activities.map((activity: any) => activity.subTask).filter(v => !!v)
+    const subTaskIds = activities.reduce((p: any, activity: any) => {
+        p = p.concat([activity.subTask, ...(activity.linkedTasks || []), ...(activity.unlinkedTasks || [])])
+        return p
+    },[]).filter((v:any) => !!v)
     const [usersInfo, subTasks] = await Promise.all([
         userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 }),
         getTasksByIds(subTaskIds, token)
@@ -46,6 +49,8 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
     return activities.map((activity: any) => ({
         ...activity.toJSON(),
         subTask: subTasks.find((subTask: any) => subTask._id == activity.subTask),
+        linkedTasks: subTasks.filter((subTask: any) => (activity.linkedTasks || []).includes(subTask._id)),
+        unlinkedTasks: subTasks.filter((subTask: any) => (activity.unlinkedTasks || []).includes(subTask._id)),
         activityBy: usersInfo.find((user: any) => user._id == activity.activityBy),
         addedUserIds: usersInfo.filter((s: any) => (activity.addedUserIds || []).includes(s._id)),
         removedUserIds: usersInfo.filter((s: any) => (activity.removedUserIds || []).includes(s._id)),
