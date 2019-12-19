@@ -167,13 +167,16 @@ export async function allrolecapabilities() {
     }
 }
 
-export async function addCapability(role: string, scope: string, capability: string,userId:string) {
+export async function addCapability(role: string, scope: string, capability: string,userId:string, auth?: Boolean) {
     try {
-        let userRoles = await userRoleAndScope(userId);
-        let userRole = userRoles.data[0];
-        const isEligible = await checkRoleScope(userRole, "display-role-management");
-        if (!isEligible) {
-        throw new APIError("Unauthorized for this Action", 403);
+        auth = auth || true
+        if(auth){
+            let userRoles = await userRoleAndScope(userId);
+            let userRole = userRoles.data[0];
+            const isEligible = await checkRoleScope(userRole, "display-role-management");
+            if (!isEligible) {
+            throw new APIError("Unauthorized for this Action", 403);
+        }
     }
         let Options = {
             uri: `${RBAC_URL}/capabilities/add`,

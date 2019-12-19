@@ -86,6 +86,34 @@ export const DOCUMENT_ROUTER = {
 export const COMMENT_ROUTER = {
     MANDATORY: "Please fill all mandatory fields",
 }
+
+export const PRIVATE_MEMBER = {
+    INVALID: "Group ID is invalid, please try again",
+    CREATE: {
+        NO_ACCESS: "You don't have permission to create group",
+        MISSING_FIELDS: "Please fill all mandatory fileds ",
+        INVALID_NAME: "You have entered invalid name, please try again",
+        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be added as a group member",
+        GROUP_NAME_EXIST: "A private group with same name already exists."
+    },
+    EDIT: {
+        GROUP_NOT_FOUND: "Group not found",
+        NO_ACCESS: "You don't have permission to edit group",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a group",
+        INVALID_NAME: "You have entered invalid group name. please try again.",
+        ALREADY_MEMBER: "Member already exist in this group.",
+        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be group member.",
+    },
+    REMOVE: {
+        GROUP_NOT_FOUND: "Group Not Found.",
+        NO_ACCESS: "You don't have permission to remove group",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a group"
+    },
+    STATUS: {
+        GROUP_NOT_FOUND: "Group Not Found.",
+        NO_ACCESS: "You don't have permission to delete group" 
+    }
+}
 export const AUTHENTICATE_MSG = {
     MISSING_TOKEN: "Missing token",
     INVALID_TOKEN: "Something went wrong. Please retry",
@@ -175,7 +203,8 @@ export const PROJECT_ROUTER = {
     NOT_MEMBER_OF_PROJECT: `User is not a member of this project`,
     PROJECT_NOT_EXISTS: `No such project exists`,
     UNAUTHORIZED_ACCESS: `Unauthorized to perform this action`,
-    CITIIS_GRANTS_VALIDATION: `Citiis grants should not exceed project cost`
+    CITIIS_GRANTS_VALIDATION: `Citiis grants should not exceed project cost`,
+    FINANCIAL_INFO_NO_ACCESS:`You don't have access to view Financial info`
 }
 
 export const COMPLIANCES = {

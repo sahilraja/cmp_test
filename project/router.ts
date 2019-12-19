@@ -314,7 +314,7 @@ router.get(`/:id/task-project-detail`, async (req, res, next) => {
 
 router.get(`/:id/financial-info`, async (req, res, next) => {
     try {
-        res.status(OK).send(await getFinancialInfo(req.params.id, res.locals.user._id))
+        res.status(OK).send(await getFinancialInfo(req.params.id, res.locals.user._id, res.locals.user.role))
     } catch (error) {
         next(new APIError(error.message))
     }

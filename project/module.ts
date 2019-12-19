@@ -120,6 +120,7 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
   try {
     if (!objBody || !objBody.oldUser || !objBody.newUser || !projectId) throw new Error("Required mandatory fields.")
     const ProjectData: any = await ProjectSchema.findById(projectId).exec()
+    if (!ProjectData.members.includes(objBody.newUser)) throw new Error("member is not a project member.")
     let success: any = await replaceProjectTaskUser(projectId, objBody.oldUser, objBody.newUser, token)
     if (success && !success.success) throw new Error(success)
     let members = [... new Set((ProjectData.members.filter((id: any) => id != objBody.oldUser)).concat([objBody.newUser]))]
@@ -666,7 +667,14 @@ function getPercentageByInstallment(installment: number) {
   return { percentage, installmentType, phase }
 }
 
-export async function getFinancialInfo(projectId: string, userId?: string) {
+export async function getFinancialInfo(projectId: string, userId: string, userRole: any) {
+  const [isEligible1, isEligible2] = await Promise.all([
+    checkRoleScope(userRole, `manage-project-released-fund`),
+    checkRoleScope(userRole, `manage-project-utilized-fund`)
+  ])
+  if(!isEligible1 || !isEligible2){
+    throw new APIError(PROJECT_ROUTER.FINANCIAL_INFO_NO_ACCESS)
+  }
   const projectDetail = await ProjectSchema.findById(projectId).exec()
   const { fundsReleased, fundsUtilised, projectCost, citiisGrants }: any = projectDetail
   const documentIds = fundsReleased.map((fund: any) => (fund.documents || [])).concat(fundsUtilised.map((fund: any) => (fund.documents || []))).reduce((p: any, c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
