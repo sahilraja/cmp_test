@@ -1786,10 +1786,10 @@ export async function deleteDoc(docId: any, userId: string) {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
 
-    // const isEligible = await checkRoleScope(userRole, "delete-doc");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
-    // }
+    const isEligible = await checkRoleScope(userRole, "delete-doc");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
+    }
 
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
