@@ -286,7 +286,7 @@ export async function groupCreate(payload: any): Promise<GroupSchema> {
 export async function groupsFindMany(key: string, value: any): Promise<GroupSchema[]> {
     try {
         let Options = {
-            uri: `${USERS_URL}/group/list`,
+            uri: `${USERS_URL}/group/findMany`,
             method: "POST",
             body: { key, value },
             json: true
