@@ -139,9 +139,10 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
   }
 });
 
-router.get(`/insert-in-casbin`, async (req, res, next) => {
+router.get(`/insert-in-elastic-search`, async (req, res, next) => {
   try {
-    res.status(OK).send(await getDocsAndInsertInCasbin())
+    const host = `${req.protocol}://${req.get('host')}`
+    res.status(OK).send(await getDocsAndInsertInCasbin(host))
   } catch (error) {
     next(new APIError(error.message))
   }

@@ -360,7 +360,7 @@ export async function theme_status(id: any) {
 }
 
 //get projects list
-export async function getProjectsList(userId: any, userToken: string, userRole: any) {
+export async function getProjectsList(userId: any, userToken: string, userRole: any, currentPage: number, limit = 30) {
   try {
     let query: any = { $or: [{ createdBy: userId }, { members: { $in: [userId] } }] }
     // let userProjects: any = await userRoleAndScope(userId);
@@ -370,7 +370,7 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible) {
       query = {}
     }
-    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page:1, limit:60, populate: "phase" })
+    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: currentPage, limit, populate: "phase" })
     const projectIds = (list || []).map((_list) => _list.id);
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
