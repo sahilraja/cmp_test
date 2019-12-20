@@ -1686,6 +1686,12 @@ async function userData(folder: any, host: string) {
 
 export async function deleteFolder(folderId: string, userId: string) {
   try {
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    const isEligible = await checkRoleScope(userRole, "create-folder");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_FOLDER_PERMISSION, 403);
+    }
     if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     const folderDetails = await folders.find({ _id: folderId });
     if (!folderDetails.length) {

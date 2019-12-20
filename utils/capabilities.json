@@ -183,8 +183,8 @@
   },
   {
     "capability": "create-folder",
-    "shortDescription": "Create Folder",
-    "description": "Ability to create a folder",
+    "shortDescription": "Create/Delete Folder",
+    "description": "Ability to create and delete a folder",
     "category": "Folder Management",
     "scope": "global"
   },
