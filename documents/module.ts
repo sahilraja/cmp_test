@@ -2591,11 +2591,12 @@ export async function renameFolder(folderId: string, body: any, userId: string) 
     throw error;
   }
 }
-export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true) {
+export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true,searchAllCmp: boolean = false) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
     let data: any;
+    if(searchAllCmp){
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
     if (!isEligible) {
       if (search == (null || "")) {
@@ -2621,7 +2622,8 @@ export async function searchDoc(search: string, userId: string, page: number = 1
           }
         }
       }
-    } else {
+    } 
+  }else {
       if (search == (null || "")) {
         data = {
           query: {
