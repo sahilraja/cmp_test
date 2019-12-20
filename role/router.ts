@@ -53,7 +53,7 @@ router.get('/all/capabilities/list', authenticate, async (req: Request, res: Res
 router.post('/capability/add', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         let scope = 'global'
-        res.status(200).send(await addCapability(req.body.role, scope, req.body.capability, res.locals.user._id));
+        res.status(200).send(await addCapability(req.body.role, scope, req.body.capability, res.locals.user._id, req.query.auth));
     } catch (err) {
         next(new APIError(err.message, 409))
     };

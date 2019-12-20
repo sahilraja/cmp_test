@@ -423,12 +423,12 @@ export async function ApproveDoc(docId: string, versionId: string) {
 }
 
 //  Get Doc Details
-export async function getDocDetails(docId: any, userId: string, token: string, allCmp:boolean) {
+export async function getDocDetails(docId: any, userId: string, token: string, allCmp: boolean) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
     const allCmp = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents");
-    if(!allCmp){
+    if (!allCmp) {
       if (publishDocs.isDeleted) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DELETED(publishDocs.name))
       if (publishDocs.status != 2 && publishDocs.parentId == null) {
         let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
@@ -481,9 +481,11 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
       getTasksForDocument(docList.parentId || docList._id, token)
     ])
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
-    return {...docList, tags: tagObjects, 
-      role: (ownerRole.data || [""])[0], owner: {...ownerObj, role: (ownerRole.data || [""])[0]}, taskDetails: taskDetailsObj, 
-      sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''}
+    return {
+      ...docList, tags: tagObjects,
+      role: (ownerRole.data || [""])[0], owner: { ...ownerObj, role: (ownerRole.data || [""])[0] }, taskDetails: taskDetailsObj,
+      sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''
+    }
   } catch (err) {
     console.error(err);
     throw err;
@@ -996,8 +998,8 @@ export async function documnetCapabilities(docId: string, userId: string): Promi
     if (viewer) {
       return request ? ["viewer", true] : ["viewer"]
     }
-    const isEligible = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents");
-    if(isEligible) return request ? ["viewer", true] : ["viewer"]
+    const isEligible = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [[]])[0], "view-all-cmp-documents");
+    if (isEligible) return request ? ["viewer", true] : ["viewer"]
     return request ? ["no_access", true] : ["no_access"]
   } catch (err) {
     throw err;
@@ -1070,7 +1072,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
     await Promise.all(
       userIds.map(async (user: any) => {
         let userDetails: any = await userFindOne("id", user, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
-          userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
+        userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
       })
     );
     let isDocExists = await checkDocIdExistsInEs(docId)
@@ -1126,6 +1128,10 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     if (actionUserRole.includes("viewer") || actionUserRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
     let userRole: any = await getRoleOfDoc(userId, docId, type);
     await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
+    let request = await docRequestModel.findOne({ docId, requestedBy: userId, isDelete: false })
+    if(request && role == "collaborator"){
+      await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
+    }
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
     mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
@@ -1164,9 +1170,9 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
         })
       }
     }
-    if(type == 'group'){
+    if (type == 'group') {
       let groupData: any = await groupFindOne('_id', userId);
-      let groupName=groupData.name;
+      let groupName = groupData.name;
       let groupUserIds = await groupUserList(userId);
       let idsToUpdate = await Promise.all(groupUserIds.map(async (id: any) => {
         let userDetails: any = await userFindOne("id", id, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
@@ -1202,10 +1208,11 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
                   }
                 }
               }
-            })
+            }
+          })
         }))
-        }
       }
+    }
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
@@ -1860,7 +1867,7 @@ export async function checkCapabilitiesForUserNew(objBody: any, userId: string) 
     //     throw new Error("Duplicate user ids found.");
     //   };
     // };
-    let userObjects = (await userFindMany("_id", [... new Set(userIds.concat(userId))])).map((user: any) => { return { ...user, type: "user" } })
+    let userObjects = (await userFindMany("_id", [... new Set(userIds.concat(userId))]) || []).map((user: any) => { return { ...user, type: "user" } })
     return await Promise.all(docIds.map(docId => loopUsersAndFetchDataNew(docId, userIds, userId, userObjects)))
   } catch (err) {
     throw err
@@ -1918,11 +1925,15 @@ async function loopUsersAndFetchData(docId: string, userIds: string[], userId: s
 
 async function userWithDocRole(docId: string, userId: string, usersObjects: any[]) {
   try {
+    let acceptCapabilities = ["owner", "collaborator", "viewer", "no_access"]
     let user = usersObjects.find(user => user._id == userId)
-    if (!user) user = { ...(await groupFindOne("_id", userId)), type: "group" }
+    if (!user){ 
+      user = { ...(await groupFindOne("_id", userId)), type: "group" }
+      var docRole: any = (await GetDocCapabilitiesForUser(userId, docId, "group")).filter((capability: any) => acceptCapabilities.includes(capability))
+    }
     return {
       ...(user),
-      docRole: (await documnetCapabilities(docId, userId) as any || [""])[0]
+      docRole: user.type == "user" ? (await documnetCapabilities(docId, userId) as any || [""])[0] : docRole.length? docRole.pop(): "no_access"
     }
   } catch (err) {
     throw err
@@ -2389,7 +2400,7 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
     if (!isEligible) {
       throw new APIError("Unauthorized access", 403);
     }
-    let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT } }).collation({locale:'en'}).sort({ name: 1 });
+    let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
     if (pagination) return manualPagination(page, limit, docList)
     return docList
@@ -2600,7 +2611,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
                 {
                   "bool": {
                     "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type','fileName'], type: 'phrase_prefix' } },
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName'], type: 'phrase_prefix' } },
                       { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
                     ]
                   }
@@ -2610,7 +2621,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
         }
       }
     } else {
-      if (search ==  (null || "")) {
+      if (search == (null || "")) {
         data = {
           query: {
             "match_all": {}
@@ -2621,7 +2632,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
           query: {
             multi_match: {
               "query": search,
-              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName','fileName'],
+              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName', 'fileName'],
               "type": 'phrase_prefix'
             }
           }
@@ -2773,7 +2784,7 @@ async function checkDocIdExistsInEs(docId: string) {
 export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: string) {
   try {
 
-    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator","viewer", "owner"])
+    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "viewer", "owner"])
     let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
       return {
         docId: docId,
@@ -2831,7 +2842,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
 export async function removeGroupMembersInDocs(id: any, groupUserId: string, userId: string) {
   try {
 
-    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator","viewer", "owner"])
+    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "viewer", "owner"])
     let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
       let userDetails: any = await userFindOne("id", groupUserId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
       if (userDetails) {

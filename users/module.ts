@@ -273,7 +273,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
 // Get User List
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
     try {
-        let findQuery = { _id: { $ne: Types.ObjectId(userId) } }
+        let findQuery = {} //{ _id: { $ne: Types.ObjectId(userId) } }
         let docs: any = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
         let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
