@@ -75,10 +75,10 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(userRole, "create-doc");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    const isEligible = await checkRoleScope(userRole, "create-doc");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    }
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error(DOCUMENT_ROUTER.UNABLE_TO_CREATE)
     const { id: fileId, name: fileName, size: fileSize } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);

@@ -143,7 +143,7 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 router.post("/create/new", authenticate, siteConstants, async (req: any, res, next: NextFunction) => {
   try {
     const isEligible = await checkRoleScope(res.locals.user.role, "create-doc");
-    // if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
+    if (!isEligible) throw new Error(DOCUMENT_ROUTER.NO_PERMISSION);
     req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
     if (fileObj.errors) throw new Error(DOCUMENT_ROUTER.FILE_SIZE(req.siteConstants.docSize))
