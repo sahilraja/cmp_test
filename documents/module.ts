@@ -2740,7 +2740,7 @@ async function checkDocIdExistsInEs(docId: string) {
 export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: string) {
   try {
 
-    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "owner"])
+    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator","viewer", "owner"])
     let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
       return {
         docId: docId,
@@ -2797,7 +2797,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
 export async function removeGroupMembersInDocs(id: any, groupUserId: string, userId: string) {
   try {
 
-    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "owner"])
+    let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator","viewer", "owner"])
     let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
       let userDetails: any = await userFindOne("id", groupUserId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
       if (userDetails) {
