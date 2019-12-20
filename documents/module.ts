@@ -427,6 +427,7 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
+    const allCmp = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents");
     if(!allCmp){
       if (publishDocs.isDeleted) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DELETED(publishDocs.name))
       if (publishDocs.status != 2 && publishDocs.parentId == null) {
@@ -995,6 +996,8 @@ export async function documnetCapabilities(docId: string, userId: string): Promi
     if (viewer) {
       return request ? ["viewer", true] : ["viewer"]
     }
+    const isEligible = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents");
+    if(isEligible) return request ? ["viewer", true] : ["viewer"]
     return request ? ["no_access", true] : ["no_access"]
   } catch (err) {
     throw err;
