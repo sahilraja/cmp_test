@@ -18,14 +18,14 @@
         "value": "15",
         "type": "number",
         "groupName": "authentication",
-        "displayName": "Link expire time ( in minutes )"
+        "displayName": "Link expire time ( in hours )"
     },
     {
         "key": "otpExpire",
         "value": "15",
         "type": "number",
         "groupName": "authentication",
-        "displayName": "OTP expire time ( in minutes )"
+        "displayName": "OTP expire time ( in hours )"
     },
     {
         "key": "bulkInvite",
