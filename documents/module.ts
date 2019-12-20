@@ -61,7 +61,7 @@ esClient.ping({
     console.log('All is well');
   }
 });
-
+const ELASTIC_SEARCH_INDEX = process.env.ELASTIC_SEARCH_INDEX 
 export async function createIndex(index: string) {
   return await esClient.indices.create({ index: index });
 
@@ -145,7 +145,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupName: []
     }
     let result = await esClient.index({
-      index: "documents",
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
       body: docObj,
       id: doc.id
     });
@@ -572,7 +572,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
       let tagNames = tags.map((tag: any) => { return tag.tag })
       let updatedData = await esClient.update({
-        index: "documents",
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
           "script": {
@@ -696,7 +696,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
       let tagNames = tags.map((tag: any) => { return tag.tag })
       let updatedData = await esClient.update({
-        index: "documents",
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
           "script": {
@@ -1081,7 +1081,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
 
       if (groupIds.length && groupNames.length) {
         let update = await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -1098,7 +1098,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
         })
       } else {
         let updatedData = await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -1156,7 +1156,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
         let updatedData =  esClient.update({
-          index: "documents",
+          index:`${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -1195,7 +1195,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
       if (isDocExists) {
         let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
               esClient.update({
-              index: "documents",
+              index: `${ELASTIC_SEARCH_INDEX}_documents`,
               id: user.docId,
               body: {
                 "script": {
@@ -1374,7 +1374,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
         groupName: []
       }
       let result = await esClient.index({
-        index: "documents",
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
         body: docObj,
         id: createdDoc.id
       });
@@ -1403,7 +1403,7 @@ export async function unPublished(docId: string, userObj: any) {
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
       let updatedData = await esClient.update({
-        index: "documents",
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
           "script": {
@@ -1436,7 +1436,7 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updatedData = await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -1625,7 +1625,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
       // { "$unwind": "$doc_id" },
       {
         $lookup: {
-          from: "documents",
+          from: `${ELASTIC_SEARCH_INDEX}_documents`,
           localField: "doc_id",
           foreignField: "_id",
           as: "doc_id"
@@ -2060,7 +2060,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updatedData = await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -2106,7 +2106,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updatedData = await esClient.update({
-          index: "documents",
+          index:`${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -2640,7 +2640,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
       }
     }
     let searchdoc: any = await esClient.search({
-      index: "documents",
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: data
     });
@@ -2699,7 +2699,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
         return await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
             "script": {
@@ -2741,7 +2741,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
     let updateTags = await Promise.all(bodyObj.map(async (tag: any) => {
       if (docIds.includes(tag.docId)) {
         return await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: tag.docId,
           body: {
             "script": {
@@ -2815,7 +2815,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
         return await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
             "script": {
@@ -2872,7 +2872,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
         return await esClient.update({
-          index: "documents",
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
             "script": {
@@ -2897,9 +2897,18 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
 }
 
 export async function getDocsAndInsertInCasbin(host:string) {
-  const docs = await documents.find({parentId: null}).exec()
-  const finalData = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
-  return finalData
+  const docs = await documents.find({status:{$ne:0},parentId: null}).exec()
+  const finalData:any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
+  
+  let insert = await Promise.all(finalData.map(async(doc:any)=>{
+    return await esClient.index({
+      index:`${process.env.ELASTIC_SEARCH_INDEX}_documents`,
+      body: doc,
+      id: doc.id
+    });
+  }))
+  return insert;
+  // return doc;
   // connect to elastic search, remove old doc data & add finalData
 }
 
@@ -2938,7 +2947,6 @@ async function getShareInfoForEachDocument(doc: any, host: string){
     updatedAt: doc.updatedAt,
     createdAt: doc.createdAt,
     id: doc.id,
-    _id: doc.id,
     groupId: groupIds,
     groupName: groupsInfo.map((group: any) => group.name)
    }
