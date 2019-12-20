@@ -6,7 +6,7 @@ import { userFindOne } from "../utils/users";
 import { dateDifference } from "../utils/utils";
 
 export async function create(payload: any, projectId: string, userObj: any) {
-    const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
+    const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
     if (!isEligible) {
         throw new APIError(RISK.UNAUTHORIZED_ACCESS)
     }
@@ -30,7 +30,7 @@ export async function detail(riskId: string) {
 }
 
 export async function edit(id: string, updates: any, userObj: any) {
-    const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
+    const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
     if (!isEligible) {
         throw new APIError(RISK.UNAUTHORIZED_ACCESS)
     }
@@ -52,7 +52,7 @@ export async function edit(id: string, updates: any, userObj: any) {
 
 export async function riskSaveAll(projectId: string, updateObjs: any[], userObj: any): Promise<{ message: string }> {
     try {
-        const isEligible = await checkRoleScope(userObj.role, `manage-risk`)
+        const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
         if (!isEligible) throw new APIError(RISK.UNAUTHORIZED_ACCESS)
         await Promise.all(updateObjs.map((riskObj) => saveaAll(riskObj, projectId, userObj)))
         return { message: "successfully save all risks" }

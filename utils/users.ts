@@ -283,6 +283,22 @@ export async function groupCreate(payload: any): Promise<GroupSchema> {
 };
 
 //  Get Group List From User Module  
+export async function groupsFindMany(key: string, value: any): Promise<GroupSchema[]> {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/group/list`,
+            method: "POST",
+            body: { key, value },
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
+
+
+//  Get Group List From User Module  
 export async function listGroup(searchQuery: object, selectFields?: object, sort?: string): Promise<GroupSchema[]> {
     try {
         let Options = {

@@ -3,7 +3,7 @@ import { folders } from "./folder-model";
 import * as http from "http";
 import { Types, STATES, set } from "mongoose";
 import { userRoleAndScope } from "../role/module";
-import { tags as Tags } from "../tags/tag_model";
+import { tags as Tags, tags } from "../tags/tag_model";
 import { themes } from "../project/theme_model";
 import {
   groupsAddPolicy,
@@ -21,7 +21,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch, userEdit, groupsFindMany } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
@@ -139,6 +139,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       status: doc.status,
       fileName: doc.fileName,
       updatedAt: doc.updatedAt,
+      createdAt: doc.createdAt,
       id: doc.id,
       groupId: [],
       groupName: []
@@ -2894,4 +2895,52 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
     console.error(error);
     throw error;
   }
+}
+
+export async function getDocsAndInsertInCasbin(host:string) {
+  const docs = await documents.find({parentId: null}).exec()
+  const finalData = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
+  return finalData
+  // connect to elastic search, remove old doc data & add finalData
+}
+
+async function getShareInfoForEachDocument(doc: any, host: string){
+  const [collaboratorIds, viewerIds, ownerIds] = await Promise.all([
+    GetUserIdsForDocWithRole(doc.id, 'collaborator'),
+    GetUserIdsForDocWithRole(doc.id, 'viewer'),
+    GetUserIdsForDocWithRole(doc.id, 'owner')
+  ])
+  const userIds = Array.from(new Set([
+    ...collaboratorIds.map((collaboratorId: any) => collaboratorId.split(`/`)[1]),
+    ...ownerIds.map((ownerId: any) => ownerId.split(`/`)[1]),
+    ...viewerIds.map((viewerId: any) => viewerId.split(`/`)[1])
+  ]))
+  const usersInfo: any[] = await userFindMany(`_id`, userIds, {firstName:1, middleName:1, lastName:1})
+  const fetchedUserIds = usersInfo.map(user => user._id)
+  const groupIds = userIds.filter(userId => !fetchedUserIds.includes(userId))
+  let groupMembers: any[] = await Promise.all(groupIds.map(groupId => groupUserList(groupId)))
+  groupMembers = groupMembers.reduce((p, c) => [...p, ...c], [])
+  const [groupMembersInfo, groupsInfo, tagsData]: any = await Promise.all([
+    userFindMany(`_id`, groupMembers), 
+    groupsFindMany('_id', groupIds),
+    tags.find({_id:{$in:doc.tags}}).exec()
+  ]) 
+  const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
+  let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
+  return { docId: doc.id,
+    accessedBy: [userIds],
+    userName: [userNames],
+    name: doc.name,
+    description: doc.description,
+    tags: tagsData.map((tag: any) => tag.tag),
+    thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${doc.fileId}` : "N/A",
+    status: doc.status,
+    fileName: doc.fileName,
+    updatedAt: doc.updatedAt,
+    createdAt: doc.createdAt,
+    id: doc.id,
+    _id: doc.id,
+    groupId: [groupIds],
+    groupName: groupsInfo.map((group: any) => group.name)
+   }
 }
