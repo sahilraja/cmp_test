@@ -2932,7 +2932,7 @@ async function getShareInfoForEachDocument(doc: any, host: string) {
   const [groupMembersInfo, groupsInfo, tagsData]: any = await Promise.all([
     userFindMany(`_id`, groupMembers),
     groupsFindMany('_id', groupIds),
-    tags.find({ _id: { $in: doc.tags } }).exec()
+    tags.find({ _id: { $in: doc.tags.filter((tag: any) => Types.ObjectId.isValid(tag)) } }).exec()
   ])
   const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
   let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
