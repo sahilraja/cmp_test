@@ -1209,8 +1209,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
                   }
                 }
               }
-            }
-          })
+            })
         }))
       }
     }
