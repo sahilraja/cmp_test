@@ -119,7 +119,7 @@ export async function notifications() {
     let notificationsList = roles.map((user: any) => {
       let templates: object[] = [];
       templateList.forEach((template: any) => {
-        let removeTemplates = ['changeMobileOTP', 'changeEmailOTP', 'forgotPasswordOTP'];
+        let removeTemplates = ['invite','changeMobileOTP', 'changeEmailOTP', 'forgotPasswordOTP'];
         if (!removeTemplates.includes(template.templateName)) {
           templates.push({
             templateName: template.templateName,

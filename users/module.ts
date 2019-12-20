@@ -1067,7 +1067,6 @@ export async function sendNotification(objBody: any) {
         }
     }
     if (config) {
-
         if (mobileNo && mobileNo.slice(0, 3) == "+91") {
             if (!mobileOtp && templateName) {
                 userNotification = await userRolesNotification(id, templateName);
