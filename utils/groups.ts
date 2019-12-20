@@ -136,7 +136,7 @@ export async function GetUserIdsForDoc(docId: string) {
     try {
         let policies = await groupsPolicyFilter(`document/${docId}`, 1, "p")
         if (!policies.data) throw new Error("policies not found for this document.")
-        let users = policies.data.map((key: any) => key[0])
+        let users = (policies.data || []).map((key: any) => key[0])
         return [...new Set(users)]
     } catch (err) {
         throw err;

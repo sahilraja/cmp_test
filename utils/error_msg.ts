@@ -64,6 +64,7 @@ export const DOCUMENT_ROUTER = {
     LIMIT_EXCEEDED: "Document name should not exceed more than 30 characters",
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
+    NO_FOLDER_DELETE_PERMISSION: "Couldn't delete a folder. Unauthorized",
     NO_DELETE_PERMISSION: "Couldn't delete a document. Unauthorized",
     DOC_ALREADY_EXIST: "A document with same name already exists",
     VIEW_PUBLIC_DOCS_DENIED: "Unauthorized to view public documents",
