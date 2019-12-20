@@ -635,7 +635,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
       let userCapabilities = await GetDocCapabilitiesForUser(userId, docId)
-      if (!userCapabilities.includes("owner")) throw new Error("Invalid Action")
+      if (!userCapabilities.includes("owner") && document.status != 2) throw new Error("Invalid Action")
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
 
@@ -2922,13 +2922,13 @@ async function getShareInfoForEachDocument(doc: any, host: string){
   const [groupMembersInfo, groupsInfo, tagsData]: any = await Promise.all([
     userFindMany(`_id`, groupMembers), 
     groupsFindMany('_id', groupIds),
-    tags.find({_id:{$in:doc.tags.filter((tag: any) => Types.ObjectId.isValid(tag))}}).exec()
+    tags.find({_id:{$in:doc.tags}}).exec()
   ]) 
-  const userNames = usersInfo.map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
+  const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
   let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
   return { docId: doc.id,
-    accessedBy: userIds,
-    userName: userNames,
+    accessedBy: [userIds],
+    userName: [userNames],
     name: doc.name,
     description: doc.description,
     tags: tagsData.map((tag: any) => tag.tag),
@@ -2939,7 +2939,7 @@ async function getShareInfoForEachDocument(doc: any, host: string){
     createdAt: doc.createdAt,
     id: doc.id,
     _id: doc.id,
-    groupId: groupIds,
+    groupId: [groupIds],
     groupName: groupsInfo.map((group: any) => group.name)
    }
 }
