@@ -1786,10 +1786,10 @@ export async function deleteDoc(docId: any, userId: string) {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
 
-    // const isEligible = await checkRoleScope(userRole, "delete-doc");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
-    // }
+    const isEligible = await checkRoleScope(userRole, "delete-doc");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
+    }
 
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
@@ -2898,7 +2898,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
 }
 
 export async function getDocsAndInsertInCasbin(host:string) {
-  const docs = await documents.find({status:{$ne:0},parentId: null}).exec()
+  const docs = await documents.find({status:{$ne:0},parentId: null,isDeleted:false}).exec()
   const finalData:any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
   
   let insert = await Promise.all(finalData.map(async(doc:any)=>{
