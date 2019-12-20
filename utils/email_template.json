@@ -54,7 +54,7 @@
         "subject" : "[CMP] OTP to Update Password"
     },
     {
-        "content" : "Hi <b>[userName]</b>,<br/><br>You have a tag suggestion in CMP.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br>You have a tag suggestion in CMP.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
         "templateName" : "suggestTagNotification",
         "displayName" : "suggest Tag notification",
         "subject" : "A Tag has been Suggested"
