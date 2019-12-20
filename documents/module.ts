@@ -1067,7 +1067,6 @@ export async function invitePeople(docId: string, users: any, role: string, user
     await Promise.all(
       userIds.map(async (user: any) => {
         let userDetails: any = await userFindOne("id", user, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
-        if (role == "collaborator")
           userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
       })
     );
@@ -1146,7 +1145,6 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-      if (role == 'collaborator') {
         let updatedData = await esClient.update({
           index: "documents",
           id: docId,
@@ -1162,21 +1160,6 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
           }
         })
       }
-    } else {
-      let updatedData = await esClient.update({
-        index: "documents",
-        id: docId,
-        body: {
-          "script": {
-            "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy))",
-            "lang": "painless",
-            "params": {
-              "accessedBy": userId
-            }
-          }
-        }
-      })
-    }
 
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
@@ -2571,7 +2554,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
                 {
                   "bool": {
                     "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type'], type: 'phrase_prefix' } },
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type','fileName'], type: 'phrase_prefix' } },
                       { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
                     ]
                   }
@@ -2592,7 +2575,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
           query: {
             multi_match: {
               "query": search,
-              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName'],
+              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName','fileName'],
               "type": 'phrase_prefix'
             }
           }
@@ -2601,6 +2584,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
     }
     let searchdoc: any = await esClient.search({
       index: "documents",
+      size: 1000,
       body: data
     });
     let searchResult = searchdoc.hits.hits.map((doc: any) => { return { _id: doc._source.id, source: doc._source } })
@@ -2645,6 +2629,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
     }))
     let allDocs: any = await esClient.search({
       index: 'documents',
+      size: 1000,
       body: {
         query: {
           "match_all": {}
@@ -2686,6 +2671,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
 
     let allDocs: any = await esClient.search({
       index: 'documents',
+      size: 1000,
       body: {
         query: {
           "match_all": {}
@@ -2724,6 +2710,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
 async function checkDocIdExistsInEs(docId: string) {
   let checkDoc: any = await esClient.search({
     index: 'documents',
+    size: 1000,
     body: {
       query: {
         "match": { id: docId }
@@ -2758,6 +2745,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
     }))
     let allDocs: any = await esClient.search({
       index: 'documents',
+      size: 1000,
       body: {
         query: {
           "match_all": {}
@@ -2814,6 +2802,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
     }))
     let allDocs: any = await esClient.search({
       index: 'documents',
+      size: 1000,
       body: {
         query: {
           "match_all": {}
