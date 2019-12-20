@@ -606,7 +606,7 @@ export async function groupDetail(id: string) {
         if (!data) throw new APIError(USER_ROUTER.GROUP_NOT_FOUND)
         let users = await userList({ _id: { $in: await groupUserList(data._id) } }, {});
         users = await Promise.all(users.map(async (user: any) => {
-            return { ...user, role: ((await userRoleAndScope(user._id) as any).data || [""])[0] }
+            return { ...user, role: await formateRoles(((await userRoleAndScope(user._id) as any).data || [""])[0]) }
         }))
         return { ...data, users: users }
     } catch (err) {

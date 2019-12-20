@@ -1229,7 +1229,7 @@ export async function invitePeopleList(docId: string) {
     }
     let total: any = [];
     let userGroup: any = {};
-    users.map((user: any) => {
+    (users || []).map((user: any) => {
       if (userGroup[user.split("/")[0]]) {
         userGroup[user.split("/")[0]].push(user.split("/")[1]);
       } else {
@@ -1727,12 +1727,12 @@ export async function deleteFolder(folderId: string, userId: string) {
     let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "create-folder");
     if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_FOLDER_PERMISSION, 403);
+      throw new APIError(DOCUMENT_ROUTER.NO_FOLDER_DELETE_PERMISSION, 403);
     }
     if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     const folderDetails = await folders.find({ _id: folderId });
     if (!folderDetails.length) {
-      throw new Error("Folder doesnot exist")
+      throw new Error("Folder does't exist")
     }
     let folderData = folderDetails.map((folder: any) => {
       return {
@@ -2932,7 +2932,7 @@ async function getShareInfoForEachDocument(doc: any, host: string) {
   const [groupMembersInfo, groupsInfo, tagsData]: any = await Promise.all([
     userFindMany(`_id`, groupMembers),
     groupsFindMany('_id', groupIds),
-    tags.find({ _id: { $in: doc.tags } }).exec()
+    tags.find({ _id: { $in: doc.tags.filter((tag: any) => Types.ObjectId.isValid(tag)) } }).exec()
   ])
   const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
   let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
