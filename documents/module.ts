@@ -1209,11 +1209,11 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
                   }
                 }
               }
-            }
-          })
-        }))
+            })
+          }))
       }
     }
+    
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
