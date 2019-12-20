@@ -1143,7 +1143,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
-
+    if(type == 'user'){
     let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
     let isDocExists = await checkDocIdExistsInEs(docId)
@@ -1163,7 +1163,49 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
           }
         })
       }
-
+    }
+    if(type == 'group'){
+      let groupData: any = await groupFindOne('_id', userId);
+      let groupName=groupData.name;
+      let groupUserIds = await groupUserList(userId);
+      let idsToUpdate = await Promise.all(groupUserIds.map(async (id: any) => {
+        let userDetails: any = await userFindOne("id", id, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+        if (userDetails) {
+          if (userDetails.firstName)
+            userDetails = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+          else
+            userDetails = userDetails.name
+        }
+        return {
+          docId: docId,
+          userName: userDetails,
+          userId: id,
+          groupId: userId,
+          groupName: groupName
+        }
+      }))
+      let isDocExists = await checkDocIdExistsInEs(docId)
+      if (isDocExists) {
+        let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+            return await esClient.update({
+              index: "documents",
+              id: user.docId,
+              body: {
+                "script": {
+                  "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName));ctx._source.groupName.remove(ctx._source.groupName.indexOf(params.groupName));ctx._source.groupId.remove(ctx._source.groupId.indexOf(params.groupId));",
+                  "lang": "painless",
+                  "params": {
+                    "userId": user.userId,
+                    "userName": user.userName,
+                    "groupName": user.groupName,
+                    "groupId": user.groupId
+                  }
+                }
+              }
+            })
+        }))
+        }
+      }
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
