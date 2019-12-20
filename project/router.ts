@@ -27,7 +27,7 @@ router.post("/create", async (req, res, next) => {
 // get projects list
 router.get("/list", async (req, res, next) => {
     try {
-        res.status(OK).send(await getProjectsList(res.locals.user._id, (req as any).token, res.locals.user.role))
+        res.status(OK).send(await getProjectsList(res.locals.user._id, (req as any).token, res.locals.user.role, req.query.page, req.query.limit))
     } catch (err) {
         next(new APIError(err.message));
     }

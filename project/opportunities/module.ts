@@ -6,7 +6,7 @@ import { checkRoleScope } from "../../utils/role_management";
 import { dateDifference } from "../../utils/utils";
 
 export async function create(payload: any, projectId: string, userObj: any) {
-    const isEligible = await checkRoleScope(userObj.role, `manage-opportunity`)
+    const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
     if (!isEligible) {
         throw new APIError(OPPORTUNITY.UNAUTHORIZED_ACCESS)
     }
@@ -28,7 +28,7 @@ export async function detail(id: string) {
 }
 
 export async function edit(id: string, updates: any, userObj: any) {
-    const isEligible = await checkRoleScope(userObj.role, `manage-opportunity`)
+    const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
     if (!isEligible) {
         throw new APIError(OPPORTUNITY.UNAUTHORIZED_ACCESS)
     }
@@ -48,7 +48,7 @@ export async function edit(id: string, updates: any, userObj: any) {
 
 export async function opportunitySaveAll(projectId: string, updateObjs: any[], userObj: any): Promise<{ message: string }> {
     try {
-        const isEligible = await checkRoleScope(userObj.role, `manage-opportunity`)
+        const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
         if (!isEligible) throw new APIError(OPPORTUNITY.UNAUTHORIZED_ACCESS)
         await Promise.all(updateObjs.map((opportunityObj) => saveaAllOpportunities(opportunityObj, projectId, userObj)))
         return { message: "successfully save all opportunities" }
