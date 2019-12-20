@@ -75,10 +75,10 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "create-doc");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
+    // const isEligible = await checkRoleScope(userRole, "create-doc");
+    // if (!isEligible) {
+    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    // }
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error(DOCUMENT_ROUTER.UNABLE_TO_CREATE)
     const { id: fileId, name: fileName, size: fileSize } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
@@ -1061,7 +1061,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
             groupNames.push(groupName.name);
             let groupUserIds = await groupUserList(user._id)
             groupUserIds = groupUserIds.filter(userId => userId != doc.ownerId)
-            userIds.push(groupUserIds)
+            userIds.push(... groupUserIds)
           }
           return await invite(user, docId, role, doc)
         }
@@ -1148,7 +1148,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-        let updatedData = await esClient.update({
+        let updatedData =  esClient.update({
           index: "documents",
           id: docId,
           body: {
@@ -1187,7 +1187,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-            return await esClient.update({
+              esClient.update({
               index: "documents",
               id: user.docId,
               body: {
