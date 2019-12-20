@@ -68,7 +68,7 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc,updateUserInDOcs,
-  createIndex,removeIndex
+  createIndex,removeIndex, getDocsAndInsertInCasbin
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -138,6 +138,14 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
     next(new APIError(err.message));
   }
 });
+
+router.get(`/insert-in-casbin`, async (req, res, next) => {
+  try {
+    res.status(OK).send(await getDocsAndInsertInCasbin())
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
 
 //  Create Document new Api
 router.post("/create/new", authenticate, siteConstants, async (req: any, res, next: NextFunction) => {

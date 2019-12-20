@@ -408,9 +408,9 @@ export async function createTask(payload: any, projectId: string, userToken: str
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
   if (!isEligible) throw new APIError("Unauthorized Action.", 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
-  if (!payload.isCompliance && (payload.assignee == userObj._id)) {
-    throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
-  }
+  // if (!payload.isCompliance && (payload.assignee == userObj._id)) {
+  //   throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
+  // }
   if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
     throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
   }
@@ -554,11 +554,12 @@ export async function addUtilizedInstallment(projectId: string, payload: any, us
     if (!fund.percentage) {
       throw new APIError(`Percentage is required`)
     }
-    return {
-      installment: index + 1,
-      phase: fund.phase,
-      percentage: fund.percentage
-    }
+    return {...fund, installment: index + 1}
+    // return {
+    //   installment: index + 1,
+    //   phase: fund.phase,
+    //   percentage: fund.percentage
+    // }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
   if (overAllPercentage > 100) {
@@ -703,12 +704,12 @@ export async function getFinancialInfo(projectId: string, userId: string, userRo
       return f
     }
   })
-  let fundsUtilisedData = fundsUtilised.map((fund: any) => {
+  let fundsUtilisedData = fundsUtilised.reduce((p: any, fund: any) => {
     const { installmentType } = getPercentageByInstallment(fund.installment)
-    const items = fundsUtilised.filter((fundReleased: any) =>
-      (!fundReleased.deleted && fundReleased.subInstallment && (fund.installment == fundReleased.installment)
+    const items = fundsUtilised.filter((_fund: any) =>
+      (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
-    return {
+    p.push({
       fundsPlanned:Math.round(citiisGrants* (fund.percentage / 100)),
       phase: phases.find(phase => phase.id == fund.phase),
       installment: installmentType,
@@ -716,14 +717,16 @@ export async function getFinancialInfo(projectId: string, userId: string, userRo
       // Filter empty data
       items,
       installmentLevelTotal: items.reduce((p: number, item: any) => p + (item.cost || 0), 0)
+    })
+    return p
+  }, [])
+  let _ins: any = []
+  fundsUtilisedData = fundsUtilisedData.filter((f: any) => {
+    if (!_ins.includes(f.installment)) {
+      _ins.push(f.installment)
+      return f
     }
   })
-  fundsUtilisedData = fundsUtilisedData.reduce((unique: any, o: any) => {
-    if (!unique.some((obj: any) => obj.installment === o.installment)) {
-      unique.push(o);
-    }
-    return unique;
-  }, [])
   return {
     isMember: (projectDetail as any).members.includes(userId) || ((projectDetail as any).createdBy == userId),
     projectCost: projectCost,
@@ -782,10 +785,13 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
   const { fundsUtilised } = projectDetail
   const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = fundsUtilised.filter((fund: any) => fund.installment == payload.installment)
+  let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].cost ? [] : matchedFunds
   const updates = {
-    fundsUtilised: otherFunds.concat(matchedFunds).concat([
+    fundsUtilised: otherFunds.concat(matchedFundsWithData).concat([
       {
-        subInstallment: matchedFunds.length + 1,
+        phase: matchedFunds[0].phase,
+        percentage: matchedFunds[0].percentage,
+        subInstallment: matchedFundsWithData.length + 1,
         installment: payload.installment, documents: payload.documents, cost: payload.cost,
         createdAt: new Date(), modifiedAt: new Date(), modifiedBy: user._id
       }

@@ -392,17 +392,10 @@
     "scope": "global"
   },
   {
-    "capability": "manage-risk",
-    "shortDescription": "Risk Management",
+    "capability": "manage-risk-opportunity",
+    "shortDescription": "Risk & Opportunity Management",
     "category": "Risk Management",
     "description": "Risk Management",
-    "scope": "global"
-  },
-  {
-    "capability": "manage-opportunity",
-    "shortDescription": "Opportunity Management",
-    "category": "Opportunity Management",
-    "description": "Opportunity Management",
     "scope": "global"
   },
   {

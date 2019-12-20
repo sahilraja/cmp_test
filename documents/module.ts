@@ -21,7 +21,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch } from "../utils/users";
+import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch, userEdit } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
@@ -2894,4 +2894,31 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
     console.error(error);
     throw error;
   }
+}
+
+export async function getDocsAndInsertInCasbin() {
+  const docs = await documents.find({}).exec()
+  const finalData = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc.id)))
+  return finalData
+}
+
+async function getShareInfoForEachDocument(docId: string){
+  const [collaboratorIds, viewerIds, ownerIds] = await Promise.all([
+    GetUserIdsForDocWithRole(docId, 'collaborator'),
+    GetUserIdsForDocWithRole(docId, 'viewer'),
+    GetUserIdsForDocWithRole(docId, 'owner')
+  ])
+  const userIds = Array.from(new Set([
+    ...collaboratorIds.map((collaboratorId: any) => collaboratorId.split(`/`)[1]),
+    ...ownerIds.map((ownerId: any) => ownerId.split(`/`)[1]),
+    ...viewerIds.map((viewerId: any) => viewerId.split(`/`)[1])
+  ]))
+  const usersInfo: any[] = await userFindMany(`_id`, userIds, {firstName:1, middleName:1, lastName:1})
+  const fetchedUserIds = usersInfo.map(user => user._id)
+  const groupIds = userIds.filter(userId => !fetchedUserIds.includes(userId))
+  let groupMembers: any[] = await Promise.all(groupIds.map(groupId => groupUserList(groupId)))
+  groupMembers = groupMembers.reduce((p, c) => [...p, ...c], [])
+  const groupMembersInfo: any[] = await userFindMany(`_id`, groupMembers)
+  const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
+  return { docId, userIds, userNames }
 }

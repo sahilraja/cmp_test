@@ -81,6 +81,8 @@ export async function bulkInvite(filePath: string, user: any) {
         })
         await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, user)))
         return { message: 'success' }
+    } else {
+        throw new APIError(`Bulk upload disabled`)
     }
 }
 
