@@ -2898,7 +2898,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
 }
 
 export async function getDocsAndInsertInCasbin(host:string) {
-  const docs = await documents.find({status:{$ne:0},parentId: null}).exec()
+  const docs = await documents.find({status:{$ne:0},parentId: null,isDeleted:false}).exec()
   const finalData:any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
   
   let insert = await Promise.all(finalData.map(async(doc:any)=>{
