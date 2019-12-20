@@ -2605,7 +2605,8 @@ export async function searchDoc(search: string, userId: string, page: number = 1
             multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
           }
         }
-      } else {
+      } 
+    }else {
         data = {
           query: {
             bool: {
@@ -2622,7 +2623,6 @@ export async function searchDoc(search: string, userId: string, page: number = 1
           }
         }
       }
-    } 
   }else {
       if (search == (null || "")) {
         data = {
