@@ -1664,11 +1664,11 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   // let rootPath:any = [];
   let checkFolderData: any = await folders.findById(folderId);
   // let checkParent = false
-  let rootPath: any = [{ id: checkFolderData._id, name: checkFolderData.name }];
+  let rootPath: any = [];
   if (checkFolderData.parentId) {
     let path: any = await getParentFolderDetails(checkFolderData.parentId, userId, root)
     path = path.reverse();
-    rootPath.push(...path);
+    rootPath.push(...path,{ id: checkFolderData._id, name: checkFolderData.name });
   }
   return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs, path: rootPath };
 }
