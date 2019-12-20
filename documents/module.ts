@@ -1626,7 +1626,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
       // { "$unwind": "$doc_id" },
       {
         $lookup: {
-          from: `${ELASTIC_SEARCH_INDEX}_documents`,
+          from: "documents",
           localField: "doc_id",
           foreignField: "_id",
           as: "doc_id"
@@ -1803,7 +1803,7 @@ export async function deleteDoc(docId: any, userId: string) {
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
       let deleted = await esClient.delete({
-        index: 'documents',
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
       })
     }
@@ -2686,7 +2686,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
       }
     }))
     let allDocs: any = await esClient.search({
-      index: 'documents',
+      index:`${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
         query: {
@@ -2728,7 +2728,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
   try {
 
     let allDocs: any = await esClient.search({
-      index: 'documents',
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
         query: {
@@ -2767,7 +2767,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
 
 async function checkDocIdExistsInEs(docId: string) {
   let checkDoc: any = await esClient.search({
-    index: 'documents',
+    index: `${ELASTIC_SEARCH_INDEX}_documents`,
     size: 1000,
     body: {
       query: {
@@ -2802,7 +2802,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
       }
     }))
     let allDocs: any = await esClient.search({
-      index: 'documents',
+      index:`${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
         query: {
@@ -2859,7 +2859,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
       }
     }))
     let allDocs: any = await esClient.search({
-      index: 'documents',
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
         query: {
