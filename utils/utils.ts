@@ -31,8 +31,8 @@ export async function authenticateConstants() {
 
     let { linkExpire, otpExpire } = await getConstantsAndValues(['linkExpire', 'otpExpire']);
     return {
-        ACCESS_TOKEN_FOR_URL: Number(linkExpire || 1) * 60,
-        ACCESS_TOKEN_FOR_OTP: Number(otpExpire || 1) * 60
+        ACCESS_TOKEN_FOR_URL: Number(linkExpire || 1) * 60 * 60,
+        ACCESS_TOKEN_FOR_OTP: Number(otpExpire || 1) * 60 * 60
     }
 }
 
