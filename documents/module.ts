@@ -482,7 +482,7 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
     ])
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {...docList, tags: tagObjects, 
-      role: (ownerRole.data || [""])[0], owner: ownerObj, taskDetails: taskDetailsObj, 
+      role: (ownerRole.data || [""])[0], owner: {...ownerObj, role: (ownerRole.data || [""])[0]}, taskDetails: taskDetailsObj, 
       sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''}
   } catch (err) {
     console.error(err);
