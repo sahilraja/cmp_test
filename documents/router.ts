@@ -68,7 +68,7 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc,updateUserInDOcs,
-  createIndex,removeIndex, getDocsAndInsertInCasbin
+  createIndex,removeIndex, getDocsAndInsertInCasbin, getDocDetailsForSuccessResp
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -651,6 +651,19 @@ router.post("/:id/new", authenticate, ensureCanEditDocument, siteConstants, asyn
 router.get("/:id", authenticate, ensureCanViewDocument, async (req: any, res, next: NextFunction) => {
   try {
     res.status(200).send(await getDocDetails(req.params.id, res.locals.user._id, req.token, req.query.allCmp));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+/**
+ * API for success response
+ * this API wont create activity log that user viewed document
+ * Instead of changing all other API responses creted this API
+ */
+router.get("/:id/view-details", authenticate, ensureCanViewDocument, async (req: any, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getDocDetailsForSuccessResp(req.params.id, res.locals.user._id, req.token, req.query.allCmp));
   } catch (err) {
     next(new APIError(err.message));
   }

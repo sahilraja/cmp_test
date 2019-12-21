@@ -120,7 +120,7 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
   try {
     if (!objBody || !objBody.oldUser || !objBody.newUser || !projectId) throw new Error("Required mandatory fields.")
     const ProjectData: any = await ProjectSchema.findById(projectId).exec()
-    if (!ProjectData.members.includes(objBody.newUser)) throw new Error("member is not a project member.")
+    // if (!ProjectData.members.includes(objBody.newUser)) throw new Error("member is not a project member.")
     let success: any = await replaceProjectTaskUser(projectId, objBody.oldUser, objBody.newUser, token)
     if (success && !success.success) throw new Error(success)
     let members = [... new Set((ProjectData.members.filter((id: any) => id != objBody.oldUser)).concat([objBody.newUser]))]
@@ -370,7 +370,7 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible) {
       query = {}
     }
-    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: currentPage, limit, populate: "phase" })
+    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: Number(currentPage), limit:Number(limit), populate: "phase" })
     const projectIds = (list || []).map((_list) => _list.id);
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
