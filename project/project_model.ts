@@ -12,7 +12,7 @@ const schema = new Schema({
     bannerImage: { type: String },
     maturationStartDate: { date: { type: Date }, modifiedBy: { type: String } },
     maturationEndDate: { date: { type: Date }, modifiedBy: { type: String } },
-    thirdParyAggrementDate: { date: { type: Date }, modifiedBy: { type: String } },
+    tripartiteAggrementDate: { date: { type: Date }, modifiedBy: { type: String } },
     members: { type: Array },
     miscomplianceSpv: {type: String, trim: true, default: null},
     miscomplianceProject: {type: String, trim: true, default: null},

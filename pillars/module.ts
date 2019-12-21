@@ -1,8 +1,14 @@
 import { PillarSchema } from "./model";
-import { httpRequest } from "../utils/role_management";
+import { httpRequest, checkRoleScope } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
+import { APIError } from "../utils/custom-error";
+import { PROJECT_ROUTER } from "../utils/error_msg";
 
-export async function create(userId: string, payload: any) {
+export async function create(userId: string, payload: any, userRole: any) {
+    const isEligible = await checkRoleScope(userRole, `add-edit-pillar`)
+    if(!isEligible){
+        throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+    }
     return await PillarSchema.create({ ...payload, createdBy: userId })
 }
 
@@ -27,7 +33,11 @@ export async function pillarDetail(id: string) {
     return await PillarSchema.findById(id).exec()
 }
 
-export async function updatePillar(id: string, updates: any) {
+export async function updatePillar(id: string, updates: any, userRole: any) {
+    const isEligible = await checkRoleScope(userRole, `add-edit-step`)
+    if(!isEligible){
+        throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+    }
     return await PillarSchema.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec()
 }
 
