@@ -2596,34 +2596,9 @@ export async function searchDoc(search: string, userId: string, page: number = 1
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
     let data: any;
-    if(searchAllCmp){
+
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
-    if (!isEligible) {
-      if (search == (null || "")) {
-        data = {
-          query: {
-            multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
-          }
-        }
-      } 
-    }else {
-        data = {
-          query: {
-            bool: {
-              "should": [
-                {
-                  "bool": {
-                    "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName'], type: 'phrase_prefix' } },
-                      { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
-                    ]
-                  }
-                }]
-            }
-          }
-        }
-      }
-  }else {
+    if(isEligible && searchAllCmp){
       if (search == (null || "")) {
         data = {
           query: {
@@ -2641,7 +2616,31 @@ export async function searchDoc(search: string, userId: string, page: number = 1
           }
         }
       }
-    }
+    }else {
+      if (search == (null || "")) {
+        data = {
+          query: {
+            multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
+          }
+        }
+      } 
+    else {
+        data = {
+          query: {
+            bool: {
+              "should": [
+                {
+                  "bool": {
+                    "must": [
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName'], type: 'phrase_prefix' } },
+                      { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
+                    ]
+                  }
+                }]
+            }}
+          }
+        }
+  }
     let searchdoc: any = await esClient.search({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
