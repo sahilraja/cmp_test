@@ -13,7 +13,7 @@ import { getUserDetail, userDetails, getFullNameAndMobile, sendNotification } fr
 import { userFindMany, userFindOne } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
-import { documentsList } from "../documents/module";
+import { documentsList, updateUserInDOcs } from "../documents/module";
 import { unlinkSync } from "fs";
 import { extname } from "path";
 import * as xlsx from "xlsx";
@@ -35,7 +35,7 @@ export async function createProject(reqObject: any, user: any) {
     if (new Date(reqObject.startDate) > new Date(reqObject.endDate)){
       throw new Error("Start date must less than end date.")
     } 
-    let isEligible = await checkRoleScope(user.role, "create-project");
+    let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible){
       throw new APIError("Unauthorized Action.", 403);
     } 
@@ -68,7 +68,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
     if (!id || !user) throw new Error(MISSING);
     let obj: any = {};
 
-    let isEligible = await checkRoleScope(user.role, "edit-project");
+    let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
 
     if (reqObject.startDate || reqObject.endDate) {
@@ -207,7 +207,7 @@ export async function projectList() {
 export async function city_code_status(id: any, userObj: any) {
   try {
     if (!id) throw new Error(MISSING);
-    let isEligible = await checkRoleScope(userObj.role, "edit-project");
+    let isEligible = await checkRoleScope(userObj.role, "manage-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
     let projectData: any = await ProjectSchema.findById(id).exec();
     if (!projectData) {
@@ -362,12 +362,15 @@ export async function theme_status(id: any) {
 //get projects list
 export async function getProjectsList(userId: any, userToken: string, userRole: any, currentPage: number, limit = 30) {
   try {
-    let query: any = { $or: [{ createdBy: userId }, { members: { $in: [userId] } }] }
+    let query: any = { members: { $in: [userId] } }
     // let userProjects: any = await userRoleAndScope(userId);
     // if (!userProjects) throw new Error("user have no projects");
     //const { docs: list, page, pages } = await ProjectSchema.paginate({ $or: [{ createdBy: userId }, { members: { $in: [userId] } }] })
-    const isEligible = await checkRoleScope(userRole, `view-all-projects`)
-    if (isEligible) {
+    const [isEligible1, isEligible2] = await Promise.all([
+      checkRoleScope(userRole, `view-all-projects`),
+      checkRoleScope(userRole, `manage-project`),
+    ]) 
+    if (isEligible1 || isEligible2) {
       query = {}
     }
     const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: Number(currentPage), limit:Number(limit), populate: "phase" })
@@ -544,7 +547,7 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
 export async function addUtilizedInstallment(projectId: string, payload: any, user?: any) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
   const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
-  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
+  if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const finalPayload = payload.fundsUtilised.map((fund: any, index: number) => {
@@ -776,7 +779,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
   ])
-  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
+  if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   if (!payload.installment) {
@@ -836,7 +839,7 @@ export async function updateUtilizedFund(projectId: string, payload: any, user: 
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
   ])
-  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
+  if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   // if(!payload.installment || !payload.subInstallment){
@@ -882,7 +885,7 @@ export async function deleteUtilizedFund(projectId: string, payload: any, user: 
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
   ])
-  if (!isEligible || (!projectDetail.members.includes(user._id) && (projectDetail.createdBy != user._id))) {
+  if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   const { document, cost, _id } = payload
@@ -958,7 +961,7 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
-  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: new RegExp(taskObj.pillarId) }).exec() as any || { _id: undefinedÎÎ })._id || undefined
+  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: new RegExp(taskObj.pillarId) }).exec() as any || { _id: undefined })._id || undefined
   if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: new RegExp(taskObj.stepId) }).exec() as any || { _id: undefined })._id || undefined
 
   taskObj = {
@@ -1166,3 +1169,7 @@ export async function editProjectMiscompliance(projectId: string, payload: any, 
     throw err
   };
 };
+
+export async function editTriPartiteDate(id: string,payload: any, userId: string) {
+  return await ProjectSchema.findByIdAndUpdate(id, { $set: {tripartiteAggrementDate: { modifiedBy: userId, date: payload.tripartiteAggrementDate } }}, { new: true }).exec()
+}

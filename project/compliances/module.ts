@@ -6,7 +6,7 @@ import { TASKS_URL } from "../../utils/urls";
 import { project } from "../project_model";
 
 export async function createCompliance(payload: any, projectId: string, userObj: any) {
-    const isEligible = await checkRoleScope(userObj.role, 'create-compliance')
+    const isEligible = await checkRoleScope(userObj.role, 'manage-compliance')
     if (!isEligible) {
         throw new APIError(COMPLIANCES.UNAUTHORIZED_TO_CREATE)
     }
@@ -48,7 +48,7 @@ export async function listCompliances(userToken: string, projectId: string) {
 
 
 export async function editCompliance(id: string, updates: any, userObj: any) {
-    const isEligible = await checkRoleScope(userObj.role, 'edit-compliance')
+    const isEligible = await checkRoleScope(userObj.role, 'manage-compliance')
     if (!isEligible) {
         throw new APIError(COMPLIANCES.UNAUTHORIZED_TO_EDIT)
     }

@@ -154,6 +154,20 @@
     "description":"View All Projects"
   },
   {
+    "capability":"project-activity-log",
+    "shortDescription":"View activity log",
+    "description":"View activity log",
+    "category":"Project Management",
+    "scope":"global"
+  },
+  {
+    "capability":"edit-tri-partite-aggrement-date",
+    "description":"Edit Tri-partite Aggrement Date",
+    "category":"Project Management",
+    "scope":"global",
+    "shortDescription":"Edit Tri-paritie Aggrement Date"
+  },
+  {
     "capability": "phase-manage",
     "shortDescription":"add/edit phase",
     "category":"Project Management",
@@ -175,9 +189,9 @@
     "description":"View Open Comments"
   },
   {
-    "capability": "project-view",
-    "shortDescription": "Project View",
-    "description": "Project View",
+    "capability": "view-my-project",
+    "shortDescription": "View My Projects",
+    "description": "View My Projects",
     "category": "Project Management",
     "scope": "global"
   },
@@ -217,13 +231,6 @@
     "scope": "global"
   },
   {
-    "capability": "create-project",
-    "shortDescription": "Create Project",
-    "description": "Create Project",
-    "category": "Project Management",
-    "scope": "global"
-  },
-  {
     "capability": "display-role-management",
     "shortDescription": "Display Role Management",
     "description": "Display Role Management",
@@ -231,16 +238,9 @@
     "scope": "global"
   },
   {
-    "capability": "create-project",
-    "shortDescription": "create Project",
-    "description": "create Project",
-    "category": "Project Management",
-    "scope": "global"
-  },
-  {
-    "capability": "edit-project",
-    "shortDescription": "edit Project",
-    "description": "edit Project",
+    "capability": "manage-project",
+    "shortDescription": "Manage Project",
+    "description": "Manage Project",
     "category": "Project Management",
     "scope": "global"
   },
@@ -378,15 +378,22 @@
     "scope": "global"
   },
   {
-    "capability": "create-compliance",
-    "shortDescription": "Create Compliance",
-    "category": "Compliances",
-    "description": "Manage Compliances",
+    "capability": "add-edit-pillar",
+    "shortDescription": "Manage Pillars at Project",
+    "category": "Project Management",
+    "description": "Manage Pillars at Project",
     "scope": "global"
   },
   {
-    "capability": "edit-compliance",
-    "shortDescription": "Edit Compliance",
+    "capability": "add-edit-step",
+    "shortDescription": "Manage Steps at Project",
+    "category": "Project Management",
+    "description": "Manage Steps at Project",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-compliance",
+    "shortDescription": "Manage Compliances",
     "category": "Compliances",
     "description": "Manage Compliances",
     "scope": "global"

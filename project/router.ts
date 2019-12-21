@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
     createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status,
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail,
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments, getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments, getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, editTriPartiteDate
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -405,4 +405,13 @@ router.put("/:id/citiis-grants", async (req, res, next) => {
         next(new APIError(error.message));
     }
 })
+
+router.post(`/:id/edit-tripartite`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await editTriPartiteDate(req.params.id, req.body, res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
 export = router;

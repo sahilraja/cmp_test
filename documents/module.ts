@@ -1128,7 +1128,9 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     if (actionUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
     if (actionUserRole.includes("viewer") || actionUserRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
     let userRole: any = await getRoleOfDoc(userId, docId, type);
-    await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
+    if(userRole && userRole.length){
+      await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
+    }
     let request = await docRequestModel.findOne({ docId, requestedBy: userId, isDelete: false })
     if (request && role == "collaborator") {
       await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
