@@ -2940,8 +2940,8 @@ async function getShareInfoForEachDocument(doc: any, host: string) {
   let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
   return {
     docId: doc.id,
-    accessedBy: [userIds],
-    userName: [userNames],
+    accessedBy: userIds,
+    userName: userNames,
     name: doc.name,
     description: doc.description,
     tags: tagsData.map((tag: any) => tag.tag),
