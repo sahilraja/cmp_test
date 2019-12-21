@@ -2954,3 +2954,73 @@ async function getShareInfoForEachDocument(doc: any, host: string) {
     groupName: groupsInfo.map((group: any) => group.name)
   }
 }
+
+//  Get Doc Details
+export async function getDocDetailsForSuccessResp(docId: any, userId: string, token: string, allCmp: boolean) {
+  try {
+    if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    let publishDocs: any = await documents.findById(docId);
+    const allCmp = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents");
+    if (!allCmp) {
+      if (publishDocs.isDeleted) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DELETED(publishDocs.name))
+      if (publishDocs.status != 2 && publishDocs.parentId == null) {
+        let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
+        if (!userCapability.length) throw new Error(DOCUMENT_ROUTER.USER_HAVE_NO_ACCESS)
+      }
+    }
+    let filteredDocs: any;
+    let filteredDocsToRemove: any;
+    const docList = publishDocs.toJSON();
+    if (docList.parentId) {
+      let parentDoc: any = await documents.findById(docList.parentId)
+      docList.tags = parentDoc.tags
+      docList.suggestedTags = parentDoc.suggestedTags,
+        docList.suggestTagsToAdd = parentDoc.suggestTagsToAdd,
+        docList.suggestTagsToRemove = parentDoc.suggestTagsToRemove
+    }
+    if (docList.ownerId == userId) {
+      filteredDocs = docList.suggestTagsToAdd
+      filteredDocsToRemove = docList.suggestTagsToRemove
+    } else {
+      filteredDocs = docList.suggestTagsToAdd.filter((tag: any) => tag.userId == userId)
+      filteredDocsToRemove = docList.suggestTagsToRemove.filter((tag: any) => tag.userId == userId)
+    }
+
+    const userData = Array.from(
+      new Set(filteredDocs.map((_respdata: any) => _respdata.userId))
+    ).map((userId: any) => ({
+      userId,
+      tags: filteredDocs
+        .filter((_respdata: any) => _respdata.userId == userId)
+        .reduce((resp: any, eachTag: any) => [...resp, ...eachTag.tags], [])
+    }));
+    let users = await Promise.all(userData.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
+    docList.suggestTagsToAdd = users
+
+    const userDataForRemoveTag = Array.from(
+      new Set(filteredDocsToRemove.map((_respdata: any) => _respdata.userId))
+    ).map((userId: any) => ({
+      userId,
+      tags: filteredDocsToRemove
+        .filter((_respdata: any) => _respdata.userId == userId)
+        .reduce((resp: any, eachTag: any) => [...resp, ...eachTag.tags], [])
+    }));
+    let usersDataForRemoveTag = await Promise.all(userDataForRemoveTag.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
+    docList.suggestTagsToRemove = usersDataForRemoveTag
+    let [tagObjects, ownerRole, ownerObj, taskDetailsObj] = await Promise.all([
+      getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
+      userRoleAndScope(docList.ownerId),
+      userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 }),
+      getTasksForDocument(docList.parentId || docList._id, token)
+    ])
+    // await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
+    return {
+      ...docList, tags: tagObjects,
+      role: (ownerRole.data || [""])[0], owner: { ...ownerObj, role: (ownerRole.data || [""])[0] }, taskDetails: taskDetailsObj,
+      sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''
+    }
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
