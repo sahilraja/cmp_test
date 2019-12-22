@@ -21,7 +21,7 @@ export async function templateCreate(body: any) {
 };
 
 export async function list() {
-    return await TemplateSchema.find({}).exec()
+    return await TemplateSchema.find({}).collation({ locale: 'en' }).sort({ templateName: 1 }).exec()
 }
 
 export async function templateEdit(user:any,body: any,id:string) {
