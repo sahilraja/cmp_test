@@ -2415,12 +2415,22 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
 
 export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any) {
   try {
+    let userDetails: any = await userFindOne("id", newOwnerId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    let userName:any;
+    if (userDetails.firstName)
+      userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    else {
+      userName = userDetails.name
+    }
     let sharedDocIds = (await GetDocIdsForUser(ownerId)).filter(id => Types.ObjectId.isValid(id))
     let [mydocs, sharedDocs]: any = await Promise.all([
       documents.find({ ownerId: ownerId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).exec(),
       documents.find({ _id: { $in: sharedDocIds }, isDeleted: false }).exec()
     ])
-    await Promise.all(mydocs.map((doc: any) => changeOwnerShip(doc, ownerId, newOwnerId, userObj)))
+    await Promise.all(mydocs.map((doc: any) => {
+      changeOwnerShip(doc, ownerId, newOwnerId, userObj),
+      replaceUserInES(doc.id,newOwnerId,userName)}
+    ))
     // await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
     return { success: true }
   } catch (err) {
@@ -3024,5 +3034,30 @@ export async function getDocDetailsForSuccessResp(docId: any, userId: string, to
   } catch (err) {
     console.error(err);
     throw err;
+  }
+}
+export async function replaceUserInES(docId: string, newUserId: string, newUserName: string) {
+  try {
+    let isDocExists = await checkDocIdExistsInEs(docId)
+    if (isDocExists) {
+      let data =  await esClient.update({
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.accessedBy.add(params.userId);ctx._source.userName.add(params.userName)",
+            "lang": "painless",
+            "params": {
+              "userId": newUserId,
+              "userName": newUserName
+            }
+          }
+        }
+      })
+       return data;
+    }
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }
