@@ -124,7 +124,7 @@ async function profileFetchDetails(activity: any) {
 
 export async function getMergedLogs() {
     try {
-        const activities: any[] = await ActivitySchema.find({ activityType: "MERGED-TAG" }, { activityType: 1, activityBy: 1, mergedTag: 1, tagsToMerge: 1 }).exec()
+        const activities: any[] = await ActivitySchema.find({ activityType: "MERGED-TAG" }, { activityType: 1, activityBy: 1, mergedTag: 1, tagsToMerge: 1, updatedAt:1, createdAt:1 }).exec()
         return await Promise.all(activities.map((activity: any) => {
             return profileFetchDetails(activity.toJSON())
         }))
