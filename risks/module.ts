@@ -79,7 +79,7 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
                     if (oldObject.probability != riskObj.probability)
                         riskObj['previousTrend'] = oldObject.impact * oldObject.probability;
                 let riskDetails: any = await RiskSchema.findByIdAndUpdate(riskObj._id || riskObj.id, { $set: riskObj }, { new: true }).exec()
-                await RiskSchema.create({ ...riskDetails, parentId: riskDetails._id })
+                await RiskSchema.create({ ...riskDetails.toJSON(), projectId, parentId: riskDetails._id })
             };
         } else {
             let risk = await RiskSchema.create({ ...riskObj, projectId, createdBy: userObj._id });
