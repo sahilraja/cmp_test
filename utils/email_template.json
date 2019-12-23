@@ -30,12 +30,6 @@
         "subject" : "Message on CMP"
     },
     {
-        "content" : "A task in CMP has been updated",
-        "templateName" : "Dear <b>[fullName]</b>,<br/><br/>This is a confirmation email on an update on your task on CMP. Please log on to the platform to check the update.<br/><br/>In case of any issues while using the platform, please contact <b>cmp@niua.org</b>.<br/><br/>Best Regards,</br>CMP Administrator",
-        "subject" : "Task Updated",
-        "displayName" : "[CMP] Task Updated"
-    },
-    {
         "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <b><u>[otp]</u></b> is the One Time Password (OTP) to update your Mobile Number on CITIIS Management Platform<br/><br/>.Best Regards,<br/>CMP Administrator",
         "templateName" : "changeMobileOTP",
         "displayName" : "change mobile otp",

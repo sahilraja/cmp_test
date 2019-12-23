@@ -264,13 +264,45 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
         // let updateUsersInTasks = await updateUserInTasks({id},token);
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
-        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys })
+        await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys.map(key => formatProfileKeys(key)) })
         sendNotification({ id, fullName: userData.fullName, mobileNo: userData.mobileNo, email: userInfo.email, templateName: "profile", mobileTemplateName: "profile" });
         return userInfo
     } catch (err) {
         throw err;
     };
 };
+
+function formatProfileKeys(key: string){
+    switch (key) {
+        case 'firstName':
+            key = `First Name`;
+            break;
+        case `lastName`:
+            key = `Last Name`;
+            break;
+        case `middleName`:
+            key = `Middle Name`
+            break;
+        case `email`:
+            key = `Email`
+            break;
+        case `countryCode`:
+            key = `Country Code`
+            break;
+        case `phone`:
+            key = `Mobile Number`
+            break;
+        case `aboutme`:
+            key = `About Me`
+            break;
+        case `profilePic`:
+            key = `Profile Picture`
+            break;
+        default:
+            break;
+    }
+    return key
+}
 
 // Get User List
 export async function user_list(query: any, userId: string, page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
@@ -1177,7 +1209,7 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
             }
             let userInfo = await userEdit(id, body);
             let editedKeys = Object.keys(user).filter(key => { if (key != "updatedAt") return user[key] != userInfo[key] })
-            await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys })
+            await create({ activityType: "EDIT-PROFILE-BY-ADMIN", activityBy: admin._id, profileId: userInfo._id, editedFields: editedKeys.map(key => formatProfileKeys(key)) })
             return { message: RESPONSE.PROFILE_UPDATE }
         }
         throw new Error("Invalid action.")

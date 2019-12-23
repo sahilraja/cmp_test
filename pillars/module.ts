@@ -34,7 +34,7 @@ export async function pillarDetail(id: string) {
 }
 
 export async function updatePillar(id: string, updates: any, userRole: any) {
-    const isEligible = await checkRoleScope(userRole, `add-edit-step`)
+    const isEligible = await checkRoleScope(userRole, `add-edit-pillar`)
     if(!isEligible){
         throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }

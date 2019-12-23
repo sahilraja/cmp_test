@@ -1137,7 +1137,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     }
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
-    mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
+    // mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
     return { message: "Edit user successfully." };
   } catch (err) {
     throw err;
@@ -1151,7 +1151,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     if (!userRole.includes("owner")) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY)
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
-    mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
+    // mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
     if(type == 'user'){
     let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)

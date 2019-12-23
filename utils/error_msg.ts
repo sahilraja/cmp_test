@@ -212,7 +212,8 @@ export const PROJECT_ROUTER = {
 export const COMPLIANCES = {
     REQUIRED_TASK: `task ID is required to create compliance`,
     UNAUTHORIZED_TO_CREATE: `Unauthorized to create compliance`,
-    UNAUTHORIZED_TO_EDIT: `Unauthorized to edit compliance`
+    UNAUTHORIZED_TO_EDIT: `Unauthorized to edit compliance`,
+    MISCOMPLIANCE_ERROR: `You are unauthorized to edit miscompliance`
 }
 
 export const RISK = {

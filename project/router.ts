@@ -408,7 +408,7 @@ router.put("/:id/citiis-grants", async (req, res, next) => {
 
 router.post(`/:id/edit-tripartite`, async (req, res, next) => {
     try {
-        res.status(OK).send(await editTriPartiteDate(req.params.id, req.body, res.locals.user._id))
+        res.status(OK).send(await editTriPartiteDate(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }

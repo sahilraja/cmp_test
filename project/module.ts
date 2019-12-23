@@ -1,4 +1,4 @@
-import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR } from "../utils/error_msg";
+import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR, USER_ROUTER, COMPLIANCES } from "../utils/error_msg";
 import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
@@ -373,7 +373,7 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible1 || isEligible2) {
       query = {}
     }
-    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: Number(currentPage), limit:Number(limit), populate: "phase" })
+    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: Number(currentPage), limit:Number(limit), sort:{createdAt:-1}, populate: "phase" })
     const projectIds = (list || []).map((_list) => _list.id);
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
@@ -629,9 +629,9 @@ export async function projectMembers(id: string) {
 
 export async function getTaskDetail(projectId: string, id: string, userId: string, userToken: string) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
-  if (!projectDetail.members.includes(userId) && projectDetail.createdBy != userId) {
-    throw new APIError(`You dont have access to this project`)
-  }
+  // if (!projectDetail.members.includes(userId) && projectDetail.createdBy != userId) {
+  //   throw new APIError(`You dont have access to this project`)
+  // }
   const options = {
     url: `${TASKS_URL}/task/${id}/detail?isFromProject=${true}`,
     method: 'GET',
@@ -672,11 +672,13 @@ function getPercentageByInstallment(installment: number) {
 }
 
 export async function getFinancialInfo(projectId: string, userId: string, userRole: any) {
-  const [isEligible1, isEligible2] = await Promise.all([
+  const [isEligible1, isEligible2, canSeeMyProject, canSeeAllProjects] = await Promise.all([
     checkRoleScope(userRole, `manage-project-released-fund`),
-    checkRoleScope(userRole, `manage-project-utilized-fund`)
+    checkRoleScope(userRole, `manage-project-utilized-fund`),
+    checkRoleScope(userRole, `view-my-project`),
+    checkRoleScope(userRole, `view-all-projects`)
   ])
-  if(!isEligible1 || !isEligible2){
+  if(!isEligible1 && !isEligible2 && !canSeeMyProject && !canSeeAllProjects){
     throw new APIError(PROJECT_ROUTER.FINANCIAL_INFO_NO_ACCESS)
   }
   const projectDetail = await ProjectSchema.findById(projectId).exec()
@@ -1160,6 +1162,10 @@ export async function getCommentedUsers(projectId: string, user: any) {
 export async function editProjectMiscompliance(projectId: string, payload: any, userObj: any) {
   try {
     if (!Types.ObjectId.isValid(projectId)) throw new Error("Invalid Project Id.")
+    const isEligible = await checkRoleScope(userObj.role, 'manage-compliance')
+    if (!isEligible) {
+        throw new APIError(COMPLIANCES.MISCOMPLIANCE_ERROR)
+    }
     let obj: any = {};
     if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
     if ("miscomplianceProject" in payload) obj.miscomplianceProject = payload.miscomplianceProject
@@ -1170,6 +1176,10 @@ export async function editProjectMiscompliance(projectId: string, payload: any, 
   };
 };
 
-export async function editTriPartiteDate(id: string,payload: any, userId: string) {
-  return await ProjectSchema.findByIdAndUpdate(id, { $set: {tripartiteAggrementDate: { modifiedBy: userId, date: payload.tripartiteAggrementDate } }}, { new: true }).exec()
+export async function editTriPartiteDate(id: string,payload: any, user: any) {
+  const isEligible = await checkRoleScope(user.role, `edit-tri-partite-aggrement-date`)
+  if(!isEligible){
+    throw new APIError(USER_ROUTER.INVALID_ADMIN)
+  }
+  return await ProjectSchema.findByIdAndUpdate(id, { $set: {tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } }}, { new: true }).exec()
 }
