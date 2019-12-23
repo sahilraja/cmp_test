@@ -87,7 +87,7 @@ router.post("/:id/edit", async (req: any, res: any, next: any) => {
 
 router.get("/:id/get-member-roles", async (req: any, res: any, next: any) => {
     try {
-        res.status(OK).send(await projectMembers(req.params.id))
+        res.status(OK).send(await projectMembers(req.params.id, res.locals.user))
     } catch (err) {
         next(new APIError(err.message));
     }

@@ -159,10 +159,10 @@ export async function manageProjectMembers(id: string, members: string[], userId
   if (!isEligible) {
     throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
   }
-  if (members.includes(userId)) {
+  const previousProjectData: any = await ProjectSchema.findById(id).exec()
+  if (members.includes(userId) && !previousProjectData.members.includes(userId)) {
     throw new APIError(`You are trying to add yourself as project member`)
   }
-  const previousProjectData: any = await ProjectSchema.findById(id).exec()
   const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
   const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
   const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
@@ -610,13 +610,13 @@ export async function ganttChart(projectId: string, userToken: string) {
   return { ...(projectDetail as any).toJSON(), tasks }
 }
 
-export async function projectMembers(id: string) {
+export async function projectMembers(id: string, currntUser: any) {
   let [project, formattedRoleObjs]: any = await Promise.all([
     ProjectSchema.findById(id).exec(),
     role_list()
   ])
   if (!project) throw new Error("Project Not Found.");
-  const userIds = [...project.members, project.createdBy]
+  const userIds = [...project.members, project.createdBy, currntUser ? currntUser._id : ''].filter(v => v)
   let userObjs = (await userFindMany("_id", userIds)).map((user: any) => { return { ...user, fullName: (user.firstName ? user.firstName + " " : "") + (user.middleName ? user.middleName + " " : "") + (user.lastName ? user.lastName : "") } })
   // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
@@ -940,7 +940,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
   const [projectData, memberRoles] = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
-    projectMembers(projectId)
+    projectMembers(projectId, userObj)
   ])
   // if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
@@ -1033,8 +1033,8 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
     throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
   }
 
-  if (data.initialStartDate && new Date() > new Date(data.initialStartDate)) throw new Error("Start date must Not be in the past.")
-  if (data.initialDueDate && new Date(data.initialStartDate) > new Date(data.initialDueDate)) throw new Error("Start date must be lessthan due date.")
+  if (data.initialStartDate && new Date().getTime() > new Date(data.initialStartDate).setHours(23, 59, 59, 0)) throw new Error("Start date must Not be in the past.")
+  if (data.initialDueDate && new Date(data.initialStartDate).setHours(0,0,0,0) > new Date(data.initialDueDate).setHours(23, 59, 59, 0)) throw new Error("Start date must be lessthan due date.")
 
   return {
     name: data.name,
