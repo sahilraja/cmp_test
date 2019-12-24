@@ -133,8 +133,11 @@ export async function getMergedLogs() {
     };
 }
 
-export async function projectLogs(projectId: string, token: string) {
+export async function projectLogs(projectId: string, token: string,userObj: any) {
     try {
+        const isEligible = await checkRoleScope(userObj.role, `project-activity-log`)
+        if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
+
         const activities: any[] = await ActivitySchema.find({ projectId }).populate({ path: 'projectId' }).exec()
         let taskObjects: any[] = await getTasksByIds([...new Set((activities.reduce((main, curr)=> main.concat([curr.taskId]), [])).filter((id: string) => Types.ObjectId(id)))] as any, token)
         return await Promise.all(activities.map((activity: any) => {
