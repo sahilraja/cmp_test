@@ -483,8 +483,8 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
     ])
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
-      ...docList, tags: tagObjects,
-      role: (ownerRole.data || [""])[0], owner: { ...ownerObj, role: (ownerRole.data || [""])[0] }, taskDetails: taskDetailsObj,
+      ...docList, tags: tagObjects, 
+      owner: { ...ownerObj, role: await formateRoles((ownerRole.data || [""])[0]) }, taskDetails: taskDetailsObj,
       sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''
     }
   } catch (err) {
