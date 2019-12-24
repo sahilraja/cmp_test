@@ -103,7 +103,7 @@ router.post(`/:id/manage-members`, async (req, res, next) => {
     }
 }).get(`/:id/members`, async (req, res, next) => {
     try {
-        res.status(OK).send(await getProjectMembers(req.params.id))
+        res.status(OK).send(await getProjectMembers(req.params.id,res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }
