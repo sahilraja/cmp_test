@@ -683,13 +683,14 @@ function getPercentageByInstallment(installment: number) {
 }
 
 export async function getFinancialInfo(projectId: string, userId: string, userRole: any) {
-  const [isEligible1, isEligible2, canSeeMyProject, canSeeAllProjects] = await Promise.all([
+  const [isEligible1, isEligible2, canSeeMyProject, canSeeAllProjects, canManageProject] = await Promise.all([
     checkRoleScope(userRole, `manage-project-released-fund`),
     checkRoleScope(userRole, `manage-project-utilized-fund`),
     checkRoleScope(userRole, `view-my-project`),
-    checkRoleScope(userRole, `view-all-projects`)
+    checkRoleScope(userRole, `view-all-projects`),
+    checkRoleScope(userRole, `manage-project`)
   ])
-  if(!isEligible1 && !isEligible2 && !canSeeMyProject && !canSeeAllProjects){
+  if(!isEligible1 && !isEligible2 && !canSeeMyProject && !canSeeAllProjects && !canManageProject){
     throw new APIError(PROJECT_ROUTER.FINANCIAL_INFO_NO_ACCESS)
   }
   const projectDetail = await ProjectSchema.findById(projectId).exec()
