@@ -33,7 +33,7 @@ export async function addComment(body: any, user: any) {
     if (doc && body.type == "document" && doc.status != 2) {
       await create({ activityType: `DOCUMENT_COMMENT`, activityBy: user._id, documentId: body.entity_id })
       const { fullName, mobileNo } = getFullNameAndMobile(user);
-      mailAllCmpUsers("addCommentToDoc", doc, true)
+      mailAllCmpUsers("addCommentToDoc", doc, false)
       // sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileTemplateName: "addCommentToDoc" });
     }
     return commentInfo
