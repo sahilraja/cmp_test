@@ -174,7 +174,7 @@ export async function getProjectMembers(id: string,userId: string) {
   let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
     const [viewMyAccess, viewAllAccess, manageAccess] = await Promise.all([
-      checkRoleScope(userRole, "view-my-project'"),
+      checkRoleScope(userRole, "view-my-project"),
       checkRoleScope(userRole, "view-all-projects"),
       checkRoleScope(userRole, "manage-project")
     ])
