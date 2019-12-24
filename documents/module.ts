@@ -61,7 +61,7 @@ esClient.ping({
     console.log('All is well');
   }
 });
-const ELASTIC_SEARCH_INDEX = process.env.ELASTIC_SEARCH_INDEX 
+const ELASTIC_SEARCH_INDEX = process.env.ELASTIC_SEARCH_INDEX
 export async function createIndex(index: string) {
   return await esClient.indices.create({ index: index });
 
@@ -1128,7 +1128,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     if (actionUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
     if (actionUserRole.includes("viewer") || actionUserRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
     let userRole: any = await getRoleOfDoc(userId, docId, type);
-    if(userRole && userRole.length){
+    if (userRole && userRole.length) {
       await groupsRemovePolicy(`${type}/${userId}`, docId, userRole[2]);
     }
     let request = await docRequestModel.findOne({ docId, requestedBy: userId, isDelete: false })
@@ -1152,13 +1152,13 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     // mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
-    if(type == 'user'){
-    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
-    let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-        let updatedData =  esClient.update({
-          index:`${ELASTIC_SEARCH_INDEX}_documents`,
+    if (type == 'user') {
+      let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
+      let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
+      let isDocExists = await checkDocIdExistsInEs(docId)
+      if (isDocExists) {
+        let updatedData = esClient.update({
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -1196,26 +1196,26 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-              esClient.update({
-              index: `${ELASTIC_SEARCH_INDEX}_documents`,
-              id: user.docId,
-              body: {
-                "script": {
-                  "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName));ctx._source.groupName.remove(ctx._source.groupName.indexOf(params.groupName));ctx._source.groupId.remove(ctx._source.groupId.indexOf(params.groupId));",
-                  "lang": "painless",
-                  "params": {
-                    "userId": user.userId,
-                    "userName": user.userName,
-                    "groupName": user.groupName,
-                    "groupId": user.groupId
-                  }
+          esClient.update({
+            index: `${ELASTIC_SEARCH_INDEX}_documents`,
+            id: user.docId,
+            body: {
+              "script": {
+                "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName));ctx._source.groupName.remove(ctx._source.groupName.indexOf(params.groupName));ctx._source.groupId.remove(ctx._source.groupId.indexOf(params.groupId));",
+                "lang": "painless",
+                "params": {
+                  "userId": user.userId,
+                  "userName": user.userName,
+                  "groupName": user.groupName,
+                  "groupId": user.groupId
                 }
               }
-            })
-          }))
+            }
+          })
+        }))
       }
     }
-    
+
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
@@ -2109,7 +2109,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updatedData = await esClient.update({
-          index:`${ELASTIC_SEARCH_INDEX}_documents`,
+          index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
             "script": {
@@ -2244,6 +2244,7 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
         sendNotification({
           id: user._id,
           fullName, text,
+          userName: fullName,
           sharedUsers, role,
           mobileNo: user.phone,
           email: user.email,
@@ -2416,7 +2417,7 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
 export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any) {
   try {
     let userDetails: any = await userFindOne("id", newOwnerId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-    let userName:any;
+    let userName: any;
     if (userDetails.firstName)
       userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
     else {
@@ -2429,7 +2430,8 @@ export async function replaceDocumentUser(ownerId: string, newOwnerId: string, u
     ])
     await Promise.all(mydocs.map((doc: any) => {
       changeOwnerShip(doc, ownerId, newOwnerId, userObj),
-      replaceUserInES(doc.id,newOwnerId,userName)}
+        replaceUserInES(doc.id, newOwnerId, userName)
+    }
     ))
     // await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
     return { success: true }
@@ -2603,14 +2605,14 @@ export async function renameFolder(folderId: string, body: any, userId: string) 
     throw error;
   }
 }
-export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true,searchAllCmp: boolean = false) {
+export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true, searchAllCmp: boolean = false) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
     let data: any;
 
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
-    if(isEligible && searchAllCmp){
+    if (isEligible && searchAllCmp) {
       if (search == (null || "")) {
         data = {
           query: {
@@ -2628,15 +2630,15 @@ export async function searchDoc(search: string, userId: string, page: number = 1
           }
         }
       }
-    }else {
+    } else {
       if (search == (null || "")) {
         data = {
           query: {
             multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
           }
         }
-      } 
-    else {
+      }
+      else {
         data = {
           query: {
             bool: {
@@ -2649,10 +2651,11 @@ export async function searchDoc(search: string, userId: string, page: number = 1
                     ]
                   }
                 }]
-            }}
+            }
           }
         }
-  }
+      }
+    }
     let searchdoc: any = await esClient.search({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
@@ -2699,7 +2702,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
       }
     }))
     let allDocs: any = await esClient.search({
-      index:`${ELASTIC_SEARCH_INDEX}_documents`,
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
         query: {
@@ -2815,7 +2818,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
       }
     }))
     let allDocs: any = await esClient.search({
-      index:`${ELASTIC_SEARCH_INDEX}_documents`,
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
         query: {
@@ -2910,13 +2913,13 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
   }
 }
 
-export async function getDocsAndInsertInCasbin(host:string) {
-  const docs = await documents.find({status:{$ne:0},parentId: null,isDeleted:false}).exec()
-  const finalData:any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
-  
-  let insert = await Promise.all(finalData.map(async(doc:any)=>{
+export async function getDocsAndInsertInCasbin(host: string) {
+  const docs = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
+  const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
+
+  let insert = await Promise.all(finalData.map(async (doc: any) => {
     return await esClient.index({
-      index:`${process.env.ELASTIC_SEARCH_INDEX}_documents`,
+      index: `${process.env.ELASTIC_SEARCH_INDEX}_documents`,
       body: doc,
       id: doc.id
     });
@@ -3040,7 +3043,7 @@ export async function replaceUserInES(docId: string, newUserId: string, newUserN
   try {
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-      let data =  await esClient.update({
+      let data = await esClient.update({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
@@ -3054,7 +3057,7 @@ export async function replaceUserInES(docId: string, newUserId: string, newUserN
           }
         }
       })
-       return data;
+      return data;
     }
   } catch (error) {
     console.error(error);
