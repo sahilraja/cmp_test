@@ -784,10 +784,10 @@ export async function roleFormanting(users: any[]) {
 export async function formateRoles(roles: string[]) {
     try {
         let rolesBody: any = await role_list();
-        return roles.map((role: string) => {
+        return roles? roles.map((role: string) => {
             let roleObj = rolesBody.roles.find(({ role: rolecode }: any) => rolecode == role)
             return roleObj ? roleObj.roleName : role
-        })
+        }): []
     } catch (err) {
         throw err
     };
