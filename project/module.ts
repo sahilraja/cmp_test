@@ -170,7 +170,18 @@ export async function manageProjectMembers(id: string, members: string[], userId
   return updatedProject
 }
 
-export async function getProjectMembers(id: string) {
+export async function getProjectMembers(id: string,userId: string) {
+  let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    const [viewMyAccess, viewAllAccess, manageAccess] = await Promise.all([
+      checkRoleScope(userRole, "view-my-project'"),
+      checkRoleScope(userRole, "view-all-projects"),
+      checkRoleScope(userRole, "manage-project")
+    ])
+
+    if (!viewMyAccess && !viewAllAccess && !manageAccess) {
+      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS);
+    }
   const { members }: any = await ProjectSchema.findById(id).exec()
   const [users, formattedRoleObjs]: any = await Promise.all([
     userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, is_active: 1 }),
