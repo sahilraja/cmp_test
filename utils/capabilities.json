@@ -497,13 +497,6 @@
     "category": "User Management"
   },
   {
-    "capability": "financial-info-management",
-    "shortDescription": "Financial Info Management",
-    "description": "Ability to add financial info",
-    "category": "Project Management",
-    "scope": "global"
-  },
-  {
     "capability": "document-comments",
     "shortDescription": "Add comment",
     "description": "Ability to add comment on document",
@@ -546,3 +539,4 @@
     "category": "User Management"
   }
 ]
+
