@@ -1059,7 +1059,7 @@ export async function changeMobileNumber(objBody: any, userData: any) {
 export async function replaceUser(userId: string, replaceTo: string, userToken: string, userObj: any) {
     try {
         let eligible = await checkRoleScope(userObj.role, "replace-user");
-        // if (!eligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        if (!eligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         await Promise.all([
             changeRoleToReplaceUser(userId, replaceTo),
             replaceDocumentUser(userId, replaceTo, userObj),
@@ -1076,7 +1076,7 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
                 headers: { 'Authorization': `Bearer ${userToken}` }
             })
         ])
-        // changeGroupOwnerShip(userId, rep      
+        // changeGroupOwnerShip(userId, replaceTo)      
         return { message: RESPONSE.REPLACE_USER }
     } catch (err) {
         throw err
