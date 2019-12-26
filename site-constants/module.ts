@@ -25,7 +25,7 @@ export async function addConstants(objBody:any, userId: string) {
         }
         let constantValue
         const keys = Object.keys(objBody)
-        if(!objBody[keys[0]]){
+        if([undefined, null, ''].includes(objBody[keys[0]])){
             throw new  APIError(USER_ROUTER.MANDATORY);
         }
         let constantInfo :any = await constantSchema.findOne({key:keys[0]});
@@ -37,7 +37,7 @@ export async function addConstants(objBody:any, userId: string) {
             }
         }
         if (constantInfo.type && constantInfo.type == "number" ) {
-            if (Number(objBody[keys[0]]) == objBody[keys[0]] && Number(objBody[keys[0]])>0) { constantValue = Number(objBody[keys[0]])}
+            if (Number(objBody[keys[0]]) == objBody[keys[0]] && Number(objBody[keys[0]])>=0) { constantValue = Number(objBody[keys[0]])}
             else{
                 throw new APIError(USER_ROUTER.CONSTANT_INVALID);
              }

@@ -627,11 +627,12 @@ export async function projectMembers(id: string, currntUser: any) {
     role_list()
   ])
   if (!project) throw new Error("Project Not Found.");
-  const userIds = [...project.members, project.createdBy, currntUser ? currntUser._id : ''].filter(v => v)
+  const userIds = Array.from(new Set([...project.members, currntUser ? currntUser._id : ''].filter(v => v)))
   let userObjs = (await userFindMany("_id", userIds)).map((user: any) => { return { ...user, fullName: (user.firstName ? user.firstName + " " : "") + (user.middleName ? user.middleName + " " : "") + (user.lastName ? user.lastName : "") } })
   // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
+    isMember:project.members.includes(user),
     value: user,
     fullName: (userObjs.find(({ _id }: any) => _id == user)).fullName,
     key: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles)
@@ -873,9 +874,9 @@ export async function updateUtilizedFund(projectId: string, payload: any, user: 
   const { documents, cost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), modifiedBy: user._id }
-  updates['fundsReleased.$.documents'] = documents
-  updates['fundsReleased.$.cost'] = cost
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
+  updates['fundsUtilised.$.documents'] = documents
+  updates['fundsUtilised.$.cost'] = cost
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsUtilised._id': _id }, { $set: updates }).exec()
   createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id })
   return updatedProject
 }

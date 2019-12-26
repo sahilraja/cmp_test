@@ -37,7 +37,7 @@ router.get(`/:id/detail`, async (req, res, next) => {
     }
 })
 
-router.put(`/:id/mark-as-read`, async (req, res, next) => {
+router.put(`/:id/mark-as-read`, authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await markAsRead(req.params.id, res.locals.user._id))
     } catch (error) {

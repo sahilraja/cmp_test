@@ -51,7 +51,7 @@ export async function opportunitySaveAll(projectId: string, updateObjs: any[], u
         const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
         if (!isEligible) throw new APIError(OPPORTUNITY.UNAUTHORIZED_ACCESS)
         await Promise.all(updateObjs.map((opportunityObj) => saveaAllOpportunities(opportunityObj, projectId, userObj)))
-        return { message: "successfully save all opportunities" }
+        return { message: "Saved successfully" }
     } catch (err) {
         throw err
     };
