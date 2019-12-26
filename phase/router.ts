@@ -28,6 +28,9 @@ router.put('/edit/:id', async (req, res, next) => {
     try {
         res.status(OK).send(await editPhase(req.params.id, req.body, res.locals.user));
     } catch (error) {
+        if (error.code == 11000) {
+            error.message = `Phase already exists`
+        }
         next(new APIError(error.message));
     }
 })
