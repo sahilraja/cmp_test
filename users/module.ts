@@ -8,7 +8,7 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole, revokeRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest, changePasswordInfo, validateUserCurrentPassword } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest, changePasswordInfo, validateUserCurrentPassword, userListForHome } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -305,10 +305,15 @@ function formatProfileKeys(key: string){
 }
 
 // Get User List
-export async function user_list(query: any, userId: string, page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
+export async function user_list(query: any, userId: string, searchKey = 'string', page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
     try {
         let findQuery = {} //{ _id: { $ne: Types.ObjectId(userId) } }
-        let docs: any = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
+        let docs: any 
+        // if(searchKey){
+        //     docs = await userListForHome(searchKey)
+        // } else {
+            docs = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
+        // }
         let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data = await roleFormanting(data)

@@ -34,6 +34,7 @@
     "request-ip": "^2.1.3",
     "request-promise": "^4.2.4",
     "sendotp": "^1.2.9",
+    "socket.io": "^2.3.0",
     "tunnel-ssh": "^4.1.4",
     "xlsx": "^0.15.1"
   },

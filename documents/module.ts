@@ -165,7 +165,7 @@ export async function createDoc(body: any, userId: string) {
       throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
+    // if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
     if (body.name.length > configLimit.name) { // added config
       throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }

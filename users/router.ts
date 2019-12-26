@@ -82,7 +82,7 @@ router.get('/list', authenticate, async (req: Request, res: Response, next: Next
     try {
         req.query.page = req.query.page || 1;
         req.query.limit = 50;
-        res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.page, req.query.limit, req.query.pagination));
+        res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.search, req.query.page, req.query.limit, req.query.pagination));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -286,6 +286,14 @@ router.get("/suggestion", authenticate, async (req: Request, res: Response, next
         next(new APIError(err.message));
     };
 });
+
+router.get(`/search-for-listing`, async (req, res, next) => {
+    try {
+        res.status(OK).send({})
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 
 router.get(`/getUsersForProject`, authenticate, async (req, res, next) => {
     try {
