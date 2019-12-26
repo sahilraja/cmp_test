@@ -148,6 +148,18 @@ export async function userList(searchQuery: any, selectFields?: any) {
     };
 };
 
+export async function userListForHome(searchQuery: any) {
+    try {
+        let Options = {
+            uri: `${USERS_URL}/user/homepage-search?search=${searchQuery}`,
+            method: "GET",
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err
+    };
+};
 export async function verifyJWT(token: string) {
     try {
         let Options = {
