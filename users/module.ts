@@ -259,7 +259,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
         // update user with edited fields
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
-        let updateUserInElasticSearch =  updateUserInDOcs(id, user._id)
+        let updateUserInElasticSearch =  updateUserInDOcs(id, user.id)
         let updateUsersInMessages =  updateUserInMessages({id}, token)
         let updateUsersInTasks =  updateUserInTasks({id},token);
         userInfo.role = userRole;
