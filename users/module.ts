@@ -317,10 +317,10 @@ export async function user_list(query: any, userId: string, searchKey :string, p
         let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data = await roleFormanting(data)
-        let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
-        let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
-        if (pagination) return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
-        return [...nonVerifiedUsers, ...existUsers]
+        // let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
+        // let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
+        if (pagination) return manualPaginationForUserList(+page, limit, data)
+        return data
         // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
