@@ -309,11 +309,11 @@ export async function user_list(query: any, userId: string, searchKey = 'string'
     try {
         let findQuery = {} //{ _id: { $ne: Types.ObjectId(userId) } }
         let docs: any 
-        // if(searchKey){
-        //     docs = await userListForHome(searchKey)
-        // } else {
+        if(searchKey){
+            docs = await userListForHome(searchKey)
+        } else {
             docs = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
-        // }
+        }
         let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
         let rolesBody: any = await role_list();
         data = await roleFormanting(data)
