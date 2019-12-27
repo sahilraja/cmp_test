@@ -1,6 +1,6 @@
 [  
     {
-        "content" : "Your account has been [state] | CMP",
+        "content" : "Your account has been marked as [state] | CMP",
         "templateName" : "userState",
         "displayName" : "Marking user as active/inactive"
     },
@@ -15,7 +15,7 @@
         "displayName" : "user login"
     },
     {
-        "content" : "Your Verification code is [mobileOtp]",
+        "content" : "Your OTP (One Time Password) is [mobileOtp]",
         "templateName" : "sendOtp",
         "displayName" : "send otp"
     },
@@ -25,7 +25,7 @@
         "displayName" : "change email notification"
     },
     {
-        "content" : "You are invited by an user of CMP to collaborate on the document [documentName].You can click this [documentUrl] to access it.Please ignore if you think this is not intended for you.",
+        "content" : "You are invited by a user of CMP to collaborate on the document [documentName].You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
         "templateName" : "inviteForDocument",
         "displayName" : "invite for document"
     },
@@ -45,38 +45,38 @@
         "displayName" : "suggest tag notification"
     },
     {
-        "content" : "Tag you suggested have been Apporved.You can click this [documentUrl] to view it.",
+        "content" : "A tag you had suggested has been approved. You can click this [documentUrl] to view it.",
         "templateName" : "approveTagNotification",
         "displayName" : "approve tag notification"
     },
     {
-        "content" : "Tag you suggested have been Rejected.You can click this [documentUrl] to view it.",
+        "content" : "A tag you had suggested has been rejected. You can click this [documentUrl] to view it.",
         "templateName" : "rejectTagNotification",
         "displayName" : "reject tag notification"
     },
     {
-        "content" : "Document [documentName], is published. You can click this [documentUrl] to access it.",
+        "content" : "Document [documentName], has been published. You can click this [documentUrl] to access it.",
         "templateName" : "publishDocument",
         "displayName" : "publish document"
     },
     {
-        "content" : "Document [documentName], is unPublished. You can click this [documentUrl] to access it.",
+        "content" : "Document [documentName], has been marked as Un-Published. You can click this [documentUrl] to access it.",
         "templateName" : "unPublishDocument",
         "displayName" : "unPublish document"
     },
     {
-        "content" : "A new comment is added on Document [documentName] in CMP.",
+        "content" : "A new comment has been added to Document [documentName] in CMP.",
         "templateName" : "addCommentToDoc",
         "displayName" : "New Comment"
     },
     {
-        "content" : "Document [documentName], is replaced. You can click this [documentUrl] to access it.",
+        "content" : "Document [documentName], has been replaced. You can click this [documentUrl] to access it.",
         "templateName" : "replaceDocument",
         "displayName" : "replace document"
 
     },
     {
-        "content" : "Your role is replaced with [role]",
+        "content" : "Your role has been replaced with [role]",
         "templateName" : "changeUserRole",
         "displayName" : "change user role"
     },
@@ -86,7 +86,7 @@
         "displayName" : "Create Group"
     },
     {
-        "content" : "A new member is added in group [groupName].",
+        "content" : "A new member has been added in group [groupName].",
         "templateName" : "addGroupMember",
         "displayName" : "Add Group Member"
     },
@@ -96,82 +96,82 @@
         "displayName" : "Group Status"
     },
     {
-        "content" : "A new comment is added on Document [documentName] in CMP.",
+        "content" : "A new comment has been added on Document [documentName] in CMP.",
         "templateName" : "openComment",
         "displayName" : "New Comment"
     },
     {
-        "content" : "[creatorName] assigned a task to you in CMP",
+        "content" : "[creatorName] has assigned a task to you in CMP",
         "templateName" : "taskAssign",
         "displayName" : "Task Assign"
     },
     {
-        "content" : "Status of [taskId] is updated",
+        "content" : "Status of [taskId] has been updated",
         "templateName" : "taskProgress",
         "displayName" : "Update Task"
     },
     {
-        "content" : "New document is attached to Task [taskId]",
+        "content" : "New document has been attached to Task [taskId]",
         "templateName" : "docAddToTask",
         "displayName" : "Document attached"
     },
     {
-        "content" : "Another task is linked to task [taskId]",
+        "content" : "Another task has been linked to Task [taskId]",
         "templateName" : "linkTask",
         "displayName" : "Link Task"
     },
     {
-        "content" : "New tag is added to [taskId]",
+        "content" : "New tag has been added to [taskId]",
         "templateName" : "addTaskTag",
         "displayName" : "Add Tag"
     },
     {
-        "content" : "Title updated for task [taskId].",
+        "content" : "Title has been updated for task [taskId].",
         "templateName" : "updateTaskTitle",
         "displayName" : "Update Task Title"
     },
     {
-        "content" : "Due Date updated for task [taskId].",
+        "content" : "Due Date has been updated for task [taskId].",
         "templateName" : "updateTaskDueDate",
         "displayName" : "Update Task Due Date"
     },
     {
-        "content" : "Start Date updated for task [taskId].",
+        "content" : "Start Date has been updated for task [taskId].",
         "templateName" : "updateTaskStartDate",
         "displayName" : "Update Task Start Date"
     },
     {
-        "content" : "Description updated for task [taskId].",
+        "content" : "Description has been updated for task [taskId].",
         "templateName" : "updateTaskDescription",
         "displayName" : "Update Task Description"
     },
     {
-        "content" : "A task [taskId] in Maturation Phase is updated.",
+        "content" : "Task - [taskId] in Maturation Phase is updated.",
         "templateName" : "updateMaturationTask",
         "displayName" : "Update Maturation Task"
     },
     {
-        "content" : "You are added to the Project [ProjectName].",
+        "content" : "You have been added to the Project [ProjectName].",
         "templateName" : "addToProject",
         "displayName" : "Add to Project"
     },
     {
-        "content" : "Financial Information Updated.",
+        "content" : "Financial Information has been updated.",
         "templateName" : "updateFinancial",
         "displayName" : "Financial Information Updated"
     },
     {
-        "content" : "Risk factor is added to the project [ProjectName]",
+        "content" : "Risk factor has been added to the project [ProjectName]",
         "templateName" : "addRisk",
         "displayName" : "Risk Factor"
     },
     {
-        "content" : "New comment(s) is added to the project [ProjectName]",
+        "content" : "New comment(s) have been added to the project [ProjectName].",
         "templateName" : "addOpenComment",
         "displayName" : "Add Open Comment"
     },
     {
-        "content" : "You have updated your profile in CMP",
+        "content" : "Your profile has been updated in CMP.",
         "templateName" : "profile",
         "displayName" : "Profile Update"
     },
@@ -186,17 +186,17 @@
         "displayName" : "share document"
     },
     {
-        "content" : "Document [documentName], is edit share capability to [sharedUsers] with [role].You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
+        "content" : "Document [documentName], share capability has been edited for [sharedUsers] with [role].You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
         "templateName" : "invitePeopleEditDoc",
         "displayName" : "edit share capabilty document"
     },
     {
-        "content" : "Document [documentName], is remove share capability to [sharedUsers] with [role]. You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
+        "content" : "Document [documentName], share capability has been removed for [sharedUsers] with [role]. You can click this [documentUrl] to access it. Please ignore if you think this is not intended for you.",
         "templateName" : "invitePeopleRemoveDoc",
         "displayName" : "remove share capabilty document"
     },
     {
-        "content" : "You are added to a group [groupName]",
+        "content" : "You are added to group - [groupName]",
         "templateName" : "youAddTOGroup",
         "displayName" : "you are added to group"
     }
