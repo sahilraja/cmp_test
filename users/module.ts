@@ -305,7 +305,7 @@ function formatProfileKeys(key: string){
 }
 
 // Get User List
-export async function user_list(query: any, userId: string, searchKey = 'string', page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
+export async function user_list(query: any, userId: string, searchKey :string, page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
     try {
         let findQuery = {} //{ _id: { $ne: Types.ObjectId(userId) } }
         let docs: any 
