@@ -32,6 +32,7 @@ export function initializeSocket(http: any) {
 }
 
 async function verify(data: any) {
+    console.log(data)
     data = JSON.parse(data);
     if(!(data.access_token)){
         throw new Error('User is required');
@@ -39,6 +40,7 @@ async function verify(data: any) {
     let token: any = await jwt_Verify(data.access_token)
     if (!token) throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN)
     const user: any = await userFindOne("id", token.id);
+    console.log(user)
     if (!user) {
         throw new APIError(AUTHENTICATE_MSG.INVALID_LOGIN, 401);
     }

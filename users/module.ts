@@ -35,6 +35,7 @@ import { manualPagination, replaceDocumentUser,addGroupMembersInDocs ,removeGrou
 import { patternSubstitutions } from "../patterns/module";
 import { updateUserInDOcs } from "../documents/module";
 import { updateUserInMessages ,updateUserInTasks} from "../tags/module"
+import { RefreshTokenSchema } from "./refresh-token-model";
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -403,6 +404,7 @@ export async function user_login(req: any) {
         await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userData._id, type: "LOGIN" });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login" });
+        await RefreshTokenSchema.create({userId: userData._id, access_token:response.token, lastUsedAt: new Date()})
         return response;
     } catch (err) {
         throw err;

@@ -448,13 +448,6 @@
     "scope": "global"
   },
   {
-    "capability": "add-tag-to-project",
-    "shortDescription": "Add Tag To Project",
-    "description": "Ability to add tags to a project",
-    "category": "Project Management",
-    "scope": "global"
-  },
-  {
     "capability": "edit-template",
     "shortDescription": "Edit Template",
     "description": "Ability to edit template",
