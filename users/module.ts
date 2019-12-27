@@ -311,16 +311,22 @@ export async function user_list(query: any, userId: string, searchKey :string, p
         let docs: any 
         if(searchKey){
             docs = await userListForHome(searchKey)
+            let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
+            let rolesBody: any = await role_list();
+            data = await roleFormanting(data)
+            if (pagination) return manualPaginationForUserList(+page, limit, data)
+            return data
         } else {
             docs = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
+            let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
+            let rolesBody: any = await role_list();
+            data = await roleFormanting(data)
+            let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
+            let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
+            if (pagination) return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers,...existUsers])
+            return [...nonVerifiedUsers,...existUsers]
         }
-        let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
-        let rolesBody: any = await role_list();
-        data = await roleFormanting(data)
-        // let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
-        // let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
-        if (pagination) return manualPaginationForUserList(+page, limit, data)
-        return data
+        
         // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
