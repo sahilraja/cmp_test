@@ -30,7 +30,8 @@ export async function nodemail(objBody: any) {
     let transporter = nodemailer.createTransport(
       smtpTransport({
          host: 'smtp.rediffmailpro.com',
-         port: '587',
+         port: '465',
+         secure: true,
          auth: {
            user: EMAIL,
            pass: PASSWORD

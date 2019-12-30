@@ -46,6 +46,10 @@ const swaggerDocument = YAML.load("./compiled-swagger.yaml");
 // body paser
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    next()
+})
 
 //  Hello world Router
 app.get('/', (request: Request, response: Response) => {
