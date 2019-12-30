@@ -613,7 +613,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-        if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
+        // if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
         let groupData: any = await groupEdit(id, objBody);
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;

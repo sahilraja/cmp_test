@@ -8,6 +8,7 @@ export async function create(payload: any) {
 }
 
 export async function list(userId: string, currentPage = 1, limit = 30) {
+    return await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort:{createdAt:-1} })
     return {
         docs: [
             {
@@ -46,7 +47,6 @@ export async function list(userId: string, currentPage = 1, limit = 30) {
         ], 
         page: 1, pages: 1
     }
-    return await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort:{createdAt:-1} })
 }
 
 export async function listUnreadNotifications(userId: string) {
