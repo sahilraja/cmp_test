@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
     createProject, editProject, projectList, city_code_status, add_tag, edit_tag, tag_status,
     add_theme, edit_theme, theme_list, theme_status, getProjectsList, getProjectDetail,
-    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments, getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, editTriPartiteDate
+    createTask, getTagByIds, manageProjectMembers, getProjectTasks, editTask, linkTask, getProjectMembers, ganttChart, projectMembers, getTaskDetail, addFundReleased, addFundsUtilized, getFinancialInfo, updateReleasedFund, updateUtilizedFund, deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments, getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -39,6 +39,22 @@ router.get("/:id/detail", async (req, res, next) => {
         res.status(OK).send(await getProjectDetail(req.params.id, (req as any).token))
     } catch (err) {
         next(new APIError(err.message));
+    }
+})
+
+router.post(`/:id/add-phases`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addPhaseToProject(req.params.id, req.body))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/:id/list-phases`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await listPhasesOfProject(req.params.id))
+    } catch (error) {
+        next(new APIError(error.message))
     }
 })
 

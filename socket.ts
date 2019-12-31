@@ -8,14 +8,21 @@ const socketIO = require('socket.io')
 let io: any = null
 export function initializeSocket(http: any) {
     io = socketIO(http)
-    io.sockets.on('connection', async(socket: any) => {
-        socket.on('subscribe', async(data: any) => {
-            let user = await verify(data);
-            if(!user){
-                socket.emit('subscribe', 'User not found');
-            } else {
+    io.use(async (socket: any, next: any) => {
+        let user = await verify(socket.handshake.query);
+        if(!user){
+            socket.emit('subscribe', 'User not found');
+        } else {
+            let roomExists = Object.keys(socket.rooms).includes(user._id)
+            if(!roomExists){
                 socket.join(user._id);
             }
+            // emitLatestNotificationCount(user._id)
+        setTimeout(_ => emitLatestNotificationCount(user._id), 2000);
+        }
+        next()
+    }).on('connection', async(socket: any) => {
+        socket.on('subscribe', async(data: any) => {
         })
         // socket.on('send message', async (data: any) => {
         // })
@@ -32,13 +39,13 @@ export function initializeSocket(http: any) {
 }
 
 async function verify(data: any) {
-    data = JSON.parse(data);
     if(!(data.access_token)){
         throw new Error('User is required');
     }
     let token: any = await jwt_Verify(data.access_token)
     if (!token) throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN)
     const user: any = await userFindOne("id", token.id);
+    console.log(user)
     if (!user) {
         throw new APIError(AUTHENTICATE_MSG.INVALID_LOGIN, 401);
     }

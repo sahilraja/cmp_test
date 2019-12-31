@@ -35,6 +35,7 @@ import { manualPagination, replaceDocumentUser,addGroupMembersInDocs ,removeGrou
 import { patternSubstitutions } from "../patterns/module";
 import { updateUserInDOcs } from "../documents/module";
 import { updateUserInMessages ,updateUserInTasks} from "../tags/module"
+import { RefreshTokenSchema } from "./refresh-token-model";
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -409,6 +410,7 @@ export async function user_login(req: any) {
         await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userData._id, type: "LOGIN" });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login" });
+        await RefreshTokenSchema.create({userId: userData._id, access_token:response.token, lastUsedAt: new Date()})
         return response;
     } catch (err) {
         throw err;
@@ -617,7 +619,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
-        if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
+        // if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
         let groupData: any = await groupEdit(id, objBody);
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;

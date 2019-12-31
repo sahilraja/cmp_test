@@ -247,6 +247,9 @@ router.put("/group/:id/edit", authenticate, async (req: Request, res: Response, 
     try {
         res.status(200).send(await editGroup(req.body, req.params.id, res.locals.user))
     } catch (err) {
+        if (err.message.includes("E11000")) {
+            err.message = `Group name already exists.`
+        }
         next(new APIError(err.message));
     };
 });

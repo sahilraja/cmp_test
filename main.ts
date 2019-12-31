@@ -8,6 +8,6 @@ initializeSocket(http)
 const PORT = process.env.PORT || 3000
 
 //  app listen
-app.listen(PORT, () => {
+http.listen(PORT, () => {
     console.log(`Listening on port ${PORT}`);
 });
