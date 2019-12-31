@@ -1936,13 +1936,12 @@ async function userWithDocRole(docId: string, userId: string, usersObjects: any[
       docRole = ((await GetDocCapabilitiesForUser(userId, docId, "group")).filter((capability: any) => acceptCapabilities.includes(capability))).pop()
     } else {
       docRole = ((await documnetCapabilities(docId, userId) as any || [""]).filter((capability: any, index: number, array: string[]) => {
-        if (array.includes("all_cmp")) "no_access"
-        else acceptCapabilities.includes(capability)
+        return (array.includes("all_cmp"))? (capability == "all_cmp") ? "no_access" : false : acceptCapabilities.includes(capability)
       })).pop()
     }
     return {
       ...(user),
-      docRole: docRole.length ? docRole.pop() : "no_access"
+      docRole: (!docRole || docRole == "all_cmp") ? "no_access" : docRole
     }
   } catch (err) {
     throw err
