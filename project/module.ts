@@ -548,10 +548,10 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
   // if(projectDetail.fundsReleased.some((fund: any) => fund.installment == payload.installment)){
   //   throw new APIError(`Installment already exists`)
   // }
-  if (overAllPercentage != 100) {
-    throw new APIError(`Percentage should be 100`)
+  if (overAllPercentage > 100) {
+    throw new APIError(`Percentage should not exceed 100`)
   }
-  const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload,fundsUtilised: finalPayload }}, { new: true }).exec()
+  const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload } }, { new: true }).exec()
   return updated
 }
 
