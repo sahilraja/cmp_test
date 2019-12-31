@@ -2,7 +2,8 @@ import { Schema, model,Types} from "mongoose";
 import * as mongoosePaginate from "mongoose-paginate";
 
 const schema = new Schema({
-    phaseName: { type: String,unique: true},
+    phaseName: { type: String},
+    phaseCode: {type: String, unique: true},
     colorCode: { type: String},
     createdBy : {type: String},  //userId
     disable: {type: Boolean,default: false}
