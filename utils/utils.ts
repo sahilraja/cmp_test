@@ -51,12 +51,12 @@ export async function authenticate(req: any, res: any, next: any) {
         if (!user.is_active) {
             next(new APIError(AUTHENTICATE_MSG.USER_INACTIVE, 401));
         }
-        const tokenData = await RefreshTokenSchema.findOne({userId:user._id, access_token:bearerToken}).exec()
-        // if(!tokenData || new Date(tokenData.lastUsedAt).setMinutes(new Date(tokenData.lastUsedAt).getMinutes() + 15) < new Date().getTime()){
-        //     throw new APIError(`Session timedout. Please login`, 401)
-        // }
-        // tokenData.set('lastUsedAt', new Date())
-        // await tokenData.save()
+        const tokenData: any = await RefreshTokenSchema.findOne({userId:user._id, access_token:bearerToken}).exec()
+        if(tokenData && new Date(tokenData.lastUsedAt).setMinutes(new Date(tokenData.lastUsedAt).getMinutes() + 15) < new Date().getTime()){
+            next(new APIError(`Session timedout. Please login`, 401))
+        }
+        tokenData.set('lastUsedAt', new Date())
+        await tokenData.save()
         user.role = ((((await userRoleAndScope(token.id))) as any).data || [""])[0];
         res.locals.user = user;
         req.token = bearerToken

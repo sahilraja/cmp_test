@@ -56,7 +56,7 @@ const schema = new Schema({
     ],
     themes: { type: Schema.Types.ObjectId, ref: 'themes' },
     is_active: { type: Boolean, default: true },
-    phase: { type: Types.ObjectId, ref: "phase" }
+    phases: [{ phase: { type: Types.ObjectId, ref: "phase" }, createdAt: { type: Date } }]
 }, { timestamps: true });
 
 schema.plugin(mongoosePaginate)

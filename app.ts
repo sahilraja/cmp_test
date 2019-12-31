@@ -48,6 +48,9 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
     next()
 })
 

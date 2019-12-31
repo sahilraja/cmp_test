@@ -1,4 +1,4 @@
-import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR, USER_ROUTER, COMPLIANCES } from "../utils/error_msg";
+import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR, USER_ROUTER, COMPLIANCES, DOCUMENT_ROUTER } from "../utils/error_msg";
 import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
@@ -52,7 +52,7 @@ export async function createProject(reqObject: any, user: any) {
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
       fundsReleased: [],
       fundsUtilised: [],
-      phase: reqObject.phase
+      // phases: reqObject.phases
     });
     createLog({ activityType: ACTIVITY_LOG.PROJECT_CREATED, projectId: createdProject.id, activityBy: user._id })
     return createdProject
@@ -92,8 +92,8 @@ export async function editProject(id: any, reqObject: any, user: any) {
     if (reqObject.maturationStartDate) {
       obj.maturationStartDate = { date: reqObject.maturationStartDate, modifiedBy: user._id }
     }
-    if (reqObject.phase) {
-      obj.phase = reqObject.phase
+    if (reqObject.phases) {
+      obj.phases = reqObject.phases
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
     return updatedProject
@@ -384,7 +384,7 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible1 || isEligible2) {
       query = {}
     }
-    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: Number(currentPage), limit:Number(limit), sort:{createdAt:-1}, populate: "phase" })
+    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: Number(currentPage), limit:Number(limit), sort:{createdAt:-1}, populate: "phases" })
     const projectIds = (list || []).map((_list) => _list.id);
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
@@ -410,7 +410,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 // get project details
 export async function getProjectDetail(projectId: string, userToken: string) {
   try {
-    let projectDetail = await ProjectSchema.findById(projectId).populate({ path: 'phase' }).exec()
+    let projectDetail = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
     return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
   } catch (error) {
     console.error(error)
@@ -1195,4 +1195,38 @@ export async function editTriPartiteDate(id: string,payload: any, user: any) {
     throw new APIError(USER_ROUTER.INVALID_ADMIN)
   }
   return await ProjectSchema.findByIdAndUpdate(id, { $set: {tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } }}, { new: true }).exec()
+}
+
+export async function addPhaseToProject(projectId: string, payload: any) {
+  return await ProjectSchema.findByIdAndUpdate(projectId,{$set:{phases:formatAndValidatePhasePayload(payload)}}, {new: true}).exec()
+}
+
+export async function listPhasesOfProject(projectId: string) {
+  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  const phaseIds = projectDetail.phases.find((phase: any) => phase.phase)
+  const phases = await phaseSchema.find({ _id: { $in: phaseIds } }).exec()
+  return projectDetail.toJSON().phases.map((phase: any) => ({
+    ...phase, phase: phases.find(_phase => _phase == phase.phase),
+  }))
+}
+
+function formatAndValidatePhasePayload(payload: any) {
+  return payload.map((_data: any, index: number) => {
+    if(payload[index +1]){
+      if(!payload.phase || !payload.startDate || !payload.endDate){
+        throw new APIError(DOCUMENT_ROUTER.MANDATORY)
+      }
+      if(payload.startDate > payload.endDate){
+        throw new APIError(``)
+      } 
+      if(payload[index+1] && (!payload[index+1].startDate || (new Date(payload[index+1].startDate).setHours(0,0,0,0) <= new Date(payload.startDate).setHours(0,0,0,0)))){
+        throw new APIError(``)
+      }
+    }
+    return {
+      phase:payload.phase,
+      startDate: new Date(new Date(payload.startDate).setHours(0,0,0,0)),
+      endDate: new Date(new Date(payload.startDate).setHours(23,59,59,0)),
+    }
+  })
 }
