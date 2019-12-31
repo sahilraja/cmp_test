@@ -1215,13 +1215,13 @@ export async function listPhasesOfProject(projectId: string) {
 function formatAndValidatePhasePayload(payload: any) {
   return payload.map((_data: any, index: number) => {
     if(payload[index +1]){
-      if(!payload.phase || !payload.startDate || !payload.endDate){
+      if(!_data.phase || !_data.startDate || !_data.endDate){
         throw new APIError(DOCUMENT_ROUTER.MANDATORY)
       }
-      if(payload.startDate > payload.endDate){
+      if(_data.startDate > _data.endDate){
         throw new APIError(``)
       } 
-      if(payload[index+1] && (!payload[index+1].startDate || (new Date(payload[index+1].startDate).setHours(0,0,0,0) <= new Date(payload.startDate).setHours(0,0,0,0)))){
+      if(payload[index+1] && (!payload[index+1].startDate || (new Date(payload[index+1].startDate).setHours(0,0,0,0) <= new Date(_data.startDate).setHours(0,0,0,0)))){
         throw new APIError(``)
       }
     }
