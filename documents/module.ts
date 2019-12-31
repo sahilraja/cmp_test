@@ -483,7 +483,7 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
     ])
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
-      ...docList, tags: tagObjects, 
+      ...docList, tags: tagObjects,
       owner: { ...ownerObj, role: await formateRoles((ownerRole.data || [""])[0]) }, taskDetails: taskDetailsObj,
       sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''
     }
@@ -1930,13 +1930,19 @@ async function userWithDocRole(docId: string, userId: string, usersObjects: any[
   try {
     let acceptCapabilities = ["owner", "collaborator", "viewer", "no_access"]
     let user = usersObjects.find(user => user._id == userId)
+    let docRole: any
     if (!user) {
       user = { ...(await groupFindOne("_id", userId)), type: "group" }
-      var docRole: any = (await GetDocCapabilitiesForUser(userId, docId, "group")).filter((capability: any) => acceptCapabilities.includes(capability))
+      docRole = ((await GetDocCapabilitiesForUser(userId, docId, "group")).filter((capability: any) => acceptCapabilities.includes(capability))).pop()
+    } else {
+      docRole = ((await documnetCapabilities(docId, userId) as any || [""]).filter((capability: any, index: number, array: string[]) => {
+        if (array.includes("all_cmp")) "no_access"
+        else acceptCapabilities.includes(capability)
+      })).pop()
     }
     return {
       ...(user),
-      docRole: user.type == "user" ? (await documnetCapabilities(docId, userId) as any || [""])[0] : docRole.length ? docRole.pop() : "no_access"
+      docRole: docRole.length ? docRole.pop() : "no_access"
     }
   } catch (err) {
     throw err
