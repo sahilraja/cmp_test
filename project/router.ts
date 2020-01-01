@@ -488,7 +488,7 @@ router.put(`/:id/delete-utilized-fund/new`, async (req, res, next) => {
     try {
         res.status(OK).send(await deleteUtilizedFundNew(req.params.id, req.body, res.locals.user))
     } catch (error) {
-        next(new APIError(error.message))
+        next(new APIError(error.message));
     }
 })
 
