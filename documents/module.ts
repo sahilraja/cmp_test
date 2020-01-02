@@ -681,15 +681,15 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       } else {
         if (addtags.length) {
           let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
-          const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
+          // const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
+          const message = `tag`
           mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-          await create({ activityType: `
-          `, activityBy: userId, documentId: docId, tagsAdded: addtags })
+          await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
         }
         if (removedtags.length) {
           let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
           const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
-          mailAllCmpUsers("documentUpdate", parent, false, userId, message)
+          // mailAllCmpUsers("documentUpdate", parent, false, userId, message)
           await create({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
         }
       }
@@ -1118,7 +1118,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
       }
     }
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
-    // mailAllCmpUsers("invitePeopleDoc", doc, false, userId, addUsers)
+    mailAllCmpUsers("invitePeopleDoc", doc, false, userId, addUsers)
     return { message: "Shared successfully." };
   } catch (err) {
     throw err;
@@ -1322,7 +1322,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
         throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_UPDATE_TAGS, 403);
       }
     }
-    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
+    let publishedDoc = publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
     await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {

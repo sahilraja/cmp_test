@@ -6,8 +6,11 @@ var smtpTransport = require('nodemailer-smtp-transport');
 // const EMAIL = process.env.EMAIL || "cmp@niua.org";
 // const PASSWORD = process.env.PASSWORD || "hahahaha"
 
-const EMAIL = process.env.EMAIL || `testmailm588@gmail.com`;
-const PASSWORD = process.env.PASSWORD || 'Hello@123';
+// const EMAIL = process.env.EMAIL || `testmailm588@gmail.com`;
+// const PASSWORD = process.env.PASSWORD || 'Hello@123';
+
+const EMAIL = process.env.EMAIL || `tcmpemail@gmail.com`;
+const PASSWORD = process.env.PASSWORD || 'Hello@12';
 
 // let transport = process.env.EMAIL ? smtpTransport({
 //   host: 'smtp.rediffmailpro.com',
