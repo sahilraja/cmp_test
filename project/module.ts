@@ -606,14 +606,17 @@ export async function getInstallments(projectId: string, search: string) {
     phaseSchema.find({}).exec()
   ])
   let s1: any = []
-  let m = (projectDetail[search] || []).map((s: any) => {
+  let m = (projectDetail['funds'] || []).map((s: any) => {
     if (!s1.includes(s.installment)) {
       s1.push(s.installment)
       return {
-        deleted: s.deleted,
+        deletedReleased: s.deletedReleased,
+        deletedUtilised: s.deletedUtilised,
         subInstallment: s.subInstallment,
-        cost: s.cost,
-        documents: s.documents,
+        releasedCost: s.releasedCost,
+        utilisedCost: s.utilisedCost,
+        releasedDocuments: s.releasedDocuments,
+        utilisedDocuments: s.utilisedDocuments,
         phase: phases.find((phase: any) => phase._id == s.phase),
         percentage: s.percentage
       }
