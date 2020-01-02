@@ -243,8 +243,9 @@ export async function edit_user(id: string, objBody: any, user: any, token: any)
                 }
                 userRole.push(role)
             }));
+            let role = await formateRoles(objBody.role);
             await create({ activityType: "EDIT-ROLE", activityBy: user._id, profileId: id })
-            sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: objBody.role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
+            sendNotification({ id: user._id, fullName, mobileNo, email: objBody.email, role: role, templateName: "changeUserRole", mobileTemplateName: "changeUserRole" });
             return { message: "user roles updated successfully." }
         }
 
