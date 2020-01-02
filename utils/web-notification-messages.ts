@@ -10,3 +10,9 @@ export const DOC_NOTIFICATIONS = {
     unPublishDocument: `Document [docId] is unpublished from CITIIS Management Platform.`,
     replaceDocument: `Document [docId] on CITIIS Management Platform, is replaced with a new document.`
 }
+
+export const GROUP_NOTIFICATIONS = {
+    youAddTOGroup: `You are added to a user group [groupId], on CITIIS Management Platform.`,
+    groupStatus: `Group status for [groupId], which you are a part of, has been updated on CITIIS Management Platform.`,
+    addGroupMember: `A new member is added to the user group [groupId] on CITIIS Management Platform.`
+}
