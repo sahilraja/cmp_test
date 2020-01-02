@@ -3,6 +3,7 @@ import { AUTHENTICATE_MSG } from "./utils/error_msg";
 import { userFindOne } from "./utils/users";
 import { APIError } from "./utils/custom-error";
 import { listUnreadNotifications } from "./socket-notifications/module";
+import { getUnreadMessages } from "./tags/module";
 
 const socketIO = require('socket.io')
 let io: any = null
@@ -59,4 +60,10 @@ export async function emitLatestNotificationCount(userId: string) {
     if(!io) return;
     const unreadNotifications = await listUnreadNotifications(userId)
     io.to(userId).emit(`notificationCount`, unreadNotifications.length)
+}
+
+export async function emitLatestInboxCount(userId: string) {
+    if(!io) return;
+    const unreadNotifications = await getUnreadMessages(userId)
+    io.to(userId).emit(`inboxCount`, unreadNotifications.count)
 }

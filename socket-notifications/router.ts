@@ -3,6 +3,7 @@ import { APIError } from "../utils/custom-error";
 import { OK } from "http-status-codes";
 import { create, list, markAsRead, listUnreadNotifications } from "./module";
 import { authenticate } from "../utils/utils";
+import { getUnreadMessages } from "../tags/module";
 const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
@@ -24,6 +25,14 @@ router.get(`/list`, authenticate, async (req: any, res, next) => {
 router.get(`/unread-notifications`, authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await listUnreadNotifications(res.locals.user._id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/unread-inbox`, authenticate, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getUnreadMessages(res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }

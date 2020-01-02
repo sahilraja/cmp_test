@@ -1235,10 +1235,10 @@ function formatAndValidatePhasePayload(payload: any) {
         throw new APIError(DOCUMENT_ROUTER.MANDATORY)
       }
       if (_data.startDate > _data.endDate) {
-        throw new APIError(``)
+        throw new APIError(`Phase start date should be before end date`)
       }
-      if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.startDate).setHours(0, 0, 0, 0)))) {
-        throw new APIError(``)
+      if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.endDate).setHours(23, 59, 59, 0)))) {
+        throw new APIError(`There shouldn't be any gap/overlap between phases`)
       }
     }
     return {
