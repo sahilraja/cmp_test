@@ -40,9 +40,9 @@ export const GROUP_ROUTER = {
     GROUP_NAME: "Group name cannot be modified"
 }
 export const MOBILE_MESSAGES = {
-    VALID_MOBILE_OTP: "Please enter a valid mobileOtp",
-    SEND_OTP: "Mobile Otp send successfully",
-    VALID_OTP: "Mobile otp is verified",
+    VALID_MOBILE_OTP: "Please enter a valid OTP",
+    SEND_OTP: "OTP sent successfully",
+    VALID_OTP: "OTP is verified",
     INVALID_OTP: "Invalid OTP! Please enter valid OTP sent to your mobile number",
 }
 
