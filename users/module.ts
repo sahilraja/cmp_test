@@ -185,7 +185,8 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         // Send email
         let { fullName, mobileNo }: any = getFullNameAndMobile(success);
         objBody.role = (Array.isArray(objBody.role) ? objBody.role : typeof (objBody.role) == "string" && objBody.role.length ? objBody.role.includes("[") ? JSON.parse(objBody.role) : objBody.role = objBody.role.split(',') : [])
-        sendNotification({ id: user._id, fullName, email: success.email, role: objBody.role, templateName: "registrationSuccess" });
+        let role = await formateRoles(objBody.role);
+        sendNotification({ id: user._id, fullName, email: success.email, role: role,link: `${ANGULAR_URL}/user/login`, templateName: "registrationSuccess" });
         return { token: await createJWT({ id: success._id, role: token.role }) }
     } catch (err) {
         throw err;

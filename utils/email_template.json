@@ -1,6 +1,6 @@
 [
     {
-        "content" : "Hi <b>[fullName]</b>, <br /><br />You are invited by an administrator of CMP platform to join for the role of [role].<br /><br />Click <a href=[link]>here</a> to accept the invitation and register.<br /><br />Please ignore if you think this is not intended for you.<br /><br />Note: Link will be expire in [linkExpire] Hour.<br />",
+        "content" : "Dear User, <br /><br />We are pleased to invite you to join CITIIS Management Platform as [role].<br /><br />To accept the invitation, please click on the following <a href=[link]>link</a> and proceed for registration.<br /><br />Please ignore this email if you think this is not intended for you.<br /><br />Note: Link will expire in [linkExpire] hours. <br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "invite",
         "displayName" : "Invite User",
         "subject" : "Invitation from CITIIS Management"
@@ -234,10 +234,10 @@
         "subject" : "[CMP] OTP to Update Password"
     },
     {
-        "content" : "Hi <b>[fullName]</b>, <br/><br/>You Registration is successful.<br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team.",
+        "content" : "Dear <b>[fullName]</b>, <br/><br/>We are pleased to confirm that you are now registered as [role] for CITIIS Management Platform.<br/><br/>You can login on the platform at the following [link] using your login credentials.<br/><br/>In case of any issues, please contact cmp@niua.org.<br/><br/> Best Regards,<br/>CITIIS Management Platform Team.",
         "templateName" : "registrationSuccess",
         "displayName" : "Registration Success",
-        "subject" : "Registration Success"
+        "subject" : "Registration Confirmation for CITIIS Management Platform"
     },
     {
         "templateName":"taskMembersUpdated",
