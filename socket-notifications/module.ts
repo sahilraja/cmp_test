@@ -13,13 +13,13 @@ export async function create(payload: any) {
 }
 
 export async function list(userId: string, currentPage = 1, limit = 30, token: string) {
-    let { docs: notifications, page, limit: pageLimit } = await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "docId" })
+    let { docs: notifications, page, limit: pageLimit, pages } = await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "docId" })
     let [userObjs, taskObjs, groupObjs] = await Promise.all([
         userFindMany("_id", [... new Set((notifications.reduce((main, curr: any) => main.concat(curr.from, curr.userId), []).filter(id => Types.ObjectId(id))))]),
         getTasksByIds([... new Set((notifications.map(({ taskId }: any) => taskId)).filter(id => Types.ObjectId(id)))], token),
         groupPatternMatch({ "_id": [... new Set((notifications.map(({ groupId }: any) => groupId)).filter(id => Types.ObjectId(id)))] })
     ])
-    return { docs: await Promise.all(notifications.map((notificationObj: any) => formatNotification(notificationObj.toJSON(), { users: userObjs, tasks: taskObjs, groups: groupObjs }))), page, limit: pageLimit }
+    return { docs: await Promise.all(notifications.map((notificationObj: any) => formatNotification(notificationObj.toJSON(), { users: userObjs, tasks: taskObjs, groups: groupObjs }))), page, limit: pageLimit, pages }
 }
 
 async function formatNotification(notificationObj: any, details: any) {
