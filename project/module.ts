@@ -393,7 +393,6 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     }
     let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "phases" })
     const projectIds = (list || []).map((_list) => _list.id);
-    list  = list.map((projectObj)=> getCurrentPhase(projectObj.toJSON()))
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
@@ -415,6 +414,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
     method: 'POST',
     headers: { 'Authorization': `Bearer ${userToken}` }
   })
+  list = list.map((projectObj)=> getCurrentPhase(projectObj.toJSON()))
   return (list || []).map((_list) => {
     const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id && task.status != 8)
     return ({ ..._list, progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0 })
