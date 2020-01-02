@@ -23,7 +23,7 @@ import { join } from "path"
 import { httpRequest } from "../utils/role_management";
 import { userRolesNotification } from "../notifications/module";
 import { readFileSync } from "fs"
-
+import { create as webNotification } from "../socket-notifications/module";
 import { create } from "../log/module";
 import { getConstantsAndValues } from "../site-constants/module";
 import { promises } from "fs";
@@ -31,11 +31,12 @@ import { promises } from "fs";
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
-import { manualPagination, replaceDocumentUser,addGroupMembersInDocs ,removeGroupMembersInDocs} from "../documents/module";
+import { manualPagination, replaceDocumentUser, addGroupMembersInDocs, removeGroupMembersInDocs } from "../documents/module";
 import { patternSubstitutions } from "../patterns/module";
 import { updateUserInDOcs } from "../documents/module";
-import { updateUserInMessages ,updateUserInTasks} from "../tags/module"
+import { updateUserInMessages, updateUserInTasks } from "../tags/module"
 import { RefreshTokenSchema } from "./refresh-token-model";
+import { GROUP_NOTIFICATIONS } from "../utils/web-notification-messages";
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -192,7 +193,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 }
 
 //  Edit user
-export async function edit_user(id: string, objBody: any, user: any,token:any) {
+export async function edit_user(id: string, objBody: any, user: any, token: any) {
     try {
         let user_roles: any = await userRoles(id, true)
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
@@ -226,7 +227,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
                 let admin_scope = await checkRoleScope(user.role, "change-user-role");
                 if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             }
-            if(!objBody.role.length) throw new Error("Minimum one role is required.")
+            if (!objBody.role.length) throw new Error("Minimum one role is required.")
             if (user_roles && user_roles.length) {
                 const removeRole = await Promise.all(user_roles.map(async (role: any) => {
                     let RoleStatus = await revokeRole(id, role)
@@ -260,9 +261,9 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
         // update user with edited fields
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
-        let updateUserInElasticSearch =  updateUserInDOcs(id, user.id)
-        let updateUsersInMessages =  updateUserInMessages({id}, token)
-        let updateUsersInTasks =  updateUserInTasks({id},token);
+        let updateUserInElasticSearch = updateUserInDOcs(id, user.id)
+        let updateUsersInMessages = updateUserInMessages({ id }, token)
+        let updateUsersInTasks = updateUserInTasks({ id }, token);
         userInfo.role = userRole;
         let editedKeys = Object.keys(editUserInfo).filter(key => { if (key != "updatedAt") return editUserInfo[key] != userInfo[key] })
         await create({ activityType: "EDIT-PROFILE", activityBy: user._id, profileId: userInfo._id, editedFields: editedKeys.map(key => formatProfileKeys(key)) })
@@ -273,7 +274,7 @@ export async function edit_user(id: string, objBody: any, user: any,token:any) {
     };
 };
 
-function formatProfileKeys(key: string){
+function formatProfileKeys(key: string) {
     switch (key) {
         case 'firstName':
             key = `First Name`;
@@ -306,11 +307,11 @@ function formatProfileKeys(key: string){
 }
 
 // Get User List
-export async function user_list(query: any, userId: string, searchKey :string, page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
+export async function user_list(query: any, userId: string, searchKey: string, page = 1, limit: any = 100, pagination: boolean = true, sort = "createdAt", ascending = false) {
     try {
         let findQuery = {} //{ _id: { $ne: Types.ObjectId(userId) } }
-        let docs: any 
-        if(searchKey){
+        let docs: any
+        if (searchKey) {
             docs = await userListForHome(searchKey)
             console.log(docs,"users");
             
@@ -326,10 +327,10 @@ export async function user_list(query: any, userId: string, searchKey :string, p
             data = await roleFormanting(data)
             let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
             let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
-            if (pagination) return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers,...existUsers])
-            return [...nonVerifiedUsers,...existUsers]
+            if (pagination) return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
+            return [...nonVerifiedUsers, ...existUsers]
         }
-        
+
         // return { data: [...nonVerifiedUsers, ...existUsers], page: +page, pages: pages, count: total };
     } catch (err) {
         throw err;
@@ -412,7 +413,7 @@ export async function user_login(req: any) {
         await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userData._id, type: "LOGIN" });
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, templateName: "userLogin", mobileTemplateName: "login" });
-        await RefreshTokenSchema.create({userId: userData._id, access_token:response.token, lastUsedAt: new Date()})
+        await RefreshTokenSchema.create({ userId: userData._id, access_token: response.token, lastUsedAt: new Date() })
         return response;
     } catch (err) {
         throw err;
@@ -607,7 +608,7 @@ export async function groupStatus(id: any, userObj: any) {
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
-        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "groupStatus", mobileTemplateName: "groupStatus" })
+        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "groupStatus", mobileTemplateName: "groupStatus", status: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE  })
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
         console.error(err);
@@ -698,9 +699,9 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         let existUsers = await groupUserList(data._id)
         if (existUsers.length == 1) throw new Error(GROUP_ROUTER.REMOVE_MEMBER);
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
-        await Promise.all(users.map(async(user: any) => {
-        await removeUserToGroup(user, id),
-        await removeGroupMembersInDocs(id,user,userObj._id)
+        await Promise.all(users.map(async (user: any) => {
+            await removeUserToGroup(user, id),
+                await removeGroupMembersInDocs(id, user, userObj._id)
         }))
         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
@@ -799,10 +800,10 @@ export async function roleFormanting(users: any[]) {
 export async function formateRoles(roles: string[]) {
     try {
         let rolesBody: any = await role_list();
-        return roles? roles.map((role: string) => {
+        return roles ? roles.map((role: string) => {
             let roleObj = rolesBody.roles.find(({ role: rolecode }: any) => rolecode == role)
             return roleObj ? roleObj.roleName : role
-        }): []
+        }) : []
     } catch (err) {
         throw err
     };
@@ -1313,6 +1314,8 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
         let userObjs = await userFindMany("_id", userIds)
         userObjs.forEach((user: any) => {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
+            let messageNotification = templateNamesInfo.templateName == "createGroup" ? GROUP_NOTIFICATIONS.youAddTOGroup : (GROUP_NOTIFICATIONS as any)[templateNamesInfo.templateName]
+            webNotification({ notificationType: `GROUP`, userId: user._id, groupId, title: messageNotification, from: userId })
             if (userId == user._id && templateNamesInfo.templateName == "youAddTOGroup") {
                 sendNotification({
                     id: userId, mobileNo, email: user.email, fullName, groupName,
