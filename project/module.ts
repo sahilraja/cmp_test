@@ -1269,29 +1269,29 @@ export async function addInstallments(projectId: string, payload: any, user?: an
   return updated
 }
 
-export async function addInstallments(projectId: string, payload: any, user?: any) {
-  const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+// export async function addInstallments(projectId: string, payload: any, user?: any) {
+//   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
 
-  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
-  if (!isEligible) {
-    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
-  }
-  const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
-    if (!fund.phase) {
-      throw new APIError(`Phase is required`)
-    }
-    if (!fund.percentage) {
-      throw new APIError(`Percentage is required`)
-    }
-    return { ...fund, installment: index + 1 }
-  })
-  const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
-  if (overAllPercentage > 100) {
-    throw new APIError(`Percentage should not exceed 100`)
-  }
-  const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload} }, { new: true }).exec()
-  return updated
-}
+//   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+//   if (!isEligible) {
+//     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+//   }
+//   const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
+//     if (!fund.phase) {
+//       throw new APIError(`Phase is required`)
+//     }
+//     if (!fund.percentage) {
+//       throw new APIError(`Percentage is required`)
+//     }
+//     return { ...fund, installment: index + 1 }
+//   })
+//   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
+//   if (overAllPercentage > 100) {
+//     throw new APIError(`Percentage should not exceed 100`)
+//   }
+//   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload} }, { new: true }).exec()
+//   return updated
+// }
 
 export async function addFunds(projectId: string, payload: any, user: any) {
   if (!payload.installment) {
