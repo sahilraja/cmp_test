@@ -93,6 +93,6 @@ export async function patternSubstitutions(message: string): Promise<{ message: 
     }
 }
 
-function replaceAll(message: string, search: string, replacement: string) {
-    return message.split(new RegExp(search, "i")).join(replacement);
+export function replaceAll(message: string, search: string, replacement: string) {
+    return message.split(search).join(replacement);
 }

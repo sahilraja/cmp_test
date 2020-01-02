@@ -29,17 +29,17 @@ import { StepsSchema } from "../steps/model";
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
   try {
-    if (!reqObject.reference || !reqObject.name || !reqObject.startDate || !reqObject.endDate) {
+    if (!reqObject.reference || !reqObject.name /*|| !reqObject.startDate || !reqObject.endDate*/) {
       throw new Error(MISSING);
     }
-    if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) {
-      throw new Error("Start date must less than end date.")
-    }
+    // if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) {
+    //   throw new Error("Start date must less than end date.")
+    // }
     let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible) {
       throw new APIError("Unauthorized Action.", 403);
     }
-    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+    // if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
@@ -69,9 +69,9 @@ export async function editProject(id: any, reqObject: any, user: any) {
     if (!id || !user) throw new Error(MISSING);
     let obj: any = {};
     let modifiedFields = []
-    let [preProjectRecord, isEligible]: any = Promise.all([
-      checkRoleScope(user.role, "manage-project"),
-      project.findById(id).exec()
+    let [preProjectRecord, isEligible]: any = await Promise.all([
+      project.findById(id).exec(),
+      checkRoleScope(user.role, "manage-project")
     ])
     // let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
@@ -391,13 +391,20 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible1 || isEligible2) {
       query = {}
     }
-    const { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "phases" })
+    let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "phases" })
     const projectIds = (list || []).map((_list) => _list.id);
+    list  = list.map((projectObj)=> getCurrentPhase(projectObj.toJSON()))
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
     throw error;
   }
+}
+
+function getCurrentPhase(projectObj: any) {
+   return projectObj.phases && projectObj.phases.length? {...projectObj, phases: projectObj.phases.find((phaseObj: any) =>{
+     new Date(phaseObj.startDate) >= new Date() && new Date(phaseObj.endDate) <= new Date()
+   }) } : { ...projectObj, phases: {} }
 }
 
 async function mapProgressPercentageForProjects(projectIds: string[], userToken: string, list: any[]) {
@@ -410,15 +417,15 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
   })
   return (list || []).map((_list) => {
     const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id && task.status != 8)
-    return ({ ..._list.toJSON(), progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0 })
+    return ({ ..._list, progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0 })
   })
 }
 
 // get project details
 export async function getProjectDetail(projectId: string, userToken: string) {
   try {
-    let projectDetail = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
-    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
+    let projectDetail: any = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
+    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail.toJSON()]))[0]
   } catch (error) {
     console.error(error)
     throw error

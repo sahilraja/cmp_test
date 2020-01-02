@@ -13,9 +13,9 @@ router.post(`/create`, async (req, res, next) => {
     }
 })
 
-router.get(`/list`, authenticate, async (req, res, next) => {
+router.get(`/list`, authenticate, async (req: any, res, next) => {
     try {
-        res.status(OK).send(await list(res.locals.user._id, req.query.page, req.query.limit))
+        res.status(OK).send(await list(res.locals.user._id, req.query.page, req.query.limit, req.token))
     } catch (error) {
         next(new APIError(error.message))
     }

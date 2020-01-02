@@ -14,8 +14,8 @@ const schema = new Schema({
     maturationEndDate: { date: { type: Date }, modifiedBy: { type: String } },
     tripartiteAggrementDate: { date: { type: Date }, modifiedBy: { type: String } },
     members: { type: Array },
-    miscomplianceSpv: {type: String, trim: true, default: null},
-    miscomplianceProject: {type: String, trim: true, default: null},
+    miscomplianceSpv: { type: String, trim: true, default: null },
+    miscomplianceProject: { type: String, trim: true, default: null },
     thirdParyAggrementDocument: [
         {
             document: { type: String },
@@ -74,7 +74,7 @@ const schema = new Schema({
     ],
     themes: { type: Schema.Types.ObjectId, ref: 'themes' },
     is_active: { type: Boolean, default: true },
-    phases: [{ phase: { type: Types.ObjectId, ref: "phase" }, createdAt: { type: Date } }]
+    phases: [{ phase: { type: Types.ObjectId, ref: "phase" }, createdAt: { type: Date }, startDate: { type: Date }, endDate: { type: Date } }]
 }, { timestamps: true });
 
 schema.plugin(mongoosePaginate)

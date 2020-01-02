@@ -29,12 +29,17 @@ export async function nodemail(objBody: any) {
     let constants: any = await constantSchema.findOne({ key: 'bcc' }).exec();
     let transporter = nodemailer.createTransport(
       smtpTransport({
-         host: 'smtp.gmail.com',
-         port: '587',
-        //  secure: true,
-         auth: {
-           user: EMAIL,
-           pass: PASSWORD
+        
+        // Uat
+        // host: 'smtp.rediffmailpro.com',
+        // port: '465',
+        // secure: true,
+        // Dev
+        host: 'smtp.gmail.com',
+        port: '587',
+        auth: {
+          user: EMAIL,
+          pass: PASSWORD
         }
       })
     );
