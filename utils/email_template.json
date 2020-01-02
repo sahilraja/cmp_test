@@ -48,19 +48,19 @@
         "subject" : "[CMP] OTP to Update Password"
     },
     {
-        "content" : "Hi <b>[userName]</b>,<br/><br>You have a tag suggestion in CMP.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br>You have a tag suggestion on CMP.<br/><br/>You can click this <a href=[documentUrl]>link</a> to view it. <br/>Please ignore if you think this is not intended for you. <br/><br/>Best Regards,<br/> CMP Administrator",
         "templateName" : "suggestTagNotification",
         "displayName" : "suggest Tag notification",
         "subject" : "A Tag has been Suggested"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>A document task tag you suggested has been approved.You can click this <b><a href=[documentUrl]>link</a></b> to view the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[userName]</b>,<br/><br/>A tag suggested by you has been approved. You can click this <b><a href=[documentUrl]>link</a></b> to view the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "approveTagNotification",
         "displayName" : "approve tag notification",
         "subject" : "[CMP] Tag Approval Notification"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>A document task tag you suggested has been rejected.You can click this <a href=[documentUrl]>link</a> to view it.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[userName]</b>,<br/><br/>A tag suggested by you has been rejected. You can click this <a href=[documentUrl]>link</a> to view it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "rejectTagNotification",
         "displayName" : "reject tag notification",
         "subject" : "[CMP] Tag Rejection Notification"
