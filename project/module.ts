@@ -1297,9 +1297,9 @@ export async function addFunds(projectId: string, payload: any, user: any) {
   if (!payload.installment) {
     throw new APIError(`Installment is required`)
   }
-  if(!(payload.releasedCost && payload.releasedDocuments)||!(payload.utilisedCost && payload.utilisedDocuments)){
-    throw new APIError(`All Mandatory fields are required`)
-  }
+  // if(!(payload.releasedCost && payload.releasedDocuments)||!(payload.utilisedCost && payload.utilisedDocuments)){
+  //   throw new APIError(`All Mandatory fields are required`)
+  // }
   const fund: any = await ProjectSchema.findById(projectId).exec()
   if(!fund){
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
@@ -1423,13 +1423,13 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { documents, cost, _id } = payload
+  const { releasedDocuments, releasedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), releasedBy: user._id }
-  updates['funds.$.releasedDocuments'] = documents
-  updates['funds.$.releasedCost'] = cost
+  updates['funds.$.releasedDocuments'] = releasedDocuments
+  updates['funds.$.releasedCost'] = releasedCost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id })
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.releasedCost, projectId, activityBy: user._id })
   return updatedProject
 }
 
@@ -1441,13 +1441,13 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { documents, cost, _id } = payload
+  const { utilisedDocuments, utilisedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
-  updates['funds.$.utilisedDocuments'] = documents
-  updates['funds.$.utilisedCost'] = cost
+  updates['funds.$.utilisedDocuments'] = utilisedDocuments
+  updates['funds.$.utilisedCost'] = utilisedCost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id })
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.utilisedCost, updatedCost: payload.cost, activityBy: user._id })
   return updatedProject
 }
 
@@ -1456,7 +1456,7 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { document, cost, _id } = payload
+  const { releasedDocuments, releasedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), releasedBy: user._id }
   updates['funds.$.deletedReleased'] = true
@@ -1473,7 +1473,7 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { document, cost, _id } = payload
+  const { utilisedDocuments, utilisedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
   updates['funds.$.deletedUtilised'] = true
