@@ -414,10 +414,11 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
     method: 'POST',
     headers: { 'Authorization': `Bearer ${userToken}` }
   })
-  list = list.map((projectObj)=> getCurrentPhase(projectObj.toJSON()))
   return (list || []).map((_list) => {
     const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id && task.status != 8)
-    return ({ ..._list, progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0 })
+    return ({ ..._list.toJSON(), progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0, 
+    phase: getCurrentPhase(_list.toJSON())
+    })
   })
 }
 
@@ -425,7 +426,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 export async function getProjectDetail(projectId: string, userToken: string) {
   try {
     let projectDetail: any = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
-    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail.toJSON()]))[0]
+    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
   } catch (error) {
     console.error(error)
     throw error
