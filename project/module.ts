@@ -1387,9 +1387,11 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
     const items = funds.filter((_fund: any) =>
       (_fund.subInstallment && (_fund.installment == fund.installment)
       )).map((item: any) => ({ ...item.toJSON(), releasedDocuments: documents.filter((d: any) => (item.releasedDocuments || []).includes(d.id)), utilisedDocuments: documents.filter((d: any) => (item.utilisedDocuments || []).includes(d.id)) }))
-    p.push({
+      let difference = (Math.round(citiisGrants* (fund.percentage / 100)))-fund.releasedCost
+      p.push({
       fundsPlanned:Math.round(citiisGrants* (fund.percentage / 100)),
-      difference: (Math.round(citiisGrants* (fund.percentage / 100)))-fund.releasedCost,
+      difference: difference,
+      cumulativeDifference: (p.cumulativeDifference||0)+difference,
       phase: phases.find(phase => phase.id == fund.phase),
       installment: installmentType,
       percentage: fund.percentage,
