@@ -683,7 +683,8 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
           let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
           const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
           mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-          await create({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
+          await create({ activityType: `
+          `, activityBy: userId, documentId: docId, tagsAdded: addtags })
         }
         if (removedtags.length) {
           let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
@@ -1117,7 +1118,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
       }
     }
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
-    mailAllCmpUsers("invitePeopleDoc", doc, false, userId, addUsers)
+    // mailAllCmpUsers("invitePeopleDoc", doc, false, userId, addUsers)
     return { message: "Shared successfully." };
   } catch (err) {
     throw err;

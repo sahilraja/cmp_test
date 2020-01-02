@@ -1387,9 +1387,13 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
   let phases = await phaseSchema.find({}).exec()
   let fundsData = funds.reduce((p: any, fund: any) => {
     const { installmentType } = getPercentageByInstallment(fund.installment)
-    const items = funds.filter((_fund: any) =>
-      (_fund.subInstallment && (_fund.installment == fund.installment)
-      )).map((item: any) => ({ ...item.toJSON(), releasedDocuments: documents.filter((d: any) => (item.releasedDocuments || []).includes(d.id)), utilisedDocuments: documents.filter((d: any) => (item.utilisedDocuments || []).includes(d.id)) }))
+    const releasedItems = funds.filter((_fund: any) =>
+      (!_fund.deletedReleased&&_fund.subInstallment && (_fund.installment == fund.installment)
+      )).map((item: any) => ({ ...item.toJSON(), releasedDocuments: documents.filter((d: any) => (item.releasedDocuments || []).includes(d.id))}))
+    const utilisedItems = funds.filter((_fund: any) =>
+      (!_fund.deletedUtilised&&_fund.subInstallment && (_fund.installment == fund.installment)
+      )).map((item: any) => ({ ...item.toJSON(), utilisedDocuments: documents.filter((d: any) => (item.utilisedDocuments || []).includes(d.id)), }))
+  
       let difference = (Math.round(citiisGrants* (fund.percentage / 100)))-fund.releasedCost
       p.push({
       fundsPlanned:Math.round(citiisGrants* (fund.percentage / 100)),
@@ -1399,9 +1403,10 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
       installment: installmentType,
       percentage: fund.percentage,
       // Filter empty data
-      items,
-      installmentLevelTotalReleased: items.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
-      installmentLevelTotalUtilised: items.reduce((p: number, item: any) => p + (item.utilisedCost || 0), 0)
+      releasedItems,
+      utilisedItems,
+      installmentLevelTotalReleased: releasedItems.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
+      installmentLevelTotalUtilised: utilisedItems.reduce((p: number, item: any) => p + (item.utilisedCost || 0), 0)
     })
     return p
   }, [])

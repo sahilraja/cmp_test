@@ -12,19 +12,19 @@
         "subject" : "[CMP] Updates on your User Account"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/> Welcome to CITIIS Management Platform! This is to confirm your access on CMP.<br/><br/>In case of any issues while using the platform, please contact <b>cmp@niua.org</b>.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/> Welcome to CITIIS Management Platform. This is to confirm your access on CMP.<br/><br/>In case of any issues while using the platform, please contact <b>cmp@niua.org</b>.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "userLogin",
-        "subject" : "Welcome to CITIIS Management Platform!",
+        "subject" : "Welcome to CITIIS Management Platform",
         "displayName" : "User Login"
     },
     {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/>You are invited by a user of CMP to collaborate on the document <b>[documentName]</b>.<br/><br/>You can click <a href=[documentUrl]>here</a> to access it. <br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Hi <b>[fullName]</b>,<br/><br/>You are invited by a user of CMP to collaborate on the document <b>[documentName]</b>.<br/><br/>You can click <a href=[documentUrl]>here</a> to access it. <br/><br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "inviteForDocument",
         "displayName" : "invite for document",
         "subject" : "[CMP] Invitation to Access a New Document"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>You have received a new message on CMP. <br/> <br/>Here is an excerpt. [content] <br/> <br/> Click <a href=[link]>here</a> to view the full message.</a> <br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>You have received a new message on CMP. <br/> <br/>Here is an excerpt. [content] <br/> <br/> Click <a href=[link]>here</a> to view the full message.</a> <br/> <br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "inboxMessage",
         "displayName" : "New Message",
         "subject" : "New Message on CMP | [subject] on [timestamp]"
@@ -90,31 +90,13 @@
         "subject" : "[CMP] Update on your Published Document"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Your document <b>[documentName]</b> on CITIIS Management Platform, is shared with [sharedUsers] in the capacity of [role].You can click this <a href=[documentUrl]>link</a> to access the details.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "invitePeopleDoc",
-        "displayName" : "share document",
-        "subject" : "[CMP] Document Sharing Notification"
-    },
-    {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is edit share capability to [sharedUsers] with [role].<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
-        "templateName" : "invitePeopleEditDoc",
-        "displayName" : "edit share capabilty document",
-        "subject" : "[documentName] share capability edited"
-    },
-    {
-        "content" : "Hi <b>[fullName]</b>,<br/><br/><br/>Document <b>[documentName]</b>, is remove share capability to [sharedUsers] with [role].<br/><br/>You can click this <a href=[documentUrl]>link</a> to access it. <br/>Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
-        "templateName" : "invitePeopleRemoveDoc",
-        "displayName" : "remove share capabilty document",
-        "subject" : "[documentName] share capability roemove"
-    },
-    {
         "content" : "Dear <b>[fullName]</b>,<br/><br/>The document <b>[documentName]</b> on CITIIS Management Platform, is replaced with a new document. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "replaceDocument",
         "displayName" : "replace document",
         "subject" : "[CMP] Document Replacement Notification"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Document <b>[documentName]</b>, has been updated with [text]. You can click this <a href=[documentUrl]>link</a> to access it.<br><br>Best Regards,<br>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Document <b>[documentName]</b>, has been updated with new [text]. You can click this <a href=[documentUrl]>link</a> to access it.<br><br>Best Regards,<br>CMP Administrator",
         "templateName" : "documentUpdate",
         "displayName" : "document Update",
         "subject" : "[CMP] Document Update Notification"
@@ -255,7 +237,7 @@
         "content" : "Hi <b>[fullName]</b>, <br/><br/>You Registration is successful.<br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team.",
         "templateName" : "registrationSuccess",
         "displayName" : "Registration Success",
-        "subject" : "Registration Success !!"
+        "subject" : "Registration Success"
     },
     {
         "templateName":"taskMembersUpdated",
