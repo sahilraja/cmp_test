@@ -1322,7 +1322,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
         throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_UPDATE_TAGS, 403);
       }
     }
-    let publishedDoc = publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
+    let publishedDoc =await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
     await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
