@@ -20,7 +20,7 @@
         "displayName" : "send otp"
     },
     {
-        "content" : "Your primary email address can only be replaced with a confirmed email address.",
+        "content" : "your Email ID has been changed to [newMail].",
         "templateName" : "changeEmailMessage",
         "displayName" : "change email notification"
     },
@@ -176,24 +176,9 @@
         "displayName" : "Profile Update"
     },
     {
-        "content" : "Document [documentName], has been updated with [text] on CMP.",
+        "content" : "Document [documentName], has been updated with new [text] on CMP.",
         "templateName" : "documentUpdate",
         "displayName" : "Document updated"
-    },
-    {
-        "content" : "Document [documentName] is shared with [sharedUsers] on CMP. Click [documentUrl] to access it.",
-        "templateName" : "invitePeopleDoc",
-        "displayName" : "share document"
-    },
-    {
-        "content" : "Sharing permissions of the document [documentName] are updated for [sharedUsers] on CMP.",
-        "templateName" : "invitePeopleEditDoc",
-        "displayName" : "edit share capabilty document"
-    },
-    {
-        "content" : "Sharing permissions of the document [documentName] are removed for [sharedUsers] on CMP.",
-        "templateName" : "invitePeopleRemoveDoc",
-        "displayName" : "remove share capabilty document"
     },
     {
         "content" : "You are added to a user group [groupName] on CMP.",

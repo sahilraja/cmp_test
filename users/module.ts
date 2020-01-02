@@ -990,7 +990,7 @@ export async function profileOtpVerify(objBody: any, user: any) {
         let userUpdate = await userEdit(user._id, { email: token.newEmail, ...temp });
         if (token.newEmail) {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
-            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage", mobileTemplateName: "changeEmailMessage" })
+            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage"})
         }
         return userUpdate
     } catch (err) {
