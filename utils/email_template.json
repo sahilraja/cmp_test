@@ -27,7 +27,7 @@
         "content" : "Dear <b>[fullName]</b>,<br/><br/>You have received a new message on CMP. <br/> <br/>Here is an excerpt. [content] <br/> <br/> Click <a href=[link]>here</a> to view the full message.</a> <br/> <br/><br/>Best Regards,<br/>CITIIS Management Platform Team",
         "templateName" : "inboxMessage",
         "displayName" : "New Message",
-        "subject" : "Message on CMP"
+        "subject" : "New Message on CMP | [subject] on [timestamp]"
     },
     {
         "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <b><u>[otp]</u></b> is the One Time Password (OTP) to update your Mobile Number on CITIIS Management Platform<br/><br/>.Best Regards,<br/>CMP Administrator",
