@@ -10,6 +10,7 @@ const schemaDef = new Schema({
     userId: { type: String, required: true },
     docId: { type: Types.ObjectId, ref: 'documents' },
     taskId: { type: String, default: null },
+    groupId: { type: String, default: null },
     messageId: { type: String, default: null },
     read: { type: Boolean, default: false }
 }, { timestamps: true })
