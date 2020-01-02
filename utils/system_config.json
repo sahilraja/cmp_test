@@ -28,6 +28,13 @@
         "displayName": "OTP expire time ( in hours )"
     },
     {
+        "key": "systemTimeOut",
+        "value": "15",
+        "type": "number",
+        "groupName": "authentication",
+        "displayName": "Session Time Out time ( in hours )"
+    },
+    {
         "key": "bulkInvite",
         "value": "true",
         "type": "boolean",

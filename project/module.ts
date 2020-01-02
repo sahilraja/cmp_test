@@ -29,17 +29,17 @@ import { StepsSchema } from "../steps/model";
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
   try {
-    if (!reqObject.reference || !reqObject.name || !reqObject.startDate || !reqObject.endDate) {
+    if (!reqObject.reference || !reqObject.name /*|| !reqObject.startDate || !reqObject.endDate*/) {
       throw new Error(MISSING);
     }
-    if (new Date(reqObject.startDate) > new Date(reqObject.endDate)){
-      throw new Error("Start date must less than end date.")
-    } 
+    // if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) {
+    //   throw new Error("Start date must less than end date.")
+    // }
     let isEligible = await checkRoleScope(user.role, "manage-project");
-    if (!isEligible){
+    if (!isEligible) {
       throw new APIError("Unauthorized Action.", 403);
-    } 
-    if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+    }
+    // if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
@@ -68,8 +68,12 @@ export async function editProject(id: any, reqObject: any, user: any) {
   try {
     if (!id || !user) throw new Error(MISSING);
     let obj: any = {};
-
-    let isEligible = await checkRoleScope(user.role, "manage-project");
+    let modifiedFields = []
+    let [preProjectRecord, isEligible]: any = await Promise.all([
+      project.findById(id).exec(),
+      checkRoleScope(user.role, "manage-project")
+    ])
+    // let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible) throw new APIError("Unauthorized Action.", 403);
 
     if (reqObject.startDate || reqObject.endDate) {
@@ -78,10 +82,12 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.endDate = reqObject.endDate
     };
     if (reqObject.reference) {
+      if (preProjectRecord.name != reqObject.name) modifiedFields.push("Reference Id")
       obj.reference = reqObject.reference;
     }
     if (reqObject.name) {
       if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+      if (preProjectRecord.name != reqObject.name) modifiedFields.push("Name")
       obj.name = reqObject.name;
     }
     if (reqObject.cityname) {
@@ -171,18 +177,18 @@ export async function manageProjectMembers(id: string, members: string[], userId
   return updatedProject
 }
 
-export async function getProjectMembers(id: string,userId: string) {
+export async function getProjectMembers(id: string, userId: string) {
   let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const [viewMyAccess, viewAllAccess, manageAccess] = await Promise.all([
-      checkRoleScope(userRole, "view-my-project"),
-      checkRoleScope(userRole, "view-all-projects"),
-      checkRoleScope(userRole, "manage-project")
-    ])
+  let userRole = userRoles.data[0];
+  const [viewMyAccess, viewAllAccess, manageAccess] = await Promise.all([
+    checkRoleScope(userRole, "view-my-project"),
+    checkRoleScope(userRole, "view-all-projects"),
+    checkRoleScope(userRole, "manage-project")
+  ])
 
-    if (!viewMyAccess && !viewAllAccess && !manageAccess) {
-      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS);
-    }
+  if (!viewMyAccess && !viewAllAccess && !manageAccess) {
+    throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS);
+  }
   const { members }: any = await ProjectSchema.findById(id).exec()
   const [users, formattedRoleObjs]: any = await Promise.all([
     userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, is_active: 1 }),
@@ -381,17 +387,24 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     const [isEligible1, isEligible2] = await Promise.all([
       checkRoleScope(userRole, `view-all-projects`),
       checkRoleScope(userRole, `manage-project`),
-    ]) 
+    ])
     if (isEligible1 || isEligible2) {
       query = {}
     }
-    const { docs: list, page, pages } = await ProjectSchema.paginate(query, {page: Number(currentPage), limit:Number(limit), sort:{createdAt:-1}, populate: "phases" })
+    let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "phases" })
     const projectIds = (list || []).map((_list) => _list.id);
+    list  = list.map((projectObj)=> getCurrentPhase(projectObj.toJSON()))
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
     throw error;
   }
+}
+
+function getCurrentPhase(projectObj: any) {
+   return projectObj.phases && projectObj.phases.length? {...projectObj, phases: projectObj.phases.find((phaseObj: any) =>{
+     new Date(phaseObj.startDate) >= new Date() && new Date(phaseObj.endDate) <= new Date()
+   }) } : { ...projectObj, phases: {} }
 }
 
 async function mapProgressPercentageForProjects(projectIds: string[], userToken: string, list: any[]) {
@@ -404,15 +417,15 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
   })
   return (list || []).map((_list) => {
     const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id && task.status != 8)
-    return ({ ..._list.toJSON(), progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0 })
+    return ({ ..._list, progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0 })
   })
 }
 
 // get project details
 export async function getProjectDetail(projectId: string, userToken: string) {
   try {
-    let projectDetail = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
-    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
+    let projectDetail: any = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
+    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail.toJSON()]))[0]
   } catch (error) {
     console.error(error)
     throw error
@@ -503,7 +516,7 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
 }
 
 export async function taskProjectDetails(projectId: string) {
-    return project.findById(projectId).exec()
+  return project.findById(projectId).exec()
 };
 
 export async function linkTask(projectId: string, taskId: string, userToken: string, userId: string) {
@@ -569,7 +582,7 @@ export async function addUtilizedInstallment(projectId: string, payload: any, us
     if (!fund.percentage) {
       throw new APIError(`Percentage is required`)
     }
-    return {...fund, installment: index + 1}
+    return { ...fund, installment: index + 1 }
     // return {
     //   installment: index + 1,
     //   phase: fund.phase,
@@ -633,7 +646,7 @@ export async function projectMembers(id: string, currntUser: any) {
   // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
-    isMember:project.members.includes(user),
+    isMember: project.members.includes(user),
     value: user,
     fullName: (userObjs.find(({ _id }: any) => _id == user)).fullName,
     key: formatUserRole((usersRoles.find((role: any) => role.user == user) as any).data[0], formattedRoleObjs.roles)
@@ -692,7 +705,7 @@ export async function getFinancialInfo(projectId: string, userId: string, userRo
     checkRoleScope(userRole, `view-all-projects`),
     checkRoleScope(userRole, `manage-project`)
   ])
-  if(!isEligible1 && !isEligible2 && !canSeeMyProject && !canSeeAllProjects && !canManageProject){
+  if (!isEligible1 && !isEligible2 && !canSeeMyProject && !canSeeAllProjects && !canManageProject) {
     throw new APIError(PROJECT_ROUTER.FINANCIAL_INFO_NO_ACCESS)
   }
   const projectDetail = await ProjectSchema.findById(projectId).exec()
@@ -706,7 +719,7 @@ export async function getFinancialInfo(projectId: string, userId: string, userRo
       (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     p.push({
-      fundsPlanned:Math.round(citiisGrants* (fund.percentage / 100)),
+      fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
       phase: phases.find(phase => phase.id == fund.phase),
       installment: installmentType,
       percentage: fund.percentage,
@@ -729,7 +742,7 @@ export async function getFinancialInfo(projectId: string, userId: string, userRo
       (!_fund.deleted && _fund.subInstallment && (_fund.installment == fund.installment)
       )).map((item: any) => ({ ...item.toJSON(), documents: documents.filter((d: any) => (item.documents || []).includes(d.id)) }))
     p.push({
-      fundsPlanned:Math.round(citiisGrants* (fund.percentage / 100)),
+      fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
       phase: phases.find(phase => phase.id == fund.phase),
       installment: installmentType,
       percentage: fund.percentage,
@@ -935,7 +948,7 @@ export function importExcelAndFormatData(filePath: string) {
 export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any) {
   const roleData: any = await role_list()
   const isEligible = await checkRoleScope(userObj.role, `upload-task-excel`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
   }
   const roleNames = roleData.roles.map((role: any) => role.roleName)
@@ -1049,7 +1062,7 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   }
 
   if (data.initialStartDate && new Date().getTime() > new Date(data.initialStartDate).setHours(23, 59, 59, 0)) throw new Error("Start date must Not be in the past.")
-  if (data.initialDueDate && new Date(data.initialStartDate).setHours(0,0,0,0) > new Date(data.initialDueDate).setHours(23, 59, 59, 0)) throw new Error("Start date must be lessthan due date.")
+  if (data.initialDueDate && new Date(data.initialStartDate).setHours(0, 0, 0, 0) > new Date(data.initialDueDate).setHours(23, 59, 59, 0)) throw new Error("Start date must be lessthan due date.")
 
   return {
     name: data.name,
@@ -1179,7 +1192,7 @@ export async function editProjectMiscompliance(projectId: string, payload: any, 
     if (!Types.ObjectId.isValid(projectId)) throw new Error("Invalid Project Id.")
     const isEligible = await checkRoleScope(userObj.role, 'manage-compliance')
     if (!isEligible) {
-        throw new APIError(COMPLIANCES.MISCOMPLIANCE_ERROR)
+      throw new APIError(COMPLIANCES.MISCOMPLIANCE_ERROR)
     }
     let obj: any = {};
     if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
@@ -1191,51 +1204,50 @@ export async function editProjectMiscompliance(projectId: string, payload: any, 
   };
 };
 
-export async function editTriPartiteDate(id: string,payload: any, user: any) {
+export async function editTriPartiteDate(id: string, payload: any, user: any) {
   const isEligible = await checkRoleScope(user.role, `edit-tri-partite-aggrement-date`)
-  if(!isEligible){
+  if (!isEligible) {
     throw new APIError(USER_ROUTER.INVALID_ADMIN)
   }
-  return await ProjectSchema.findByIdAndUpdate(id, { $set: {tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } }}, { new: true }).exec()
+  return await ProjectSchema.findByIdAndUpdate(id, { $set: { tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } } }, { new: true }).exec()
 }
 
 export async function addPhaseToProject(projectId: string, payload: any) {
-  return await ProjectSchema.findByIdAndUpdate(projectId,{$set:{phases:formatAndValidatePhasePayload(payload)}}, {new: true}).exec()
+  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { phases: formatAndValidatePhasePayload(payload) } }, { new: true }).exec()
 }
 
 export async function listPhasesOfProject(projectId: string) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
-  const phaseIds = projectDetail.phases.find((phase: any) => phase.phase)
+  const phaseIds = projectDetail.phases.map((phase: any) => phase.phase.toString())
   const phases = await phaseSchema.find({ _id: { $in: phaseIds } }).exec()
   return projectDetail.toJSON().phases.map((phase: any) => ({
-    ...phase, phase: phases.find(_phase => _phase == phase.phase),
+    ...phase, phase: phases.find(_phase => _phase._id.toString() == phase.phase.toString()),
   }))
 }
 
 function formatAndValidatePhasePayload(payload: any) {
   return payload.map((_data: any, index: number) => {
-    if(payload[index +1]){
-      if(!payload.phase || !payload.startDate || !payload.endDate){
+    if (payload[index + 1]) {
+      if (!_data.phase || !_data.startDate || !_data.endDate) {
         throw new APIError(DOCUMENT_ROUTER.MANDATORY)
       }
-      if(payload.startDate > payload.endDate){
+      if (_data.startDate > _data.endDate) {
         throw new APIError(``)
-      } 
-      if(payload[index+1] && (!payload[index+1].startDate || (new Date(payload[index+1].startDate).setHours(0,0,0,0) <= new Date(payload.startDate).setHours(0,0,0,0)))){
+      }
+      if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.startDate).setHours(0, 0, 0, 0)))) {
         throw new APIError(``)
       }
     }
     return {
-      phase:payload.phase,
-      startDate: new Date(new Date(payload.startDate).setHours(0,0,0,0)),
-      endDate: new Date(new Date(payload.startDate).setHours(23,59,59,0)),
+      phase: _data.phase,
+      startDate: new Date(new Date(_data.startDate).setHours(0, 0, 0, 0)),
+      endDate: new Date(new Date(_data.startDate).setHours(23, 59, 59, 0)),
     }
   })
 }
 
 export async function addInstallments(projectId: string, payload: any, user?: any) {
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
-
   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
@@ -1253,9 +1265,33 @@ export async function addInstallments(projectId: string, payload: any, user?: an
   if (overAllPercentage > 100) {
     throw new APIError(`Percentage should not exceed 100`)
   }
-  const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload} }, { new: true }).exec()
+  const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload } }, { new: true }).exec()
   return updated
 }
+
+// export async function addInstallments(projectId: string, payload: any, user?: any) {
+//   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+
+//   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+//   if (!isEligible) {
+//     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+//   }
+//   const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
+//     if (!fund.phase) {
+//       throw new APIError(`Phase is required`)
+//     }
+//     if (!fund.percentage) {
+//       throw new APIError(`Percentage is required`)
+//     }
+//     return { ...fund, installment: index + 1 }
+//   })
+//   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
+//   if (overAllPercentage > 100) {
+//     throw new APIError(`Percentage should not exceed 100`)
+//   }
+//   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload} }, { new: true }).exec()
+//   return updated
+// }
 
 export async function addFunds(projectId: string, payload: any, user: any) {
   if (!payload.installment) {

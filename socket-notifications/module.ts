@@ -1,5 +1,8 @@
 import { SocketNotifications, NotificationType } from "./model";
 import { emitLatestNotificationCount } from "../socket";
+import { userFindMany, getTasksByIds } from "../utils/users";
+import { getFullNameAndMobile } from "../users/module";
+import { replaceAll } from "../patterns/module";
 
 export async function create(payload: any) {
     const createdNotification = await SocketNotifications.create(payload)
@@ -7,50 +10,31 @@ export async function create(payload: any) {
     return createdNotification
 }
 
-export async function list(userId: string, currentPage = 1, limit = 30) {
-    return await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort:{createdAt:-1} })
-    return {
-        docs: [
-            {
-                createdAt:`2019-11-07 09:26:37.014Z`,
-                _id:`5dff1e67fd85f009697fc696`,
-                title: `Saikumar published new Document`,
-                notificationType: NotificationType[NotificationType.DOCUMENT],
-                userId: ``,
-                taskId: null,
-                messageId: null,
-                documentId: `5dff1e67fd85f009697fc696`,
-                read: false,
-            },
-            {
-                createdAt:`2019-11-07 09:26:37.014Z`,
-                _id:`5dff1e67fd85f009697fc696`,
-                title: `Saikumar assigned new Task to you`,
-                notificationType: NotificationType[NotificationType.TASK],
-                userId: ``,
-                taskId: `5dfdd1877be9b97f019198b1`,
-                messageId: null,
-                documentId: null,
-                read: true,
-            },
-            {
-                createdAt:`2019-11-07 09:26:37.014Z`,
-                _id:`5dff1e67fd85f009697fc696`,
-                title: `Saikumar sent you new message`,
-                notificationType: NotificationType[NotificationType.MESSAGE],
-                userId: ``,
-                taskId: ``,
-                messageId: `5e00cdb6efed126586b72d4c`,
-                documentId: ``,
-                read: false,
-            }
-        ], 
-        page: 1, pages: 1
+export async function list(userId: string, currentPage = 1, limit = 30, token: string) {
+    let { docs: notifications, page, limit: pageLimit } = await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 } })
+    let [userObjs, taskObjs] = await Promise.all([
+        userFindMany("_id", [... new Set(notifications.reduce((main, curr: any) => main.concat(curr.from, curr.userId), []))]),
+        getTasksByIds([... new Set(notifications.map(({ taskId }: any) => taskId))], token)
+    ])
+    return { docs: await Promise.all(notifications.map((notificationObj: any) => formatNotification(notificationObj.toJSON(), { users: userObjs, tasks: taskObjs }))), page, limit: pageLimit }
+}
+
+async function formatNotification(notificationObj: any, details: any) {
+    let userKeys = ["from", "userId"];
+    let keys = (notificationObj.title.match(/\[(.*?)\]/g)).map((key: string) => key.substring(1, key.length - 1))
+    let replaceAllObj = keys.map((key: string) => {
+        if (userKeys.includes(key)) return { key: key, match: (getFullNameAndMobile(details.users.find((userObj: any) => notificationObj[key] == userObj._id)) || { fullName: "" }).fullName }
+        if (key == "taskId") return { key: key, match: details.tasks.map((taskObj: any) => notificationObj[key] == taskObj._id || { name: "" }).name }
+        else return { key: [key], match: "" }
+    })
+    for (const { key, match } of replaceAllObj) {
+        notificationObj.title = replaceAll(notificationObj.title, `[${key}]`, match)
     }
+    return notificationObj
 }
 
 export async function listUnreadNotifications(userId: string) {
-    return await SocketNotifications.find({userId, read: false}).exec()
+    return await SocketNotifications.find({ userId, read: false }).exec()
 }
 
 export async function markAsRead(id: string, userId: string) {
