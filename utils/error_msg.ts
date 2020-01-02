@@ -1,5 +1,5 @@
 export const USER_ROUTER = {
-    INVALID_USER: "Please enter valid Login Credentils",
+    INVALID_USER: "Please enter valid Login Credentials",
     INVALID_ADMIN: "You don't have permissions to perform this action",
     CREATE_ROLE_FAIL: "Role couldn't be created, please try again",
     REVOKE_ROLE_FAIL: "Failed to remove role, Please retry",

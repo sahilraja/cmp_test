@@ -11,7 +11,7 @@ export async function create(payload: any) {
 }
 
 export async function list(userId: string, currentPage = 1, limit = 30, token: string) {
-    let { docs: notifications, page, limit: pageLimit } = await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 } })
+    let { docs: notifications, page, limit: pageLimit } = await SocketNotifications.paginate({ userId }, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "docId" })
     let [userObjs, taskObjs] = await Promise.all([
         userFindMany("_id", [... new Set(notifications.reduce((main, curr: any) => main.concat(curr.from, curr.userId), []))]),
         getTasksByIds([... new Set(notifications.map(({ taskId }: any) => taskId))], token)
@@ -25,6 +25,7 @@ async function formatNotification(notificationObj: any, details: any) {
     let replaceAllObj = keys.map((key: string) => {
         if (userKeys.includes(key)) return { key: key, match: (getFullNameAndMobile(details.users.find((userObj: any) => notificationObj[key] == userObj._id)) || { fullName: "" }).fullName }
         if (key == "taskId") return { key: key, match: details.tasks.map((taskObj: any) => notificationObj[key] == taskObj._id || { name: "" }).name }
+        if (key == "docId") return { key: key, match: notificationObj.docId.name }
         else return { key: [key], match: "" }
     })
     for (const { key, match } of replaceAllObj) {
