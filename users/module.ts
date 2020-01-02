@@ -312,6 +312,8 @@ export async function user_list(query: any, userId: string, searchKey :string, p
         let docs: any 
         if(searchKey){
             docs = await userListForHome(searchKey)
+            console.log(docs,"users");
+            
             let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
             let rolesBody: any = await role_list();
             data = await roleFormanting(data)
