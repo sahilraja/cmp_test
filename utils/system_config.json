@@ -32,7 +32,7 @@
         "value": "15",
         "type": "number",
         "groupName": "authentication",
-        "displayName": "Session Time Out time ( in hours )"
+        "displayName": "Session Time Out time ( in minutes )"
     },
     {
         "key": "bulkInvite",

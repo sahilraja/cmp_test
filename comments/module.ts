@@ -19,8 +19,8 @@ export async function addComment(body: any, user: any) {
     if (body.type == "document") {
       var doc: any = await documents.findById(body.entity_id)
       // Added if -> add comments to task is also triggering the same API
-      if(doc){
-        let admin_scope = (doc.status == 2)? await checkRoleScope(user.role, "document-comments-publish") : await checkRoleScope(user.role, "document-comments")
+      if (doc) {
+        let admin_scope = (doc.status == 2) ? await checkRoleScope(user.role, "document-comments-publish") : await checkRoleScope(user.role, "document-comments")
         if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
       }
     }
@@ -33,7 +33,7 @@ export async function addComment(body: any, user: any) {
     if (doc && body.type == "document" && doc.status != 2) {
       await create({ activityType: `DOCUMENT_COMMENT`, activityBy: user._id, documentId: body.entity_id })
       const { fullName, mobileNo } = getFullNameAndMobile(user);
-      mailAllCmpUsers("addCommentToDoc", doc, false)
+      mailAllCmpUsers("addCommentToDoc", doc, false, user._id)
       // sendNotification({ id: user._id, fullName, mobileNo, email: user.email, templateName: "addCommentToDoc", mobileTemplateName: "addCommentToDoc" });
     }
     return commentInfo
