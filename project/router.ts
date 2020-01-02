@@ -7,7 +7,8 @@ import {
     deleteReleasedFund, deleteUtilizedFund, uploadTasksExcel, projectCostInfo, citiisGrantsInfo, addReleasedInstallment, 
     addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments,
      getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, 
-     editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments
+     editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments, addFunds, getFinancialInfoNew, 
+     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -438,6 +439,62 @@ router.post(`/:id/edit-tripartite`, async (req, res, next) => {
 router.post(`/:id/add-installments`, async (req, res, next) => {
     try {
         res.status(OK).send(await addInstallments(req.params.id, req.body, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.post(`/:id/add-funds`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addFunds(req.params.id, req.body, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/:id/financial-info/new`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getFinancialInfoNew(req.params.id, res.locals.user._id, res.locals.user.role))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.put(`/:id/update-released-fund/new`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await updateReleasedFundNew(req.params.id, req.body, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.put(`/:id/update-utilized-fund/new`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await updateUtilizedFundNew(req.params.id, req.body, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.put(`/:id/delete-released-fund/new`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await deleteReleasedFundNew(req.params.id, req.body, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.put(`/:id/delete-utilized-fund/new`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await deleteUtilizedFundNew(req.params.id, req.body, res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post(`/:id/add-installments/new`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await addInstallmentsNew(req.params.id, req.body, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }

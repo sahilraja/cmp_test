@@ -54,6 +54,24 @@ const schema = new Schema({
             modifiedBy: { type: String }
         }
     ],
+    funds: [
+        {
+            deletedReleased: { type: Boolean, default: false },
+            deletedUtilised: { type: Boolean, default: false },
+            installment: { type: Number },
+            percentage: { type: String },
+            phase: { type: String },
+            subInstallment: { type: Number },
+            releasedDocuments: { type: [String] },
+            releasedCost: { type: Number,default: 0 },
+            utilisedDocuments: { type: [String] },
+            utilisedCost: { type: Number, default: 0 },
+            createdAt: { type: Date },
+            modifiedAt: { type: Date },
+            releasedBy: { type: String },
+            utilisedBy: { type: String }
+        }
+    ],
     themes: { type: Schema.Types.ObjectId, ref: 'themes' },
     is_active: { type: Boolean, default: true },
     phases: [{ phase: { type: Types.ObjectId, ref: "phase" }, createdAt: { type: Date } }]
