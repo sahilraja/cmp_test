@@ -871,7 +871,7 @@ router.post("/update/userDocs", authenticate, async (req, res, next: NextFunctio
   }
 });
 
-router.post("/create/index", authenticate, async (req, res, next: NextFunction) => {
+router.post("/create/index", async (req, res, next) => {
   try {
     res.status(200).send(await createIndex(req.body.index))
   } catch (err) {
@@ -879,7 +879,7 @@ router.post("/create/index", authenticate, async (req, res, next: NextFunction) 
   }
 });
 
-router.post("/remove/index", authenticate, async (req, res, next: NextFunction) => {
+router.post("/remove/index", async (req, res, next) => {
   try {
     res.status(200).send(await removeIndex(req.body.index))
   } catch (err) {
