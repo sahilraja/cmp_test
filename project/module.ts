@@ -613,10 +613,10 @@ export async function getInstallments(projectId: string, search: string) {
         deletedReleased: s.deletedReleased,
         deletedUtilised: s.deletedUtilised,
         subInstallment: s.subInstallment,
-        releasedCost: s.releasedCost,
-        utilisedCost: s.utilisedCost,
-        releasedDocuments: s.releasedDocuments,
-        utilisedDocuments: s.utilisedDocuments,
+        releasedCost: !(s.deletedReleased)?s.releasedCost:null,
+        utilisedCost: !(s.deletedUtilised)?s.utilisedCost:null,
+        releasedDocuments: !(s.deletedReleased)?s.releasedDocuments:null,
+        utilisedDocuments: !(s.deletedUtilised)?s.utilisedDocuments:null,
         phase: phases.find((phase: any) => phase._id == s.phase),
         percentage: s.percentage
       }
