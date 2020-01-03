@@ -425,6 +425,7 @@ export async function user_login(req: any) {
 export async function userLogout(req: any, userId: any) {
     try {
         await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userId, type: "LOGOUT" });
+        await RefreshTokenSchema.deleteMany({userId}).exec()
         return { message: "logout successfully." }
     } catch (err) {
         throw err;

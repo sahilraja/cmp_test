@@ -35,7 +35,7 @@ async function formatNotification(notificationObj: any, details: any) {
     for (const { key, match } of replaceAllObj) {
         notificationObj.title = replaceAll(notificationObj.title, `[${key}]`, match)
     }
-    return notificationObj
+    return {...notificationObj, docId: notificationObj.docId._id}
 }
 
 export async function listUnreadNotifications(userId: string) {
