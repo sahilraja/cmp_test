@@ -146,11 +146,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupId: [],
       groupName: []
     }
-    // let result = await esClient.index({
-    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
-    //   body: docObj,
-    //   id: doc.id
-    // });
+    let result = await esClient.index({
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      body: docObj,
+      id: doc.id
+    });
     return doc;
   } catch (err) {
     throw err
