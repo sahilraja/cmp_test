@@ -602,7 +602,7 @@ export async function addUtilizedInstallment(projectId: string, payload: any, us
   return updated
 }
 
-export async function getInstallments(projectId: string, search: string) {
+export async function getInstallments(projectId: string) {
   const [projectDetail, phases]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     phaseSchema.find({}).exec()
