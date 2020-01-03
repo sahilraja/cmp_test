@@ -144,6 +144,8 @@ paths:
     $ref: ./swagger/projects/paths.yaml/#/getProjectMemberDetails
   /project/city/code/list:
     $ref: ./swagger/projects/paths.yaml/#/projectCodeList
+  /project/cities/list:
+    $ref: ./swagger/projects/paths.yaml/#/citiesList
   /project/{id}/task-list:
     $ref: ./swagger/projects/paths.yaml/#/getProjectTaskList
   /project/{id}/create-task:

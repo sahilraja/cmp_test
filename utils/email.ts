@@ -2,49 +2,41 @@ import { constantSchema } from "../site-constants/model";
 
 var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
+let EMAIL: string
+let PASSWORD: string
+if (process.env.EMAI_ENV == "UAT") {
+  EMAIL = process.env.EMAIL || "cmp@niua.org";
+  PASSWORD = process.env.PASSWORD || "hahahaha"
+} else {
+  // EMAIL = process.env.EMAIL || `testmailm588@gmail.com`;
+  // PASSWORD = process.env.PASSWORD || 'Hello@123';
 
-// const EMAIL = process.env.EMAIL || "cmp@niua.org";
-// const PASSWORD = process.env.PASSWORD || "hahahaha"
+  EMAIL = process.env.EMAIL || `tcmpemail@gmail.com`;
+  PASSWORD = process.env.PASSWORD || 'Hello@12';
+}
 
-// const EMAIL = process.env.EMAIL || `testmailm588@gmail.com`;
-// const PASSWORD = process.env.PASSWORD || 'Hello@123';
-
-const EMAIL = process.env.EMAIL || `tcmpemail@gmail.com`;
-const PASSWORD = process.env.PASSWORD || 'Hello@12';
-
-// let transport = process.env.EMAIL ? smtpTransport({
-//   host: 'smtp.rediffmailpro.com',
-//   port: '587',
-//   auth: {
-//     user: EMAIL,
-//     pass: PASSWORD
-//   }
-// }) : {
-//     service: 'gmail',
-//     auth: {
-//       user: EMAIL,
-//       pass: PASSWORD
-//     }
-//   }
+let transport = process.env.EMAI_ENV == "UAT" ? smtpTransport({
+  host: 'smtp.rediffmailpro.com',
+  port: '465',
+  secure: true,
+  auth: {
+    user: EMAIL,
+    pass: PASSWORD
+  }
+}) : {
+    host: 'smtp.gmail.com',
+    port: '587',
+    auth: {
+      user: EMAIL,
+      pass: PASSWORD
+    }
+  }
 
 export async function nodemail(objBody: any) {
   try {
     let constants: any = await constantSchema.findOne({ key: 'bcc' }).exec();
     let transporter = nodemailer.createTransport(
-      smtpTransport({
-        
-        // Uat
-        // host: 'smtp.rediffmailpro.com',
-        // port: '465',
-        // secure: true,
-        // Dev
-        host: 'smtp.gmail.com',
-        port: '587',
-        auth: {
-          user: EMAIL,
-          pass: PASSWORD
-        }
-      })
+      transport
     );
     var mailOptions = {
       from: EMAIL,

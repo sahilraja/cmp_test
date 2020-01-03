@@ -816,3 +816,20 @@
                 $ref: ./schema.yaml/#/responses/schemas/projectSchema
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"
+  
+  citiesList:
+    get:
+      security:
+        - token: []
+      summary: Get cities list
+      tags:
+        - PROJECT
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/city_names
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

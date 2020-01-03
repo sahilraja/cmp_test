@@ -175,5 +175,8 @@ responses:
           example: Andhra Pradesh
         cities:
           type: array
-              items:
-                type: string
+          items:
+            type: string
+          example:
+            - Vizag
+            - Vizianagaram
