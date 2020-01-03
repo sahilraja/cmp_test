@@ -1,7 +1,7 @@
 import { documents } from "./model";
 import { folders } from "./folder-model";
 import * as http from "http";
-import { Types, STATES, set } from "mongoose";
+import { Types, STATES, set, disconnect } from "mongoose";
 import { userRoleAndScope } from "../role/module";
 import { tags as Tags, tags } from "../tags/tag_model";
 import { themes } from "../project/theme_model";
@@ -144,7 +144,8 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       createdAt: doc.createdAt,
       id: doc.id,
       groupId: [],
-      groupName: []
+      groupName: [],
+      createdBy: userId
     }
     let result = await esClient.index({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
@@ -2694,7 +2695,8 @@ export async function searchDoc(search: string, userId: string, page: number = 1
        updatedAt: doc._source.updatedAt,
        createdAt: doc._source.createdAt,
        groupId:doc._source.groupId,
-       groupName: doc._source.groupName
+       groupName: doc._source.groupName,
+       createdByMe: doc._source.createdBy==userId
      } })
     if (pagination == true) return manualPagination(page, limit, searchResult);
     else return { docs: searchResult };
