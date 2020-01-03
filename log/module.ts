@@ -40,7 +40,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
     const subTaskIds = activities.reduce((p: any, activity: any) => {
         p = p.concat([activity.subTask, ...(activity.linkedTasks || []), ...(activity.unlinkedTasks || [])])
         return p
-    },[]).filter((v:any) => !!v)
+    }, []).filter((v: any) => !!v)
     const [usersInfo, subTasks] = await Promise.all([
         userFindMany('_id', userIds, { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 }),
         getTasksByIds(subTaskIds, token)
@@ -68,6 +68,7 @@ export async function getDocumentsLogs(docId: string, token: string, userObj: an
         return await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
+
     } catch (err) {
         throw err
     };
@@ -114,7 +115,7 @@ async function profileFetchDetails(activity: any) {
         return {
             ...activity,
             activityBy: userObj.find((users: any) => activity.activityBy == users._id),
-            profileId: (activity.profileId) ? {firstName:'', lastName:'', middleName:'', email:'' ,...userObj.find((users: any) => activity.profileId == users._id)} : ""
+            profileId: (activity.profileId) ? { firstName: '', lastName: '', middleName: '', email: '', ...userObj.find((users: any) => activity.profileId == users._id) } : ""
         }
     } catch (err) {
         throw err;
@@ -124,7 +125,7 @@ async function profileFetchDetails(activity: any) {
 
 export async function getMergedLogs() {
     try {
-        const activities: any[] = await ActivitySchema.find({ activityType: "MERGED-TAG" }, { activityType: 1, activityBy: 1, mergedTag: 1, tagsToMerge: 1, updatedAt:1, createdAt:1 }).exec()
+        const activities: any[] = await ActivitySchema.find({ activityType: "MERGED-TAG" }, { activityType: 1, activityBy: 1, mergedTag: 1, tagsToMerge: 1, updatedAt: 1, createdAt: 1 }).exec()
         return await Promise.all(activities.map((activity: any) => {
             return profileFetchDetails(activity.toJSON())
         }))
@@ -133,13 +134,13 @@ export async function getMergedLogs() {
     };
 }
 
-export async function projectLogs(projectId: string, token: string,userObj: any) {
+export async function projectLogs(projectId: string, token: string, userObj: any) {
     try {
         const isEligible = await checkRoleScope(userObj.role, `project-activity-log`)
         if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
 
         const activities: any[] = await ActivitySchema.find({ projectId }).populate({ path: 'projectId' }).exec()
-        let taskObjects: any[] = await getTasksByIds([...new Set((activities.reduce((main, curr)=> main.concat([curr.taskId]), [])).filter((id: string) => Types.ObjectId(id)))] as any, token)
+        let taskObjects: any[] = await getTasksByIds([...new Set((activities.reduce((main, curr) => main.concat([curr.taskId]), [])).filter((id: string) => Types.ObjectId(id)))] as any, token)
         return await Promise.all(activities.map((activity: any) => {
             return fetchProjectLogDetails(activity.toJSON(), taskObjects)
         }))
@@ -156,9 +157,107 @@ async function fetchProjectLogDetails(activity: any, taskObjects: any[]) {
             activityBy: userObj.find(({ _id }: any) => _id == activity.activityBy),
             addedUserIds: userObj.filter(({ _id }: any) => (activity.addedUserIds || []).includes(_id)),
             removedUserIds: userObj.filter(({ _id }: any) => (activity.removedUserIds || []).includes(_id)),
-            taskId: taskObjects.find(({_id}: any)=> activity.taskId == _id)
+            taskId: taskObjects.find(({ _id }: any) => activity.taskId == _id)
         };
     } catch (err) {
         throw err
     };
 };
+
+function getFormantedDocLogs(activityLog: any) {
+    switch (activityLog.activityType) {
+        case 'DOCUMENT_CREATED':
+            return `${UserFullName(activityLog.activityBy)} created the document`;
+
+        case 'DOCUMENT_UPDATED':
+            return `${UserFullName(activityLog.activityBy)} updated the document`;
+
+        case 'CANCEL_UPDATED':
+            return `${UserFullName(activityLog.activityBy)} canceled the document update`;
+
+        case 'TAGS_ADDED':
+            return `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
+
+        case 'TAGS_REMOVED':
+            return `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} to the document`;
+
+        case 'MODIFIED_USER_SHARED_AS_VIEWER':
+            return `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+
+        case 'MODIFIED_USER_SHARED_AS_COLLABORATOR':
+            return `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+
+        case 'MODIFIED_GROUP_SHARED_AS_VIEWER':
+            return `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+
+        case 'MODIFIED_GROUP_SHARED_AS_COLLABORATOR':
+            return `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+
+        case 'DOCUMENT_SHARED_AS_VIEWER':
+            return `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with view access`;
+
+        case 'DOCUMENT_SHARED_AS_COLLABORATOR':
+            return `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with edit access`;
+
+        case 'REMOVED_USER_FROM_DOCUMENT':
+            return `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+
+        case 'REMOVED_GROUP_FROM_DOCUMENT':
+            return `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+
+        case 'DOUCMENT_PUBLISHED':
+            return `${UserFullName(activityLog.activityBy)} published the document`;
+
+        case 'DOUCMENT_UNPUBLISHED':
+            return `${UserFullName(activityLog.activityBy)} unpublished the document`;
+
+        case 'DOUCMENT_REPLACED':
+            return `${UserFullName(activityLog.activityBy)} replaced the document`;
+
+        case 'DOCUMENT_DELETED':
+            return `${UserFullName(activityLog.activityBy)} deleted the document`;
+
+        case 'DOCUMENT_VIEWED':
+            return `${UserFullName(activityLog.activityBy)} viewed the document`;
+
+        case 'DOCUMENT_COMMENT':
+            return `${UserFullName(activityLog.activityBy)} added a comment`;
+
+        case 'DOCUMENT_DOWNLOAD':
+            return `${UserFullName(activityLog.activityBy)} Dowloaded a document`;
+
+        case "TAGS_ADD_AND_REMOVED":
+            return `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} to  the document`
+
+        default:
+            return;
+    }
+}
+
+function UserFullName({ firstName, middleName, lastName }: any) {
+    return (firstName ? firstName + " " : "") + (middleName ? middleName + " " : "") + (lastName ? lastName : "");
+}
+
+function getTagName(tagsArr: any[]) {
+    let namesArr: Array<any> = [];
+    let namesStr: string;
+    tagsArr.map(item => {
+        namesArr.push(item.tag);
+    });
+    namesStr = namesArr.join();
+    return namesStr;
+}
+
+function getNamesFromIds(userIdsArr: []) {
+    let namesArr: Array<any> = [];
+    let namesStr: string;
+    userIdsArr.map((item: any) => {
+        if (item.firstName && item.lastName) {
+            namesArr.push(`${item.firstName} ${item.lastName} `);
+        } else {
+            namesArr.push(item.name)
+        }
+    });
+    namesStr = namesArr.join();
+    return namesStr;
+}

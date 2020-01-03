@@ -23,8 +23,8 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
         if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error(PRIVATE_MEMBER.CREATE.INVALID_NAME)
         // await validatePrivateMembersConstants(body);
         if (body.members.includes(userObj._id)) throw new Error(PRIVATE_MEMBER.CREATE.OWNER_NOT_PRIVATE_MEMBER)
-        let existGroups = await privateGroupSchema.find({ name: body.name, createdBy: userObj._id, is_active: true })
-        if (existGroups.length) throw new Error(PRIVATE_MEMBER.CREATE.GROUP_NAME_EXIST)
+        // let existGroups = await privateGroupSchema.find({ name: body.name, createdBy: userObj._id, is_active: true })
+        // if (existGroups.length) throw new Error(PRIVATE_MEMBER.CREATE.GROUP_NAME_EXIST)
         return privateGroupSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
