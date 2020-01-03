@@ -1344,14 +1344,14 @@ export async function addFunds(projectId: string, payload: any, user: any) {
     }, [])
     console.log(fundsData,"fundsData");
     
-    if(payload.installment == (updates.funds.length-1)){
+    if(payload.installment == (updates.funds.length)){
       let finalInstallmentFunds:any = fundsData.filter((eachfund: any) => eachfund.installment == payload.installment)
       console.log(finalInstallmentFunds,"finalInstallmentFunds");
       
-      if(finalInstallmentFunds[0].cumulativeDifference< 0){
+      if(finalInstallmentFunds.length && finalInstallmentFunds[0].cumulativeDifference< 0){
         throw new Error(`Released Amount exceeded CitiisGrants, Exceeded Amount is ${finalInstallmentFunds[0].cumulativeDifference}`)
       }
-      if(finalInstallmentFunds[0].cumulativeDifference>0){
+      if(finalInstallmentFunds.length && finalInstallmentFunds[0].cumulativeDifference>0){
         throw new Error(`Released Amount is less than CitiisGrants,Please add ${finalInstallmentFunds[0].cumulativeDifference} amount`)
       }
     }
