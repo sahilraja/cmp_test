@@ -113,7 +113,7 @@ router.post('/edit/:id', authenticate, async (req: Request, res: Response, next:
             payload = JSON.stringify(req.body)
         }
         //req.body.profilePic = JSON.parse(imageObj).id
-        res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user,(req as any).token ));
+        res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user, (req as any).token));
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -137,10 +137,10 @@ router.post('/email/login', ipMiddleware, async (req: Request, res: Response, ne
     };
 });
 
-router.post("/email/logout", ipMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.post("/email/logout", authenticate, ipMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if(!req.query.userId) throw new Error("required userId")
-        res.status(200).send(await userLogout(req, req.query.userId))
+        if (!req.query.userId) throw new Error("required userId")
+        res.status(200).send(await userLogout(req, req.query.userId || res.locals.user._id, req.token))
     } catch (err) {
         next(new APIError(err.message))
     }
@@ -471,8 +471,8 @@ router.get("/task-endorse/send-otp", authenticate, async (req, res, next) => {
 
 router.post("/task-endorse/verify-otp", authenticate, async (req, res, next) => {
     try {
-        const verifiedToken = await mobileVerifyOtp(req.body.phone, req.body.otp,res.locals.user._id)
-        await updateTaskEndorser(res.locals.user._id, req.query.task, (req as  any).token)
+        const verifiedToken = await mobileVerifyOtp(req.body.phone, req.body.otp, res.locals.user._id)
+        await updateTaskEndorser(res.locals.user._id, req.query.task, (req as any).token)
         res.status(OK).send(verifiedToken);
     }
     catch (error) {
