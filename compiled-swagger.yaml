@@ -2117,18 +2117,20 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  state:
-                    type: string
-                    example: Andhra Pradesh
-                  cities:
-                    type: array
-                    items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    state:
                       type: string
-                    example:
-                      - Vizag
-                      - Vizianagaram
+                      example: Andhra Pradesh
+                    cities:
+                      type: array
+                      items:
+                        type: string
+                      example:
+                        - Vizag
+                        - Vizianagaram
         '400':
           $ref: '#/definitions/ErrorResponse/BadRequest'
   '/project/{id}/task-list':
