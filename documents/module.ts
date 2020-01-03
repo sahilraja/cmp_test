@@ -2696,7 +2696,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
        createdAt: doc._source.createdAt,
        groupId:doc._source.groupId,
        groupName: doc._source.groupName,
-       createdByMe: doc._source.createdBy?doc._source.createdBy==userId:null
+       createdByMe: doc._source.createdBy==userId
      } })
     if (pagination == true) return manualPagination(page, limit, searchResult);
     else return { docs: searchResult };
