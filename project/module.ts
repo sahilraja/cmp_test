@@ -1339,7 +1339,7 @@ export async function addFunds(projectId: string, payload: any, user: any) {
         fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
         difference: difference,
         cumulativeDifference: (p.cumulativeDifference || 0) + difference,
-        installment: installmentType,
+        installment: fund.installment,
         percentage: fund.percentage,
         releasedItems,
         installmentLevelTotalReleased: releasedItems.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
