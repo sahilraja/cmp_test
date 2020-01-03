@@ -1331,6 +1331,10 @@ export async function addFunds(projectId: string, payload: any, user: any) {
         (!_fund.deletedReleased && _fund.subInstallment && (_fund.installment == fund.installment)
         )).map((item: any) => ({ ...item.toJSON()})) 
       let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost
+      console.log(fund.releasedCost,"fund.releasedCost");
+      console.log(difference,"difference");
+      
+      
       p.push({
         fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
         difference: difference,
