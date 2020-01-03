@@ -1342,8 +1342,12 @@ export async function addFunds(projectId: string, payload: any, user: any) {
       })
       return p
     }, [])
+    console.log(fundsData,"fundsData");
+    
     if(payload.installment == (updates.funds.length-1)){
       let finalInstallmentFunds:any = fundsData.filter((eachfund: any) => eachfund.installment == payload.installment)
+      console.log(finalInstallmentFunds,"finalInstallmentFunds");
+      
       if(finalInstallmentFunds[0].cumulativeDifference< 0){
         throw new Error(`Released Amount exceeded CitiisGrants, Exceeded Amount is ${finalInstallmentFunds[0].cumulativeDifference}`)
       }
