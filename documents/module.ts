@@ -2686,7 +2686,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
        _id: doc._source.id,
        accessedBy: doc._source.accessedBy,
        userName:doc._source.userName,
-       name: doc._source.userName,
+       name: doc._source.name,
        description: doc._source.description,
        tags:doc._source.tags,
        thumbnail: doc._source.thumbnail, 
@@ -3002,7 +3002,8 @@ async function getShareInfoForEachDocument(doc: any, host: string) {
     createdAt: doc.createdAt,
     id: doc.id,
     groupId: groupIds,
-    groupName: groupsInfo.map((group: any) => group.name)
+    groupName: groupsInfo.map((group: any) => group.name),
+    createdBy: doc.ownerId
   }
 }
 
