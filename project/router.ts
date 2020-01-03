@@ -82,7 +82,7 @@ router.post(`/:id/add-utilized-installment`, async (req, res, next) => {
 
 router.get(`/:id/installments`, async (req, res, next) => {
     try {
-        res.status(OK).send(await getInstallments(req.params.id, req.query.search))
+        res.status(OK).send(await getInstallments(req.params.id))
     } catch (error) {
         next(new APIError(error.message))
     }
