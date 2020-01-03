@@ -2681,7 +2681,21 @@ export async function searchDoc(search: string, userId: string, page: number = 1
       size: 1000,
       body: data
     });
-    let searchResult = searchdoc.hits.hits.map((doc: any) => { return { _id: doc._source.id, source: doc._source } })
+    let searchResult = searchdoc.hits.hits.map((doc: any) => { return {
+       _id: doc._source.id,
+       accessedBy: doc._source.accessedBy,
+       userName:doc._source.userName,
+       name: doc._source.userName,
+       description: doc._source.description,
+       tags:doc._source.tags,
+       thumbnail: doc._source.thumbnail, 
+       status: doc._source.status,
+       fileName:doc._source.fileName,
+       updatedAt: doc._source.updatedAt,
+       createdAt: doc._source.createdAt,
+       groupId:doc._source.groupId,
+       groupName: doc._source.groupName
+     } })
     if (pagination == true) return manualPagination(page, limit, searchResult);
     else return { docs: searchResult };
   } catch (error) {
