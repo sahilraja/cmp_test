@@ -1126,6 +1126,10 @@ export async function citiisGrantsInfo(projectId: string, citiisGrants: number, 
     if ((projectInfo as any).projectCost < citiisGrants) {
       throw new APIError(PROJECT_ROUTER.CITIIS_GRANTS_VALIDATION)
     }
+    let totalFundData:any  = await getTotalReleasedFunds(projectId)
+    if(totalFundData.funds.totalReleased>citiisGrants){
+      throw new Error("CitiiesGrant must not be less then Released Funds")
+    }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
     createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost: citiisGrants, projectId })
 
@@ -1279,29 +1283,6 @@ export async function addInstallments(projectId: string, payload: any, user?: an
   return updated
 }
 
-// export async function addInstallments(projectId: string, payload: any, user?: any) {
-//   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
-
-//   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
-//   if (!isEligible) {
-//     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
-//   }
-//   const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
-//     if (!fund.phase) {
-//       throw new APIError(`Phase is required`)
-//     }
-//     if (!fund.percentage) {
-//       throw new APIError(`Percentage is required`)
-//     }
-//     return { ...fund, installment: index + 1 }
-//   })
-//   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
-//   if (overAllPercentage > 100) {
-//     throw new APIError(`Percentage should not exceed 100`)
-//   }
-//   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload} }, { new: true }).exec()
-//   return updated
-// }
 
 export async function addFunds(projectId: string, payload: any, user: any) {
   if (!payload.installment) {
@@ -1314,13 +1295,16 @@ export async function addFunds(projectId: string, payload: any, user: any) {
   if (!fund) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { funds } = fund
+  const { funds, projectCost, citiisGrants } = fund
   const otherFunds = funds.filter((fund: any) => fund.installment != payload.installment)
   const matchedFunds = funds.filter((fund: any) => fund.installment == payload.installment)
   if (payload.releasedCost && payload.releasedDocuments) {
     const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
     if (!isEligible) {
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+    }
+    if(citiisGrants<payload.releasedCost){
+        throw new Error("Released Amount should not exceed CitiisGrants")
     }
     let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].releasedCost ? [] : matchedFunds
     const updates = {
@@ -1341,6 +1325,33 @@ export async function addFunds(projectId: string, payload: any, user: any) {
         }
       ]).sort((a: any, b: any) => a.installment - b.installment)
     }
+    let fundsData = updates.funds.reduce((p: any, fund: any) => {
+      const { installmentType } = getPercentageByInstallment(fund.installment)
+      const releasedItems = funds.filter((_fund: any) =>
+        (!_fund.deletedReleased && _fund.subInstallment && (_fund.installment == fund.installment)
+        )).map((item: any) => ({ ...item.toJSON()})) 
+      let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost
+      p.push({
+        fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
+        difference: difference,
+        cumulativeDifference: (p.cumulativeDifference || 0) + difference,
+        installment: installmentType,
+        percentage: fund.percentage,
+        releasedItems,
+        installmentLevelTotalReleased: releasedItems.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
+      })
+      return p
+    }, [])
+    if(payload.installment == (updates.funds.length-1)){
+      let finalInstallmentFunds:any = fundsData.filter((eachfund: any) => eachfund.installment == payload.installment)
+      if(finalInstallmentFunds[0].cumulativeDifference< 0){
+        throw new Error(`Released Amount exceeded CitiisGrants, Exceeded Amount is ${finalInstallmentFunds[0].cumulativeDifference}`)
+      }
+      if(finalInstallmentFunds[0].cumulativeDifference>0){
+        throw new Error(`Released Amount is less than CitiisGrants,Please add ${finalInstallmentFunds[0].cumulativeDifference} amount`)
+      }
+    }
+
     const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
     createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.releasedCost, activityBy: user._id })
     return updatedFund
@@ -1517,9 +1528,58 @@ export async function addInstallmentsNew(projectId: string, payload: any, user?:
     return { ...fund, installment: index + 1 }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
-  if (overAllPercentage > 100) {
-    throw new APIError(`Percentage should not exceed 100`)
+  if (overAllPercentage != 100) {
+    throw new APIError(`Overall Percentage should be 100`)
   }
   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { funds: finalPayload } }, { new: true }).exec()
   return updated
+}
+
+export async function getTotalReleasedFunds(projectId: string) {
+  const projectDetail = await ProjectSchema.findById(projectId).exec()
+  const { fundsReleased, fundsUtilised, funds, projectCost, citiisGrants }: any = projectDetail
+  const documentIds = funds.map((fund: any) => (fund.releasedDocuments || []).concat(fund.utilisedDocuments || [])).reduce((p: any, c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
+  const documents = await documentsList(documentIds)
+  let phases = await phaseSchema.find({}).exec()
+  let fundsData = funds.reduce((p: any, fund: any) => {
+    const { installmentType } = getPercentageByInstallment(fund.installment)
+    const releasedItems = funds.filter((_fund: any) =>
+      (!_fund.deletedReleased && _fund.subInstallment && (_fund.installment == fund.installment)
+      )).map((item: any) => ({ ...item.toJSON(), releasedDocuments: documents.filter((d: any) => (item.releasedDocuments || []).includes(d.id)) }))
+    const utilisedItems = funds.filter((_fund: any) =>
+      (!_fund.deletedUtilised && _fund.subInstallment && (_fund.installment == fund.installment)
+      )).map((item: any) => ({ ...item.toJSON(), utilisedDocuments: documents.filter((d: any) => (item.utilisedDocuments || []).includes(d.id)), }))
+
+    let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost
+    p.push({
+      fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
+      difference: difference,
+      cumulativeDifference: (p.cumulativeDifference || 0) + difference,
+      phase: phases.find(phase => phase.id == fund.phase),
+      installment: installmentType,
+      percentage: fund.percentage,
+      // Filter empty data
+      releasedItems,
+      utilisedItems,
+      installmentLevelTotalReleased: releasedItems.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
+      installmentLevelTotalUtilised: utilisedItems.reduce((p: number, item: any) => p + (item.utilisedCost || 0), 0)
+    })
+    return p
+  }, [])
+  let ins: any = []
+  fundsData = fundsData.filter((f: any) => {
+    if (!ins.includes(f.installment)) {
+      ins.push(f.installment)
+      return f
+    }
+  })
+  return {
+    projectCost: projectCost,
+    citiisGrants: citiisGrants,
+    funds: {
+      info: fundsData,
+      totalReleased: fundsData.reduce((p: number, c: any) => p + c.installmentLevelTotalReleased, 0),
+      totalUtilised: fundsData.reduce((p: number, c: any) => p + c.installmentLevelTotalUtilised, 0)
+    }
+  }
 }
