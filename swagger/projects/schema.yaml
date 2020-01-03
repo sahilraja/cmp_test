@@ -166,3 +166,14 @@ responses:
         phase:
           type: string
           example: phase id
+
+    city_names:
+      type: object
+      properties:
+        state: 
+          type: string
+          example: Andhra Pradesh
+        cities:
+          type: array
+              items:
+                type: string
