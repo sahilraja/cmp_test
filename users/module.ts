@@ -422,10 +422,10 @@ export async function user_login(req: any) {
     };
 };
 
-export async function userLogout(req: any, userId: any) {
+export async function userLogout(req: any, userId: any, token: any) {
     try {
         await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userId, type: "LOGOUT" });
-        await RefreshTokenSchema.deleteMany({userId}).exec()
+        await RefreshTokenSchema.findOneAndRemove({access_token: token}).exec()
         return { message: "logout successfully." }
     } catch (err) {
         throw err;

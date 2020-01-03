@@ -1965,7 +1965,7 @@ export async function shareDocForUsersNew(obj: any, userObj: any) {
     } if ("edit" in obj && obj.edit.length) {
       await Promise.all(obj.edit.map((obj: any) => invitePeopleEdit(obj.docId, obj.userId, obj.type, obj.role, userObj)))
     } if ("remove" in obj && obj.edit.length) {
-      await Promise.all(obj.edit.map((obj: any) => invitePeopleRemove(obj.docId, obj.userId, obj.type, obj.role, userObj)))
+      await Promise.all(obj.remove.map((obj: any) => invitePeopleRemove(obj.docId, obj.userId, obj.type, obj.role, userObj)))
     }
     return { message: "successfully updated the roles." }
   } catch (err) {
