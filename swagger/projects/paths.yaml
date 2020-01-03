@@ -830,6 +830,8 @@
           content:
             application/json:
               schema:
-                $ref: ./schema.yaml/#/responses/schemas/city_names
+                type: array
+                items:
+                  $ref: ./schema.yaml/#/responses/schemas/city_names
         "400":
           $ref: "#/definitions/ErrorResponse/BadRequest"

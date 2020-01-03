@@ -57,6 +57,7 @@ export async function authenticate(req: any, res: any, next: any) {
             console.error(`user ${user._id} session inactive from last ${systemTimeOut} `)
             next(new APIError(`Your session has timed out. Please login again.`, 401))
         }
+        if(!tokenData) next(new APIError(`Your session has logout. Please login again.`, 401))
         tokenData.set('lastUsedAt', new Date())
         await tokenData.save()
         user.role = ((((await userRoleAndScope(token.id))) as any).data || [""])[0];

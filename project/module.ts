@@ -391,8 +391,9 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible1 || isEligible2) {
       query = {}
     }
-    let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }, populate: "phases" })
+    let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }})
     const projectIds = (list || []).map((_list) => _list.id);
+    list = await Promise.all(list.map((proObj)=>mapPhases(proObj)))
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
@@ -400,10 +401,14 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
   }
 }
 
+async function mapPhases(projectObj: any){
+  return {...projectObj.toJSON(), phases: await listPhasesOfProject(projectObj._id)}
+} 
+
 function getCurrentPhase(projectObj: any) {
-  return projectObj.phases && projectObj.phases.length ? projectObj.phases.find((phaseObj: any) => {
-    new Date(phaseObj.startDate) >= new Date() && new Date(phaseObj.endDate) <= new Date()
-  }) : {}
+  return (projectObj.phases && projectObj.phases.length ? projectObj.phases.find((phaseObj: any) =>
+    (new Date(phaseObj.startDate) <= new Date() && new Date(phaseObj.endDate) >= new Date())
+  ) : {})
 }
 
 async function mapProgressPercentageForProjects(projectIds: string[], userToken: string, list: any[]) {
@@ -417,8 +422,8 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
   return (list || []).map((_list) => {
     const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id && task.status != 8)
     return ({
-      ..._list.toJSON(), progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0,
-      phase: getCurrentPhase(_list.toJSON())
+      ..._list, progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0,
+      phase: getCurrentPhase(_list) || {}
     })
   })
 }
@@ -427,7 +432,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 export async function getProjectDetail(projectId: string, userToken: string) {
   try {
     let projectDetail: any = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
-    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
+    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail.toJSON()]))[0]
   } catch (error) {
     console.error(error)
     throw error
@@ -1246,7 +1251,7 @@ function formatAndValidatePhasePayload(payload: any) {
     return {
       phase: _data.phase,
       startDate: new Date(new Date(_data.startDate).setHours(0, 0, 0, 0)),
-      endDate: new Date(new Date(_data.startDate).setHours(23, 59, 59, 0)),
+      endDate: new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)),
     }
   })
 }
