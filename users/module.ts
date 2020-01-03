@@ -811,6 +811,7 @@ export async function formateRoles(roles: string[]) {
     };
 };
 
+
 export async function changeRoleToReplaceUser(oldUserId: string, newUserId: string) {
     try {
         let [oldUserRoles, newUserRoles] = await Promise.all([getUserRoles(oldUserId), getUserRoles(newUserId)])
@@ -836,7 +837,7 @@ function userSort(data: any[], email: boolean = false) {
     };
 };
 
-async function userFindManyWithRole(userIds: string[]) {
+export async function userFindManyWithRole(userIds: string[]) {
     try {
         let users = await userFindMany("_id", userIds, { name: 1, firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 })
         return await Promise.all(users.map((user: any) => userWithRoleAndType(user)))
@@ -850,7 +851,7 @@ async function userWithRoleAndType(userObject: any) {
         return {
             ...userObject,
             type: "user",
-            role: ((await userRoleAndScope(userObject._id) as any).data || [""])[0]
+            role: await formateRoles(((await userRoleAndScope(userObject._id) as any).data || [""])[0])
         }
     } catch (err) {
         throw err

@@ -91,7 +91,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
     if (body.description.length > Number(siteConstant.docDescriptionSize || configLimit.description)) {
       throw new Error(DOCUMENT_ROUTER.DOCUMENT_DESCRIPTION_LENGTH(siteConstant.docDescriptionSize))
     }
-    let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, name: body.docName.toLowerCase() }).exec()
+    let data = await documents.find({ isDeleted: false, parentId: null, ownerId: userId, codeName: body.docName.toLowerCase() }).exec()
     if (data.length) throw new Error(DOCUMENT_ROUTER.DOCUMENT_NAME_UNIQUE(body.docName));
 
     body.tags = (Array.isArray(body.tags) ? body.tags : typeof (body.tags) == "string" && body.tags.length ? body.tags.includes("[") ? JSON.parse(body.tags) : body.tags = body.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
@@ -146,11 +146,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupId: [],
       groupName: []
     }
-    let result = await esClient.index({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      body: docObj,
-      id: doc.id
-    });
+    // let result = await esClient.index({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   body: docObj,
+    //   id: doc.id
+    // });
     return doc;
   } catch (err) {
     throw err
@@ -194,6 +194,7 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
   try {
     return await documents.create({
       name: body.docName || body.name,
+      codeName: body.docName || body.name,
       description: body.description || null,
       tags: body.tags,
       versionNum: "1",
@@ -359,6 +360,7 @@ export async function createNewVersion(
     if (!docDetails) throw new Error("Document Not Exist.");
     let createNewDoc: any = await documents.create({
       name: obj.name,
+      codeName: obj.name,
       description: obj.description,
       themes: obj.themes,
       tags: obj.tags,
@@ -560,6 +562,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
     let parent: any = await documents.findByIdAndUpdate(docId, obj, { new: true }).exec()
     await documents.create({
       name: parent.name,
+      codeName: parent.name,
       description: parent.description,
       tags: parent.tags,
       versionNum: Number(child[0].versionNum) + 1,
@@ -615,7 +618,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (objBody.docName) {
       if (objBody.docName && (/[ ]{2,}/.test(objBody.docName) || !/[A-Za-z0-9  -]+$/.test(objBody.docName))) throw new Error("you have entered invalid name. please try again.")
       if (objBody.docName.length > Number(siteConstants.docNameLength || configLimit.name)) throw new Error(`Document name should not exceed more than ${siteConstants.docNameLength} characters`);
-      let data = await documents.findOne({ _id: { $ne: docId }, isDeleted: false, parentId: null, ownerId: userId, name: objBody.docName.toLowerCase() }).exec()
+      let data = await documents.findOne({ _id: { $ne: docId }, isDeleted: false, parentId: null, ownerId: userId, codeName: objBody.docName.toLowerCase() }).exec()
       if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
@@ -652,6 +655,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (objBody.description || objBody.docName || objBody.id) {
       await documents.create({
         name: parent.name,
+        codeName: parent.name,
         description: parent.description,
         tags: parent.tags,
         versionNum: Number(child[0].versionNum) + 1,
@@ -1342,6 +1346,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
     let createdDoc: any = await documents.create({
       sourceId: docId || null,
       name: body.name || doc.name,
+      codeName: body.name || doc.name,
       description: body.description || doc.description,
       themes: body.themes || doc.theme,
       tags: body.tags || doc.tags,

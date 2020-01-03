@@ -10,6 +10,9 @@ router.post("/:id/financial-info/instalment/create", authenticate, async (req: R
     try {
         res.status(OK).send(await financialInfoCreate(req.body, req.params.id, res.locals.user))
     } catch (err) {
+        if(err.code == 11000 || err.name == "ValidationError"){
+            err.message = "A Phase with same name already exists."
+        }
         next(new APIError(err.message));
     };
 });
@@ -20,6 +23,9 @@ router.post("/:id/financial-info/:financialId/instalment/edit", authenticate, as
         const { id: projectId, financialId } = req.params
         res.status(OK).send(await financialInfoEdit(projectId, financialId, req.body, res.locals.user))
     } catch (err) {
+        if(err.code == 11000 || err.name == "ValidationError"){
+            err.message = "A Phase with same name already exists."
+        }
         next(new APIError(err.message));
     };
 });

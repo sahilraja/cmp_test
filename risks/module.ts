@@ -4,6 +4,7 @@ import { APIError } from "../utils/custom-error";
 import { RISK } from "../utils/error_msg";
 import { userFindOne } from "../utils/users";
 import { dateDifference } from "../utils/utils";
+import { formateRoles, roleFormanting, userFindManyWithRole } from "../users/module";
 
 export async function create(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
@@ -24,7 +25,7 @@ export async function detail(riskId: string) {
     const detail: any = await RiskSchema.findById(riskId).populate({ path: 'phase' }).exec()
     const { riskOwner } = detail.toJSON()
     if (riskOwner) {
-        return { ...detail.toJSON(), riskOwner: await userFindOne('_id', riskOwner), age: dateDifference(detail.createdAt) }
+        return { ...detail.toJSON(), riskOwner: (await userFindManyWithRole(riskOwner) || [{}]).pop(), age: dateDifference(detail.createdAt) }
     }
     return detail
 }
