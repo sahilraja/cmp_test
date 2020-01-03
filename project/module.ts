@@ -1330,11 +1330,7 @@ export async function addFunds(projectId: string, payload: any, user: any) {
       const releasedItems = funds.filter((_fund: any) =>
         (!_fund.deletedReleased && _fund.subInstallment && (_fund.installment == fund.installment)
         )).map((item: any) => ({ ...item.toJSON()})) 
-      let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost
-      console.log(fund.releasedCost,"fund.releasedCost");
-      console.log(difference,"difference");
-      
-      
+      let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost      
       p.push({
         fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
         difference: difference,
@@ -1346,11 +1342,9 @@ export async function addFunds(projectId: string, payload: any, user: any) {
       })
       return p
     }, [])
-    console.log(fundsData,"fundsData");
     
     if(payload.installment == (updates.funds.length)){
       let finalInstallmentFunds:any = fundsData.filter((eachfund: any) => eachfund.installment == payload.installment)
-      console.log(finalInstallmentFunds,"finalInstallmentFunds");
       
       if(finalInstallmentFunds.length && finalInstallmentFunds[0].cumulativeDifference< 0){
         throw new Error(`Released Amount exceeded CitiisGrants, Exceeded Amount is ${finalInstallmentFunds[0].cumulativeDifference}`)
