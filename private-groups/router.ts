@@ -23,7 +23,7 @@ router.post("/create", authenticate, async (req: Request, res: Response, next: N
     try {
         res.status(OK).send(await createPrivateGroup(req.body, res.locals.user))
     } catch (err) {
-        if(err.code == 11000 || err.name == "ValidationError"){
+        if(err.code == 11000 ){
             err.message = PRIVATE_MEMBER.CREATE.GROUP_NAME_EXIST
         }
         next(new APIError(err.message));

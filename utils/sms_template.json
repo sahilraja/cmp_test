@@ -20,7 +20,7 @@
         "displayName" : "send otp"
     },
     {
-        "content" : "your Email ID has been changed to [newMail].",
+        "content" : "Your email has been changed to [newMail].",
         "templateName" : "changeEmailMessage",
         "displayName" : "change email notification"
     },
@@ -33,11 +33,6 @@
         "content" : "You have received a new message on CMP. Log on to view it.",
         "templateName" : "inboxMessage",
         "displayName" : "New Message"
-    },
-    {
-        "content" : "Your task [taskId] is updated on CMP. Log on to view it.",
-        "templateName" : "taskUpdate",
-        "subject" : "Task Updated"
     },
     {
         "content" : "You have a tag suggestion.You can click this [documentUrl] to view it.",
@@ -106,29 +101,24 @@
         "displayName" : "Task Assign"
     },
     {
-        "content" : "Status of [taskId] is updated on CMP",
+        "content" : "Status of task:[taskId] is updated on CMP",
         "templateName" : "taskProgress",
         "displayName" : "Update Task"
     },
     {
-        "content" : "A new document is attached to the task [taskId] on CMP.",
+        "content" : "A new document is attached to the task:[taskId] on CMP.",
         "templateName" : "docAddToTask",
         "displayName" : "Document attached"
     },
     {
-        "content" : "Another task is linked to the task [taskId] on CMP.",
+        "content" : "Another task is linked to the task:[taskId] on CMP.",
         "templateName" : "linkTask",
         "displayName" : "Link Task"
     },
     {
-        "content" : "New tag is added to [taskId] on CMP.",
+        "content" : "New tag is added to task:[taskId] on CMP.",
         "templateName" : "addTaskTag",
         "displayName" : "Add Tag"
-    },
-    {
-        "content" : "Name of the task [taskId] is updated on CMP.",
-        "templateName" : "updateTaskTitle",
-        "displayName" : "Update Task Title"
     },
     {
         "content" : "Due Date of the task [taskId] is updated on CMP.",
@@ -139,36 +129,6 @@
         "content" : "Start Date of the task [taskId] is updated on CMP.",
         "templateName" : "updateTaskStartDate",
         "displayName" : "Update Task Start Date"
-    },
-    {
-        "content" : "Description of the task [taskId] is updated on CMP.",
-        "templateName" : "updateTaskDescription",
-        "displayName" : "Update Task Description"
-    },
-    {
-        "content" : "Task - [taskId] in Maturation Phase is updated.",
-        "templateName" : "updateMaturationTask",
-        "displayName" : "Update Maturation Task"
-    },
-    {
-        "content" : "You have been added to the project [ProjectName] on CMP.",
-        "templateName" : "addToProject",
-        "displayName" : "Add to Project"
-    },
-    {
-        "content" : "Financial information of the project [ProjectName] is updated on CMP.",
-        "templateName" : "updateFinancial",
-        "displayName" : "Financial Information Updated"
-    },
-    {
-        "content" : "Risk factor is added to the project [ProjectName]",
-        "templateName" : "addRisk",
-        "displayName" : "Risk Factor"
-    },
-    {
-        "content" : "New comment(s) have been added to the project [ProjectName].",
-        "templateName" : "addOpenComment",
-        "displayName" : "Add Open Comment"
     },
     {
         "content" : "You have updated your user profile on CMP.",

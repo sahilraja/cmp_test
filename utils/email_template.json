@@ -162,12 +162,6 @@
         "subject" : "[CMP] New Tag Added to Task"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Name of the task <b>[taskId]</b> is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "updateTaskTitle",
-        "displayName" : "Update Task Title",
-        "subject" : "[CMP] Task Name Updated"
-    },
-    {
         "content" : "Dear <b>[fullName]</b>,<br/><br/>Due Date of the task <b>[taskId]</b> is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "updateTaskDueDate",
         "displayName" : "Update Task Duedate",
@@ -178,42 +172,6 @@
         "templateName" : "updateTaskStartDate",
         "displayName" : "Update Task Start date",
         "subject" : "[CMP] Task Start date Updated"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>A task <b>[taskId]</b> in the Maturation Phase of the Project [ProjectName] is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "updateTaskDescription",
-        "displayName" : "Update Task Description",
-        "subject" : "[CMP] Task Description Updated"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>A task <b>[taskId]</b> in the Maturation Phase of the Project [ProjectName] is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "updateMaturationTask",
-        "displayName" : "Update Maturation Task",
-        "subject" : "[CMP] Project Task Updated"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>You are added to the Project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "addToProject",
-        "displayName" : "Add to Project",
-        "subject" : "[CMP] New Project Added"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Financial Information is updated for the project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "updateFinancial",
-        "displayName" : "Financial Info Updated",
-        "subject" : "[CMP] Financial Information Updated"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Risk factor is added to the project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "addRisk",
-        "displayName" : "Risk Factor",
-        "subject" : "[CMP] Risk Status Updated"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/><br/>New comment(s) are added to the project [ProjectName] on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "addOpenComment",
-        "displayName" : "Add Open Comment",
-        "subject" : "[CMP] Comments Added to your Project"
     },
     {
         "content" : "Dear <b>[fullName]</b>,<br/><br/>You have updated your user profile on CITIIS Management Platform<br/><br/>Best Regards,<br/>CMP Administrator",
@@ -238,11 +196,5 @@
         "templateName" : "registrationSuccess",
         "displayName" : "Registration Success",
         "subject" : "Registration Confirmation for CITIIS Management Platform"
-    },
-    {
-        "templateName":"taskMembersUpdated",
-        "displayName":"Task Members Updated",
-        "subject":"Task Members Updated",
-        "content" : "Hi <b>[fullName]</b>, <br/><br/>Members updated for the task for the task <b>[taskId]</b>.<br/><br/>Best Regards,<br/>CITIIS Management Platform Team."
     }
 ]

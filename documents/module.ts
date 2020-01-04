@@ -84,7 +84,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
     if (!Object.keys(body).length || body.upfile == "undefined") throw new Error(DOCUMENT_ROUTER.UNABLE_TO_CREATE)
     const { id: fileId, name: fileName, size: fileSize } = body
     if (!body.docName) throw new Error(DOCUMENT_ROUTER.MANDATORY);
-    if (body.docName && (/[ ]{2,}/.test(body.docName) || !/[A-Za-z0-9  -]+$/.test(body.docName))) throw new Error("you have entered invalid name. please try again.")
+    if (body.docName && (/[ ]{2,}/.test(body.docName) || !/[A-Za-z0-9  -]+$/.test(body.docName))) throw new Error(DOCUMENT_ROUTER.NAME_ERROR)
     if (body.docName.length > Number(siteConstant.docNameLength || configLimit.name)) {
       throw new Error(DOCUMENT_ROUTER.DOCUMENT_NAME_LENGTH(siteConstant.docNameLength));
     }
@@ -170,10 +170,10 @@ export async function createDoc(body: any, userId: string) {
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     // if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error("you have entered invalid name. please try again.")
     if (body.name.length > configLimit.name) { // added config
-      throw new Error("Name " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      throw new Error(DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     if (body.description.length > configLimit.description) { // added config
-      throw new Error("Description " + DOCUMENT_ROUTER.LIMIT_EXCEEDED);
+      throw new Error(DOCUMENT_ROUTER.LIMIT_EXCEEDED);
     }
     let doc = await insertDOC(body, userId);
     body.parentId = doc.id;
@@ -345,7 +345,7 @@ export async function createNewVersion(
   obj: any
 ) {
   try {
-    if (!versionID) throw new Error("DocId Is Missing.");
+    if (!versionID) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let [docDetails, DocList]: any = await Promise.all([
       documents
         .findOne({
@@ -358,7 +358,7 @@ export async function createNewVersion(
         .sort({ createdAt: -1 })
         .exec()
     ]);
-    if (!docDetails) throw new Error("Document Not Exist.");
+    if (!docDetails) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     let createNewDoc: any = await documents.create({
       name: obj.name,
       codeName: obj.name,
@@ -382,7 +382,7 @@ export async function createNewVersion(
 //  Reject Document
 export async function RejectDoc(docId: string, versionId: string) {
   try {
-    if (!docId || !versionId) throw new Error("Missing fields");
+    if (!docId || !versionId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let [child, parentDoc]: any = await Promise.all([
       documents
         .findByIdAndUpdate(
@@ -408,7 +408,7 @@ export async function RejectDoc(docId: string, versionId: string) {
 // Approve Document
 export async function ApproveDoc(docId: string, versionId: string) {
   try {
-    if (!versionId || !docId) throw new Error("Missing DocID.");
+    if (!versionId || !docId) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let [child, parent] = await Promise.all([
       documents
         .findByIdAndUpdate(
@@ -508,11 +508,11 @@ export async function getDocumentById(docId: string): Promise<any> {
 
 export async function getDocumentVersionById(versionId: string): Promise<any> {
   if (!versionId) {
-    throw new Error("No document id given.");
+    throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
   }
   const doc = await documents.findById(versionId);
   if (!doc) {
-    throw new Error("No document found with given id");
+    throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
   }
   return doc;
 }
@@ -1085,7 +1085,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
         userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
       })
     );
-    let isDocExists = await checkDocIdExistsInEs(docId)
+    let isDocExists = false //await checkDocIdExistsInEs(docId)
     if (isDocExists) {
 
       if (groupIds.length && groupNames.length) {
@@ -2250,7 +2250,7 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
       userIds = userIds.concat(groupUsers.reduce((main: any[], curr: any) => main.concat(curr), []))
       users = await userFindMany("_id", userIds, selectFields);
       if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc") {
-        let actionedUsers = users.filter((user: any) => text.some((acUser: any) => acUser.id == user._id)).map((user: any) => `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`).join()
+        let actionedUsers = users.filter((user: any) => text.some((acUser: any) => acUser.id == user._id)).map((user: any) => `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`)
         users = users.filter((user: any) => docDetails.ownerId == user._id)
         sharedUsers = actionedUsers.length == 1 ? actionedUsers[0] : `${actionedUsers.slice(0, actionedUsers.lastIndexOf(",")) + " and " + actionedUsers.slice(actionedUsers.lastIndexOf(",") + 1)}`
         role = text[0].role
@@ -2259,8 +2259,9 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
     if (users.length) {
       let allMailContent = await Promise.all(users.map(async (user: any) => {
         let fullName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
-        let notificationMessage = (type == "invitePeopleDoc") ? DOC_NOTIFICATIONS.invitePeopleDoc(sharedUsers, role) : (DOC_NOTIFICATIONS as any)[type]
-        notificationMessage = (type == "documentUpdate") ? DOC_NOTIFICATIONS.documentUpdate(text) : (DOC_NOTIFICATIONS as any)[type]
+        let notificationMessage = (DOC_NOTIFICATIONS as any)[type]
+        if (type == "invitePeopleDoc") notificationMessage = DOC_NOTIFICATIONS.invitePeopleDoc(sharedUsers, role)
+        if (type == "documentUpdate") notificationMessage = DOC_NOTIFICATIONS.documentUpdate(text)
         webNotification({ notificationType: `DOCUMENTS`, userId: user._id, docId: docDetails._id, title: notificationMessage, from: actionUser })
         sendNotification({
           id: user._id,
