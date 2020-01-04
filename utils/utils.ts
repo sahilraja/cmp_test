@@ -53,7 +53,7 @@ export async function authenticate(req: any, res: any, next: any) {
         }
         const tokenData: any = await RefreshTokenSchema.findOne({ userId: user._id, access_token: bearerToken }).exec()
         let { systemTimeOut } = (await getConstantsAndValues(["systemTimeOut"]) || 15)
-        if (tokenData && new Date(tokenData.lastUsedAt).setMinutes(new Date(tokenData.lastUsedAt).getMinutes() + systemTimeOut) < new Date().getTime()) {
+        if (tokenData && new Date(tokenData.lastUsedAt).setMinutes(new Date(tokenData.lastUsedAt).getMinutes() + Number(systemTimeOut)) < new Date().getTime()) {
             console.error(`user ${user._id} session inactive from last ${systemTimeOut} `)
             next(new APIError(`Your session has timed out. Please login again.`, 401))
         }

@@ -65,10 +65,10 @@ export async function getDocumentsLogs(docId: string, token: string, userObj: an
         if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
         const select = { name: true, description: true }
         const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(docId) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
-        return await Promise.all(activities.map((activity: any) => {
+        let logs = await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
-
+        return logs.map(logObj=> getFormantedDocLogs(logObj))
     } catch (err) {
         throw err
     };
@@ -165,73 +165,75 @@ async function fetchProjectLogDetails(activity: any, taskObjects: any[]) {
 };
 
 function getFormantedDocLogs(activityLog: any) {
+    let message: string
     switch (activityLog.activityType) {
         case 'DOCUMENT_CREATED':
-            return `${UserFullName(activityLog.activityBy)} created the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} created the document`;
+            break;
         case 'DOCUMENT_UPDATED':
-            return `${UserFullName(activityLog.activityBy)} updated the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} updated the document`;
+            break;
         case 'CANCEL_UPDATED':
-            return `${UserFullName(activityLog.activityBy)} canceled the document update`;
-
+            message = `${UserFullName(activityLog.activityBy)} canceled the document update`;
+            break;
         case 'TAGS_ADDED':
-            return `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
+            break;
         case 'TAGS_REMOVED':
-            return `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} to the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} to the document`;
+            break;
         case 'MODIFIED_USER_SHARED_AS_VIEWER':
-            return `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
-
+            message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            break;
         case 'MODIFIED_USER_SHARED_AS_COLLABORATOR':
-            return `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
-
+            message = `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            break;
         case 'MODIFIED_GROUP_SHARED_AS_VIEWER':
-            return `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
-
+            message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            break;
         case 'MODIFIED_GROUP_SHARED_AS_COLLABORATOR':
-            return `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
-
+            message = `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            break;
         case 'DOCUMENT_SHARED_AS_VIEWER':
-            return `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with view access`;
-
+            message = `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with view access`;
+            break;
         case 'DOCUMENT_SHARED_AS_COLLABORATOR':
-            return `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with edit access`;
-
+            message = `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with edit access`;
+            break;
         case 'REMOVED_USER_FROM_DOCUMENT':
-            return `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
-
+            message = `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+            break;
         case 'REMOVED_GROUP_FROM_DOCUMENT':
-            return `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
-
+            message = `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+            break;
         case 'DOUCMENT_PUBLISHED':
-            return `${UserFullName(activityLog.activityBy)} published the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} published the document`;
+            break;
         case 'DOUCMENT_UNPUBLISHED':
-            return `${UserFullName(activityLog.activityBy)} unpublished the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} unpublished the document`;
+            break;
         case 'DOUCMENT_REPLACED':
-            return `${UserFullName(activityLog.activityBy)} replaced the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} replaced the document`;
+            break;
         case 'DOCUMENT_DELETED':
-            return `${UserFullName(activityLog.activityBy)} deleted the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} deleted the document`;
+            break;
         case 'DOCUMENT_VIEWED':
-            return `${UserFullName(activityLog.activityBy)} viewed the document`;
-
+            message = `${UserFullName(activityLog.activityBy)} viewed the document`;
+            break;
         case 'DOCUMENT_COMMENT':
-            return `${UserFullName(activityLog.activityBy)} added a comment`;
-
+            message = `${UserFullName(activityLog.activityBy)} added a comment`;
+            break;
         case 'DOCUMENT_DOWNLOAD':
-            return `${UserFullName(activityLog.activityBy)} Dowloaded a document`;
-
+            message = `${UserFullName(activityLog.activityBy)} Dowloaded a document`;
+            break;
         case "TAGS_ADD_AND_REMOVED":
-            return `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} to  the document`
-
+            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} to  the document`
+            break;
         default:
-            return;
+            message = "";
     }
+    return {message, activityBy: activityLog.activityBy._id, createdAt: activityLog.createdAt, activityType: "NEW_RESPONSE" }
 }
 
 function UserFullName({ firstName, middleName, lastName }: any) {
