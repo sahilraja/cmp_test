@@ -1,6 +1,12 @@
 import { Schema, model, Types } from "mongoose";
 import * as mongoosePaginate from "mongoose-paginate";
 
+let innerSchema = new Schema({
+    deleted:{type: Boolean, default: true}, 
+    amount:{type: Number, default: 0}, 
+    documents:{type: Array}
+})
+
 const schema = new Schema({
     createdBy: { type: String },
     name: { type: String, trim: true },
@@ -56,6 +62,8 @@ const schema = new Schema({
     ],
     funds: [
         {
+            released:{type:innerSchema},
+            utilized:{type:innerSchema},
             deletedReleased: { type: Boolean, default: false },
             deletedUtilised: { type: Boolean, default: false },
             installment: { type: Number },
