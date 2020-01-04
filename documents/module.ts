@@ -1327,7 +1327,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
         throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_UPDATE_TAGS, 403);
       }
     }
-    let publishedDoc =await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
     await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
@@ -1335,7 +1335,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc, host)
-    mailAllCmpUsers("publishDocument", publishedDoc, undefined, userObj._id)
+    if (withAuth) mailAllCmpUsers("publishDocument", publishedDoc, true, userObj._id)
     return publishedDoc
   } catch (err) {
     throw err;
@@ -1429,7 +1429,7 @@ export async function unPublished(docId: string, userObj: any) {
         }
       })
     }
-    mailAllCmpUsers("unPublishDocument", success, undefined, userObj._id)
+    mailAllCmpUsers("unPublishDocument", success, true, userObj._id)
     return success
   } catch (err) {
     throw err;
@@ -1445,7 +1445,7 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
       documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
       let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, host, false)
       await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
-      mailAllCmpUsers("replaceDocument", success, undefined, userObj._id)
+      mailAllCmpUsers("replaceDocument", success, true, userObj._id)
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updatedData = await esClient.update({
@@ -2259,8 +2259,8 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
     if (users.length) {
       let allMailContent = await Promise.all(users.map(async (user: any) => {
         let fullName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
-        let notificationMessage = (type = "invitePeopleDoc") ?  DOC_NOTIFICATIONS.invitePeopleDoc(sharedUsers, role) : (DOC_NOTIFICATIONS  as any)[type]
-        notificationMessage = (type = "documentUpdate") ?  DOC_NOTIFICATIONS.documentUpdate(text) : (DOC_NOTIFICATIONS  as any)[type]
+        let notificationMessage = (type == "invitePeopleDoc") ? DOC_NOTIFICATIONS.invitePeopleDoc(sharedUsers, role) : (DOC_NOTIFICATIONS as any)[type]
+        notificationMessage = (type == "documentUpdate") ? DOC_NOTIFICATIONS.documentUpdate(text) : (DOC_NOTIFICATIONS as any)[type]
         webNotification({ notificationType: `DOCUMENTS`, userId: user._id, docId: docDetails._id, title: notificationMessage, from: actionUser })
         sendNotification({
           id: user._id,
@@ -2682,22 +2682,24 @@ export async function searchDoc(search: string, userId: string, page: number = 1
       size: 1000,
       body: data
     });
-    let searchResult = searchdoc.hits.hits.map((doc: any) => { return {
-       _id: doc._source.id,
-       accessedBy: doc._source.accessedBy,
-       userName:doc._source.userName,
-       name: doc._source.name,
-       description: doc._source.description,
-       tags:doc._source.tags,
-       thumbnail: doc._source.thumbnail, 
-       status: doc._source.status,
-       fileName:doc._source.fileName,
-       updatedAt: doc._source.updatedAt,
-       createdAt: doc._source.createdAt,
-       groupId:doc._source.groupId,
-       groupName: doc._source.groupName,
-       createdByMe: doc._source.createdBy==userId
-     } })
+    let searchResult = searchdoc.hits.hits.map((doc: any) => {
+      return {
+        _id: doc._source.id,
+        accessedBy: doc._source.accessedBy,
+        userName: doc._source.userName,
+        name: doc._source.name,
+        description: doc._source.description,
+        tags: doc._source.tags,
+        thumbnail: doc._source.thumbnail,
+        status: doc._source.status,
+        fileName: doc._source.fileName,
+        updatedAt: doc._source.updatedAt,
+        createdAt: doc._source.createdAt,
+        groupId: doc._source.groupId,
+        groupName: doc._source.groupName,
+        createdByMe: doc._source.createdBy == userId
+      }
+    })
     if (pagination == true) return manualPagination(page, limit, searchResult);
     else return { docs: searchResult };
   } catch (error) {
