@@ -1085,9 +1085,8 @@ export async function invitePeople(docId: string, users: any, role: string, user
         userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
       })
     );
-    let isDocExists = false //await checkDocIdExistsInEs(docId)
+    let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-
       if (groupIds.length && groupNames.length) {
         let update = await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
