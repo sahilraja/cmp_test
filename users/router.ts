@@ -137,10 +137,10 @@ router.post('/email/login', ipMiddleware, async (req: Request, res: Response, ne
     };
 });
 
-router.post("/email/logout", authenticate, ipMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.post("/email/logout", ipMiddleware, async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.query.userId) throw new Error("required userId")
-        res.status(200).send(await userLogout(req, req.query.userId || res.locals.user._id, req.token))
+        res.status(200).send(await userLogout(req, req.query.userId, req.body.token))
     } catch (err) {
         next(new APIError(err.message))
     }

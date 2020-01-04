@@ -112,8 +112,8 @@ export async function editProject(id: any, reqObject: any, user: any) {
 
 export async function RemoveProjectMembers(projectId: string, userId: string, token: string) {
   try {
-    let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
-    if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
+    // let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
+    // if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
     const previousProjectData: any = await ProjectSchema.findById(projectId).exec()
     let members = previousProjectData.members.filter((id: any) => id != userId)
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()

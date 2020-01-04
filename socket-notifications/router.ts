@@ -4,6 +4,7 @@ import { OK } from "http-status-codes";
 import { create, list, markAsRead, listUnreadNotifications } from "./module";
 import { authenticate } from "../utils/utils";
 import { getUnreadMessages } from "../tags/module";
+import { emitLatestInboxCount } from "../socket";
 const router = Router()
 
 router.post(`/create`, async (req, res, next) => {
@@ -30,9 +31,9 @@ router.get(`/unread-notifications`, authenticate, async (req, res, next) => {
     }
 })
 
-router.get(`/unread-inbox`, authenticate, async (req, res, next) => {
+router.get(`/unread-inbox`, async (req, res, next) => {
     try {
-        res.status(OK).send(await getUnreadMessages(res.locals.user._id))
+        res.status(OK).send(await emitLatestInboxCount( req.query.userId ))
     } catch (error) {
         next(new APIError(error.message))
     }
