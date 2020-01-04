@@ -1103,11 +1103,11 @@ export async function projectCostInfo(projectId: string, projectCost: number, us
 
     let userDetails = await userFindOne("id", userId);
     let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
-    sendNotification({
-      id: userId, fullName, email: userDetails.email, mobileNo,
-      oldCost: (updatedProject as any).projectCost, updatedCost: projectCost,
-      templateName: "updateFinancial", mobileTemplateName: "updateFinancial"
-    })
+    // sendNotification({
+    //   id: userId, fullName, email: userDetails.email, mobileNo,
+    //   oldCost: (updatedProject as any).projectCost, updatedCost: projectCost,
+    //   templateName: "updateFinancial", mobileTemplateName: "updateFinancial"
+    // })
 
     return updatedProject
   }

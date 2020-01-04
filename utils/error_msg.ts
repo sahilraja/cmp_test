@@ -51,6 +51,7 @@ export const DOCUMENT_ROUTER = {
     DOCUMENT_NAME_LENGTH: (nameLength: number) => `Document name should not exceed more than ${nameLength} characters.`,
     DOCUMENT_DESCRIPTION_LENGTH: (descriptionLenth: number) => `Document description should not exceed more than ${descriptionLenth} characters.`,
     DOCUMENT_NAME_UNIQUE: (name: string) => `A document with name "${name}" already exists. Document name should be unique.`,
+    NAME_ERROR: "you have entered invalid name. please try again.",
     MANDATORY: "Please fill all mandatory fields.",
     CREATE_ROLE_FAIL: "Something went wrong. Please try again.",
     CHILD_NOT_FOUND: "Something went wrong. Please try again.",
@@ -90,30 +91,30 @@ export const COMMENT_ROUTER = {
 }
 
 export const PRIVATE_MEMBER = {
-    INVALID: "Group ID is invalid, please try again",
+    INVALID: "Private Member List ID is invalid, please try again",
     CREATE: {
-        NO_ACCESS: "You don't have permission to create group",
+        NO_ACCESS: "You don't have permission to create a Priate Member List",
         MISSING_FIELDS: "Please fill all mandatory fileds ",
         INVALID_NAME: "You have entered invalid name, please try again",
-        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be added as a group member",
-        GROUP_NAME_EXIST: "A private group with same name already exists."
+        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be added to Private Member list",
+        GROUP_NAME_EXIST: "A Private Member List with same name already exists."
     },
     EDIT: {
-        GROUP_NOT_FOUND: "Group not found",
-        NO_ACCESS: "You don't have permission to edit group",
-        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a group",
-        INVALID_NAME: "You have entered invalid group name. please try again.",
-        ALREADY_MEMBER: "Member already exist in this group.",
-        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be group member.",
+        GROUP_NOT_FOUND: "Private Member List not found",
+        NO_ACCESS: "You don't have permission to edit Private Member List",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a Private Member List",
+        INVALID_NAME: "You have entered invalid Private Member List name. Please try again.",
+        ALREADY_MEMBER: "Member already exist in the private member list",
+        OWNER_NOT_PRIVATE_MEMBER: "Owner can't be Private Member List member.",
     },
     REMOVE: {
-        GROUP_NOT_FOUND: "Group Not Found.",
-        NO_ACCESS: "You don't have permission to remove group",
-        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a group"
+        GROUP_NOT_FOUND: "Private member list not found",
+        NO_ACCESS: "You don't have permission to remove Private Member List",
+        MINIMUM_ONE_USER_REQUIRED: "Minimum one member is required for a Private Member List"
     },
     STATUS: {
-        GROUP_NOT_FOUND: "Group Not Found.",
-        NO_ACCESS: "You don't have permission to delete group" 
+        GROUP_NOT_FOUND: "Private Member List not found",
+        NO_ACCESS: "You don't have permission to delete Private Member List" 
     }
 }
 export const AUTHENTICATE_MSG = {
