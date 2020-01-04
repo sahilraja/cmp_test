@@ -1249,7 +1249,10 @@ function formatAndValidatePhasePayload(payload: any) {
         throw new APIError(`Phase start date should be before end date`)
       }
       if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.endDate).setHours(23, 59, 59, 0)))) {
-        throw new APIError(`There shouldn't be any gap/overlap between phases`)
+        throw new APIError(`There shouldn't be any gap or overlap between phases`)
+      }
+      if (payload[index + 1] &&  Math.abs((new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)).getTime() - new Date(new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0)).getTime()) / 1000) > 2) {
+        throw new APIError(`There shouldn't be any gap or overlap between phases`)
       }
     }
     return {
