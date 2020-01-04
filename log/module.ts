@@ -46,7 +46,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         getTasksByIds(subTaskIds, token)
     ])
     const tagObjects = await tags.find({ _id: { $in: [...new Set(activities.reduce((main: any, curr: any) => [...main, ...(curr.tagsAdded || []), ...(curr.tagsRemoved || [])], []))] } }).exec()
-    return activities.map((activity: any) => ({
+    let logs = activities.map((activity: any) => ({
         ...activity.toJSON(),
         subTask: subTasks.find((subTask: any) => subTask._id == activity.subTask),
         linkedTasks: subTasks.filter((subTask: any) => (activity.linkedTasks || []).includes(subTask._id)),
@@ -57,6 +57,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         tagsAdded: tagObjects.filter(({ id }: any) => (activity.tagsAdded || []).includes(id)),
         tagsRemoved: tagObjects.filter(({ id }: any) => (activity.tagsRemoved || []).includes(id))
     })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    return logs.map(logObj=> getFormantedTaskLogs(logObj))
 };
 
 export async function getDocumentsLogs(docId: string, token: string, userObj: any) {
@@ -68,7 +69,7 @@ export async function getDocumentsLogs(docId: string, token: string, userObj: an
         let logs = await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
-        return logs.map(logObj=> getFormantedDocLogs(logObj))
+        return logs.map(logObj => getFormantedDocLogs(logObj))
     } catch (err) {
         throw err
     };
@@ -233,7 +234,7 @@ function getFormantedDocLogs(activityLog: any) {
         default:
             message = "";
     }
-    return {message, activityBy: activityLog.activityBy._id, createdAt: activityLog.createdAt, activityType: "NEW_RESPONSE" }
+    return { message, activityBy: activityLog.activityBy._id, createdAt: activityLog.createdAt, activityType: "NEW_RESPONSE" }
 }
 
 function UserFullName({ firstName, middleName, lastName }: any) {
@@ -262,4 +263,106 @@ function getNamesFromIds(userIdsArr: []) {
     });
     namesStr = namesArr.join();
     return namesStr;
+}
+
+function getFormantedTaskLogs(activityLog: any) {
+    let message: string
+    switch (activityLog.activityType) {
+        case 'TASK_CREATED':
+            message = `${UserFullName(activityLog.activityBy)} created the task`;
+            break;
+        case 'ASSIGNEE_CHANGED':
+            message = `${UserFullName(activityLog.activityBy)} has changed the assignee from ${activityLog.removedUserIds[0].firstName} ${activityLog.removedUserIds[0].lastName} to ${activityLog.addedUserIds[0].firstName} ${activityLog.addedUserIds[0].lastName}`;
+            break;
+        case 'APPROVED_BY_USER':
+            message = `${UserFullName(activityLog.activityBy)} approved the task`;
+            break;
+        case 'ENDORSED_BY_USER':
+            message = `${UserFullName(activityLog.activityBy)} endorsed the task`;
+            break;
+        case 'TASK_REOPENED':
+            message = `${UserFullName(activityLog.activityBy)} reopened the task`;
+            break;
+        case 'TASK_REJECTED':
+            message = `${UserFullName(activityLog.activityBy)} rejected the task`;
+            break;
+        case 'STEP_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has updated the step from ${activityLog.oldStep.name} to ${activityLog.updatedStep.name}`;
+            break;
+        case 'PILLAR_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has updated the pillar from ${activityLog.updatedPillar.name} to ${activityLog.updatedPillar.name}`;
+            break;
+        case 'APPROVERS_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has added approvers ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            break;
+        case 'ENDORSERS_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has added endorsers ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            break;
+        case 'SUPPORTERS_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has added supporters ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            break;
+        case 'VIEWERS_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has added viewers ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            break;
+        case 'TASK_STATUS_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has updated the task status from ${getStatus(activityLog.oldStatus, "")} to ${getStatus(activityLog.updatedStatus, "")}`
+            break;
+        case 'TASK_START_DATE_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has updated the start date from ${activityLog.previousStartDate} to ${activityLog.updatedStartDate}`;
+            break;
+        case 'TASK_DUE_DATE_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has updated the start date from ${activityLog.previousEndDate} to ${activityLog.updatedEndDate}`;
+            break;
+        case 'DOCUMENTS_ADDED':
+            message = `${UserFullName(activityLog.activityBy)} added documents to the task`;
+            break;
+        case 'SUBTASK_ADDED':
+            message = `${UserFullName(activityLog.activityBy)} added subtask ${(activityLog.subTask || {}).name}`;
+            break;
+        case 'DOCUMENTS_REMOVED':
+            message = `${UserFullName(activityLog.activityBy)} removed documents to the task`;
+            break;
+        case 'SUBTASK_REMOVED':
+            message = `${UserFullName(activityLog.activityBy)} removed subtask ${(activityLog.subTask || {}).name}`;
+            break;
+        case 'NEW_TASK_LINKED':
+            message = `${UserFullName(activityLog.activityBy)} linked task ${(activityLog.subTask || {}).name} on`;
+            break;
+        case 'LINKED_TASK_REMOVED':
+            message = `${UserFullName(activityLog.activityBy)} removed linked task ${(activityLog.subTask || {}).name}`;
+            break;
+        case 'TAGS_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} updated tags`;
+            break;
+        default:
+            message = "";
+    }
+    return { message, activityBy: activityLog.activityBy._id, createdAt: activityLog.createdAt, activityType: "NEW_RESPONSE" }
+}
+
+function getStatus(status_code: any, status: any = "") {
+    switch (status_code) {
+        case 0:
+            return "Create";
+        case 1:
+            return status = "reject" ? ' Rejected ' : status = "reopen" ? 'Reopened' : 'To Do';
+        case 2:
+            return 'In Progress';
+        case 3:
+            return 'Pending Approval';
+        case 4:
+            return 'Approved';
+        case 5:
+            return 'Completed';
+        case 6:
+            return "Rejected";
+        case 7:
+            return 'Request For Re-assignment';
+        case 8:
+            return 'Cancelled';
+        case 9:
+            return 'Pending Endorsement';
+        case 10:
+            return 'Endorsed';
+    }
 }
