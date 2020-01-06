@@ -8,7 +8,7 @@ import {
     addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments,
      getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, 
      editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments, addFunds, getFinancialInfoNew, 
-     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew
+     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -29,6 +29,14 @@ router.post("/create", async (req, res, next) => {
         next(new FormattedAPIError(err.message, false));
     }
 });
+
+router.get(`/get-states`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getStates())
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 
 // get projects list
 router.get("/list", async (req, res, next) => {

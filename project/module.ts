@@ -14,8 +14,8 @@ import { userFindMany, userFindOne } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
 import { documentsList, updateUserInDOcs } from "../documents/module";
-import { unlinkSync } from "fs";
-import { extname } from "path";
+import { unlinkSync, readFileSync, writeFileSync } from "fs";
+import { extname, join } from "path";
 import * as xlsx from "xlsx";
 import { userRolesNotification } from "../notifications/module";
 import { nodemail } from "../utils/email";
@@ -47,7 +47,7 @@ export async function createProject(reqObject: any, user: any) {
       startDate: reqObject.startDate,
       endDate: reqObject.endDate,
       reference: reqObject.reference,
-      city: reqObject.cityname,
+      city: reqObject.city,
       summary: reqObject.description || "N/A",
       maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
@@ -91,8 +91,8 @@ export async function editProject(id: any, reqObject: any, user: any) {
       if (preProjectRecord.name != reqObject.name) modifiedFields.push("Name")
       obj.name = reqObject.name;
     }
-    if (reqObject.cityname) {
-      obj.city = reqObject.cityname;
+    if (reqObject.city) {
+      obj.city = reqObject.city;
     }
     if (reqObject.description) {
       obj.summary = reqObject.description;
@@ -450,6 +450,12 @@ export async function createTask(payload: any, projectId: string, userToken: str
   if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
     throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
   }
+  if(!payload.stepId){
+    throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
+  }
+  if(!payload.pillarId){
+    throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
+  }
   const options = {
     url: `${TASKS_URL}/task/create`,
     body: { ...taskPayload, defaultTags: payload.isCompliance ? ['Compliance'] : [] },
@@ -643,7 +649,7 @@ export async function ganttChart(projectId: string, userToken: string) {
     json: true
   }
   const tasks = await httpRequest(options)
-  return { ...(projectDetail as any).toJSON(), tasks }
+  return { ...(projectDetail as any).toJSON(), tasks: (tasks as any[]).filter((task: any) => task.status != 8) }
 }
 
 export async function projectMembers(id: string, currntUser: any) {
@@ -1002,8 +1008,14 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
-  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: new RegExp(taskObj.pillarId) }).exec() as any || { _id: undefined })._id || undefined
-  if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: new RegExp(taskObj.stepId) }).exec() as any || { _id: undefined })._id || undefined
+  if (!taskObj.pillarId){
+    throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
+  }
+  if (!taskObj.stepId){
+    throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
+  }
+  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: taskObj.pillarId }).exec() as any || { _id: undefined })._id || undefined
+  if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: taskObj.stepId }).exec() as any || { _id: undefined })._id || undefined
 
   taskObj = {
     ...taskObj,
@@ -1358,6 +1370,7 @@ export async function addFunds(projectId: string, payload: any, user: any) {
         throw new Error(PROJECT_ROUTER.CITIISGRANTS_NOT_LESS_AMMOUNT(finalInstallmentFunds[0].cumulativeDifference))
       }
     }
+  }
 
   // new code end here
   // Old Code starts
@@ -1480,6 +1493,7 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
     phase: phases.find(phase => phase._id.toString() == fund.phase),
     released: {
       ...fund.released,
+      cumilativeDifference: Math.round(citiisGrants * (fund.percentage / 100)) - fund.released.amount,
       fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
       documents: documents.filter((d: any) => fund.released.documents.includes(d._id.toString()))
     },
@@ -1489,6 +1503,9 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
       documents: documents.filter((d: any) => fund.utilized.documents.includes(d._id.toString()))
     }
   }))
+  fundsData = fundsData.map((data: any, i: number) => {
+    return {...data, cumilativeDifference: fundsData.filter((d: any, index: number) => index <= i).reduce((p: number,c: any) => p + (c.cumilativeDifference || 0) ,0)}
+  })
   // new code ends
 
   // Old code
@@ -1629,7 +1646,10 @@ export async function addInstallmentsNew(projectId: string, payload: any, user?:
     if (!fund.percentage) {
       throw new APIError(PROJECT_ROUTER.PERCENTAGE_REQUIRED)
     }
-    return { ...fund, released: {}, utilized: {}, installment: index + 1 }
+    return { ...fund, installment: index + 1,
+      released: fund.released || {}, 
+      utilized: fund.utilized || {} 
+    }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
   if (overAllPercentage != 100) {
@@ -1686,4 +1706,11 @@ export async function getTotalReleasedFunds(projectId: string) {
       totalUtilised: fundsData.reduce((p: number, c: any) => p + c.installmentLevelTotalUtilised, 0)
     }
   }
+}
+
+export async function getStates() {
+  let cities: any = JSON.parse(readFileSync(join(__dirname, "..", "utils", "cities.json"), "utf8"));
+  return cities
+  // writeFileSync(join(__dirname, '..', 'utils', 'cities.json'), Object.keys(cities).map(c => cities[c].sort((a: any,b: any) => a.localeCompare(b))))
+  // return cities
 }
