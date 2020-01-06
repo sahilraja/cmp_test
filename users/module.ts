@@ -588,7 +588,7 @@ export async function createGroup(objBody: any, userObj: any) {
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         const { name, description, users } = objBody
         if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
-        if (name && (/[ ]{2,}/.test(name) || !/[A-Za-z0-9  -]+$/.test(name))) throw new Error("you have entered invalid name. please try again.")
+        if (name && (!/.*[A-Za-z0-9]{1}.*$/.test(name))) throw new Error("you have entered invalid name. please try again.")
         let group: any = await groupCreate({
             name: name.toLowerCase().trim(),
             description: description.trim(),

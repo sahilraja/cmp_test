@@ -241,6 +241,8 @@ export const TASK_ERROR = {
     DUPLICATE_APPROVERS_FOUND: `Duplicate approvers found`,
     DUPLICATE_ENDORSERS_FOUND: `Duplicate endorsers found`,
     USER_NOT_PART_OF_PROJECT: `User not found in project members list`,
+    PILLAR_IS_REQUIRED:`Pillar is required`,
+    STEP_IS_REQUIRED:`Step is required`,
     WFM_CREATION_FAILED: `Fail to create WFM.`,
     INVALID_WFM_BY_USER: `Unauthorized to perform this action`,
     INVALID_ACTION_PERFORMED: `Invalid action performed`,

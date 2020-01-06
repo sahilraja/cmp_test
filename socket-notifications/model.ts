@@ -14,5 +14,7 @@ const schemaDef = new Schema({
     messageId: { type: String, default: null },
     read: { type: Boolean, default: false }
 }, { timestamps: true })
+schemaDef.index({userId:1})
+schemaDef.index({userId:1, read:1})
 schemaDef.plugin(mongoosePaginate)
 export const SocketNotifications = model(`web_notifiations`, schemaDef)

@@ -14,8 +14,8 @@ import { userFindMany, userFindOne } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
 import { documentsList, updateUserInDOcs } from "../documents/module";
-import { unlinkSync } from "fs";
-import { extname } from "path";
+import { unlinkSync, readFileSync, writeFileSync } from "fs";
+import { extname, join } from "path";
 import * as xlsx from "xlsx";
 import { userRolesNotification } from "../notifications/module";
 import { nodemail } from "../utils/email";
@@ -40,14 +40,14 @@ export async function createProject(reqObject: any, user: any) {
     if (!isEligible) {
       throw new APIError(UNAUTHORIZED, 403);
     }
-    // if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+    // if (reqObject.name && (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
       startDate: reqObject.startDate,
       endDate: reqObject.endDate,
       reference: reqObject.reference,
-      city: reqObject.cityname,
+      city: reqObject.city,
       summary: reqObject.description || "N/A",
       maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
       maturationEndDate: { date: reqObject.maturationEndDate, modifiedBy: user._id },
@@ -87,12 +87,12 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.reference = reqObject.reference;
     }
     if (reqObject.name) {
-      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+      // if (reqObject.name && (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
       if (preProjectRecord.name != reqObject.name) modifiedFields.push("Name")
       obj.name = reqObject.name;
     }
-    if (reqObject.cityname) {
-      obj.city = reqObject.cityname;
+    if (reqObject.city) {
+      obj.city = reqObject.city;
     }
     if (reqObject.description) {
       obj.summary = reqObject.description;
@@ -168,9 +168,9 @@ export async function manageProjectMembers(id: string, members: string[], userId
     throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
   }
   const previousProjectData: any = await ProjectSchema.findById(id).exec()
-  if (members.includes(userId) && !previousProjectData.members.includes(userId)) {
-    throw new APIError(PROJECT_ROUTER.USER_ADD_PROJECT_MEMBER)
-  }
+  // if (members.includes(userId) && !previousProjectData.members.includes(userId)) {
+  //   throw new APIError(PROJECT_ROUTER.USER_ADD_PROJECT_MEMBER)
+  // }
   const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
   const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
   const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
@@ -392,9 +392,9 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible1 || isEligible2) {
       query = {}
     }
-    let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 }})
+    let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 } })
     const projectIds = (list || []).map((_list) => _list.id);
-    list = await Promise.all(list.map((proObj)=>mapPhases(proObj)))
+    list = await Promise.all(list.map((proObj) => mapPhases(proObj)))
     return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
@@ -402,9 +402,9 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
   }
 }
 
-async function mapPhases(projectObj: any){
-  return {...projectObj.toJSON(), phases: await listPhasesOfProject(projectObj._id)}
-} 
+async function mapPhases(projectObj: any) {
+  return { ...projectObj.toJSON(), phases: await listPhasesOfProject(projectObj._id) }
+}
 
 function getCurrentPhase(projectObj: any) {
   return (projectObj.phases && projectObj.phases.length ? projectObj.phases.find((phaseObj: any) =>
@@ -450,9 +450,15 @@ export async function createTask(payload: any, projectId: string, userToken: str
   if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
     throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
   }
+  if(!payload.stepId){
+    throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
+  }
+  if(!payload.pillarId){
+    throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
+  }
   const options = {
     url: `${TASKS_URL}/task/create`,
-    body: { ...taskPayload },
+    body: { ...taskPayload, defaultTags: payload.isCompliance ? ['Compliance'] : [] },
     method: 'POST',
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
@@ -621,10 +627,10 @@ export async function getInstallments(projectId: string) {
         deletedReleased: s.deletedReleased,
         deletedUtilised: s.deletedUtilised,
         subInstallment: s.subInstallment,
-        releasedCost: !(s.deletedReleased)?s.releasedCost:null,
-        utilisedCost: !(s.deletedUtilised)?s.utilisedCost:null,
-        releasedDocuments: !(s.deletedReleased)?s.releasedDocuments:null,
-        utilisedDocuments: !(s.deletedUtilised)?s.utilisedDocuments:null,
+        releasedCost: !(s.deletedReleased) ? s.releasedCost : null,
+        utilisedCost: !(s.deletedUtilised) ? s.utilisedCost : null,
+        releasedDocuments: !(s.deletedReleased) ? s.releasedDocuments : null,
+        utilisedDocuments: !(s.deletedUtilised) ? s.utilisedDocuments : null,
         phase: phases.find((phase: any) => phase._id == s.phase),
         percentage: s.percentage
       }
@@ -643,7 +649,7 @@ export async function ganttChart(projectId: string, userToken: string) {
     json: true
   }
   const tasks = await httpRequest(options)
-  return { ...(projectDetail as any).toJSON(), tasks }
+  return { ...(projectDetail as any).toJSON(), tasks: (tasks as any[]).filter((task: any) => task.status != 8) }
 }
 
 export async function projectMembers(id: string, currntUser: any) {
@@ -1002,8 +1008,14 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
-  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: new RegExp(taskObj.pillarId) }).exec() as any || { _id: undefined })._id || undefined
-  if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: new RegExp(taskObj.stepId) }).exec() as any || { _id: undefined })._id || undefined
+  if (!taskObj.pillarId){
+    throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
+  }
+  if (!taskObj.stepId){
+    throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
+  }
+  if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: taskObj.pillarId }).exec() as any || { _id: undefined })._id || undefined
+  if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: taskObj.stepId }).exec() as any || { _id: undefined })._id || undefined
 
   taskObj = {
     ...taskObj,
@@ -1127,8 +1139,9 @@ export async function citiisGrantsInfo(projectId: string, citiisGrants: number, 
     if ((projectInfo as any).projectCost < citiisGrants) {
       throw new APIError(PROJECT_ROUTER.CITIIS_GRANTS_VALIDATION)
     }
-    let totalFundData:any  = await getTotalReleasedFunds(projectId)
-    if(totalFundData.funds.totalReleased>citiisGrants){
+    // let totalFundData: any = await getTotalReleasedFunds(projectId)
+    let totalFundData = projectInfo.funds.reduce((p: any, c:any) => p + (c.released || {}).amount ,0)
+    if (totalFundData > citiisGrants) {
       throw new Error(PROJECT_ROUTER.CITIIS_NOT_LESS_RELEASED)
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
@@ -1252,7 +1265,7 @@ function formatAndValidatePhasePayload(payload: any) {
       if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.endDate).setHours(23, 59, 59, 0)))) {
         throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
       }
-      if (payload[index + 1] &&  Math.abs((new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)).getTime() - new Date(new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0)).getTime()) / 1000) > 2) {
+      if (payload[index + 1] && Math.abs((new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)).getTime() - new Date(new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0)).getTime()) / 1000) > 2) {
         throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
       }
     }
@@ -1357,40 +1370,101 @@ export async function addFunds(projectId: string, payload: any, user: any) {
         throw new Error(PROJECT_ROUTER.CITIISGRANTS_NOT_LESS_AMMOUNT(finalInstallmentFunds[0].cumulativeDifference))
       }
     }
-
-    const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
-    createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.releasedCost, activityBy: user._id })
-    return updatedFund
-
-  } if (payload.utilisedCost && payload.utilisedDocuments) {
-    const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
-    if (!isEligible) {
-      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
-    }
-    let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].utilisedCost ? [] : matchedFunds
-    const updates = {
-      funds: otherFunds.concat(matchedFundsWithData).concat([
-        {
-          phase: matchedFunds[0].phase,
-          percentage: matchedFunds[0].percentage,
-          subInstallment: matchedFundsWithData.length + 1,
-          installment: payload.installment,
-          releasedDocuments: matchedFunds[0].releasedDocuments,
-          releasedCost: matchedFunds[0].releasedCost,
-          utilisedDocuments: payload.utilisedDocuments,
-          utilisedCost: payload.utilisedCost,
-          createdAt: new Date(),
-          modifiedAt: new Date(),
-          utilisedBy: user._id,
-          releasedBy: matchedFunds[0].releasedBy ? matchedFunds[0].releasedBy : null
-        }
-      ]).sort((a: any, b: any) => a.installment - b.installment)
-    }
-    const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
-    createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.utilisedCost, activityBy: user._id })
-    return updatedFund
-
   }
+
+  // new code end here
+  // Old Code starts
+  // const otherFunds = funds.filter((fund: any) => fund.installment != payload.installment)
+  // const matchedFunds = funds.filter((fund: any) => fund.installment == payload.installment)
+  // if (payload.releasedCost && payload.releasedDocuments) {
+  //   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+  //   if (!isEligible) {
+  //     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  //   }
+  //   if(citiisGrants<payload.releasedCost){
+  //       throw new Error("Released Amount should not exceed CitiisGrants")
+  //   }
+  //   let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].releasedCost ? [] : matchedFunds
+  //   const updates = {
+  //     funds: otherFunds.concat(matchedFundsWithData).concat([
+  //       {
+  //         phase: matchedFunds[0].phase,
+  //         percentage: matchedFunds[0].percentage,
+  //         subInstallment: matchedFundsWithData.length + 1,
+  //         installment: payload.installment,
+  //         releasedDocuments: payload.releasedDocuments,
+  //         releasedCost: payload.releasedCost,
+  //         utilisedDocuments: matchedFunds[0].utilisedDocuments,
+  //         utilisedCost: matchedFunds[0].utilisedCost,
+  //         createdAt: new Date(),
+  //         modifiedAt: new Date(),
+  //         releasedBy: user._id,
+  //         utilisedBy: matchedFunds[0].utilisedBy ? matchedFunds[0].utilisedBy : null
+  //       }
+  //     ]).sort((a: any, b: any) => a.installment - b.installment)
+  //   }
+  //   let fundsData = updates.funds.reduce((p: any, fund: any) => {
+  //     const { installmentType } = getPercentageByInstallment(fund.installment)
+  //     const releasedItems = funds.filter((_fund: any) =>
+  //       (!_fund.deletedReleased && _fund.subInstallment && (_fund.installment == fund.installment)
+  //       )).map((item: any) => ({ ...item.toJSON()})) 
+  //     let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost      
+  //     p.push({
+  //       fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
+  //       difference: difference,
+  //       cumulativeDifference: (p.cumulativeDifference || 0) + difference,
+  //       installment: fund.installment,
+  //       percentage: fund.percentage,
+  //       releasedItems,
+  //       installmentLevelTotalReleased: releasedItems.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
+  //     })
+  //     return p
+  //   }, [])
+
+  //   if(payload.installment == (updates.funds.length)){
+  //     let finalInstallmentFunds:any = fundsData.filter((eachfund: any) => eachfund.installment == payload.installment)
+
+  //     if(finalInstallmentFunds.length && finalInstallmentFunds[0].cumulativeDifference< 0){
+  //       throw new Error(`Released Amount exceeded CitiisGrants, Exceeded Amount is ${finalInstallmentFunds[0].cumulativeDifference}`)
+  //     }
+  //     if(finalInstallmentFunds.length && finalInstallmentFunds[0].cumulativeDifference>0){
+  //       throw new Error(`Released Amount is less than CitiisGrants,Please add ${finalInstallmentFunds[0].cumulativeDifference} amount`)
+  //     }
+  //   }
+
+  //   const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
+  //   createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.releasedCost, activityBy: user._id })
+  //   return updatedFund
+
+  // } if (payload.utilisedCost && payload.utilisedDocuments) {
+  //   const isEligible = await checkRoleScope(user.role, `manage-project-utilized-fund`)
+  //   if (!isEligible) {
+  //     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  //   }
+  //   let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].utilisedCost ? [] : matchedFunds
+  //   const updates = {
+  //     funds: otherFunds.concat(matchedFundsWithData).concat([
+  //       {
+  //         phase: matchedFunds[0].phase,
+  //         percentage: matchedFunds[0].percentage,
+  //         subInstallment: matchedFundsWithData.length + 1,
+  //         installment: payload.installment,
+  //         releasedDocuments: matchedFunds[0].releasedDocuments,
+  //         releasedCost: matchedFunds[0].releasedCost,
+  //         utilisedDocuments: payload.utilisedDocuments,
+  //         utilisedCost: payload.utilisedCost,
+  //         createdAt: new Date(),
+  //         modifiedAt: new Date(),
+  //         utilisedBy: user._id,
+  //         releasedBy: matchedFunds[0].releasedBy ? matchedFunds[0].releasedBy : null
+  //       }
+  //     ]).sort((a: any, b: any) => a.installment - b.installment)
+  //   }
+  //   const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
+  //   createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_UTILIZATION, projectId, updatedCost: payload.utilisedCost, activityBy: user._id })
+  // return updatedFund
+
+  // }
 }
 
 export async function getFinancialInfoNew(projectId: string, userId: string, userRole: any) {
@@ -1404,66 +1478,102 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
   if (!isEligible1 && !isEligible2 && !canSeeMyProject && !canSeeAllProjects && !canManageProject) {
     throw new APIError(PROJECT_ROUTER.FINANCIAL_INFO_NO_ACCESS)
   }
-  const projectDetail = await ProjectSchema.findById(projectId).exec()
+  let projectDetail: any = await ProjectSchema.findById(projectId).exec()
+  projectDetail = projectDetail.toJSON()
   const { fundsReleased, fundsUtilised, funds, projectCost, citiisGrants }: any = projectDetail
-  const documentIds = funds.map((fund: any) => (fund.releasedDocuments || []).concat(fund.utilisedDocuments || [])).reduce((p: any, c: any) => [...p, ...c], []).filter((v: any) => (!!v && Types.ObjectId.isValid(v)))
-  const documents = await documentsList(documentIds)
-  let phases = await phaseSchema.find({}).exec()
-  let fundsData = funds.reduce((p: any, fund: any) => {
-    const { installmentType } = getPercentageByInstallment(fund.installment)
-    const releasedItems = funds.filter((_fund: any) =>
-      (!_fund.deletedReleased && _fund.subInstallment && (_fund.installment == fund.installment)
-      )).map((item: any) => ({ ...item.toJSON(), releasedDocuments: documents.filter((d: any) => (item.releasedDocuments || []).includes(d.id)) }))
-    const utilisedItems = funds.filter((_fund: any) =>
-      (!_fund.deletedUtilised && _fund.subInstallment && (_fund.installment == fund.installment)
-      )).map((item: any) => ({ ...item.toJSON(), utilisedDocuments: documents.filter((d: any) => (item.utilisedDocuments || []).includes(d.id)), }))
-
-    let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost
-    p.push({
+  const documentIds = funds.reduce((p: any[], fund: any) => [...p, ...((fund.released || {}).documents || []), ...((fund.utilized || {}).documents || [])], [])
+  const [documents, phases] = await Promise.all([
+    documentsList(documentIds),
+    phaseSchema.find({}).exec()
+  ])
+  // new Code Start
+  let fundsData = projectDetail.funds.map((fund: any) => ({
+    ...fund,
+    installment: getPercentageByInstallment(fund.installment).installmentType,
+    phase: phases.find(phase => phase._id.toString() == fund.phase),
+    released: {
+      ...fund.released,
+      cumilativeDifference: Math.round(citiisGrants * (fund.percentage / 100)) - fund.released.amount,
       fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
-      difference: difference,
-      cumulativeDifference: (p.cumulativeDifference || 0) + difference,
-      phase: phases.find(phase => phase.id == fund.phase),
-      installment: installmentType,
-      percentage: fund.percentage,
-      // Filter empty data
-      releasedItems,
-      utilisedItems,
-      installmentLevelTotalReleased: releasedItems.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
-      installmentLevelTotalUtilised: utilisedItems.reduce((p: number, item: any) => p + (item.utilisedCost || 0), 0)
-    })
-    return p
-  }, [])
-  let ins: any = []
-  fundsData = fundsData.filter((f: any) => {
-    if (!ins.includes(f.installment)) {
-      ins.push(f.installment)
-      return f
+      documents: documents.filter((d: any) => fund.released.documents.includes(d._id.toString()))
+    },
+    utilized: {
+      ...fund.utilized,
+      fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
+      documents: documents.filter((d: any) => fund.utilized.documents.includes(d._id.toString()))
     }
+  }))
+  fundsData = fundsData.map((data: any, i: number) => {
+    return {...data, cumilativeDifference: fundsData.filter((d: any, index: number) => index <= i).reduce((p: number,c: any) => p + (c.cumilativeDifference || 0) ,0)}
   })
+  // new code ends
+
+  // Old code
+  // let fundsData = funds.reduce((p: any, fund: any) => {
+  //   const { installmentType } = getPercentageByInstallment(fund.installment)
+  //   const releasedItems = funds.filter((_fund: any) =>
+  //     (!_fund.deletedReleased && _fund.subInstallment && (_fund.installment == fund.installment)
+  //     )).map((item: any) => ({ ...item.toJSON(), releasedDocuments: documents.filter((d: any) => (item.releasedDocuments || []).includes(d.id)) }))
+  //   const utilisedItems = funds.filter((_fund: any) =>
+  //     (!_fund.deletedUtilised && _fund.subInstallment && (_fund.installment == fund.installment)
+  //     )).map((item: any) => ({ ...item.toJSON(), utilisedDocuments: documents.filter((d: any) => (item.utilisedDocuments || []).includes(d.id)), }))
+
+  //   let difference = (Math.round(citiisGrants * (fund.percentage / 100))) - fund.releasedCost
+  //   p.push({
+  //     fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
+  //     difference: difference,
+  //     cumulativeDifference: (p.cumulativeDifference || 0) + difference,
+  //     phase: phases.find(phase => phase.id == fund.phase),
+  //     installment: installmentType,
+  //     percentage: fund.percentage,
+  //     // Filter empty data
+  //     releasedItems,
+  //     utilisedItems,
+  //     installmentLevelTotalReleased: releasedItems.reduce((p: number, item: any) => p + (item.releasedCost || 0), 0),
+  //     installmentLevelTotalUtilised: utilisedItems.reduce((p: number, item: any) => p + (item.utilisedCost || 0), 0)
+  //   })
+  //   return p
+  // }, [])
+  // let ins: any = []
+  // fundsData = fundsData.filter((f: any) => {
+  //   if (!ins.includes(f.installment)) {
+  //     ins.push(f.installment)
+  //     return f
+  //   }
+  // })
   return {
     isMember: (projectDetail as any).members.includes(userId) || ((projectDetail as any).createdBy == userId),
     projectCost: projectCost,
     citiisGrants: citiisGrants,
     funds: {
       info: fundsData,
-      totalReleased: fundsData.reduce((p: number, c: any) => p + c.installmentLevelTotalReleased, 0),
-      totalUtilised: fundsData.reduce((p: number, c: any) => p + c.installmentLevelTotalUtilised, 0)
+      totalReleased: fundsData.reduce((p: number, c: any) => p + c.released.amount, 0),
+      totalUtilized: fundsData.reduce((p: number, c: any) => p + c.utilized.amount, 0)
     }
   }
 }
 
 export async function updateReleasedFundNew(projectId: string, payload: any, user: any) {
-  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+  const [isEligible, detail]: any = await Promise.all([
+    checkRoleScope(user.role, `manage-project-released-fund`),
+    ProjectSchema.findById(projectId).exec()
+  ])
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { releasedDocuments, releasedCost, _id } = payload
+  const { documents: releasedDocuments, amount: releasedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), releasedBy: user._id }
-  updates['funds.$.releasedDocuments'] = releasedDocuments
-  updates['funds.$.releasedCost'] = releasedCost
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds._id': _id }, { $set: updates }).exec()
+  // updates['funds.$.releasedDocuments'] = releasedDocuments
+  // updates['funds.$.releasedCost'] = releasedCost
+  updates['funds.$.released.documents'] = releasedDocuments
+  updates['funds.$.released.amount'] = releasedCost
+  updates['funds.$.released.deleted'] = false
+  const previousReleasedAmount = detail.funds.map((fund: any) => fund.released).filter((fund: any) => fund._id.toString() != _id).map((fund:any) => fund.amount).reduce((p: number, c: any) => p + c.amount, 0)
+  if((previousReleasedAmount + releasedCost) > detail.citiisGrants){
+    throw new APIError(`Total released amount should not exceed citiis grants`)
+  }
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.releasedCost, projectId, activityBy: user._id })
   return updatedProject
 }
@@ -1476,13 +1586,14 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
-  const { utilisedDocuments, utilisedCost, _id } = payload
+  const { documents, amount, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
-  updates['funds.$.utilisedDocuments'] = utilisedDocuments
-  updates['funds.$.utilisedCost'] = utilisedCost
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.utilisedCost, updatedCost: payload.cost, activityBy: user._id })
+  updates['funds.$.utilized.documents'] = documents
+  updates['funds.$.utilized.amount'] = amount
+  updates['funds.$.utilized.deleted'] = false
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
+  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.utilisedCost, updatedCost: amount, activityBy: user._id })
   return updatedProject
 }
 
@@ -1494,8 +1605,10 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   const { releasedDocuments, releasedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), releasedBy: user._id }
-  updates['funds.$.deletedReleased'] = true
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds._id': _id }, { $set: updates }).exec()
+  updates['funds.$.released.deleted'] = true
+  updates['funds.$.released.documents'] = []
+  updates['funds.$.released.amount'] = 0
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
   return updatedProject
 }
@@ -1511,8 +1624,10 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   const { utilisedDocuments, utilisedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
-  updates['funds.$.deletedUtilised'] = true
-  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds._id': _id }, { $set: updates }).exec()
+  updates['funds.$.utilized.deleted'] = true
+  updates['funds.$.utilized.documents'] = []
+  updates['funds.$.utilized.amount'] = 0
+  const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
   return updatedProject
 }
@@ -1531,7 +1646,10 @@ export async function addInstallmentsNew(projectId: string, payload: any, user?:
     if (!fund.percentage) {
       throw new APIError(PROJECT_ROUTER.PERCENTAGE_REQUIRED)
     }
-    return { ...fund, installment: index + 1 }
+    return { ...fund, installment: index + 1,
+      released: fund.released || {}, 
+      utilized: fund.utilized || {} 
+    }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
   if (overAllPercentage != 100) {
@@ -1588,4 +1706,11 @@ export async function getTotalReleasedFunds(projectId: string) {
       totalUtilised: fundsData.reduce((p: number, c: any) => p + c.installmentLevelTotalUtilised, 0)
     }
   }
+}
+
+export async function getStates() {
+  let cities: any = JSON.parse(readFileSync(join(__dirname, "..", "utils", "cities.json"), "utf8"));
+  return cities
+  // writeFileSync(join(__dirname, '..', 'utils', 'cities.json'), Object.keys(cities).map(c => cities[c].sort((a: any,b: any) => a.localeCompare(b))))
+  // return cities
 }

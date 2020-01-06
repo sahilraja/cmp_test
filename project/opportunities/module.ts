@@ -67,7 +67,7 @@ async function saveaAllOpportunities(opportunityObj: any, projectId: string, use
                     opportunityObj.opportunityTrend = 0
                 } else {
                     let lastUpdatedObj: any = (await OpportunitySchema.find({ parentId: opportunityObj._id || opportunityObj.id })).pop()
-                    opportunityObj.opportunityTrend = Math.abs((lastUpdatedObj.impact || 0) * (lastUpdatedObj.probability || 0) - (opportunityObj.impact || 0) * (opportunityObj.probability || 0))
+                    opportunityObj.opportunityTrend = (lastUpdatedObj.impact || 0) * (lastUpdatedObj.probability || 0) - (opportunityObj.impact || 0) * (opportunityObj.probability || 0)
                 }
                 if (Object.keys(opportunityObj).includes('impact'))
                     if (oldObject.impact != opportunityObj.impact)

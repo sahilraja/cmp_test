@@ -41,6 +41,7 @@ export function initializeSocket(http: any) {
 
 async function verify(data: any) {
     if(!(data.access_token)){
+        return null
         throw new Error('User is required');
     }
     let token: any = await jwt_Verify(data.access_token)
