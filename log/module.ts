@@ -57,7 +57,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         tagsAdded: tagObjects.filter(({ id }: any) => (activity.tagsAdded || []).includes(id)),
         tagsRemoved: tagObjects.filter(({ id }: any) => (activity.tagsRemoved || []).includes(id))
     })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    return logs.map(logObj=> getFormantedTaskLogs(logObj))
+    return logs.map(logObj => getFormantedTaskLogs(logObj))
 };
 
 export async function getDocumentsLogs(docId: string, token: string, userObj: any) {
@@ -102,9 +102,10 @@ async function activityFetchDetails(activity: any) {
 export async function getProfileLogs(profileId: string, token: string) {
     try {
         const activities: any[] = await ActivitySchema.find({ profileId: Types.ObjectId(profileId) }).exec()
-        return await Promise.all(activities.map((activity: any) => {
+        let logs = await Promise.all(activities.map((activity: any) => {
             return profileFetchDetails(activity.toJSON())
         }))
+        return logs.map(logObj=> getFormantedUserLogs(logObj))
     } catch (err) {
         throw err
     };
@@ -142,9 +143,10 @@ export async function projectLogs(projectId: string, token: string, userObj: any
 
         const activities: any[] = await ActivitySchema.find({ projectId }).populate({ path: 'projectId' }).exec()
         let taskObjects: any[] = await getTasksByIds([...new Set((activities.reduce((main, curr) => main.concat([curr.taskId]), [])).filter((id: string) => Types.ObjectId(id)))] as any, token)
-        return await Promise.all(activities.map((activity: any) => {
+        let logs = await Promise.all(activities.map((activity: any) => {
             return fetchProjectLogDetails(activity.toJSON(), taskObjects)
         }))
+        return logs.map(logObj => getFormantedProjectLogs(logObj))
     } catch (err) {
         throw err
     };
@@ -365,4 +367,87 @@ function getStatus(status_code: any, status: any = "") {
         case 10:
             return 'Endorsed';
     }
+}
+
+function getFormantedProjectLogs(activityLog: any) {
+    let message: string
+    switch (activityLog.activityType) {
+        case 'PROJECT_CREATED':
+            message = `${UserFullName(activityLog.activityBy)} created ${activityLog.projectId.name}`;
+            break;
+        case 'TASK_DATES_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} updated the task start date`;
+            break;
+        case 'CREATE_TASK_FROM_PROJECT':
+            message = `${UserFullName(activityLog.activityBy)} created  task ${activityLog.taskId ? activityLog.taskId.name : ""}`;
+            break;
+        case 'PROJECT_MEMBERS_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} added ${getNamesFromIds(activityLog.addedUserIds)} as a Core Team member`;
+            break;
+        case 'ADDED_FUND_RELEASE':
+            message = `${UserFullName(activityLog.activityBy)} added fund release to ${activityLog.updatedCost} INR`;
+            break;
+        case 'ADDED_FUND_UTILIZATION':
+            message = `${UserFullName(activityLog.activityBy)} added fund utilisation to ${activityLog.updatedCost} INR`;
+            break;
+        case 'UPDATED_FUND_RELEASE':
+            message = `${UserFullName(activityLog.activityBy)} updated fund release to ${activityLog.updatedCost} INR`;
+            break;
+        case 'UPDATED_FUND_UTILIZATION':
+            message = `${UserFullName(activityLog.activityBy)} updated fund utilization to ${activityLog.updatedCost} INR`;
+            break;
+        case 'UPDATED_CITIIS_GRANTS':
+            message = `${UserFullName(activityLog.activityBy)} updated citiis grants to ${activityLog.updatedCost} INR`;
+            break;
+        case 'UPDATED_PROJECT_COST':
+            message = `${UserFullName(activityLog.activityBy)} updated project cost to ${activityLog.updatedCost} INR`;
+            break;
+        case 'REPLACE_USER':
+            message = "";
+            break;
+        default:
+            message = "";
+    }
+    return { message, activityBy: activityLog.activityBy._id, createdAt: activityLog.createdAt, activityType: "NEW_RESPONSE" }
+}
+
+function getFormantedUserLogs(activityLog: any) {
+    let message: string
+    switch (activityLog.activityType) {
+        case 'INVITE-USER':
+            message = `${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} sent Invitation to ${activityLog.profileId.email} .`
+            break;
+        case 'REGISTER-USER':
+            message = `${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} has been Registered on CMP .`
+            break;
+
+        case 'EDIT-PROFILE':
+            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName} edited their profile for ${activityLog.editedFields.length > 0 ? (activityLog.editedFields.slice(0, activityLog.editedFields.length)) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
+            break;
+
+        case 'EDIT-PROFILE-BY-ADMIN':
+            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s profile has been edited by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} for ${activityLog.editedFields.length > 0 ? (activityLog.editedFields) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
+            break;
+
+        case 'ACTIVATE-PROFILE':
+            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s profile has been activated by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} .`
+            break;
+
+        case 'DEACTIVATE-PROFILE':
+            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s profile has been deactivated by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} .`
+            break;
+
+        case 'RESEND-INVITE-USER':
+            message = `${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} has resent the invitation to ${activityLog.profileId.email} .`
+            break;
+
+        case 'EDIT-ROLE':
+            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s role has been edited by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} .`
+            break;
+        default:
+            message = "";
+
+    }
+    return { message, activityBy: activityLog.activityBy._id, createdAt: activityLog.createdAt, activityType: "NEW_RESPONSE" }
+
 }
