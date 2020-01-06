@@ -52,7 +52,7 @@ export async function bulkInvite(filePath: string, user: any) {
     if (constantsList.value == "true") {
         const excelFormattedData = importExcelAndFormatData(filePath)
         if (!excelFormattedData.length) {
-            throw new APIError(`Uploaded empty document`)
+            throw new APIError(USER_ROUTER.UPLOAD_EMPTY_FOLDER)
         }
         const [roleData, usersList]: any = await Promise.all([
             role_list(),
@@ -63,28 +63,28 @@ export async function bulkInvite(filePath: string, user: any) {
         const formattedDataWithRoles = excelFormattedData.map(data => {
             const matchedRole = roleData.roles.find((role: any) => role.roleName == data.role)
             if (existingEmails.includes(data.email.toLowerCase())) {
-                throw new APIError(`${data.email} already exists`)
+                throw new APIError(USER_ROUTER.EMAIL_EXIST(data.email))
             }
             if (!categories.includes(data.category)) {
-                throw new APIError(`No category matched with ${data.category}`)
+                throw new APIError(USER_ROUTER.CATEGORY_NOT_MATCH(data.category))
             }
             if (!matchedRole) {
-                throw new APIError(`No role matched with ${data.role}`)
+                throw new APIError(USER_ROUTER.NO_ROLE_MATCH(data.role))
             }
             return { ...data, role: [matchedRole.role] }
         })
         if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
-            throw new APIError(`Category, Role and Email are mandatory for all`)
+            throw new APIError(USER_ROUTER.CATEGORY_REQUIRE_ALL_MANDATORY)
         }
         formattedDataWithRoles.forEach((role: any) => {
             if (!validateEmail(role.email)) {
-                throw new APIError(`${role.email} is invalid`)
+                throw new APIError(USER_ROUTER.INVALID_EMAIL(role.email))
             }
         })
         await Promise.all(formattedDataWithRoles.map(data => inviteUser(data, user)))
         return { message: 'success' }
     } else {
-        throw new APIError(`Bulk upload disabled`)
+        throw new APIError(USER_ROUTER.DISABLED_BULK_UPLOAD)
     }
 }
 
@@ -186,7 +186,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         let { fullName, mobileNo }: any = getFullNameAndMobile(success);
         objBody.role = (Array.isArray(objBody.role) ? objBody.role : typeof (objBody.role) == "string" && objBody.role.length ? objBody.role.includes("[") ? JSON.parse(objBody.role) : objBody.role = objBody.role.split(',') : [])
         let role = await formateRoles(objBody.role);
-        sendNotification({ id: user._id, fullName, email: success.email, role: role,link: `${ANGULAR_URL}/user/login`, templateName: "registrationSuccess" });
+        sendNotification({ id: user._id, fullName, email: success.email, role: role, link: `${ANGULAR_URL}/user/login`, templateName: "registrationSuccess" });
         return { token: await createJWT({ id: success._id, role: token.role }) }
     } catch (err) {
         throw err;
@@ -228,7 +228,7 @@ export async function edit_user(id: string, objBody: any, user: any, token: any)
                 let admin_scope = await checkRoleScope(user.role, "change-user-role");
                 if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
             }
-            if (!objBody.role.length) throw new Error("Minimum one role is required.")
+            if (!objBody.role.length) throw new Error(USER_ROUTER.MINIMUM_ONE_ROLE)
             if (user_roles && user_roles.length) {
                 const removeRole = await Promise.all(user_roles.map(async (role: any) => {
                     let RoleStatus = await revokeRole(id, role)
@@ -315,8 +315,8 @@ export async function user_list(query: any, userId: string, searchKey: string, p
         let docs: any
         if (searchKey) {
             docs = await userListForHome(searchKey)
-            console.log(docs,"users");
-            
+            console.log(docs, "users");
+
             let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
             let rolesBody: any = await role_list();
             data = await roleFormanting(data)
@@ -425,7 +425,7 @@ export async function user_login(req: any) {
 export async function userLogout(req: any, userId: any, token: any) {
     try {
         await loginSchema.create({ ip: req.ip.split(':').pop(), userId: userId, type: "LOGOUT" });
-        await RefreshTokenSchema.findOneAndRemove({access_token: token}).exec()
+        await RefreshTokenSchema.findOneAndRemove({ access_token: token }).exec()
         return { message: "logout successfully." }
     } catch (err) {
         throw err;
@@ -611,7 +611,7 @@ export async function groupStatus(id: any, userObj: any) {
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
-        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "groupStatus", mobileTemplateName: "groupStatus", status: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE  })
+        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "groupStatus", mobileTemplateName: "groupStatus", status: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE })
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
         console.error(err);
@@ -680,7 +680,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         let filteredUsers = users.filter(user => !existUsers.includes(user))
         if (!filteredUsers.length && users.some(user => existUsers.includes(user))) throw new Error("User already exist.")
-        if (!filteredUsers.length) throw new APIError("Invalid Action");
+        if (!filteredUsers.length) throw new APIError(USER_ROUTER.INVALID_ACTION);
         await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
         await addGroupMembersInDocs(id, users, userObj._id)
         sendNotificationToGroup(id, data.name, userObj._id, { templateName: "addGroupMember", mobileTemplateName: "addGroupMember" })
@@ -994,7 +994,7 @@ export async function profileOtpVerify(objBody: any, user: any) {
         let userUpdate = await userEdit(user._id, { email: token.newEmail, ...temp });
         if (token.newEmail) {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
-            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage"})
+            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage" })
         }
         return userUpdate
     } catch (err) {
@@ -1259,13 +1259,13 @@ export async function validatePassword(password: string) {
             }
         }
         if (upper < UPPER_CASE_COUNT && upper > 0) {
-            throw new APIError(`${PASSWORD.SPECIAL_CHAR} ${UPPER_CASE_COUNT} Captial letters`);
+            throw new APIError(USER_ROUTER.PASSWORD_VALIDATION_UPPERCASE(PASSWORD.SPECIAL_CHAR, UPPER_CASE_COUNT));
         }
         if (num < NUMBERS_COUNT && num > 0) {
-            throw new APIError(`${PASSWORD.NUMBERS_COUNT} ${NUMBERS_COUNT} Numbers`);
+            throw new APIError(USER_ROUTER.PASSWORD_VALIDATION_NUMBER(PASSWORD.NUMBERS_COUNT, NUMBERS_COUNT));
         }
         if (special < SPECIAL_COUNT && special > 0) {
-            throw new APIError(`${PASSWORD.SPECIAL_COUNT} ${SPECIAL_COUNT} Special Characters`);
+            throw new APIError(USER_ROUTER.PASSWORD_VALIDATION_SPECIALCHAR(PASSWORD.SPECIAL_COUNT, SPECIAL_COUNT));
         }
         if (password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) {
             throw new APIError(PASSWORD.TOTAL_LETTERS(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH));

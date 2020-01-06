@@ -124,17 +124,17 @@ async function getUserDateWithRole(userData: any) {
     };
 };
 
-async function validatePrivateMembersConstants(body: any) {
-    try {
-        let { docNamePg, docDescriptionPg }: any = await getConstantsAndValues(["docNamePg", "docDescriptionPg"])
-        if (body.name > Number(docNamePg)) {
-            throw new Error(`Private members name should not exceed more than ${docNamePg} characters`);
-        }
-        if (body.description > Number(docDescriptionPg)) {
-            throw new Error(`Private members description should not exceed more than ${docDescriptionPg} characters`);
-        }
-    }
-    catch (err) {
-        throw err
-    }
-}
+// async function validatePrivateMembersConstants(body: any) {
+//     try {
+//         let { docNamePg, docDescriptionPg }: any = await getConstantsAndValues(["docNamePg", "docDescriptionPg"])
+//         if (body.name > Number(docNamePg)) {
+//             throw new Error(`Private members name should not exceed more than ${docNamePg} characters`);
+//         }
+//         if (body.description > Number(docDescriptionPg)) {
+//             throw new Error(`Private members description should not exceed more than ${docDescriptionPg} characters`);
+//         }
+//     }
+//     catch (err) {
+//         throw err
+//     }
+// }

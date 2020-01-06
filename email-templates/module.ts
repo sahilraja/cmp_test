@@ -70,7 +70,7 @@ export async function templateGet(user:any,id:string) {
 export async function testTemplate(id:string, email: any){
     let template:any  = await TemplateSchema.findById(id);
     let templatInfo = await getTemplateBySubstitutions(template.templateName,{});
-    if(!validateEmail(email)) throw new Error("Enter Valid email Id.")
+    if(!validateEmail(email)) throw new Error(USER_ROUTER.VALID_EMAIL)
     nodemail({
         email: email,
         subject: templatInfo.subject,

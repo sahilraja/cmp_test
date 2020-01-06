@@ -7,6 +7,7 @@ import { roleSchema } from "./model";
 import { init } from '../utils/role_management';
 import { APIError } from "../utils/custom-error";
 import { checkRoleScope } from '../utils/role_management'
+import { USER_ROUTER } from "../utils/error_msg";
 // Get Roles List
 export async function role_list() {
     let roles = await roleSchema.find()
@@ -78,7 +79,7 @@ export async function userRoleAndScope(userId: any) {
             json: true
         }
         let success = await request(Options);
-        if (!success.status) throw new Error("Fail to get Roles.")
+        if (!success.status) throw new Error(USER_ROUTER.SOMETHING_WENT_WRONG)
        
         // success.data.map((key: any) => {
         //     if (object[key.role]) {

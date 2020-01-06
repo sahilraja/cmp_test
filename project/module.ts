@@ -1,4 +1,4 @@
-import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR, USER_ROUTER, COMPLIANCES, DOCUMENT_ROUTER } from "../utils/error_msg";
+import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR, USER_ROUTER, COMPLIANCES, DOCUMENT_ROUTER, UNAUTHORIZED_ACTION } from "../utils/error_msg";
 import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
@@ -25,6 +25,7 @@ import { phaseSchema } from "../phase/model";
 import { some } from "bluebird";
 import { PillarSchema } from "../pillars/model";
 import { StepsSchema } from "../steps/model";
+import { UNAUTHORIZED } from "http-status-codes";
 
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
@@ -37,7 +38,7 @@ export async function createProject(reqObject: any, user: any) {
     // }
     let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible) {
-      throw new APIError("Unauthorized Action.", 403);
+      throw new APIError(UNAUTHORIZED, 403);
     }
     // if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
@@ -74,10 +75,10 @@ export async function editProject(id: any, reqObject: any, user: any) {
       checkRoleScope(user.role, "manage-project")
     ])
     // let isEligible = await checkRoleScope(user.role, "manage-project");
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    if (!isEligible) throw new APIError(UNAUTHORIZED, 403);
 
     if (reqObject.startDate || reqObject.endDate) {
-      if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error("Start date must less than end date.")
+      if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error(PROJECT_ROUTER.START_DATE_LESS_THAN)
       obj.startDate = reqObject.startDate
       obj.endDate = reqObject.endDate
     };
@@ -125,7 +126,7 @@ export async function RemoveProjectMembers(projectId: string, userId: string, to
 
 export async function replaceProjectMember(projectId: string, objBody: any, token: string) {
   try {
-    if (!objBody || !objBody.oldUser || !objBody.newUser || !projectId) throw new Error("Required mandatory fields.")
+    if (!objBody || !objBody.oldUser || !objBody.newUser || !projectId) throw new Error(PROJECT_ROUTER.MANDATORY)
     const ProjectData: any = await ProjectSchema.findById(projectId).exec()
     // if (!ProjectData.members.includes(objBody.newUser)) throw new Error("member is not a project member.")
     let success: any = await replaceProjectTaskUser(projectId, objBody.oldUser, objBody.newUser, token)
@@ -168,7 +169,7 @@ export async function manageProjectMembers(id: string, members: string[], userId
   }
   const previousProjectData: any = await ProjectSchema.findById(id).exec()
   if (members.includes(userId) && !previousProjectData.members.includes(userId)) {
-    throw new APIError(`You are trying to add yourself as project member`)
+    throw new APIError(PROJECT_ROUTER.USER_ADD_PROJECT_MEMBER)
   }
   const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
   const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
@@ -226,10 +227,10 @@ export async function city_code_status(id: any, userObj: any) {
   try {
     if (!id) throw new Error(MISSING);
     let isEligible = await checkRoleScope(userObj.role, "manage-project");
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
     let projectData: any = await ProjectSchema.findById(id).exec();
     if (!projectData) {
-      throw new Error("project not there");
+      throw new Error(PROJECT_ROUTER.PROJECTS_NOT_THERE);
     }
     return await ProjectSchema.findByIdAndUpdate(
       { id },
@@ -441,7 +442,7 @@ export async function getProjectDetail(projectId: string, userToken: string) {
 
 export async function createTask(payload: any, projectId: string, userToken: string, userObj: any) {
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
-  if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+  if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
   // if (!payload.isCompliance && (payload.assignee == userObj._id)) {
   //   throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
@@ -502,7 +503,7 @@ export async function getProjectTasks(projectId: string, userToken: string) {
 
 export async function editTask(projectId: string, taskId: string, userObj: any, userToken: string, payload: any) {
   let isEligible = await checkRoleScope(userObj.role, "edit-task-progress-dates");
-  if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+  if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
   if (!projectDetail) {
     throw new Error(PROJECT_ROUTER.PROJECT_NOT_EXISTS)
@@ -553,10 +554,10 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
   }
   const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
     if (!fund.phase) {
-      throw new APIError(`Phase is required`)
+      throw new APIError(PROJECT_ROUTER.PHASE_REQUIRED)
     }
     if (!fund.percentage) {
-      throw new APIError(`Percentage is required`)
+      throw new APIError(PROJECT_ROUTER.PERCENTAGE_REQUIRED)
     }
     return { ...fund, installment: index + 1 }
     return {
@@ -570,7 +571,7 @@ export async function addReleasedInstallment(projectId: string, payload: any, us
   //   throw new APIError(`Installment already exists`)
   // }
   if (overAllPercentage > 100) {
-    throw new APIError(`Percentage should not exceed 100`)
+    throw new APIError(PROJECT_ROUTER.PERCENTAGE_NOT_EXCEED)
   }
   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload } }, { new: true }).exec()
   return updated
@@ -584,10 +585,10 @@ export async function addUtilizedInstallment(projectId: string, payload: any, us
   }
   const finalPayload = payload.fundsUtilised.map((fund: any, index: number) => {
     if (!fund.phase) {
-      throw new APIError(`Phase is required`)
+      throw new APIError(PROJECT_ROUTER.PHASE_REQUIRED)
     }
     if (!fund.percentage) {
-      throw new APIError(`Percentage is required`)
+      throw new APIError(PROJECT_ROUTER.PERCENTAGE_REQUIRED)
     }
     return { ...fund, installment: index + 1 }
     // return {
@@ -598,7 +599,7 @@ export async function addUtilizedInstallment(projectId: string, payload: any, us
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
   if (overAllPercentage > 100) {
-    throw new APIError(`Percentage should not exceed 100`)
+    throw new APIError(PROJECT_ROUTER.PERCENTAGE_NOT_EXCEED)
   }
   // if(projectDetail.fundsUtilised.some((fund: any) => fund.installment == payload.installment)){
   //   throw new APIError(`Installment already exists`)
@@ -787,7 +788,7 @@ export async function getFinancialInfo(projectId: string, userId: string, userRo
 
 export async function addFundReleased(projectId: string, payload: any, user: any) {
   if (!payload.installment) {
-    throw new APIError(`Installment is required`)
+    throw new APIError(PROJECT_ROUTER.INSTALLMENT_REQUIRED)
   }
   const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
   if (!isEligible) {
@@ -823,7 +824,7 @@ export async function addFundsUtilized(projectId: string, payload: any, user: an
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   if (!payload.installment) {
-    throw new Error(`Installment is required`)
+    throw new Error(PROJECT_ROUTER.INSTALLMENT_REQUIRED)
   }
   const { fundsUtilised } = projectDetail
   const otherFunds = fundsUtilised.filter((fund: any) => fund.installment != payload.installment)
@@ -940,7 +941,7 @@ export async function deleteUtilizedFund(projectId: string, payload: any, user: 
 export function importExcelAndFormatData(filePath: string) {
   if (!['.xlsx', ".csv"].includes(extname(filePath))) {
     unlinkSync(filePath);
-    throw new APIError(`please upload valid xlsx/csv file`)
+    throw new APIError(PROJECT_ROUTER.UPLOAD_VALID_FORMAT)
   }
   let workBook = xlsx.readFile(filePath, {
     type: 'binary',
@@ -950,7 +951,7 @@ export function importExcelAndFormatData(filePath: string) {
   });
   xlsx.writeFile(workBook, filePath)
   unlinkSync(filePath);
-  if (!workBook.SheetNames) { throw new APIError("not a valid sheet") }
+  if (!workBook.SheetNames) { throw new APIError(PROJECT_ROUTER.NOT_VALID_DOC) }
   var excelFormattedData: any[] = xlsx.utils.sheet_to_json(workBook.Sheets[workBook.SheetNames[0]]);
   return excelFormattedData
 }
@@ -964,7 +965,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   const roleNames = roleData.roles.map((role: any) => role.roleName)
   const excelFormattedData = importExcelAndFormatData(filePath)
   if (!excelFormattedData.length) {
-    throw new APIError(`Uploaded empty document`)
+    throw new APIError(PROJECT_ROUTER.EMPTY_DOC)
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
@@ -1041,38 +1042,38 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   const endorsers = Object.keys(data).filter(key => ['endorser1', `endorser2`, `endorser3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
   const viewers = Object.keys(data).filter(key => ['viewer1', `viewer2`, `viewer3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
   if (!data.assignee || !data.assignee.trim().length) {
-    throw new APIError(`Assignee is required for task ${data.name}`)
+    throw new APIError(PROJECT_ROUTER.ASSIGNEE_REQUIRED_TASK(data.name))
   }
   // const approvers = data.approvers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   // const endorsers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   // const viewers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   if (!roleNames.includes(data.assignee.trim())) {
-    throw new APIError(`Assignee not exists for task ${data.name}`)
+    throw new APIError(PROJECT_ROUTER.ASSIGNEE_NOT_EXIST(data.name))
   }
   // Validate Approvers
   if (approvers.some((approver: string) => {
     errorRole = approver
     return !roleNames.includes(approver)
   })) {
-    throw new APIError(`Approver ${errorRole} not exists in the system at task ${data.name}`)
+    throw new APIError(PROJECT_ROUTER.APPROVER_NOT_EXIST(errorRole, data.name))
   }
   // Validate Endorsers  
   if (endorsers.some((endorser: string) => {
     errorRole = endorser
     return !roleNames.includes(endorser)
   })) {
-    throw new APIError(`Endorser ${errorRole} not exists in the system at task ${data.name}`)
+    throw new APIError(PROJECT_ROUTER.ENDORSER_NOT_EXIST(errorRole, data.name))
   }
   // Validate Viewers
   if (viewers.some((viewer: string) => {
     errorRole = viewer
     return !roleNames.includes(viewer)
   })) {
-    throw new APIError(`Viewer ${errorRole} not exists in the system at task ${data.name}`)
+    throw new APIError(PROJECT_ROUTER.VIEWER_NOT_EXIST(errorRole, data.name))
   }
 
-  if (data.initialStartDate && new Date().getTime() > new Date(data.initialStartDate).setHours(23, 59, 59, 0)) throw new Error("Start date must Not be in the past.")
-  if (data.initialDueDate && new Date(data.initialStartDate).setHours(0, 0, 0, 0) > new Date(data.initialDueDate).setHours(23, 59, 59, 0)) throw new Error("Start date must be lessthan due date.")
+  if (data.initialStartDate && new Date().getTime() > new Date(data.initialStartDate).setHours(23, 59, 59, 0)) throw new Error(PROJECT_ROUTER.START_DATE_NOT_IN_PAST)
+  if (data.initialDueDate && new Date(data.initialStartDate).setHours(0, 0, 0, 0) > new Date(data.initialDueDate).setHours(23, 59, 59, 0)) throw new Error(PROJECT_ROUTER.START_NOT_LESS_THAN_DUE)
 
   return {
     name: data.name,
@@ -1128,7 +1129,7 @@ export async function citiisGrantsInfo(projectId: string, citiisGrants: number, 
     }
     let totalFundData:any  = await getTotalReleasedFunds(projectId)
     if(totalFundData.funds.totalReleased>citiisGrants){
-      throw new Error("CitiiesGrant must not be less then Released Funds")
+      throw new Error(PROJECT_ROUTER.CITIIS_NOT_LESS_RELEASED)
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
     createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost: citiisGrants, projectId })
@@ -1183,7 +1184,7 @@ export async function getAllOpenCOmments(user: any, projectId: string, userId: s
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
   if (!userId) {
-    throw new APIError(`User id is required`)
+    throw new APIError(PROJECT_ROUTER.USER_ID_REQURED)
   }
   return await OpenCommentsModel.findOne({ projectId, isParent: true, userId }).exec()
   // const userIds = comments.map((comment: any) => comment.userId)
@@ -1203,7 +1204,7 @@ export async function getCommentedUsers(projectId: string, user: any) {
 
 export async function editProjectMiscompliance(projectId: string, payload: any, userObj: any) {
   try {
-    if (!Types.ObjectId.isValid(projectId)) throw new Error("Invalid Project Id.")
+    if (!Types.ObjectId.isValid(projectId)) throw new Error(PROJECT_ROUTER.INVALID_PROJECT_ID)
     const isEligible = await checkRoleScope(userObj.role, 'manage-compliance')
     if (!isEligible) {
       throw new APIError(COMPLIANCES.MISCOMPLIANCE_ERROR)
@@ -1246,13 +1247,13 @@ function formatAndValidatePhasePayload(payload: any) {
         throw new APIError(DOCUMENT_ROUTER.MANDATORY)
       }
       if (_data.startDate > _data.endDate) {
-        throw new APIError(`Phase start date should be before end date`)
+        throw new APIError(PROJECT_ROUTER.PHASE_BEFORE_END_DATE)
       }
       if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.endDate).setHours(23, 59, 59, 0)))) {
-        throw new APIError(`There shouldn't be any gap or overlap between phases`)
+        throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
       }
       if (payload[index + 1] &&  Math.abs((new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)).getTime() - new Date(new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0)).getTime()) / 1000) > 2) {
-        throw new APIError(`There shouldn't be any gap or overlap between phases`)
+        throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
       }
     }
     return {
@@ -1271,16 +1272,16 @@ export async function addInstallments(projectId: string, payload: any, user?: an
   }
   const finalPayload = payload.fundsReleased.map((fund: any, index: number) => {
     if (!fund.phase) {
-      throw new APIError(`Phase is required`)
+      throw new APIError(PROJECT_ROUTER.PHASE_REQUIRED)
     }
     if (!fund.percentage) {
-      throw new APIError(`Percentage is required`)
+      throw new APIError(PROJECT_ROUTER.PERCENTAGE_REQUIRED)
     }
     return { ...fund, installment: index + 1 }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
   if (overAllPercentage > 100) {
-    throw new APIError(`Percentage should not exceed 100`)
+    throw new APIError(PROJECT_ROUTER.PERCENTAGE_NOT_EXCEED)
   }
   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload } }, { new: true }).exec()
   return updated
@@ -1289,7 +1290,7 @@ export async function addInstallments(projectId: string, payload: any, user?: an
 
 export async function addFunds(projectId: string, payload: any, user: any) {
   if (!payload.installment) {
-    throw new APIError(`Installment is required`)
+    throw new APIError(PROJECT_ROUTER.INSTALLMENT_REQUIRED)
   }
   // if(!(payload.releasedCost && payload.releasedDocuments)||!(payload.utilisedCost && payload.utilisedDocuments)){
   //   throw new APIError(`All Mandatory fields are required`)
@@ -1307,7 +1308,7 @@ export async function addFunds(projectId: string, payload: any, user: any) {
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
     if(citiisGrants<payload.releasedCost){
-        throw new Error("Released Amount should not exceed CitiisGrants")
+        throw new Error(PROJECT_ROUTER.CITIISGRANTS_NOT_EXCEED)
     }
     let matchedFundsWithData = matchedFunds.length == 1 && !matchedFunds[0].releasedCost ? [] : matchedFunds
     const updates = {
@@ -1350,10 +1351,10 @@ export async function addFunds(projectId: string, payload: any, user: any) {
       let finalInstallmentFunds:any = fundsData.filter((eachfund: any) => eachfund.installment == payload.installment)
       
       if(finalInstallmentFunds.length && finalInstallmentFunds[0].cumulativeDifference< 0){
-        throw new Error(`Released Amount exceeded CitiisGrants, Exceeded Amount is ${finalInstallmentFunds[0].cumulativeDifference}`)
+        throw new Error(PROJECT_ROUTER.CITIISGRANTS_NOT_EXCEED_AMOUNT(finalInstallmentFunds[0].cumulativeDifference))
       }
       if(finalInstallmentFunds.length && finalInstallmentFunds[0].cumulativeDifference>0){
-        throw new Error(`Released Amount is less than CitiisGrants,Please add ${finalInstallmentFunds[0].cumulativeDifference} amount`)
+        throw new Error(PROJECT_ROUTER.CITIISGRANTS_NOT_LESS_AMMOUNT(finalInstallmentFunds[0].cumulativeDifference))
       }
     }
 
@@ -1525,16 +1526,16 @@ export async function addInstallmentsNew(projectId: string, payload: any, user?:
   }
   const finalPayload = payload.funds.map((fund: any, index: number) => {
     if (!fund.phase) {
-      throw new APIError(`Phase is required`)
+      throw new APIError(PROJECT_ROUTER.PHASE_REQUIRED)
     }
     if (!fund.percentage) {
-      throw new APIError(`Percentage is required`)
+      throw new APIError(PROJECT_ROUTER.PERCENTAGE_REQUIRED)
     }
     return { ...fund, installment: index + 1 }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
   if (overAllPercentage != 100) {
-    throw new APIError(`Overall Percentage should be 100`)
+    throw new APIError(PROJECT_ROUTER.PERCENTAGE_NOT_EXCEED)
   }
   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { funds: finalPayload } }, { new: true }).exec()
   return updated

@@ -520,7 +520,7 @@ export async function getDocumentVersionById(versionId: string): Promise<any> {
 //  Get doc with Version
 export async function getDocWithVersion(docId: any, versionId: any) {
   try {
-    if (!docId || !versionId) throw new Error("Missing Fields");
+    if (!docId || !versionId) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let docDetails: any = await documents.findById(versionId);
     const docList = docDetails.toJSON();
     docList.tags = await getTags(docList.tags);
@@ -617,8 +617,8 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_UPDATE_USER);
     let obj: any = {};
     if (objBody.docName) {
-      if (objBody.docName && (/[ ]{2,}/.test(objBody.docName) || !/[A-Za-z0-9  -]+$/.test(objBody.docName))) throw new Error("you have entered invalid name. please try again.")
-      if (objBody.docName.length > Number(siteConstants.docNameLength || configLimit.name)) throw new Error(`Document name should not exceed more than ${siteConstants.docNameLength} characters`);
+      if (objBody.docName && (/[ ]{2,}/.test(objBody.docName) || !/[A-Za-z0-9  -]+$/.test(objBody.docName))) throw new Error(DOCUMENT_ROUTER.NAME_ERROR)
+      if (objBody.docName.length > Number(siteConstants.docNameLength || configLimit.name)) throw new Error(DOCUMENT_ROUTER.DOCUMENT_NAME_LENGTH(siteConstants.docNameLength));
       let data = await documents.findOne({ _id: { $ne: docId }, isDeleted: false, parentId: null, ownerId: userId, codeName: objBody.docName.toLowerCase() }).exec()
       if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
@@ -626,7 +626,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.name = objBody.docName.toLowerCase();
     }
     if (objBody.description || objBody.description == "") {
-      if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(`Document description should not exceed more than ${siteConstants.docDescriptionSize} characters`)
+      if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DESCRIPTION_LENGTH(siteConstants.docDescriptionSize))
       obj.description = objBody.description;
     }
 
@@ -641,7 +641,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
       let userCapabilities = await GetDocCapabilitiesForUser(userId, docId)
-      if (!userCapabilities.includes("owner") && document.status != 2) throw new Error("Invalid Action")
+      if (!userCapabilities.includes("owner") && document.status != 2) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
 
@@ -845,12 +845,12 @@ export async function addCollaborator(docId: string, collaborators: string[]) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     if (!Array.isArray(collaborators))
-      throw new Error("Missing Collaborators.");
+      throw new Error(DOCUMENT_ROUTER.MISSING_COLLABORATOR);
     await Promise.all([
       collaborators.map(async (user: string) => {
         let success = await groupsAddPolicy(user, docId, "collaborator");
         if (!success.user)
-          throw new Error(`${user} have already these permissions`);
+          throw new Error(DOCUMENT_ROUTER.USER_ALREADY_THIS_PERMISSION(user));
       })
     ]);
     return { message: "added collaborators successfully." };
@@ -865,14 +865,14 @@ export async function removeCollaborator(
   collaborators: string[]
 ) {
   try {
-    if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
+    if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     if (!Array.isArray(collaborators))
-      throw new Error("Missing Collaborators.");
+      throw new Error(DOCUMENT_ROUTER.MISSING_COLLABORATOR);
     await Promise.all([
       collaborators.map(async (user: string) => {
         let success = await groupsRemovePolicy(user, docId, "collaborator");
         if (!success.user)
-          throw new Error(`${user} don't have these permissions`);
+          throw new Error(DOCUMENT_ROUTER.USER_ALREADY_THIS_PERMISSION(user));
       })
     ]);
     return { message: "Remove collaborators successfully." };
@@ -884,13 +884,13 @@ export async function removeCollaborator(
 //  Add Viewers
 export async function addViewers(docId: string, viewers: string[]) {
   try {
-    if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
-    if (!Array.isArray(viewers)) throw new Error("Missing viewers.");
+    if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    if (!Array.isArray(viewers)) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     await Promise.all([
       viewers.map(async (user: string) => {
         let success = await groupsAddPolicy(user, docId, "viewer");
         if (!success.user)
-          throw new Error(`${user} have already these permissions`);
+          throw new Error(DOCUMENT_ROUTER.USER_ALREADY_THIS_PERMISSION(user));
       })
     ]);
     return { message: "added viewers successfully." };
@@ -902,13 +902,13 @@ export async function addViewers(docId: string, viewers: string[]) {
 //  remove Viewers
 export async function removeViewers(docId: string, viewers: string[]) {
   try {
-    if (!Types.ObjectId.isValid(docId)) throw new Error("Given id not Valid");
-    if (!Array.isArray(viewers)) throw new Error("Missing viewers.");
+    if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    if (!Array.isArray(viewers)) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     await Promise.all([
       viewers.map(async (user: string) => {
         let success = await groupsRemovePolicy(user, docId, "viewer");
         if (!success.user)
-          throw new Error(`${user} don't have these permissions`);
+          throw new Error(DOCUMENT_ROUTER.USER_ALREADY_THIS_PERMISSION(user));
       })
     ]);
     return { message: "remove viewers successfully." };
@@ -1318,7 +1318,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
     };
 
     let doc: any = await documents.findById(docId);
-    if (!doc) throw new Error("Doc Not Found");
+    if (!doc) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
 
     if (body.tags && Array.isArray(body.tags) && (body.tags.some((tagId: string) => !doc.tags.includes(tagId)) || body.tags.length != doc.tags.length)) {
       let isEligible = await checkRoleScope(userObj.role, "add-tag-to-document");
@@ -1401,12 +1401,12 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
 
 export async function unPublished(docId: string, userObj: any) {
   try {
-    if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
+    if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID)
     let [isEligible, docDetail] = await Promise.all([
       checkRoleScope(userObj.role, "unpublish-document"),
       documents.findById(docId).exec()
     ])
-    if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+    if (!isEligible) throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
     if ((docDetail as any).isPublic) {
       throw new APIError(DOCUMENT_ROUTER.UNPUBLISH_PUBLIC_DOCUMENT)
     }
@@ -1439,7 +1439,7 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
   try {
     if (siteConstants.replaceDoc == "true") {
       let admin_scope = await checkRoleScope(userObj.role, "replace-document");
-      if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+      if (!admin_scope) throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
       let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
       documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
       let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, host, false)
@@ -1464,7 +1464,7 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
       return success
     }
     else {
-      throw new APIError("Unauthorized Action.", 403)
+      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
     }
   } catch (err) {
     throw err;
@@ -1743,7 +1743,7 @@ export async function deleteFolder(folderId: string, userId: string) {
     if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     const folderDetails = await folders.find({ _id: folderId });
     if (!folderDetails.length) {
-      throw new Error("Folder does't exist")
+      throw new Error(DOCUMENT_ROUTER.FOLDER_NOT_FOUND)
     }
     let folderData = folderDetails.map((folder: any) => {
       return {
@@ -1806,9 +1806,9 @@ export async function deleteDoc(docId: any, userId: string) {
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let findDoc: any = await documents.findOne({ _id: docId, ownerId: userId })
     if (!findDoc) {
-      throw new Error("File Id is Invalid")
+      throw new Error(DOCUMENT_ROUTER.INVALID_FILE_ID)
     }
-    if (findDoc.status == 2) throw new Error("Published document can't be deleted.")
+    if (findDoc.status == 2) throw new Error(DOCUMENT_ROUTER.PUBLISH_CANT_BE_DELETE)
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
     await create({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
     let isDocExists = await checkDocIdExistsInEs(docId)
@@ -1873,7 +1873,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
 export async function checkCapabilitiesForUserNew(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
-    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     // if (objBody.unique) {
     //   if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
     //     throw new Error("Duplicate user ids found.");
@@ -1889,7 +1889,7 @@ export async function checkCapabilitiesForUserNew(objBody: any, userId: string) 
 export async function checkCapabilitiesForUser(objBody: any, userId: string) {
   try {
     let { docIds, userIds } = objBody
-    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error("Must be an Array.");
+    if (!Array.isArray(docIds) || !Array.isArray(userIds)) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     // if (objBody.unique) {
     //   if (userIds.some((user) => userIds.indexOf(user) !== userIds.lastIndexOf(user))) {
     //     throw new Error("Duplicate user ids found.");
@@ -1974,7 +1974,7 @@ export async function shareDocForUsersNew(obj: any, userObj: any) {
 
 export async function shareDocForUsers(obj: any) {
   try {
-    if (!obj) throw new Error("Missing data.")
+    if (!obj) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA)
     if (Object.keys(obj).length) {
       if (obj.noAccessDocuments) delete obj.noAccessDocuments
       if (obj.documents) delete obj.documents
@@ -2002,11 +2002,11 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "suggest-tag");
     if (!isEligible) {
-      throw new APIError("Unauthorized Access", 403);
+      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
     }
-    if (!body.tags) { throw new Error("Tags is required field") }
+    if (!body.tags) { throw new Error(DOCUMENT_ROUTER.TAG_REQUIRED) }
     let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
-    if (!docData) throw new Error("Doc not found");
+    if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
@@ -2046,9 +2046,9 @@ async function userInfo(docData: any) {
 
 export async function approveTags(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
+    if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
-    if (!docdetails) { throw new Error("DocId is Invalid") }
+    if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2155,9 +2155,9 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
 
 export async function rejectTags(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
+    if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
-    if (!docdetails) { throw new Error("DocId is Invalid") }
+    if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2285,9 +2285,9 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
 
 export async function deleteSuggestedTag(docId: string, body: any, userId: string, ) {
   try {
-    if (!docId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error("All mandatory fields are missing") }
+    if (!docId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
-    if (!docdetails) { throw new Error("DocId is Invalid") }
+    if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
     if (body.tagIdToAdd) {
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == userId).map(
@@ -2352,7 +2352,7 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
 };
 export async function getAllRequest(docId: string) {
   try {
-    if (!Types.ObjectId.isValid(docId)) throw new Error("Invalid Document Id.")
+    if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID)
     let requestData = await docRequestModel.find({ docId: Types.ObjectId(docId), isDelete: false }).populate(docId)
     return await Promise.all(requestData.map((request: any) => RequestList(request.toJSON())))
   } catch (err) {
@@ -2370,9 +2370,9 @@ async function RequestList(request: any) {
 
 export async function requestAccept(requestId: string, userObj: any) {
   try {
-    if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
+    if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
-    if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
+    if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let capability: any[] = await documnetCapabilities(requestDetails.docId.id, requestDetails.requestedBy);
     let addedCapability;
     if (capability.includes("no_access")) {
@@ -2382,13 +2382,13 @@ export async function requestAccept(requestId: string, userObj: any) {
       if (userCapability.length) await groupsRemovePolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "viewer");
       addedCapability = await groupsAddPolicy(`user/${requestDetails.requestedBy}`, requestDetails.docId.id, "collaborator");
     } else {
-      throw new Error("Invalid Action Performed.")
+      throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
     }
     if (addedCapability && addedCapability.user.length) {
       await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
       return { message: "Shared successfully." }
     }
-    throw new Error("Unable to Fecth Data.")
+    throw new Error(DOCUMENT_ROUTER.SOMETHING_WENT_WRONG)
   } catch (err) {
     throw err;
   };
@@ -2396,9 +2396,9 @@ export async function requestAccept(requestId: string, userObj: any) {
 
 export async function requestDenied(requestId: string, userObj: any) {
   try {
-    if (!Types.ObjectId.isValid(requestId)) throw new Error("Invalid Document Id.");
+    if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
-    if (userObj._id != requestDetails.docId.ownerId) throw new Error("Unauthorized Action.");
+    if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     return await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
   } catch (err) {
     throw err;
@@ -2407,9 +2407,9 @@ export async function requestDenied(requestId: string, userObj: any) {
 
 export async function requestRaise(docId: string, userId: string) {
   try {
-    if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error("Invalid Document Id or User Id.");
+    if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
-    if (existRequest) throw new Error("already request is there.")
+    if (existRequest) throw new Error(DOCUMENT_ROUTER.ALREADY_REQUEST_EXIST)
     return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
     throw err;
@@ -2423,7 +2423,7 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
     let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
     if (!isEligible) {
-      throw new APIError("Unauthorized access", 403);
+      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
     }
     let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
@@ -2576,11 +2576,11 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "suggest-tag");
     if (!isEligible) {
-      throw new APIError("Unauthorized Access", 403);
+      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
     }
-    if (!body.addTags && !body.removeTags) { throw new Error("Required Mandatory fields") }
+    if (!body.addTags && !body.removeTags) { throw new Error(DOCUMENT_ROUTER.MANDATORY) }
     let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
-    if (!docData) throw new Error("Doc not found");
+    if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)

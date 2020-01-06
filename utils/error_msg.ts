@@ -1,3 +1,5 @@
+import { UNAUTHORIZED } from "http-status-codes";
+
 export const USER_ROUTER = {
     INVALID_USER: "Please enter valid Login Credentials",
     INVALID_ADMIN: "You don't have permissions to perform this action",
@@ -5,6 +7,7 @@ export const USER_ROUTER = {
     REVOKE_ROLE_FAIL: "Failed to remove role, Please retry",
     TOKEN_MISSING: "Token found missing, please try again",
     TOKEN_INVALID: "Something went wrong. Please retry",
+    SOMETHING_WENT_WRONG: "Something went wrong. Please retry",
     MANDATORY: "Please fill all mandatory fileds",
     VALID_PHONE_NO: "Please enter valid phone number",
     VALID_PASSWORD: "Password must have one special character and at least 6 characters",
@@ -33,7 +36,22 @@ export const USER_ROUTER = {
     TOKEN_EXPIRED_OTP: "OTP verification link is expired",
     USER_EXIST: "User already registered.",
     CONSTANT_INVALID: "Constant type is invalid, please try again",
-    RECAPTCHA_INVALID: "Captcha Verification failed, Please try again"
+    RECAPTCHA_INVALID: "Captcha Verification failed, Please try again",
+    VALID_EMAIL: "Enter Valid email Id.",
+    NAME_ERROR: "you have entered invalid name. please try again.",
+    INVALID_EMAIL_TEMP: `Email template is invalid, please try again`,
+    UPLOAD_EMPTY_FOLDER: `Uploaded empty document`,
+    NO_ROLE_MATCH: (role: string) => `No role matched with ${role}`,
+    EMAIL_EXIST: (email: string) => `${email} already exists`,
+    CATEGORY_NOT_MATCH: (category: string) => `No category matched with ${category}`,
+    CATEGORY_REQUIRE_ALL_MANDATORY: `Category, Role and Email are mandatory for all`,
+    INVALID_EMAIL: (email: string) => `${email} is invalid`,
+    DISABLED_BULK_UPLOAD: `Bulk upload disabled`,
+    MINIMUM_ONE_ROLE: "Minimum one role is required.",
+    INVALID_ACTION: "Invalid Action",
+    PASSWORD_VALIDATION_UPPERCASE: (SPECIAL_CHAR: any, UPPER_CASE_COUNT: any) => `${SPECIAL_CHAR} ${UPPER_CASE_COUNT} Captial letters`,
+    PASSWORD_VALIDATION_NUMBER: (PASSOWRD_NUMBERS_COUNT: any, NUMBERS_COUNT: any) => `${PASSOWRD_NUMBERS_COUNT} ${NUMBERS_COUNT} Numbers`,
+    PASSWORD_VALIDATION_SPECIALCHAR: (PASSWORD_SPECIAL_COUNT: any, SPECIAL_COUNT: any) => `${PASSWORD_SPECIAL_COUNT} ${SPECIAL_COUNT} Special Characters`
 };
 export const GROUP_ROUTER = {
     REMOVE_MEMBER: "Please add at least one Group Member",
@@ -44,6 +62,12 @@ export const MOBILE_MESSAGES = {
     SEND_OTP: "OTP sent successfully",
     VALID_OTP: "OTP is verified",
     INVALID_OTP: "Invalid OTP! Please enter valid OTP sent to your mobile number",
+}
+
+export const FINANCIAL_INFO = {
+    MANDATORY: "Missing Required Fields.",
+    PHASE_EXIST: "A Phase with same name already exists.",
+    PHASE_NOT_FOUND: "Phase details Not Found."
 }
 
 export const DOCUMENT_ROUTER = {
@@ -61,7 +85,7 @@ export const DOCUMENT_ROUTER = {
     INVALID_UPDATE_USER: "You don't have permissions to update this document.",
     NO_PERMISSION: "You don't have permission to create a Document",
     NO_TAGS_PERMISSION: "Unable to create tags, Unauthorized",
-    NO_PERMISSION_TO_UPDATE_TAGS:`You don't have permission to update tags`,
+    NO_PERMISSION_TO_UPDATE_TAGS: `You don't have permission to update tags`,
     LIMIT_EXCEEDED: "Document name should not exceed more than 30 characters",
     ALREADY_EXIST: "A folder with same name already exists",
     NO_FOLDER_PERMISSION: "Couldn't create a folder. Unauthorized",
@@ -83,11 +107,34 @@ export const DOCUMENT_ROUTER = {
     INVALID_COLLABORATOR_ACTION: "You can only add Viewers to this document.",
     INVALID_VIEWER_ACTION: "You don't have permission to share this document",
     INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY: "You don't have permission to remove members",
-    PUBLISH_CAPABILITY: "Unauthorized Action."
+    PUBLISH_CAPABILITY: "Unauthorized Action.",
+    MISSING_COLLABORATOR: "Missing Collaborators.",
+    USER_ALREADY_THIS_PERMISSION: (user: string) => `${user} have already these permissions`,
+    FOLDER_NOT_FOUND: "Folder does't exist",
+    INVALID_FILE_ID: "File Id is Invalid",
+    PUBLISH_CANT_BE_DELETE: "Published document can't be deleted.",
+    TAG_REQUIRED: "Tags is required field",
+    UNAUTHORIZED: "Unauthorized Action.",
+    INVALID_ACTION_PERFORMED: "Invalid Action Performed.",
+    SOMETHING_WENT_WRONG: "Something went wrong. Please retry",
+    ALREADY_REQUEST_EXIST: "already request is there."
+}
+
+export const NOTIFICATION = {
+    TEMPLATE_NOT_FOUND: "Template is not found in email templates"
+}
+
+export const PATTERNS = {
+    UNAUTHORIZED: "Unauthorized Action.",
+    INVALID_OR_MISSING_DATA: "Invalid or missing information found. Please try again.",
+    PATTERN_WITH_SAME_NAME: "A pattern with same name already exists.",
+    PATTERNS_DETAILS_NOT_FOUND: "Pattern details Not Found."
 }
 
 export const COMMENT_ROUTER = {
     MANDATORY: "Please fill all mandatory fields",
+    UNAUTHORIZED: "Unauthorized Action.",
+    INVALID_OR_MISSING_DATA: "Invalid or missing information found. Please try again.",
 }
 
 export const PRIVATE_MEMBER = {
@@ -114,7 +161,7 @@ export const PRIVATE_MEMBER = {
     },
     STATUS: {
         GROUP_NOT_FOUND: "Private Member List not found",
-        NO_ACCESS: "You don't have permission to delete Private Member List" 
+        NO_ACCESS: "You don't have permission to delete Private Member List"
     }
 }
 export const AUTHENTICATE_MSG = {
@@ -177,6 +224,8 @@ export const ROLE_NOT_EXIST = "Role not Exist"
 
 export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 
+export const UNAUTHORIZED_ACTION = "Unauthorized Action."
+
 export const TASK_ERROR = {
     UNAUTHORIZED_PERMISSION: `You don't have permission to access this`,
     TASK_NAME_REQUIRED: `Name is mandatory for all tasks`,
@@ -207,7 +256,33 @@ export const PROJECT_ROUTER = {
     PROJECT_NOT_EXISTS: `No such project exists`,
     UNAUTHORIZED_ACCESS: `Unauthorized to perform this action`,
     CITIIS_GRANTS_VALIDATION: `Citiis grants should not exceed project cost`,
-    FINANCIAL_INFO_NO_ACCESS:`You don't have access to view Financial info`
+    FINANCIAL_INFO_NO_ACCESS: `You don't have access to view Financial info`,
+    PHASE_REQUIRED: `Phase is required`,
+    PERCENTAGE_REQUIRED: `Percentage is required`,
+    PERCENTAGE_NOT_EXCEED: `Percentage should not exceed 100`,
+    INSTALLMENT_REQUIRED: `Installment is required`,
+    CITIISGRANTS_NOT_EXCEED: "Released Amount should not exceed CitiisGrants",
+    CITIISGRANTS_NOT_EXCEED_AMOUNT: (cumulativeDifference: any) => `Released Amount exceeded CitiisGrants, Exceeded Amount is ${cumulativeDifference}`,
+    CITIISGRANTS_NOT_LESS_AMMOUNT: (cumulativeDifference: any) => `Released Amount is less than CitiisGrants,Please add ${cumulativeDifference} amount`,
+    START_DATE_LESS_THAN: "Start date must less than end date.",
+    USER_ADD_PROJECT_MEMBER: `You are trying to add yourself as project member`,
+    NOT_VALID_DOC: "not a valid sheet",
+    EMPTY_DOC: `Uploaded empty document`,
+    ASSIGNEE_REQUIRED_TASK: (name: any) => `Assignee is required for task ${name}`,
+    ASSIGNEE_NOT_EXIST: (name: string) => `Assignee not exists for task ${name}`,
+    APPROVER_NOT_EXIST: (errorRole: any, name: any) => `Approver ${errorRole} not exists in the system at task ${name}`,
+    ENDORSER_NOT_EXIST: (errorRole: any, name: any) => `Endorser ${errorRole} not exists in the system at task ${name}`,
+    VIEWER_NOT_EXIST: (errorRole: any, name: any) => `Viewer ${errorRole} not exists in the system at task ${name}`,
+    CITIIS_NOT_LESS_RELEASED: "CitiiesGrant must not be less then Released Funds",
+    USER_ID_REQURED: `User id is required`,
+    PHASE_BEFORE_END_DATE: `Phase start date should be before end date`,
+    PHASE_OVER_LAP: `There shouldn't be any gap or overlap between phases`,
+    UPLOAD_VALID_FORMAT: `please upload valid xlsx/csv file`,
+    START_DATE_NOT_IN_PAST: "Start date must Not be in the past.",
+    START_NOT_LESS_THAN_DUE: "Start date must be lessthan due date.",
+    INVALID_PROJECT_ID: "Invalid Project Id.",
+    MANDATORY: "Required mandatory fields.",
+    PROJECTS_NOT_THERE: "project not there"
 }
 
 export const COMPLIANCES = {
