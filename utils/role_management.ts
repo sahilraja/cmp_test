@@ -119,15 +119,15 @@ export async function notifications() {
     let notificationsList = roles.map((user: any) => {
       let templates: object[] = [];
       templateList.forEach((template: any) => {
-        let removeTemplates = ['invite','changeMobileOTP', 'changeEmailOTP', 'forgotPasswordOTP'];
-        if (!removeTemplates.includes(template.templateName)) {
+        // let removeTemplates = ['invite','changeMobileOTP', 'changeEmailOTP', 'forgotPasswordOTP'];
+        // if (!removeTemplates.includes(template.templateName)) {
           templates.push({
             templateName: template.templateName,
             displayName: template.displayName || template.templateName,
             email: true,
             mobile: true,
           })
-        }
+        // }
       });
       return {
         role: user.role,

@@ -144,5 +144,10 @@
         "content" : "You are added to a user group [groupName] on CMP.",
         "templateName" : "youAddTOGroup",
         "displayName" : "you are added to group"
+    },
+    {
+        "content" : "You are added to a project [projectName] on CMP.",
+        "templateName" : "addedToProject",
+        "displayName" : "you are added to project"
     }
 ]
