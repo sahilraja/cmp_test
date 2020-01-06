@@ -9,6 +9,7 @@ import * as request from "request-promise";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
 import { Types, STATES, set } from "mongoose";
+import { UNAUTHORIZED_ACTION, USER_ROUTER } from "../utils/error_msg";
 
 
 //  get list of tags
@@ -29,10 +30,10 @@ export async function mergeTags(body: any, token: string, userId: string) {
     let userRole = userRoles.data[0];
     const isEligible = await checkRoleScope(userRole, "merge-tag");
     if (!isEligible) {
-      throw new APIError("Unauhorized Action", 403);
+      throw new APIError(UNAUTHORIZED_ACTION, 403);
     }
     let mergeTagId: any;
-    if (!body.tags || !body.mergeTag) throw new Error("All Mandatory Fields Required")
+    if (!body.tags || !body.mergeTag) throw new Error(USER_ROUTER.MANDATORY)
     let mergeTag: any = await tags.find({ tag: body.mergeTag, is_active: true, deleted: false });
     if (mergeTag.length) {
       mergeTagId = mergeTag[0]._id;

@@ -1,4 +1,4 @@
-import { RESPONSE } from "../utils/error_msg";
+import { RESPONSE, PATTERNS } from "../utils/error_msg";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
 import { userRoleAndScope } from "../role/module";
@@ -17,10 +17,10 @@ const patternRegex = /%[A-Za-z0-9]{3,}%$/
 export async function patternCreate(body: any, userObj: any): Promise<object> {
     try {
         const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error("Missing or Invalid Required Fields.");
+        if (!isEligible) throw new APIError(PATTERNS.UNAUTHORIZED, 403);
+        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error(PATTERNS.INVALID_OR_MISSING_DATA);
         let existPattern = await patternSchema.find({ patternCode: body.patternCode, isDeleted: false })
-        if (existPattern.length) throw new Error("A pattern with same name already exists.")
+        if (existPattern.length) throw new Error(PATTERNS.PATTERN_WITH_SAME_NAME)
         return patternSchema.create({ ...body, createdBy: userObj._id })
     } catch (err) {
         throw err
@@ -31,12 +31,12 @@ export async function patternCreate(body: any, userObj: any): Promise<object> {
 export async function patternEdit(patternId: string, body: any, userObj: any): Promise<any> {
     try {
         const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(PATTERNS.UNAUTHORIZED, 403);
         let patternDetails: any = await patternSchema.findById(patternId).exec();
-        if (!patternDetails) throw new Error("Pattern details Not Found.");
-        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error("Missing or Invalid Required Fields.");
+        if (!patternDetails) throw new Error(PATTERNS.PATTERNS_DETAILS_NOT_FOUND);
+        if (!body.patternCode || !patternRegex.test(body.patternCode) || !body.patternName) throw new Error(PATTERNS.INVALID_OR_MISSING_DATA);
         let existPattern = await patternSchema.findOne({ patternCode: body.patternCode, isDeleted: false })
-        if (existPattern && existPattern._id != patternId) throw new Error("A pattern with same name already exists.")
+        if (existPattern && existPattern._id != patternId) throw new Error(PATTERNS.PATTERN_WITH_SAME_NAME)
         return await patternSchema.findByIdAndUpdate(patternId, { $set: { ...body } })
     } catch (err) {
         throw err
@@ -47,9 +47,9 @@ export async function patternEdit(patternId: string, body: any, userObj: any): P
 export async function patternDelete(patternId: string, userObj: any): Promise<any> {
     try {
         const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(PATTERNS.UNAUTHORIZED, 403);
         let patternDetails: any = await patternSchema.findById(patternId).exec();
-        if (!patternDetails) throw new Error("Pattern details Not Found.");
+        if (!patternDetails) throw new Error(PATTERNS.PATTERNS_DETAILS_NOT_FOUND);
         let data: any = await patternSchema.findByIdAndUpdate(patternId, { $set: { isDeleted: patternDetails.isDeleted ? false : true } });
         return { message: data.isDeleted ? RESPONSE.INACTIVE : RESPONSE.ACTIVE };
     } catch (err) {
@@ -70,7 +70,7 @@ export async function patternDetails(patternId: string): Promise<any> {
 export async function patternList(userObj: any, search?: string): Promise<any[]> {
     try {
         const isEligible = await checkRoleScope(userObj.role, "patterns-management");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(PATTERNS.UNAUTHORIZED, 403);
         let searchQuery = search ? { name: new RegExp(search, "i"), isDeleted: false } : { isDeleted: false }
         return await patternSchema.find({ ...searchQuery }).exec()
     } catch (err) {

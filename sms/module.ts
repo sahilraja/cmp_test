@@ -60,7 +60,7 @@ export async function getSmsTemplateBySubstitutions(templateId: string, substitu
         throw err;
     }
     if (!template) {
-        throw new Error(`Email template is invalid, please try again`);
+        throw new Error(USER_ROUTER.INVALID_EMAIL_TEMP);
     }
     let smsContnet:any =Object.keys(substitutions).reduce((prev, key) => {
             return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);

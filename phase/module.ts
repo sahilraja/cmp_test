@@ -1,18 +1,18 @@
 import { phaseSchema } from "./model";
 import { APIError } from "../utils/custom-error";
 import { userDetails } from "../users/module";
-import { USER_ROUTER } from "../utils/error_msg";
+import { USER_ROUTER, UNAUTHORIZED_ACTION } from "../utils/error_msg";
 import { checkRoleScope } from "../utils/role_management";
 
 
 export async function createPhase(payload: any, userObj: any) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "phase-manage");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
+        if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
         if (!payload.phaseName && !payload.colorCode) {
             throw new APIError(USER_ROUTER.MANDATORY)
         }
-        if (payload.phaseName && (/[ ]{2,}/.test(payload.phaseName) || !/[A-Za-z0-9  -]+$/.test(payload.phaseName))) throw new Error("you have entered invalid name. please try again.")
+        if (payload.phaseName && (/[ ]{2,}/.test(payload.phaseName) || !/[A-Za-z0-9  -]+$/.test(payload.phaseName))) throw new Error(USER_ROUTER.NAME_ERROR)
         let phaseInfo: any = await phaseSchema.create({ ...payload, phaseCode: payload.phaseName.toLowerCase(), createdBy: userObj._id });
         let { disable, ...phaseResult } = phaseInfo.toObject();
         return phaseResult
@@ -25,8 +25,8 @@ export async function createPhase(payload: any, userObj: any) {
 export async function editPhase(phaseId: string, body: any, userObj: any) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "phase-manage");
-        if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        if (body.phaseName && (/[ ]{2,}/.test(body.phaseName) || !/[A-Za-z0-9  -]+$/.test(body.phaseName))) throw new Error("you have entered invalid name. please try again.")
+        if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
+        if (body.phaseName && (/[ ]{2,}/.test(body.phaseName) || !/[A-Za-z0-9  -]+$/.test(body.phaseName))) throw new Error(USER_ROUTER.NAME_ERROR)
         let phaseInfo: any = await phaseSchema.findByIdAndUpdate(phaseId, { $set: { phaseName: body.phaseName, phaseCode: body.phaseName.toLowerCase(), colorCode: body.colorCode } }, { new: true }).exec()
         let { disable, ...phaseResult } = phaseInfo.toObject();
         return phaseResult

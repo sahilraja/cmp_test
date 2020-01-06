@@ -1,6 +1,6 @@
 import { notificationSchema } from "./model";
 import { APIError } from "../utils/custom-error";
-import { USER_ROUTER, ROLE_NOT_EXIST } from "../utils/error_msg";
+import { USER_ROUTER, ROLE_NOT_EXIST, NOTIFICATION } from "../utils/error_msg";
 import { role_list } from "../role/module";
 import { TemplateSchema } from "../email-templates/model";
 import { getRoles } from "../utils/rbac";
@@ -61,7 +61,7 @@ export async function addTemplateNotification(objBody: any) {
         const {templateName,displayName} = objBody;
         let templateList: any = await TemplateSchema.findOne({ templateName }).exec();
         if (!templateList) {
-            throw new APIError("Template is not found in email templates");
+            throw new APIError(NOTIFICATION.TEMPLATE_NOT_FOUND);
         }
         return await notificationSchema.updateMany({}, { "$push": { templates: { templateName, displayName, email: true, mobile: true } } })
     }

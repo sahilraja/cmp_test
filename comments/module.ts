@@ -15,13 +15,13 @@ import { mailAllCmpUsers } from "../documents/module";
 
 export async function addComment(body: any, user: any) {
   try {
-    if (!body.type || !body.comment || !body.entity_id) throw new Error("All mandatory fields are required")
+    if (!body.type || !body.comment || !body.entity_id) throw new Error(COMMENT_ROUTER.MANDATORY)
     if (body.type == "document") {
       var doc: any = await documents.findById(body.entity_id)
       // Added if -> add comments to task is also triggering the same API
       if (doc) {
         let admin_scope = (doc.status == 2) ? await checkRoleScope(user.role, "document-comments-publish") : await checkRoleScope(user.role, "document-comments")
-        if (!admin_scope) throw new APIError("Unauthorized Action.", 403);
+        if (!admin_scope) throw new APIError(COMMENT_ROUTER.UNAUTHORIZED, 403);
       }
     }
     let commentInfo = await comments.create({
@@ -46,7 +46,7 @@ export async function addComment(body: any, user: any) {
 
 export async function commentsList(doc_id: String, type: string) {
   try {
-    if (!doc_id) { throw new Error("Id is required") }
+    if (!doc_id) { throw new Error(COMMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let data = await comments.find({ entity_id: doc_id, type: type });
     const commentsList = await Promise.all(
       data.map(comment => {

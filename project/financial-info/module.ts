@@ -1,7 +1,7 @@
 import { checkRoleScope } from "../../utils/role_management";
 import { APIError } from "../../utils/custom-error";
 import { financialSchema } from "./model";
-import { RESPONSE } from "../../utils/error_msg";
+import { RESPONSE, FINANCIAL_INFO } from "../../utils/error_msg";
 import { Types } from "mongoose";
 
 
@@ -17,9 +17,9 @@ export async function financialInfoCreate(body: any, projectId: string, userObj:
     try {
         // const isEligible = await checkRoleScope(userObj.role, "financial-info-management");
         // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
-        if (!body.percentage || !body.phase || body.phase.trim() == "") throw new Error("Missing Required Fields.");
+        if (!body.percentage || !body.phase || body.phase.trim() == "") throw new Error(FINANCIAL_INFO.MANDATORY);
         let existPhase = await financialSchema.find({ projectId: projectId, phase: body.phase, isDeleted: false })
-        if (existPhase.length) throw new Error("A Phase with same name already exists.")
+        if (existPhase.length) throw new Error(FINANCIAL_INFO.PHASE_EXIST)
         return financialSchema.create({ ...body, projectId, createdBy: userObj._id })
     } catch (err) {
         throw err
@@ -32,7 +32,7 @@ export async function financialInfoEdit(projectId: string, financialId: string, 
         // const isEligible = await checkRoleScope(userObj.role, "financial-info-management");
         // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         let existPhase = await financialSchema.findOne({ projectId, phase: body.phase, isDeleted: false })
-        if (existPhase && existPhase._id != financialId) throw new Error("A Phase with same name already exists.")
+        if (existPhase && existPhase._id != financialId) throw new Error(FINANCIAL_INFO.PHASE_EXIST)
         return await financialSchema.findByIdAndUpdate(financialId, { $set: { ...body } }, { new: true })
     } catch (err) {
         throw err
@@ -45,7 +45,7 @@ export async function financialInfoDelete(projectId: string, financialId: string
         // const isEligible = await checkRoleScope(userObj.role, "financial-info-management");
         // if (!isEligible) throw new APIError("Unauthorized Action.", 403);
         let PhaseDetails: any = await financialSchema.findById(financialId).exec();
-        if (!PhaseDetails) throw new Error("Phase details Not Found.");
+        if (!PhaseDetails) throw new Error(FINANCIAL_INFO.PHASE_NOT_FOUND);
         let data: any = await financialSchema.findByIdAndUpdate(financialId, { $set: { isDeleted: PhaseDetails.isDeleted ? false : true } }, { new: true });
         return { message: data.isDeleted ? RESPONSE.INACTIVE : RESPONSE.ACTIVE };
     } catch (err) {
