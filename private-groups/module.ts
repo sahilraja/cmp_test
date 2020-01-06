@@ -20,7 +20,7 @@ export async function createPrivateGroup(body: any, userObj: any): Promise<objec
         const isEligible = await checkRoleScope(userObj.role, "manage-private-group");
         if (!isEligible) throw new APIError(PRIVATE_MEMBER.CREATE.NO_ACCESS, 403);
         if (!body.name || body.name.trim() == "" || !Array.isArray(body.members) || !body.members.length) throw new Error(PRIVATE_MEMBER.CREATE.MISSING_FIELDS);
-        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error(PRIVATE_MEMBER.CREATE.INVALID_NAME)
+        if (body.name && (!/.*[A-Za-z0-9]{1}.*$/.test(body.name))) throw new Error(PRIVATE_MEMBER.CREATE.INVALID_NAME)
         // await validatePrivateMembersConstants(body);
         if (body.members.includes(userObj._id)) throw new Error(PRIVATE_MEMBER.CREATE.OWNER_NOT_PRIVATE_MEMBER)
         let existGroups = await privateGroupSchema.find({ codeName: body.name, createdBy: userObj._id, is_active: true })
@@ -38,7 +38,7 @@ export async function editPrivateGroup(groupId: string, body: any, userId: strin
         if (!groupDetails) throw new Error(PRIVATE_MEMBER.EDIT.GROUP_NOT_FOUND);
         if (groupDetails.createdBy != userId) throw new Error(PRIVATE_MEMBER.EDIT.NO_ACCESS);
         if (body.members && (!Array.isArray(body.members) || !body.members.length)) throw new Error(PRIVATE_MEMBER.EDIT.MINIMUM_ONE_USER_REQUIRED);
-        if (body.name && (/[ ]{2,}/.test(body.name) || !/[A-Za-z0-9  -]+$/.test(body.name))) throw new Error(PRIVATE_MEMBER.EDIT.INVALID_NAME)
+        if (body.name && (!/.*[A-Za-z0-9]{1}.*$/.test(body.name))) throw new Error(PRIVATE_MEMBER.EDIT.INVALID_NAME)
         // await validatePrivateMembersConstants(body);
         if (body)
             if (body.members) {

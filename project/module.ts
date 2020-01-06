@@ -40,7 +40,7 @@ export async function createProject(reqObject: any, user: any) {
     if (!isEligible) {
       throw new APIError(UNAUTHORIZED, 403);
     }
-    // if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+    // if (reqObject.name && (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
       createdBy: user._id,
       name: reqObject.name,
@@ -87,7 +87,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.reference = reqObject.reference;
     }
     if (reqObject.name) {
-      if (reqObject.name && (/[ ]{2,}/.test(reqObject.name) || !/[A-Za-z0-9  -]+$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
+      // if (reqObject.name && (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
       if (preProjectRecord.name != reqObject.name) modifiedFields.push("Name")
       obj.name = reqObject.name;
     }
@@ -168,9 +168,9 @@ export async function manageProjectMembers(id: string, members: string[], userId
     throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
   }
   const previousProjectData: any = await ProjectSchema.findById(id).exec()
-  if (members.includes(userId) && !previousProjectData.members.includes(userId)) {
-    throw new APIError(PROJECT_ROUTER.USER_ADD_PROJECT_MEMBER)
-  }
+  // if (members.includes(userId) && !previousProjectData.members.includes(userId)) {
+  //   throw new APIError(PROJECT_ROUTER.USER_ADD_PROJECT_MEMBER)
+  // }
   const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { members } }, { new: true }).exec()
   const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
   const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
@@ -1569,7 +1569,7 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   updates['funds.$.released.documents'] = releasedDocuments
   updates['funds.$.released.amount'] = releasedCost
   updates['funds.$.released.deleted'] = false
-  const previousReleasedAmount = detail.funds.map((fund: any) => fund.released).filter((fund: any) => fund._id.toString() != _id).map((fund:any) => fund.released.amount).reduce((p: number, c: any) => p + c.amount, 0)
+  const previousReleasedAmount = detail.funds.map((fund: any) => fund.released).filter((fund: any) => fund._id.toString() != _id).map((fund:any) => fund.amount).reduce((p: number, c: any) => p + c.amount, 0)
   if((previousReleasedAmount + releasedCost) > detail.citiisGrants){
     throw new APIError(`Total released amount should not exceed citiis grants`)
   }
