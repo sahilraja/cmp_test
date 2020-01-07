@@ -74,7 +74,7 @@ export async function mergeTags(body: any, token: string, userId: string) {
     await create({ activityType: "MERGED-TAG", activityBy: userId, mergedTag: body.mergeTag, tagsToMerge: tagData })
     return {
       status: true,
-      Message: "Tags Merged Successfully",
+      Message: "Tags merged successfully",
       mergeTagId
     }
   } catch (err) {

@@ -18,7 +18,7 @@ export async function notificationsUpdate(reqObject: any) {
         }
         let updatedData = await notificationSchema.update({ 'role': role, "templates.templateName": templateName },
             { $set: { 'templates.$.displayName': displayName, 'templates.$.mobile': mobile, 'templates.$.email': email } })
-        return { message: "success", status: true}
+        return { message: "Updated successfully", status: true}
     }
     catch (err) {
         throw err
