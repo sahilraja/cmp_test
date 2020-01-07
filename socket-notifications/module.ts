@@ -24,7 +24,8 @@ export async function list(userId: string, currentPage = 1, limit = 30, token: s
 
 async function formatNotification(notificationObj: any, details: any) {
     let userKeys = ["from", "userId"];
-    let keys = (notificationObj.title.match(/\[(.*?)\]/g)).map((key: string) => key.substring(1, key.length - 1))
+    let keys = (notificationObj.title.match(/\[(.*?)\]/g))
+    keys = keys && keys.length? keys.map((key: string) => key.substring(1, key.length - 1)) : []
     let replaceAllObj = keys.map((key: string) => {
         if (userKeys.includes(key)) return { key: key, match: (getFullNameAndMobile(details.users.find((userObj: any) => notificationObj[key] == userObj._id)) || { fullName: "" }).fullName }
         if (key == "taskId") return { key: key, match: details.tasks.find((taskObj: any) => notificationObj[key] == taskObj._id || { name: "" }).name }

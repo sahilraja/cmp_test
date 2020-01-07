@@ -51,7 +51,7 @@ export async function templateEdit(user:any,body: any,id:string) {
 export async function templateDelete(body: any,id:string) {
     try {
         let templateCreate  = await TemplateSchema.findByIdAndRemove(id);
-        return {message: "Successfully deleted template"};
+        return {message: "Template deleted successfully"};
     } catch (err) {
         throw err
     };
@@ -76,7 +76,7 @@ export async function testTemplate(id:string, email: any){
         subject: templatInfo.subject,
         html: templatInfo.content
     })
-    return {message:"success"}
+    return {message:"Email sent successfully"}
 }
 
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {

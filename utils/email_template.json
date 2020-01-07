@@ -14,7 +14,7 @@
     {
         "content" : "Dear <b>[fullName]</b>,<br/><br/> This is a confirmation email on your recent login on CMP.<br/><br/>In case of any issues while using the platform, please contact <b>cmp@niua.org</b>.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "userLogin",
-        "subject" : "CMP] You've Logged in",
+        "subject" : "[CMP] You've Logged in",
         "displayName" : "User Login"
     },
     {
@@ -192,7 +192,7 @@
         "subject" : "[CMP] OTP to Update Password"
     },
     {
-        "content" : "Dear <b>[fullName]</b>, <br/><br/>We are pleased to confirm that you are now registered as [role] for CITIIS Management Platform.<br/><br/>You can login on the platform at the following [link] using your login credentials.<br/><br/>In case of any issues, please contact cmp@niua.org.<br/><br/> Best Regards,<br/>CITIIS Management Platform Team.",
+        "content" : "Dear <b>[fullName]</b>, <br/><br/>We are pleased to confirm that you are now registered as [role] for CITIIS Management Platform.<br/><br/>You can login on the platform at the following <a href=[link]>link</a> using your login credentials.<br/><br/>In case of any issues, please contact cmp@niua.org.<br/><br/> Best Regards,<br/>CMP Administrator",
         "templateName" : "registrationSuccess",
         "displayName" : "Registration Success",
         "subject" : "Registration Confirmation for CITIIS Management Platform"

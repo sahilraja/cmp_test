@@ -39,7 +39,7 @@ export async function smsTemplateEdit(body: any,id:string) {
 export async function smsTemplateDelete(body: any,id:string) {
     try {
         let templateCreate  = await smsTemplateSchema.findByIdAndRemove(id);
-        return {message: "Successfully deleted template"};
+        return {message: "Template deleted successfully"};
     } catch (err) {
         throw err
     };

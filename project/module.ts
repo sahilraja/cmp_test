@@ -137,7 +137,7 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
     if (success && !success.success) throw new Error(success)
     let members = [... new Set((ProjectData.members.filter((id: any) => id != objBody.oldUser)).concat([objBody.newUser]))]
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
-    return { message: "Replaced new user successfully." }
+    return { message: "User replaced successfully." }
   } catch (err) {
     throw err
   }
@@ -997,7 +997,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
     await createTask(taskData, projectId, userToken, userObj)
   }
   // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
-  return { message: 'success' }
+  return { message: 'Tasks uploaded successfully' }
 }
 
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
@@ -1248,7 +1248,7 @@ export async function editProjectMiscompliance(projectId: string, payload: any, 
     if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
     if ("miscomplianceProject" in payload) obj.miscomplianceProject = payload.miscomplianceProject
     await project.findByIdAndUpdate(projectId, obj);
-    return { message: `successfully ${"miscomplianceProject" in payload ? "miscomplianceProject" : "miscomplianceSpv"} updated.` }
+    return { message: `Saved successfully` }
   } catch (err) {
     throw err
   };

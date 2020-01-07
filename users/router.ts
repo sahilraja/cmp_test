@@ -150,11 +150,11 @@ router.get(`/getImage/:userId`, async (request, response, next) => {
     try {
         const userDetail = await getUserDetail(request.params.userId)
         const req = (FILES_SERVER_BASE as string).startsWith("https") ?
-            httpsGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
+            httpsGet(`${FILES_SERVER_BASE}/compressed-image/${userDetail.profilePic}`, (res: any) => {
                 response.setHeader('Content-disposition', 'inline');
                 response.setHeader('Content-type', res.headers['content-type'])
                 res.pipe(response);
-            }) : httpGet(`${FILES_SERVER_BASE}/files/${userDetail.profilePic}`, (res: any) => {
+            }) : httpGet(`${FILES_SERVER_BASE}/compressed-image/${userDetail.profilePic}`, (res: any) => {
                 response.setHeader('Content-disposition', 'inline');
                 response.setHeader('Content-type', res.headers['content-type'])
                 res.pipe(response);
@@ -317,7 +317,9 @@ router.get("/group/:id", authenticate, async (req: Request, res: Response, next:
 
 router.get("/countryCodes", async (req, res, next) => {
     try {
-        res.status(200).send(JSON.parse(readFileSync(join(__dirname, "..", "utils", "country_codes.json"), "utf8")))
+        let countryCodes = JSON.parse(readFileSync(join(__dirname, "..", "utils", "country_codes.json"), "utf8"))
+        countryCodes = Object.values(countryCodes.reduce((acc: any, cur: any) => Object.assign(acc, { [cur.code]: cur }), {}))
+        res.status(200).send(countryCodes.sort((a: any, b: any) => (a.code.substring(1)) - (b.code.substring(1))))
     } catch (err) {
         next(new APIError(err.message));
     }

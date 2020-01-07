@@ -57,7 +57,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         tagsAdded: tagObjects.filter(({ id }: any) => (activity.tagsAdded || []).includes(id)),
         tagsRemoved: tagObjects.filter(({ id }: any) => (activity.tagsRemoved || []).includes(id))
     })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    return logs.map(logObj => getFormantedTaskLogs(logObj))
+    return (logs.map(logObj => getFormantedTaskLogs(logObj))).reverse()
 };
 
 export async function getDocumentsLogs(docId: string, token: string, userObj: any) {
@@ -69,7 +69,7 @@ export async function getDocumentsLogs(docId: string, token: string, userObj: an
         let logs = await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
-        return logs.map(logObj => getFormantedDocLogs(logObj))
+        return (logs.map(logObj => getFormantedDocLogs(logObj))).reverse()
     } catch (err) {
         throw err
     };
@@ -105,7 +105,7 @@ export async function getProfileLogs(profileId: string, token: string) {
         let logs = await Promise.all(activities.map((activity: any) => {
             return profileFetchDetails(activity.toJSON())
         }))
-        return logs.map(logObj=> getFormantedUserLogs(logObj))
+        return (logs.map(logObj=> getFormantedUserLogs(logObj))).reverse()
     } catch (err) {
         throw err
     };
@@ -146,7 +146,7 @@ export async function projectLogs(projectId: string, token: string, userObj: any
         let logs = await Promise.all(activities.map((activity: any) => {
             return fetchProjectLogDetails(activity.toJSON(), taskObjects)
         }))
-        return logs.map(logObj => getFormantedProjectLogs(logObj))
+        return (logs.map(logObj => getFormantedProjectLogs(logObj))).reverse()
     } catch (err) {
         throw err
     };
