@@ -20,7 +20,7 @@ router.get('/list/:doc_id', async (req: Request, res: Response, next: Handler) =
   
 router.post('/add',authenticate, async (req: Request, res: Response, next: Handler) => {
     try {
-        res.status(200).send(await addComment(req.body,res.locals.user));
+        res.status(200).send(await addComment(req.body,res.locals.user, (req as any).token));
     } catch (err) {
         res.status(400).send({ error: err.message });
     };
