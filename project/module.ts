@@ -1710,7 +1710,8 @@ export async function getTotalReleasedFunds(projectId: string) {
 
 export async function getStates() {
   let cities: any = JSON.parse(readFileSync(join(__dirname, "..", "utils", "cities.json"), "utf8"));
-  return cities
+  // return cities
+  return Object.keys(cities).map(state => ({state:state, cities: cities[state]}))
   // writeFileSync(join(__dirname, '..', 'utils', 'cities.json'), Object.keys(cities).map(c => cities[c].sort((a: any,b: any) => a.localeCompare(b))))
   // return cities
 }
