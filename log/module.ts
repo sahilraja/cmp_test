@@ -171,19 +171,19 @@ function getFormantedDocLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'DOCUMENT_CREATED':
-            message = `${UserFullName(activityLog.activityBy)} created the document`;
+            message = `${UserFullName(activityLog.activityBy)} created this document`;
             break;
         case 'DOCUMENT_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} updated the document`;
+            message = `${UserFullName(activityLog.activityBy)} updated this document`;
             break;
         case 'CANCEL_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} canceled the document update`;
+            message = `${UserFullName(activityLog.activityBy)} canceled this document update`;
             break;
         case 'TAGS_ADDED':
-            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
+            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to this document`;
             break;
         case 'TAGS_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} from the document`;
+            message = `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} from this document`;
             break;
         case 'MODIFIED_USER_SHARED_AS_VIEWER':
             message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer for ${getNamesFromIds(activityLog.documentAddedUsers)}`;
@@ -204,34 +204,34 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)}, with edit access`;
             break;
         case 'REMOVED_USER_FROM_DOCUMENT':
-            message = `${UserFullName(activityLog.activityBy)} removed access to the document for ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} removed access to this document for ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
             break;
         case 'REMOVED_GROUP_FROM_DOCUMENT':
-            message = `${UserFullName(activityLog.activityBy)} removed access to the document for ${getNamesFromIds(activityLog.documentRemovedUsers)} group`;
+            message = `${UserFullName(activityLog.activityBy)} removed access to this document for ${getNamesFromIds(activityLog.documentRemovedUsers)} group`;
             break;
         case 'DOUCMENT_PUBLISHED':
-            message = `${UserFullName(activityLog.activityBy)} published the document`;
+            message = `${UserFullName(activityLog.activityBy)} published this document`;
             break;
         case 'DOUCMENT_UNPUBLISHED':
-            message = `${UserFullName(activityLog.activityBy)} unpublished the document`;
+            message = `${UserFullName(activityLog.activityBy)} unpublished this document`;
             break;
         case 'DOUCMENT_REPLACED':
-            message = `${UserFullName(activityLog.activityBy)} replaced the document`;
+            message = `${UserFullName(activityLog.activityBy)} replaced this document`;
             break;
         case 'DOCUMENT_DELETED':
-            message = `${UserFullName(activityLog.activityBy)} deleted the document`;
+            message = `${UserFullName(activityLog.activityBy)} deleted this document`;
             break;
         case 'DOCUMENT_VIEWED':
-            message = `${UserFullName(activityLog.activityBy)} viewed the document`;
+            message = `${UserFullName(activityLog.activityBy)} viewed this document`;
             break;
         case 'DOCUMENT_COMMENT':
-            message = `${UserFullName(activityLog.activityBy)} added a comment to the document`;
+            message = `${UserFullName(activityLog.activityBy)} added a comment to this document`;
             break;
         case 'DOCUMENT_DOWNLOAD':
-            message = `${UserFullName(activityLog.activityBy)} Dowloaded the document`;
+            message = `${UserFullName(activityLog.activityBy)} Dowloaded this document`;
             break;
         case "TAGS_ADD_AND_REMOVED":
-            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} from the document`
+            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to this document and removed tags ${getTagName(activityLog.tagsRemoved)} from this document`
             break;
         default:
             message = "";
@@ -271,22 +271,22 @@ function getFormantedTaskLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'TASK_CREATED':
-            message = `${UserFullName(activityLog.activityBy)} created the task`;
+            message = `${UserFullName(activityLog.activityBy)} created this task`;
             break;
         case 'ASSIGNEE_CHANGED':
-            message = `${UserFullName(activityLog.activityBy)} has changed the assignee from ${activityLog.removedUserIds[0].firstName} ${activityLog.removedUserIds[0].lastName} to ${activityLog.addedUserIds[0].firstName} ${activityLog.addedUserIds[0].lastName}`;
+            message = `${UserFullName(activityLog.activityBy)} has changed the assignee for the task from ${activityLog.removedUserIds[0].firstName} ${activityLog.removedUserIds[0].lastName} to ${activityLog.addedUserIds[0].firstName} ${activityLog.addedUserIds[0].lastName}`;
             break;
         case 'APPROVED_BY_USER':
-            message = `${UserFullName(activityLog.activityBy)} approved the task`;
+            message = `${UserFullName(activityLog.activityBy)} approved this task`;
             break;
         case 'ENDORSED_BY_USER':
-            message = `${UserFullName(activityLog.activityBy)} endorsed the task`;
+            message = `${UserFullName(activityLog.activityBy)} endorsed this task`;
             break;
         case 'TASK_REOPENED':
-            message = `${UserFullName(activityLog.activityBy)} reopened the task`;
+            message = `${UserFullName(activityLog.activityBy)} reopened this task`;
             break;
         case 'TASK_REJECTED':
-            message = `${UserFullName(activityLog.activityBy)} rejected the task`;
+            message = `${UserFullName(activityLog.activityBy)} rejected this task`;
             break;
         case 'STEP_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} has updated the step from ${activityLog.oldStep.name} to ${activityLog.updatedStep.name}`;
@@ -295,16 +295,16 @@ function getFormantedTaskLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} has updated the pillar from ${activityLog.updatedPillar.name} to ${activityLog.updatedPillar.name}`;
             break;
         case 'APPROVERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added approvers ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as approvers`;
             break;
         case 'ENDORSERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added endorsers ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as endorsers`;
             break;
         case 'SUPPORTERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added supporters ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as supporters`;
             break;
         case 'VIEWERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added viewers ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)}`;
+            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as viewers`;
             break;
         case 'TASK_STATUS_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} has updated the task status from ${getStatus(activityLog.oldStatus, "")} to ${getStatus(activityLog.updatedStatus, "")}`
@@ -313,28 +313,28 @@ function getFormantedTaskLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} has updated the start date from ${activityLog.previousStartDate} to ${activityLog.updatedStartDate}`;
             break;
         case 'TASK_DUE_DATE_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the start date from ${activityLog.previousEndDate} to ${activityLog.updatedEndDate}`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the due date from ${activityLog.previousEndDate} to ${activityLog.updatedEndDate}`;
             break;
         case 'DOCUMENTS_ADDED':
-            message = `${UserFullName(activityLog.activityBy)} added documents to the task`;
+            message = `${UserFullName(activityLog.activityBy)} added documents to this task`;
             break;
         case 'SUBTASK_ADDED':
-            message = `${UserFullName(activityLog.activityBy)} added subtask ${(activityLog.subTask || {}).name}`;
+            message = `${UserFullName(activityLog.activityBy)} added subtask ${(activityLog.subTask || {}).name} to this task`;
             break;
         case 'DOCUMENTS_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed documents to the task`;
+            message = `${UserFullName(activityLog.activityBy)} removed documents from this task`;
             break;
         case 'SUBTASK_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed subtask ${(activityLog.subTask || {}).name}`;
+            message = `${UserFullName(activityLog.activityBy)} removed subtask ${(activityLog.subTask || {}).name} from this task`;
             break;
         case 'NEW_TASK_LINKED':
-            message = `${UserFullName(activityLog.activityBy)} linked task ${(activityLog.subTask || {}).name} on`;
+            message = `${UserFullName(activityLog.activityBy)} linked ${(activityLog.subTask || {}).name} task to this task`;
             break;
         case 'LINKED_TASK_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed linked task ${(activityLog.subTask || {}).name}`;
+            message = `${UserFullName(activityLog.activityBy)} removed linked task ${(activityLog.subTask || {}).name} from this task`;
             break;
         case 'TAGS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} updated tags`;
+            message = `${UserFullName(activityLog.activityBy)} updated tags of this task`;
             break;
         default:
             message = "";
@@ -373,22 +373,22 @@ function getFormantedProjectLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'PROJECT_CREATED':
-            message = `${UserFullName(activityLog.activityBy)} created the Project`;
+            message = `${UserFullName(activityLog.activityBy)} created this Project`;
             break;
         case 'TASK_DATES_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} updated the task start date`;
             break;
         case 'CREATE_TASK_FROM_PROJECT':
-            message = `${UserFullName(activityLog.activityBy)} created  task ${activityLog.taskId ? activityLog.taskId.name : ""}`;
+            message = `${UserFullName(activityLog.activityBy)} created task ${activityLog.taskId ? activityLog.taskId.name : ""}`;
             break;
         case 'PROJECT_MEMBERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} added ${getNamesFromIds(activityLog.addedUserIds)} as a Core Team member`;
+            message = `${UserFullName(activityLog.activityBy)} added ${getNamesFromIds(activityLog.addedUserIds)} as a core team member`;
             break;
         case 'ADDED_FUND_RELEASE':
-            message = `${UserFullName(activityLog.activityBy)} added fund release to ${activityLog.updatedCost} INR`;
+            message = `${UserFullName(activityLog.activityBy)} added ${activityLog.updatedCost} INR to fund released`;
             break;
         case 'ADDED_FUND_UTILIZATION':
-            message = `${UserFullName(activityLog.activityBy)} added fund utilisation to ${activityLog.updatedCost} INR`;
+            message = `${UserFullName(activityLog.activityBy)} added ${activityLog.updatedCost} INR to fund utilised`;
             break;
         case 'UPDATED_FUND_RELEASE':
             message = `${UserFullName(activityLog.activityBy)} updated fund release to ${activityLog.updatedCost} INR`;
