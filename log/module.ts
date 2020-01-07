@@ -373,7 +373,7 @@ function getFormantedProjectLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'PROJECT_CREATED':
-            message = `${UserFullName(activityLog.activityBy)} created ${activityLog.projectId.name}`;
+            message = `${UserFullName(activityLog.activityBy)} created the Project`;
             break;
         case 'TASK_DATES_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} updated the task start date`;

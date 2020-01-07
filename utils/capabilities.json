@@ -14,6 +14,13 @@
     "scope": "global"
   },
   {
+    "capability": "notification-management",
+    "shortDescription": "Notification Management",
+    "description": "Notification Management",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
     "capability": "replace-user",
     "shortDescription": "Replace New User",
     "description": "Replace old user to new User",
@@ -173,6 +180,13 @@
     "category":"Project Management",
     "scope":"global",
     "description":"manage phase add/edit permission"
+  },
+  {
+    "capability": "add-phase-to-project",
+    "shortDescription":"Add phase to project",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"Add phase to project"
   },
   {
     "capability":"add-open-comments",
