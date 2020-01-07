@@ -449,7 +449,8 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 export async function getProjectDetail(projectId: string, userToken: string) {
   try {
     let projectDetail: any = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
-    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail.toJSON()]))[0]
+    projectDetail = await mapPhases(projectDetail)
+    return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
   } catch (error) {
     console.error(error)
     throw error

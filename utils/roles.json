@@ -42,12 +42,12 @@
     {
       "role": "mentors",
       "category": "PMU Team",
-      "description": "Mentors"
+      "description": "Mentor"
     },
     {
       "role": "experts",
       "category": "PMU Team",
-      "description": "Experts"
+      "description": "Expert"
     },
     {
       "role": "spv-ceo",
