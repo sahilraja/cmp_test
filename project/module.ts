@@ -1585,6 +1585,10 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   }
   const { documents: releasedDocuments, amount: releasedCost, _id } = payload
   let updates: any = {}
+  const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
+  if(currentObj.utilized && !currentObj.utilized.deleted && currentObj.utilized.amount > releasedCost){
+    throw new APIError(PROJECT_ROUTER.UTILIZED_AMOUNT_EXCEED_RELEASED)
+  }
   updates = { ...updates, modifiedAt: new Date(), releasedBy: user._id }
   // updates['funds.$.releasedDocuments'] = releasedDocuments
   // updates['funds.$.releasedCost'] = releasedCost
@@ -1625,9 +1629,16 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
 }
 
 export async function deleteReleasedFundNew(projectId: string, payload: any, user: any) {
-  const isEligible = await checkRoleScope(user.role, `manage-project-released-fund`)
+  const [isEligible, detail]: any = await Promise.all([
+    checkRoleScope(user.role, `manage-project-released-fund`),
+    ProjectSchema.findById(projectId).exec()
+  ]) 
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
+  }
+  const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
+  if(currentObj.utilized && !currentObj.utilized.deleted){
+    throw new APIError(PROJECT_ROUTER.CANNOT_REMOVE_RELEASED_AMOUNT)
   }
   const { releasedDocuments, releasedCost, _id } = payload
   let updates: any = {}

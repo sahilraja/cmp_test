@@ -269,6 +269,7 @@ export const PROJECT_ROUTER = {
     CITIISGRANTS_NOT_EXCEED: "Released amount can’t exceed CITIIS grant amount",
     TOTAL_RELEASED_EXCEED_CITIIS:`Total released amount can't exceed CITIIS grant amount`,
     UTILIZED_AMOUNT_EXCEED_RELEASED:`Utilized amount can't exceed Released amount`,
+    CANNOT_REMOVE_RELEASED_AMOUNT: `You can't remove released amount after utilized amount is added`,
     CITIISGRANTS_NOT_EXCEED_AMOUNT: (cumulativeDifference: any) => `Released amount exceeded CITIIS grant amount, Exceeded Amount is ${cumulativeDifference}`,
     CITIISGRANTS_NOT_LESS_AMMOUNT: (cumulativeDifference: any) => `Released Amount is less than CITIIS grant amount,Please add ${cumulativeDifference} amount`,
     START_DATE_LESS_THAN: "Start date can’t exceed the end date",
