@@ -1034,7 +1034,12 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
   }
   if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: taskObj.pillarId }).exec() as any || { _id: undefined })._id || undefined
   if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: taskObj.stepId }).exec() as any || { _id: undefined })._id || undefined
-
+  if(!taskObj.stepId){
+    throw new APIError(TASK_ERROR.INVALID_STEP)
+  }
+  if(!taskObj.pillarId){
+    throw new APIError(TASK_ERROR.INVALID_PILLAR)
+  }
   taskObj = {
     ...taskObj,
     projectId,
@@ -1048,18 +1053,18 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     dueDate: new Date(taskObj.initialDueDate || taskObj.dueDate)
   }
   const { assignee, approvers, endorsers } = taskObj
-  if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {
-    throw new APIError(TASK_ERROR.DUPLICATE_APPROVERS_FOUND)
-  }
-  if (Array.from(new Set(taskObj.endorsers || [])).length != (taskObj.endorsers || []).length) {
-    throw new APIError(TASK_ERROR.DUPLICATE_ENDORSERS_FOUND)
-  }
-  if (assignee && ((taskObj.approvers || []).concat(taskObj.endorsers || [])).includes(assignee)) {
-    throw new APIError(TASK_ERROR.ASSIGNEE_ERROR)
-  }
-  if ((taskObj.approvers || []).some((approver: any) => (taskObj.endorsers || []).includes(approver))) {
-    throw new APIError(TASK_ERROR.APPROVERS_EXISTS)
-  }
+  // if (Array.from(new Set(taskObj.approvers || [])).length != (taskObj.approvers || []).length) {
+  //   throw new APIError(TASK_ERROR.DUPLICATE_APPROVERS_FOUND)
+  // }
+  // if (Array.from(new Set(taskObj.endorsers || [])).length != (taskObj.endorsers || []).length) {
+  //   throw new APIError(TASK_ERROR.DUPLICATE_ENDORSERS_FOUND)
+  // }
+  // if (assignee && ((taskObj.approvers || []).concat(taskObj.endorsers || [])).includes(assignee)) {
+  //   throw new APIError(TASK_ERROR.ASSIGNEE_ERROR)
+  // }
+  // if ((taskObj.approvers || []).some((approver: any) => (taskObj.endorsers || []).includes(approver))) {
+  //   throw new APIError(TASK_ERROR.APPROVERS_EXISTS)
+  // }
   return taskObj
 }
 
@@ -1102,9 +1107,9 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
     throw new APIError(PROJECT_ROUTER.VIEWER_NOT_EXIST(errorRole, data.Name))
   }
 
-  if (data['Start Date'] && new Date().getTime() > new Date(data['Start Date']).setHours(23, 59, 59, 0)) {
-    throw new Error(PROJECT_ROUTER.START_DATE_NOT_IN_PAST)
-  }
+  // if (data['Start Date'] && new Date().getTime() > new Date(data['Start Date']).setHours(23, 59, 59, 0)) {
+  //   throw new Error(PROJECT_ROUTER.START_DATE_NOT_IN_PAST)
+  // }
   if (data['End Date'] && new Date(data['Start Date']).setHours(0, 0, 0, 0) > new Date(data['End Date']).setHours(23, 59, 59, 0)) {
     throw new Error(PROJECT_ROUTER.START_NOT_LESS_THAN_DUE)
   }
@@ -1134,7 +1139,7 @@ export async function projectCostInfo(projectId: string, projectCost: number, us
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }).exec()
-    createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: (updatedProject as any).projectCost, updatedCost: projectCost, projectId });
+    createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_PROJECT_COST, oldCost: (updatedProject as any).projectCost, updatedCost: projectCost, projectId });
 
     let userDetails = await userFindOne("id", userId);
     let { fullName, mobileNo } = getFullNameAndMobile(userDetails);

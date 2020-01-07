@@ -229,6 +229,8 @@ export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 export const UNAUTHORIZED_ACTION = "Unauthorized Action."
 
 export const TASK_ERROR = {
+    INVALID_STEP:`Invalid step`,
+    INVALID_PILLAR:`Invalid pillar`,
     STEP_IS_REQUIRED:`Step is required`,
     PILLAR_IS_REQUIRED:`Pillar is required`,
     UNAUTHORIZED_PERMISSION: `You don't have permission to access this feature`,
