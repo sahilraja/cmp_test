@@ -632,16 +632,16 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
 
     objBody.tags = (Array.isArray(objBody.tags) ? objBody.tags : typeof (objBody.tags) == "string" && objBody.tags.length ? objBody.tags.includes("[") ? JSON.parse(objBody.tags) : objBody.tags = objBody.tags.split(',') : []).filter((tag: any) => Types.ObjectId.isValid(tag))
 
+    let _document: any = await documents.findById(docId)
     if (objBody.tags && !objBody.docName && !objBody.description) {
-      let document: any = await documents.findById(docId)
       let userRoles = await userRoleAndScope(userId);
       let userRole = userRoles.data[0];
-      const isEligible = document.status == 2 ? await checkRoleScope(userRole, "add-tags-publish") : await checkRoleScope(userRole, "add-tag-to-document")
+      const isEligible = _document.status == 2 ? await checkRoleScope(userRole, "add-tags-publish") : await checkRoleScope(userRole, "add-tag-to-document")
       if (!isEligible) {
         throw new APIError(DOCUMENT_ROUTER.NO_TAGS_PERMISSION, 403);
       }
       let userCapabilities = await GetDocCapabilitiesForUser(userId, docId)
-      if (!userCapabilities.includes("owner") && document.status != 2) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
+      if (!userCapabilities.includes("owner") && _document.status != 2) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
       obj.tags = typeof (objBody.tags) == "string" ? JSON.parse(objBody.tags) : objBody.tags;
     }
 
@@ -667,7 +667,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         fileName: objBody.name || parent.fileName,
         suggestedTags: parent.suggestedTags
       });
-      const message = `${child[0].name != parent.name ? "name" : ""}${child[0].description != parent.description ? child[0].name != parent.name ? child[0].fileId != parent.fileId ? ", description" : " and description" : "description" : ""}${child[0].fileId != parent.fileId ? child[0].description != parent.description ? " and file" : child[0].name != parent.name ? " and file" : "file" : ""}`
+      const message = `${_document.name != parent.name ? "name" : ""}${(_document.description != null && _document.description != parent.description) ? _document.name != parent.name ? (_document.fileId != parent.fileId ? ", description" : " and description") : "description" : ""}${_document.fileId != parent.fileId ? (_document.description != null && _document.description != parent.description) ? " and file" : _document.name != parent.name ? " and file" : "file" : ""}`
       mailAllCmpUsers("documentUpdate", parent, false, userId, message)
       await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId })
     } else {
@@ -1042,7 +1042,7 @@ async function inviteMail(userId: string, doc: any, actionUserId: string) {
     let userData: any = await userFindOne("id", userId);
     let userName = `${userData.firstName} ${userData.middleName || ""} ${userData.lastName || ""}`;
     const { fullName, mobileNo } = getFullNameAndMobile(userData);
-    webNotification({ notificationType: `DOCUMENTS`, userId: userData._id, docId: doc._id, title: DOC_NOTIFICATIONS.inviteForDocument, from: actionUserId })
+    webNotification({ notificationType: `DOCUMENTS`, userId: userData._id, docId: doc._id, title: DOC_NOTIFICATIONS.inviteForDocument(doc.name), from: actionUserId })
     sendNotification({ id: userData._id, fullName, mobileNo, email: userData.email, documentName: doc.name, documentUrl: `${ANGULAR_URL}/home/resources/doc/${doc._id}`, templateName: "inviteForDocument", mobileTemplateName: "inviteForDocument" });
   } catch (err) {
     throw err;
@@ -2019,7 +2019,7 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification, from: userId })
+      webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
       sendNotification({ id: doc.ownerId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       return {
         sucess: true,
@@ -2093,7 +2093,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       }
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification, from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
           sucess: true,
@@ -2190,7 +2190,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification, from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
           sucess: true,
@@ -2258,9 +2258,9 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
     if (users.length) {
       let allMailContent = await Promise.all(users.map(async (user: any) => {
         let fullName = `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`;
-        let notificationMessage = (DOC_NOTIFICATIONS as any)[type]
-        if (type == "invitePeopleDoc") notificationMessage = DOC_NOTIFICATIONS.invitePeopleDoc(sharedUsers, role)
-        if (type == "documentUpdate") notificationMessage = DOC_NOTIFICATIONS.documentUpdate(text)
+        let notificationMessage = (DOC_NOTIFICATIONS as any)[type](docDetails.name)
+        if (type == "invitePeopleDoc") notificationMessage = DOC_NOTIFICATIONS.invitePeopleDoc(sharedUsers, role, docDetails.name)
+        if (type == "documentUpdate") notificationMessage = DOC_NOTIFICATIONS.documentUpdate(text, docDetails.name)
         webNotification({ notificationType: `DOCUMENTS`, userId: user._id, docId: docDetails._id, title: notificationMessage, from: actionUser })
         sendNotification({
           id: user._id,

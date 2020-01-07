@@ -1,14 +1,14 @@
 export const DOC_NOTIFICATIONS = {
-    inviteForDocument: `You are invited by [from] to collaborate on the document [docId]`,
-    suggestTagNotification: `You have a tag suggestion on the document [docId] from [from]`,
-    approveTagNotification: `A document tag you suggested has been approved on the document [docId]`,
-    rejectTagNotification: `A document tag you suggested has been rejected on the document [docId]`,
-    addCommentToDoc: `A new comment has been added to the document [docId]`,
-    documentUpdate: (text: string) => `Document [docId], has been updated with ${text}`,
-    invitePeopleDoc: (sharedUsers: string, role: string) => `Your document [docId] on CITIIS Management Platform, is shared with ${sharedUsers} in the capacity of ${role}`,
-    publishDocument: `Document [docId], is published on CITIIS Management Platform`,
-    unPublishDocument: `Document [docId] is unpublished from CITIIS Management Platform.`,
-    replaceDocument: `Document [docId] on CITIIS Management Platform, is replaced with a new document.`
+    inviteForDocument: (name: string) => `You are invited by [from] to collaborate on the document ${name}`,
+    suggestTagNotification: (name: string) => `You have a tag suggestion on the document ${name} from [from]`,
+    approveTagNotification: (name: string) => `A document tag you suggested has been approved on the document ${name}`,
+    rejectTagNotification: (name: string) => `A document tag you suggested has been rejected on the document ${name}`,
+    addCommentToDoc: (name: string) => `A new comment has been added to the document ${name}`,
+    documentUpdate: (text: string, name: string) => `Document ${name}, has been updated ${text ? "with " + text : ""}`,
+    invitePeopleDoc: (sharedUsers: string, role: string, name: string) => `Your document ${name} on CITIIS Management Platform, is shared with ${sharedUsers} in the capacity of ${role}`,
+    publishDocument: (name: string) => `Document ${name}, is published on CITIIS Management Platform`,
+    unPublishDocument: (name: string) => `Document ${name} is unpublished from CITIIS Management Platform.`,
+    replaceDocument: (name: string) => `Document ${name} on CITIIS Management Platform, is replaced with a new document.`
 }
 
 export const GROUP_NOTIFICATIONS = {
