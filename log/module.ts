@@ -183,31 +183,31 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
             break;
         case 'TAGS_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} to the document`;
+            message = `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} from the document`;
             break;
         case 'MODIFIED_USER_SHARED_AS_VIEWER':
-            message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer for ${getNamesFromIds(activityLog.documentAddedUsers)}`;
             break;
         case 'MODIFIED_USER_SHARED_AS_COLLABORATOR':
-            message = `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator for  ${getNamesFromIds(activityLog.documentAddedUsers)}`;
             break;
         case 'MODIFIED_GROUP_SHARED_AS_VIEWER':
-            message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer for ${getNamesFromIds(activityLog.documentAddedUsers)}`;
             break;
         case 'MODIFIED_GROUP_SHARED_AS_COLLABORATOR':
-            message = `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator to ${getNamesFromIds(activityLog.documentAddedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator for  ${getNamesFromIds(activityLog.documentAddedUsers)}`;
             break;
         case 'DOCUMENT_SHARED_AS_VIEWER':
-            message = `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with view access`;
+            message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)}, with view access`;
             break;
         case 'DOCUMENT_SHARED_AS_COLLABORATOR':
-            message = `${UserFullName(activityLog.activityBy)} shared document to ${getNamesFromIds(activityLog.documentAddedUsers)} with edit access`;
+            message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)}, with edit access`;
             break;
         case 'REMOVED_USER_FROM_DOCUMENT':
-            message = `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} removed access to the document for ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
             break;
         case 'REMOVED_GROUP_FROM_DOCUMENT':
-            message = `${UserFullName(activityLog.activityBy)} removed access to the document to ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} removed access to the document for ${getNamesFromIds(activityLog.documentRemovedUsers)} group`;
             break;
         case 'DOUCMENT_PUBLISHED':
             message = `${UserFullName(activityLog.activityBy)} published the document`;
@@ -225,13 +225,13 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} viewed the document`;
             break;
         case 'DOCUMENT_COMMENT':
-            message = `${UserFullName(activityLog.activityBy)} added a comment`;
+            message = `${UserFullName(activityLog.activityBy)} added a comment to the document`;
             break;
         case 'DOCUMENT_DOWNLOAD':
-            message = `${UserFullName(activityLog.activityBy)} Dowloaded a document`;
+            message = `${UserFullName(activityLog.activityBy)} Dowloaded the document`;
             break;
         case "TAGS_ADD_AND_REMOVED":
-            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} to  the document`
+            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} from the document`
             break;
         default:
             message = "";
