@@ -330,9 +330,9 @@
   },
   {
     "capability": "manage-private-group",
-    "shortDescription": "Create Private Group",
-    "description": "Create Private Group ",
-    "category": "Private Member Management",
+    "shortDescription": "Create Private Member List",
+    "description": "Create Private Member List",
+    "category": "User Management",
     "scope": "global"
   },
   {
