@@ -20,6 +20,7 @@ export function initializeSocket(http: any) {
             }
             // emitLatestNotificationCount(user._id)
         setTimeout(_ => emitLatestNotificationCount(user._id), 2000);
+        setTimeout(_ => emitLatestInboxCount(user._id), 2000);
         }
         next()
     }).on('connection', async(socket: any) => {

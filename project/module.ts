@@ -10,7 +10,7 @@ import { checkCapability } from "../utils/rbac";
 import { httpRequest, checkRoleScope } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
 import { getUserDetail, userDetails, getFullNameAndMobile, sendNotification } from "../users/module";
-import { userFindMany, userFindOne } from "../utils/users";
+import { userFindMany, userFindOne, userList } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { create as createLog } from "../log/module";
 import { documentsList, updateUserInDOcs } from "../documents/module";
@@ -47,6 +47,7 @@ export async function createProject(reqObject: any, user: any) {
       startDate: reqObject.startDate,
       endDate: reqObject.endDate,
       reference: reqObject.reference,
+      state:reqObject.state,
       city: reqObject.city,
       summary: reqObject.description || "N/A",
       maturationStartDate: { date: reqObject.maturationStartDate, modifiedBy: user._id },
@@ -93,6 +94,9 @@ export async function editProject(id: any, reqObject: any, user: any) {
     }
     if (reqObject.city) {
       obj.city = reqObject.city;
+    }
+    if(reqObject.state){
+      obj.state = reqObject.state
     }
     if (reqObject.description) {
       obj.summary = reqObject.description;
@@ -175,7 +179,19 @@ export async function manageProjectMembers(id: string, members: string[], userId
   const removedUserIds = previousProjectData.members.filter((member: string) => !updatedProject.members.includes(member))
   const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
   createLog({ activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId: id, addedUserIds, removedUserIds })
+  const usersData = await userFindMany(`_id`, addedUserIds, {firstName:1, lastName:1, middleName:1, phone:1, countryCode:1, email:1})
+  sendAddedToProjectNotification(usersData, updatedProject.name)
   return updatedProject
+}
+
+async function sendAddedToProjectNotification(users: any[], projectName: string){
+  return Promise.all(users.map((user: any) => {
+    let { fullName, mobileNo } = getFullNameAndMobile(user);
+    return sendNotification({
+      id: user._id, mobileNo, email: user.email, fullName,
+      projectName, templateName: "addedToProject", mobileTemplateName: "addedToProject"
+    })
+  }))
 }
 
 export async function getProjectMembers(id: string, userId: string) {
@@ -450,10 +466,10 @@ export async function createTask(payload: any, projectId: string, userToken: str
   if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
     throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
   }
-  if(!payload.stepId){
+  if(!payload.isCompliance && !payload.stepId){
     throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
   }
-  if(!payload.pillarId){
+  if(!payload.isCompliance && !payload.pillarId){
     throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
   }
   const options = {
@@ -627,6 +643,8 @@ export async function getInstallments(projectId: string) {
         deletedReleased: s.deletedReleased,
         deletedUtilised: s.deletedUtilised,
         subInstallment: s.subInstallment,
+        released: s.released,
+        utilized: s.utilized,
         releasedCost: !(s.deletedReleased) ? s.releasedCost : null,
         utilisedCost: !(s.deletedUtilised) ? s.utilisedCost : null,
         releasedDocuments: !(s.deletedReleased) ? s.releasedDocuments : null,
@@ -649,7 +667,7 @@ export async function ganttChart(projectId: string, userToken: string) {
     json: true
   }
   const tasks = await httpRequest(options)
-  return { ...(projectDetail as any).toJSON(), tasks: (tasks as any[]).filter((task: any) => task.status != 8) }
+  return { ...(projectDetail as any).toJSON(), tasks: (tasks as any[]).filter((task: any) => task.status != 8).map(task => ({...task, subTasks: task.subTasks.filter((t: any) => t.status != 8)})) }
 }
 
 export async function projectMembers(id: string, currntUser: any) {
@@ -1047,61 +1065,65 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
 
 function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   let errorRole
-  if (!data.name || !data.name.trim().length) {
+  if (!data.Name || !data.Name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
   }
-  const approvers = Object.keys(data).filter(key => ['approver1', `approver2`, `approver3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
-  const endorsers = Object.keys(data).filter(key => ['endorser1', `endorser2`, `endorser3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
-  const viewers = Object.keys(data).filter(key => ['viewer1', `viewer2`, `viewer3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
-  if (!data.assignee || !data.assignee.trim().length) {
-    throw new APIError(PROJECT_ROUTER.ASSIGNEE_REQUIRED_TASK(data.name))
+  const approvers = Object.keys(data).filter(key => ['Approver 1', `Approver 2`, `Approver 3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
+  const endorsers = Object.keys(data).filter(key => ['Endorser 1', `Endorser 2`, `Endorser 3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
+  const viewers = Object.keys(data).filter(key => ['Viewer 1', `Viewer 2`, `Viewer 3`].includes(key)).reduce((p: any, c) => p.concat([data[c].trim()]), [])
+  if (!data.Assignee || !data.Assignee.trim().length) {
+    throw new APIError(PROJECT_ROUTER.ASSIGNEE_REQUIRED_TASK(data.Name))
   }
   // const approvers = data.approvers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   // const endorsers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
   // const viewers = data.endorsers.split(',').map((value: string) => value.trim()).filter((v: string) => !!v)
-  if (!roleNames.includes(data.assignee.trim())) {
-    throw new APIError(PROJECT_ROUTER.ASSIGNEE_NOT_EXIST(data.name))
+  if (!roleNames.includes(data.Assignee.trim())) {
+    throw new APIError(PROJECT_ROUTER.ASSIGNEE_NOT_EXIST(data.Name))
   }
   // Validate Approvers
   if (approvers.some((approver: string) => {
     errorRole = approver
     return !roleNames.includes(approver)
   })) {
-    throw new APIError(PROJECT_ROUTER.APPROVER_NOT_EXIST(errorRole, data.name))
+    throw new APIError(PROJECT_ROUTER.APPROVER_NOT_EXIST(errorRole, data.Name))
   }
   // Validate Endorsers  
   if (endorsers.some((endorser: string) => {
     errorRole = endorser
     return !roleNames.includes(endorser)
   })) {
-    throw new APIError(PROJECT_ROUTER.ENDORSER_NOT_EXIST(errorRole, data.name))
+    throw new APIError(PROJECT_ROUTER.ENDORSER_NOT_EXIST(errorRole, data.Name))
   }
   // Validate Viewers
   if (viewers.some((viewer: string) => {
     errorRole = viewer
     return !roleNames.includes(viewer)
   })) {
-    throw new APIError(PROJECT_ROUTER.VIEWER_NOT_EXIST(errorRole, data.name))
+    throw new APIError(PROJECT_ROUTER.VIEWER_NOT_EXIST(errorRole, data.Name))
   }
 
-  if (data.initialStartDate && new Date().getTime() > new Date(data.initialStartDate).setHours(23, 59, 59, 0)) throw new Error(PROJECT_ROUTER.START_DATE_NOT_IN_PAST)
-  if (data.initialDueDate && new Date(data.initialStartDate).setHours(0, 0, 0, 0) > new Date(data.initialDueDate).setHours(23, 59, 59, 0)) throw new Error(PROJECT_ROUTER.START_NOT_LESS_THAN_DUE)
+  if (data['Start Date'] && new Date().getTime() > new Date(data['Start Date']).setHours(23, 59, 59, 0)) {
+    throw new Error(PROJECT_ROUTER.START_DATE_NOT_IN_PAST)
+  }
+  if (data['End Date'] && new Date(data['Start Date']).setHours(0, 0, 0, 0) > new Date(data['End Date']).setHours(23, 59, 59, 0)) {
+    throw new Error(PROJECT_ROUTER.START_NOT_LESS_THAN_DUE)
+  }
 
   return {
-    name: data.name,
-    description: data.description,
-    initialStartDate: data.initialStartDate,
-    initialDueDate: data.initialDueDate,
+    name: data.Name,
+    description: data.Description,
+    initialStartDate: data['Start Date'],
+    initialDueDate: data['End Date'],
     // Validate ids
     // tags: data.tags,
-    assignee: data.assignee,
-    viewers: viewers || data.viewers,
-    approvers: approvers || data.approvers,
-    endorsers: endorsers || data.endorsers,
-    stepId: data.stepId || data.step,
-    pillarId: data.pillarId || data.pillar,
+    assignee: data.Assignee,
+    viewers,
+    approvers,
+    endorsers,
+    stepId: data.Step,
+    pillarId: data.Pillar,
     isFromExcel: true,
-    documents: data.documents
+    documents: data.Documents
   }
 }
 
@@ -1293,7 +1315,7 @@ export async function addInstallments(projectId: string, payload: any, user?: an
     return { ...fund, installment: index + 1 }
   })
   const overAllPercentage = finalPayload.reduce((p: number, fund: any) => p + Number(fund.percentage), 0)
-  if (overAllPercentage > 100) {
+  if (overAllPercentage != 100) {
     throw new APIError(PROJECT_ROUTER.PERCENTAGE_NOT_EXCEED)
   }
   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { fundsReleased: finalPayload, fundsUtilised: finalPayload } }, { new: true }).exec()
@@ -1493,7 +1515,7 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
     phase: phases.find(phase => phase._id.toString() == fund.phase),
     released: {
       ...fund.released,
-      cumilativeDifference: Math.round(citiisGrants * (fund.percentage / 100)) - fund.released.amount,
+      cumilativeDifference: Math.round(citiisGrants * (fund.percentage / 100)) - (fund.released || {}).amount || 0,
       fundsPlanned: Math.round(citiisGrants * (fund.percentage / 100)),
       documents: documents.filter((d: any) => fund.released.documents.includes(d._id.toString()))
     },
@@ -1569,9 +1591,9 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   updates['funds.$.released.documents'] = releasedDocuments
   updates['funds.$.released.amount'] = releasedCost
   updates['funds.$.released.deleted'] = false
-  const previousReleasedAmount = detail.funds.map((fund: any) => fund.released).filter((fund: any) => fund._id.toString() != _id).map((fund:any) => fund.amount).reduce((p: number, c: any) => p + c.amount, 0)
+  const previousReleasedAmount = detail.funds.map((fund: any) => fund.released).filter((fund: any) => fund._id.toString() != _id).map((fund:any) => fund.amount).reduce((p: number, c: any) => p + c, 0)
   if((previousReleasedAmount + releasedCost) > detail.citiisGrants){
-    throw new APIError(`Total released amount should not exceed citiis grants`)
+    throw new APIError(PROJECT_ROUTER.TOTAL_RELEASED_EXCEED_CITIIS)
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.releasedCost, projectId, activityBy: user._id })
@@ -1592,6 +1614,11 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   updates['funds.$.utilized.documents'] = documents
   updates['funds.$.utilized.amount'] = amount
   updates['funds.$.utilized.deleted'] = false
+  const currentObj = projectDetail.funds.find((f: any) => f.utilized._id.toString() == _id)
+  if(currentObj.released.amount < amount){
+    throw new APIError(PROJECT_ROUTER.UTILIZED_AMOUNT_EXCEED_RELEASED)
+
+  }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.utilisedCost, updatedCost: amount, activityBy: user._id })
   return updatedProject
@@ -1710,7 +1737,6 @@ export async function getTotalReleasedFunds(projectId: string) {
 
 export async function getStates() {
   let cities: any = JSON.parse(readFileSync(join(__dirname, "..", "utils", "cities.json"), "utf8"));
-  // return cities
   return Object.keys(cities).map(state => ({state:state, cities: cities[state]}))
   // writeFileSync(join(__dirname, '..', 'utils', 'cities.json'), Object.keys(cities).map(c => cities[c].sort((a: any,b: any) => a.localeCompare(b))))
   // return cities

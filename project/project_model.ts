@@ -11,6 +11,7 @@ const schema = new Schema({
     createdBy: { type: String },
     name: { type: String, trim: true },
     city: { type: String, trim: true },
+    state: {type: String, trim: true},
     summary: { type: String },
     startDate: { type: Date, default: new Date() },
     endDate: { type: Date, default: new Date() },

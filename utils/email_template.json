@@ -12,9 +12,9 @@
         "subject" : "[CMP] Updates on your User Account"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/> Welcome to CITIIS Management Platform. This is to confirm your access on CMP.<br/><br/>In case of any issues while using the platform, please contact <b>cmp@niua.org</b>.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/> This is a confirmation email on your recent login on CMP.<br/><br/>In case of any issues while using the platform, please contact <b>cmp@niua.org</b>.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "userLogin",
-        "subject" : "Welcome to CITIIS Management Platform",
+        "subject" : "CMP] You've Logged in",
         "displayName" : "User Login"
     },
     {
@@ -196,5 +196,11 @@
         "templateName" : "registrationSuccess",
         "displayName" : "Registration Success",
         "subject" : "Registration Confirmation for CITIIS Management Platform"
+    },
+    {
+        "content":  "Dear <b>[fullName]</b>,<br/><br/>You are added to a project <b>[projectName]</b>, on CITIIS Management Platform. Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName": "addedToProject",
+        "displayName": "Added to Project",
+        "subject": "[CMP] You're added to a Project"
     }
 ]

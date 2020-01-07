@@ -18,6 +18,9 @@ import * as complianceRouter from "./compliances/router";
 import * as riskRouter from "../risks/router";
 import * as opportunityRouter from "./opportunities/router";
 import * as financialRouter from "./financial-info/router";
+import { get as httpGet } from "http";
+import { get as httpsGet } from "https";
+import { FILES_SERVER_BASE } from "../utils/urls";
 //  Add Project
 router.post("/create", async (req, res, next) => {
     try {
@@ -403,6 +406,8 @@ router.use(`/`, opportunityRouter)
 router.use('/', financialRouter)
 
 import * as multer from "multer";
+import { uploadToFileService } from "../documents/module";
+import { UploadFormatSchema } from "./upload-format-model";
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         console.log("Dest");

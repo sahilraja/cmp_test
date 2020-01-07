@@ -1354,7 +1354,7 @@ export async function changeOldPassword(body: any, userObj: any) {
         let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
         let { otp, token } = await generateOtp(4, { password: body.password });
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { password: body.new_password });
-        sendNotification({ id: userObj._id, email: userObj.email, mobileNo, otp, mobileOtp, templateName: "changePasswordOTP", mobileTemplateName: "sendOtp" });
+        sendNotification({ id: userObj._id, fullName, email: userObj.email, mobileNo, otp, mobileOtp, templateName: "changePasswordOTP", mobileTemplateName: "sendOtp" });
         await userUpdate({ id: userObj._id, otp_token: token, smsOtpToken: smsToken });
         return { message: "Otp is sent successfully", bypass_otp: false }
     } catch (err) {
