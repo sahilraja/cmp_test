@@ -8,5 +8,6 @@ const schema = new Schema({
     isDeleted: { type: Boolean, default: false }
 }, { timestamps: true });
 
+schema.index({patternCode:1, isDeleted:1})
 schema.plugin(mongoosePagination);
 export const patternSchema = model("patterns", schema);
