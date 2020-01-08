@@ -65,15 +65,15 @@ export async function bulkInvite(filePath: string, user: any) {
             if (existingEmails.includes(data.Email.toLowerCase())) {
                 throw new APIError(USER_ROUTER.EMAIL_EXIST(data.Email))
             }
-            if (!categories.includes(data.Category)) {
-                throw new APIError(USER_ROUTER.CATEGORY_NOT_MATCH(data.Category))
-            }
+            // if (!categories.includes(data.Category)) {
+            //     throw new APIError(USER_ROUTER.CATEGORY_NOT_MATCH(data.Category))
+            // }
             if (!matchedRole) {
                 throw new APIError(USER_ROUTER.NO_ROLE_MATCH(data.Role))
             }
             return { ...data, category: data.Category, email: data.Email, role: [matchedRole.role] }
         })
-        if (formattedDataWithRoles.some(role => !role.category || !role.role || !role.email)) {
+        if (formattedDataWithRoles.some(role => !role.role || !role.email)) {
             throw new APIError(USER_ROUTER.CATEGORY_REQUIRE_ALL_MANDATORY)
         }
         formattedDataWithRoles.forEach((role: any) => {

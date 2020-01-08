@@ -256,7 +256,7 @@ export const TASK_ERROR = {
 }
 
 export const PROJECT_ROUTER = {
-
+    SELECT_PHASE: "Please provide phase name.",
     MORE_THAN_ONE_RESULT_FOUND: `[Error: 0058] More than one result found for specified role`,
     TASK_REQUIRED_FOR_LINKING: `[Error: 0059] Task ID is required to link task to a project`,
     NOT_MEMBER_OF_PROJECT: `User not found in the list of core team`,
