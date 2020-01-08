@@ -3,13 +3,13 @@ if [ -z $1 ]
     then
         environment=dev
 else
-    environment=uat
+    environment=$1
 fi
 
 builddir="cmp-api-service-$environment"
 pm2process="$environment-cmp-api-service"
 zipname="$builddir.zip"
-sshconfig=cmp
+sshconfig="cmp-$environment"
 nodebin=/home/ubuntu/.nvm/versions/node/v10.16.3/bin
 
 echo "Remove dist folder"
