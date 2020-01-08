@@ -24,16 +24,18 @@ export async function addComment(body: any, user: any, userToken: string) {
         if (!admin_scope) throw new APIError(COMMENT_ROUTER.UNAUTHORIZED, 403);
       }
     }
-    const taskDetail: any = await httpRequest({
-      url: `${TASKS_URL}/task/${body.entity_id}/soft-detail`,
-      json: true,
-      method: 'GET',
-      // body: { status: { $nin: [8] } },
-      headers: { 'Authorization': `Bearer ${userToken}` }
-  })
-  if(taskDetail && ![...taskDetail.approvers, ...taskDetail.endorsers, taskDetail.actualAssignee, taskDetail.owner].includes(user._id)){
-    throw new APIError(TASK_ERROR.INVALID_WFM_BY_USER)
-  }
+    if(body.type == `task`){
+      const taskDetail: any = await httpRequest({
+        url: `${TASKS_URL}/task/${body.entity_id}/soft-detail`,
+        json: true,
+        method: 'GET',
+        // body: { status: { $nin: [8] } },
+        headers: { 'Authorization': `Bearer ${userToken}` }
+    })
+    if(taskDetail && taskDetail.success && ![...taskDetail.approvers, ...taskDetail.endorsers, taskDetail.actualAssignee, taskDetail.owner].includes(user._id)){
+      throw new APIError(TASK_ERROR.INVALID_WFM_BY_USER)
+    }
+    }
     let commentInfo = await comments.create({
       type: body.type,
       comment: body.comment,
