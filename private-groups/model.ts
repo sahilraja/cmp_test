@@ -10,6 +10,8 @@ const schema = new Schema({
     createdBy: { type: String, required: true },
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
+schema.index({codeName:1, createdBy:1, is_active:1})
+schema.index({name:1, createdBy:1, is_active:1})
 
 schema.plugin(mongoosePagination);
 export const privateGroupSchema = model("private_group", schema);

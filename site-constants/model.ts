@@ -9,4 +9,5 @@ const schema = new Schema({
     displayName: { type: String }
 }, { timestamps: true });
 schema.plugin(mongoosePaginate);
+schema.index({key:1})
 export const constantSchema = model("constant", schema);

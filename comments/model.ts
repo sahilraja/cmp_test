@@ -9,5 +9,8 @@ const schema = new Schema(
   },
   { timestamps: true }
 );
+schema.index({entity_id:1})
+schema.index({user_id:1})
+schema.index({user_id:1, entity_id:1})
 
 export const comments = model("comments", schema);

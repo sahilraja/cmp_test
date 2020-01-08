@@ -9,5 +9,7 @@ const schema = new Schema(
   },
   { timestamps: true }
 );
+schema.index({ownerId:1})
+schema.index({ownerId:1, parentId:1})
 
 export const folders = model("folders", schema);

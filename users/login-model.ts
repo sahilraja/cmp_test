@@ -7,5 +7,6 @@ const schema = new Schema({
     ip: { type: String }
 }, { timestamps: true }
 );
+schema.index({userId:1})
 schema.plugin(mongoosePaginate);
 export const loginSchema = model("login_time", schema);

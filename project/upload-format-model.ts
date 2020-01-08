@@ -4,4 +4,5 @@ let SchemaDef = new Schema({
     type: {type: String},
     fileId:{type: String}
 })
+SchemaDef.index({type:1})
 export const UploadFormatSchema = model('upload_formats', SchemaDef)

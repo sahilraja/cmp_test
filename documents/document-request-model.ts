@@ -9,4 +9,5 @@ const schema = new Schema(
     { timestamps: true }
 );
 
+schema.index({docId:1, requestedBy:1, isDelete:1})
 export const docRequestModel = model("document-request", schema);

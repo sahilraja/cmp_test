@@ -25,5 +25,8 @@ const SchemaDef = new Schema({
     parentId: {type: Types.ObjectId, default: null, ref: "risks"},
     createdBy: { type: String }
 }, { timestamps: true })
+SchemaDef.index({projectId: 1})
+SchemaDef.index({parentId: 1})
+SchemaDef.index({parentId: 1, projectId: 1})
 SchemaDef.plugin(plugin)
 export const RiskSchema = model(`risks`, SchemaDef)
