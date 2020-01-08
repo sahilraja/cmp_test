@@ -198,10 +198,10 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} modified document access from viewer to collaborator for  ${getNamesFromIds(activityLog.documentAddedUsers)}`;
             break;
         case 'DOCUMENT_SHARED_AS_VIEWER':
-            message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)}, with view access`;
+            message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)} with view access`;
             break;
         case 'DOCUMENT_SHARED_AS_COLLABORATOR':
-            message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)}, with edit access`;
+            message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)} with edit access`;
             break;
         case 'REMOVED_USER_FROM_DOCUMENT':
             message = `${UserFullName(activityLog.activityBy)} removed access to this document for ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
