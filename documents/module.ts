@@ -1357,7 +1357,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
       fileName: body.fileName || doc.fileName,
       fileId: body.fileId || doc.fileId
     });
-    if (createdDoc.status == 2) {
+    if (!body.parentId) {
       let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
       let userName;
       if (userDetails.firstName)
@@ -1381,14 +1381,14 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
         status: createdDoc.status,
         fileName: createdDoc.fileName,
         updatedAt: createdDoc.updatedAt,
-        id: createdDoc.id,
+        id: createdDoc.id || createdDoc._id,
         groupId: [],
         groupName: []
       }
-      let result = await esClient.index({
+      let result =  esClient.index({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         body: docObj,
-        id: createdDoc.id
+        id: createdDoc.id || createdDoc._id
       });
     }
     return createdDoc;
