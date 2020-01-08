@@ -1297,6 +1297,7 @@ function formatAndValidatePhasePayload(payload: any) {
         throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
       }
     }
+    if(!Types.ObjectId.isValid(_data.phase)) throw new Error(PROJECT_ROUTER.SELECT_PHASE)
     return {
       phase: _data.phase,
       startDate: new Date(new Date(_data.startDate).setHours(0, 0, 0, 0)),
