@@ -109,7 +109,7 @@ router.get(`/:id/gantt-chart`, async (req, res, next) => {
 //  Edit Project
 router.post("/:id/edit", async (req: any, res: any, next: any) => {
     try {
-        res.status(OK).send(await editProject(req.params.id, req.body, res.locals.user))
+        res.status(OK).send(await editProject(req.params.id, req.body, res.locals.user,req.token))
     } catch (err) {
         if (err.code == 11000) {
             err.message = `Reference code already exists`
