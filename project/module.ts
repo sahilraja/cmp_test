@@ -12,6 +12,7 @@ import { TASKS_URL } from "../utils/urls";
 import { getUserDetail, userDetails, getFullNameAndMobile, sendNotification } from "../users/module";
 import { userFindMany, userFindOne, userList } from "../utils/users";
 import { APIError } from "../utils/custom-error";
+import { updateProjectTasks } from "../utils/utils"
 import { create as createLog } from "../log/module";
 import { documentsList, updateUserInDOcs } from "../documents/module";
 import { unlinkSync, readFileSync, writeFileSync } from "fs";
@@ -66,7 +67,7 @@ export async function createProject(reqObject: any, user: any) {
 }
 
 //  Edit city Code
-export async function editProject(id: any, reqObject: any, user: any) {
+export async function editProject(id: any, reqObject: any, user: any,token:string) {
   try {
     if (!id || !user) throw new Error(MISSING);
     let obj: any = {};
@@ -108,6 +109,7 @@ export async function editProject(id: any, reqObject: any, user: any) {
       obj.phases = reqObject.phases
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
+    let updateTasksInElasticSearch = updateProjectTasks(id,token);
     return updatedProject
   } catch (err) {
     console.error(err);

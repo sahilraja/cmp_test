@@ -259,3 +259,18 @@ export function dateDifference(oldDate: any, newDate?: any) {
         throw err
     }
 }
+
+export async function updateProjectTasks(body: any, token: string) {
+    try {
+      let Options = {
+        uri: `${TASK_URL}/update/project-Task`,
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: body,
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };
