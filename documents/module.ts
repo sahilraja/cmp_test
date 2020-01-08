@@ -2222,7 +2222,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
+        sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
           sucess: true,
           message: "Tag Removing Rejected"
