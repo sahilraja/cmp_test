@@ -67,8 +67,8 @@ import {
   markDocumentAsUnPublic,
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
-  searchDoc,updateUserInDOcs,
-  createIndex,removeIndex, getDocsAndInsertInCasbin, getDocDetailsForSuccessResp
+  searchDoc, updateUserInDOcs,
+  createIndex, removeIndex, getDocsAndInsertInCasbin, getDocDetailsForSuccessResp, bulkUploadDocument
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -82,6 +82,19 @@ import { constantSchema } from "../site-constants/model";
 import { OK } from "http-status-codes";
 import { getConstantsAndValues } from "../site-constants/module";
 import { create } from "../log/module";
+import multer = require("multer");
+import { join } from "path";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    console.log("Dest");
+    cb(null, (join(__dirname, "..", 'uploads')))
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + file.originalname)
+  }
+});
+const upload = multer({ storage })
 
 const router = Router();
 
@@ -156,7 +169,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
     req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
     if (fileObj.errors) throw new Error(DOCUMENT_ROUTER.FILE_SIZE(req.siteConstants.docSize))
-    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants,`${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -389,7 +402,7 @@ router.get("/:id/file-download-log", authenticate, async (req: any, res, next) =
   try {
     let documentDetails = await getDocumentById(req.params.id)
     await create({ activityType: `DOCUMENT_DOWNLOAD`, activityBy: res.locals.user._id, documentId: documentDetails.parentId || documentDetails._id })
-    res.status(OK).send({success: true})
+    res.status(OK).send({ success: true })
   } catch (err) {
     throw err
   };
@@ -612,7 +625,7 @@ router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
 router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body,host));
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body, host));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -709,7 +722,7 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await getFolderDetails(req.params.folderId, res.locals.user._id, req.query.page, req.query.limit, host,(req as any).rootPath));
+    res.status(200).send(await getFolderDetails(req.params.folderId, res.locals.user._id, req.query.page, req.query.limit, host, (req as any).rootPath));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -848,7 +861,7 @@ router.get(`/public/all`, async (req, res, next) => {
 //  Create Folder
 router.put("/folder/rename/:folderId", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await renameFolder(req.params.folderId,req.body, res.locals.user._id));
+    res.status(200).send(await renameFolder(req.params.folderId, req.body, res.locals.user._id));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -857,7 +870,7 @@ router.put("/folder/rename/:folderId", authenticate, async (req, res, next: Next
 
 router.get("/search/doc", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await searchDoc(req.query.search, res.locals.user._id,req.query.page, req.query.limit,req.query.pagination,req.query.searchAllCmp));
+    res.status(200).send(await searchDoc(req.query.search, res.locals.user._id, req.query.page, req.query.limit, req.query.pagination, req.query.searchAllCmp));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -885,6 +898,14 @@ router.post("/remove/index", async (req, res, next) => {
   } catch (err) {
     next(new APIError(err.message));
   }
+});
+
+router.post(`/bulk-document/upload`, authenticate, siteConstants, upload.single('upfile'), async (req: any, res, next) => {
+  try {
+    res.status(200).send(await bulkUploadDocument(req.file.path, res.locals.user, req.siteConstants, req.token));
+  } catch (err) {
+    next(new APIError(err.message));
+  };
 });
 
 export = router;

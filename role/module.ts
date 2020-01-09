@@ -17,7 +17,7 @@ export async function role_list() {
             roles: roles
         }
     } else {
-        roles: []
+        return { roles: [] }
     }
 };
 
@@ -34,18 +34,19 @@ export async function roles_list() {
 export async function capabilities_list() {
     let capabilities: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
     let listcapabilities = capabilities.map(capability => {
-        return { capability: capability.capability, description: capability.description, scope: capability.scope, shortDescription: capability.shortDescription,category: capability.category}
+        return { capability: capability.capability, description: capability.description, scope: capability.scope, shortDescription: capability.shortDescription, category: capability.category }
     });
-let result = listcapabilities.reduce((response, capability) =>{
-    response[capability.category] = response[capability.category] || [];
-    response[capability.category].push(capability);
+    let result = listcapabilities.reduce((response, capability) => {
+        response[capability.category] = response[capability.category] || [];
+        response[capability.category].push(capability);
         return response;
     }, Object.create(null));
-    result = Object.keys(result).reduce((p: any, r: any) => ({...p,
-        [r]: result[r].sort((a: any,b: any) => (a.shortDescription as string).localeCompare((b.shortDescription as string), 'en', {sensitivity:'base'}))
+    result = Object.keys(result).reduce((p: any, r: any) => ({
+        ...p,
+        [r]: result[r].sort((a: any, b: any) => (a.shortDescription as string).localeCompare((b.shortDescription as string), 'en', { sensitivity: 'base' }))
     }), {})
 
-// console.log(result);
+    // console.log(result);
     return {
         status: true,
         capabilities: result
@@ -80,7 +81,7 @@ export async function userRoleAndScope(userId: any) {
         }
         let success = await request(Options);
         if (!success.status) throw new Error(USER_ROUTER.SOMETHING_WENT_WRONG)
-       
+
         // success.data.map((key: any) => {
         //     if (object[key.role]) {
         //         object[key.role].push(key.scope)
@@ -108,7 +109,7 @@ export async function userRoleAndScope(userId: any) {
         //     })
         // });
         return { data: success.data, user: userId }
- 
+
     } catch (err) {
         console.error(err)
         throw err
@@ -128,7 +129,7 @@ export async function usersForRole(role: string) {
         }
         let success = await request(Options);
         if (!success) throw new Error("Fail to get users.")
-        let users = await userList({ _id: { $in: success.users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1  })
+        let users = await userList({ _id: { $in: success.users } }, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 })
         return { role: role, users: users }
     } catch (err) {
         console.error(err);
@@ -168,17 +169,17 @@ export async function allrolecapabilities() {
     }
 }
 
-export async function addCapability(role: string, scope: string, capability: string,userId:string, auth?: Boolean) {
+export async function addCapability(role: string, scope: string, capability: string, userId: string, auth?: Boolean) {
     try {
-        auth = auth || true
-        if(auth){
+        auth = auth == false?  false : true
+        if (auth) {
             let userRoles = await userRoleAndScope(userId);
             let userRole = userRoles.data[0];
             const isEligible = await checkRoleScope(userRole, "display-role-management");
             if (!isEligible) {
-            throw new APIError("Unauthorized for this Action", 403);
+                throw new APIError("Unauthorized for this Action", 403);
+            }
         }
-    }
         let Options = {
             uri: `${RBAC_URL}/capabilities/add`,
             method: "POST",
@@ -195,14 +196,14 @@ export async function addCapability(role: string, scope: string, capability: str
     };
 };
 
-export async function removeCapability(role: string, scope: string, capability: string, userId:string) {
+export async function removeCapability(role: string, scope: string, capability: string, userId: string) {
     try {
         let userRoles = await userRoleAndScope(userId);
         let userRole = userRoles.data[0];
         const isEligible = await checkRoleScope(userRole, "display-role-management");
         if (!isEligible) {
-        throw new APIError("Unauthorized for this Action", 403);
-    }
+            throw new APIError("Unauthorized for this Action", 403);
+        }
         let Options = {
             uri: `${RBAC_URL}/capabilities/remove`,
             method: "PUT",
@@ -218,30 +219,30 @@ export async function removeCapability(role: string, scope: string, capability: 
         throw err;
     };
 };
-export async function updaterole(role:string,bodyObj:any,userId:string) {
+export async function updaterole(role: string, bodyObj: any, userId: string) {
     try {
         let userRoles = await userRoleAndScope(userId);
         let userRole = userRoles.data[0];
         const isEligible = await checkRoleScope(userRole, "display-role-management");
         if (!isEligible) {
-        throw new APIError("Unauthorized for this Action", 403);
-    }
+            throw new APIError("Unauthorized for this Action", 403);
+        }
 
-        let findRole = await roleSchema.find({role:role})
-        if(!findRole.length){
+        let findRole = await roleSchema.find({ role: role })
+        if (!findRole.length) {
             throw new Error("Role does not exist");
         }
-        let roleData = findRole.map((_role:any)=>{
+        let roleData = findRole.map((_role: any) => {
             return _role;
         })
-        let updateRole = await roleSchema.update({role:role}, { 
-            category:bodyObj.category?bodyObj.category:roleData[0].category,
-            roleName:bodyObj.roleName?bodyObj.roleName:roleData[0].roleName,
-            description:bodyObj.description?bodyObj.description:roleData[0].description
-         }).exec()
- 
+        let updateRole = await roleSchema.update({ role: role }, {
+            category: bodyObj.category ? bodyObj.category : roleData[0].category,
+            roleName: bodyObj.roleName ? bodyObj.roleName : roleData[0].roleName,
+            description: bodyObj.description ? bodyObj.description : roleData[0].description
+        }).exec()
+
         if (updateRole) {
-        return { success:true, data:updaterole }
+            return { success: true, data: updaterole }
         }
 
     } catch (err) {
@@ -277,8 +278,8 @@ export async function addRole(userId: string, bodyObj: any) {
         let userRole = userRoles.data[0];
         const isEligible = await checkRoleScope(userRole, "display-role-management");
         if (!isEligible) {
-        throw new APIError("Unauthorized for this Action", 403);
-    }
+            throw new APIError("Unauthorized for this Action", 403);
+        }
         if (!bodyObj.role || !bodyObj.category || !bodyObj.roleName) throw new Error("All mandatory fields are reuired")
         let role = bodyObj.role.replace(/ /g, '-');
         role = role.toLowerCase().trim()

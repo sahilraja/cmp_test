@@ -34,6 +34,10 @@ import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, 
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
+import { importExcelAndFormatData } from "../project/module";
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
+import request = require("request");
 
 
 enum STATUS {
@@ -1385,7 +1389,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
         groupId: [],
         groupName: []
       }
-      let result =  esClient.index({
+      let result = esClient.index({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         body: docObj,
         id: createdDoc.id || createdDoc._id
@@ -3101,5 +3105,87 @@ export async function replaceUserInES(docId: string, newUserId: string, newUserN
   } catch (error) {
     console.error(error);
     throw error;
+  }
+}
+
+export async function bulkUploadDocument(filePath: any, userObj: any, siteConstants: any, token: string) {
+  try {
+    const excelFormattedData = importExcelAndFormatData(filePath)
+    if (!excelFormattedData.length) {
+      throw new APIError(DOCUMENT_ROUTER.UPLOAD_EMPTY_FOLDER)
+    }
+    let formateExcel = await bulkValidation(excelFormattedData, userObj, siteConstants)
+    // await Promise.all()
+    await request({
+      method: "POST",
+      url: process.env.CMP_URL || "http://localhost:3000",
+      port: 3000,
+      headers: {
+        "Authorization": "Basic " + token,
+        "Content-Type": "multipart/form-data"
+      },
+      form: {
+        "upfile": readFileSync("./images/scr1.png")
+      }
+    }
+    )
+
+
+  } catch (error) {
+    throw error
+  }
+}
+
+async function bulkValidation(excelFormattedData: any[], userObj: any, siteConstants: any): Promise<boolean> {
+  try {
+    let EXCEL_KEYS = ["Document Name", "Access", "Edit Access", "Filename", "Location", "Ownership", "View Access", "Tags"]
+    let ACCESS: string[] = ["Public Document"]
+    let [existDocuments, userObjs] = await Promise.all([
+      documents.find({ isDeleted: false, parentId: null, ownerId: userObj._id }).exec(),
+      userList({ is_active: true, emailVerified: true }, { email: true })
+    ]);
+    let currentUsers = userObjs.map(({ email }: any) => email)
+
+    let formateExcel = excelFormattedData.reduce((main, curr) => {
+      let currObj = Object.keys(curr).reduce((main, currStr) => (Object.assign({}, main, { [currStr.trim()]: typeof (curr[currStr]) == "string" ? (curr[currStr]).trim() : curr[currStr] })), {})
+      return main.concat([currObj])
+    }, [])
+    let newDocumentsNames = formateExcel.map((obj: any) => obj["Document Name"])
+    if (newDocumentsNames.some((name: string) => newDocumentsNames.indexOf(name) != newDocumentsNames.lastIndexOf(name))) {
+      throw new Error("Duplicate document names found.")
+    }
+    let oldDocsNames = existDocuments.map(({ name }: any) => name)
+    if (newDocumentsNames.some((name: string) => oldDocsNames.includes(name))) {
+      throw new Error("A document found with same name.")
+    }
+
+    if (formateExcel.some(({ "Document Name": name }: any) => name.length > siteConstants.docNameLength)) {
+      throw new Error(`Document Name lenght should less than ${siteConstants.docNameLength}`)
+    }
+
+    if (formateExcel.some(({ Access }: any) => Access && !ACCESS.includes(Access))) {
+      throw new Error("Invalid key found in access column")
+    }
+
+    if (formateExcel.some(({ Location, Filename }: any) => !existsSync(join(__dirname, "..", "..", "..", "..", "..", "apple", "Downloads", Filename)))) {
+      throw new Error("File not Found.")
+    }
+
+    if (formateExcel.some(({ Ownership, "View Access": Access, "Edit Access": Edit }: any) =>
+      (!currentUsers.includes(Ownership) || (Access.split()).some((viewer: string) => !currentUsers.includes(viewer)) ||
+        (Edit.split()).some((editor: string) => !currentUsers.includes(editor))))) {
+      throw new Error("user mail not exists in db.")
+    }
+
+    if (formateExcel.some(({ Ownership, "View Access": Access, "Edit Access": Edit }: any) => {
+      let docMails = [Ownership, ...(Access.split()), ...(Edit.split())]
+      return docMails.some(mail => docMails.indexOf(mail) != docMails.lastIndexOf(mail))
+    })) {
+      throw new Error("Duplicate mails found in document.")
+    }
+
+    return formateExcel
+  } catch (err) {
+    throw err;
   }
 }

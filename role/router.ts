@@ -59,6 +59,15 @@ router.post('/capability/add', authenticate, async (req: Request, res: Response,
     };
 });
 
+router.post('/capability/add/no-auth', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        let scope = 'global'
+        res.status(200).send(await addCapability(req.body.role, scope, req.body.capability, "", false));
+    } catch (err) {
+        next(new APIError(err.message, 409))
+    };
+});
+
 router.put('/capability/remove', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
         let scope = 'global'

@@ -118,7 +118,9 @@ export const DOCUMENT_ROUTER = {
     UNAUTHORIZED: "[Error: 0034] You don’t have permission to perform this action",
     INVALID_ACTION_PERFORMED: "[Error: 0035] Invalid action performed, please contact CMP admin",
     SOMETHING_WENT_WRONG: "[Error: 0036] Something went wrong, please retry",
-    ALREADY_REQUEST_EXIST: "[Error: 0037] Request is already in progress"
+    ALREADY_REQUEST_EXIST: "[Error: 0037] Request is already in progress",
+    UPLOAD_EMPTY_FOLDER: `[Error: 0015] Uploaded empty document`,
+
 }
 
 export const NOTIFICATION = {
