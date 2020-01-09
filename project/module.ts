@@ -109,7 +109,7 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
       obj.phases = reqObject.phases
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
-    let updateTasksInElasticSearch = updateProjectTasks(id,token);
+    let updateTasksInElasticSearch = updateProjectTasks({projectId:id},token);
     return updatedProject
   } catch (err) {
     console.error(err);
