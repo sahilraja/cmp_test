@@ -78,25 +78,25 @@
         "subject" : "[CMP] Email ID Updated"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Your document <b>[documentName]</b>, is published on CITIIS Management Platform. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/><b>[documentName]</b>, is published on CITIIS Management Platform. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "publishDocument",
         "displayName" : "publish document",
         "subject" : "[CMP] Document Published"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Your document <b>[documentName]</b>, is unpublished from CITIIS Management Platform. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/><b>[documentName]</b>, is unpublished from CITIIS Management Platform. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "unPublishDocument",
         "displayName" : "unPublish document",
         "subject" : "[CMP] Update on your Published Document"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>The document <b>[documentName]</b> on CITIIS Management Platform, is replaced with a new document. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/><b>[documentName]</b> on CITIIS Management Platform, is replaced with a new document. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "replaceDocument",
         "displayName" : "replace document",
         "subject" : "[CMP] Document Replacement Notification"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Document <b>[documentName]</b>, has been updated with new [text]. You can click this <a href=[documentUrl]>link</a> to access it.<br><br>Best Regards,<br>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>Document <b>[documentName]</b> has been updated with new [text]. You can click this <a href=[documentUrl]>link</a> to access it.<br><br>Best Regards,<br>CMP Administrator",
         "templateName" : "documentUpdate",
         "displayName" : "document Update",
         "subject" : "[CMP] Document Update Notification"

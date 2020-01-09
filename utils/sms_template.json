@@ -55,7 +55,7 @@
         "displayName" : "publish document"
     },
     {
-        "content" : "Your document [documentName] is unpublished from CMP. Click [documentUrl] to access it.",
+        "content" : "Document [documentName] is unpublished from CMP. Click [documentUrl] to access it.",
         "templateName" : "unPublishDocument",
         "displayName" : "unPublish document"
     },
