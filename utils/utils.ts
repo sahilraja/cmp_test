@@ -185,11 +185,11 @@ export async function mobileVerifyOtp(mobileNo: string, otp: string, id: string)
     try {
         let userInfo = await userFindOne('id', id);
         let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
-        if (otp != "1111") {
+        // if (otp != "1111") {
             if (mobileToken.smsOtp != otp) {
                 throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
             }
-        }
+        // }
         return { message: MOBILE_MESSAGES.VALID_OTP }
     }
     catch (err) {

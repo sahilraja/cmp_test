@@ -878,17 +878,17 @@ export async function otpVerification(objBody: any) {
         let tokenId = await jwt_for_url({ id: userInfo._id });
         userInfo.id = tokenId;
         if (objBody.mobileOtp) {
-            if (objBody.mobileOtp != "1111") {
+            // if (objBody.mobileOtp != "1111") {
                 if (mobileToken.smsOtp != objBody.mobileOtp) {
                     mobile_flag = 1
                 }
-            }
+            // }
         }
-        if (objBody.otp != "1111") {
+        // if (objBody.otp != "1111") {
             if ((objBody.otp) != Number(token.otp)) {
                 email_flag = 1
             }
-        }
+        // }
         if (email_flag == 1 && mobile_flag == 1) {
             throw new APIError(USER_ROUTER.BOTH_INVALID);
         }
@@ -964,17 +964,17 @@ export async function profileOtpVerify(objBody: any, user: any) {
         //if(admin_scope){ otpDisplay = false;}
         if (otpDisplay) {
             if (objBody.mobileOtp) {
-                if (objBody.mobileOtp != "1111") {
+                // if (objBody.mobileOtp != "1111") {
                     if (mobileToken.smsOtp != objBody.mobileOtp) {
                         mobile_flag = 1
                     }
-                }
+                // }
             }
-            if (objBody.otp != "1111") {
+            // if (objBody.otp != "1111") {
                 if (objBody.otp != token.otp) {
                     email_flag = 1
                 }
-            }
+            // }
             if (email_flag == 1 && mobile_flag == 1) {
                 throw new APIError(USER_ROUTER.BOTH_INVALID);
             }
@@ -1368,8 +1368,8 @@ export async function verificationOtpByUser(objBody: any, userObj: any) {
         let user = await userFindOne("id", userObj._id);
         let token: any = await jwt_Verify(user.otp_token);
         let mobileToken: any = await jwt_Verify(user.smsOtpToken);
-        if (objBody.mobileOtp && objBody.mobileOtp != "1111" && mobileToken.smsOtp != objBody.mobileOtp) mobile_flag = 1
-        if (objBody.otp != "1111" && objBody.otp != token.otp) email_flag = 1
+        if (objBody.mobileOtp /* && objBody.mobileOtp != "1111"*/ && mobileToken.smsOtp != objBody.mobileOtp) mobile_flag = 1
+        if (/* objBody.otp != "1111" && */objBody.otp != token.otp) email_flag = 1
         if (email_flag == 1 && mobile_flag == 1) throw new APIError(USER_ROUTER.BOTH_INVALID);
         if (email_flag == 1) throw new APIError(USER_ROUTER.INVALID_OTP);
         if (mobile_flag == 1) throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
@@ -1390,17 +1390,17 @@ export async function verifyOtpByAdmin(admin: any, objBody: any, id: string) {
         let mobileToken: any = await jwt_Verify(user.smsOtpToken);
 
         if (objBody.mobileOtp) {
-            if (objBody.mobileOtp != "1111") {
+            // if (objBody.mobileOtp != "1111") {
                 if (mobileToken.smsOtp != objBody.mobileOtp) {
                     mobile_flag = 1
                 }
-            }
+            // }
         }
-        if (objBody.otp != "1111") {
+        // if (objBody.otp != "1111") {
             if (objBody.otp != token.otp) {
                 email_flag = 1
             }
-        }
+        // }
         if (email_flag == 1 && mobile_flag == 1) {
             throw new APIError(USER_ROUTER.BOTH_INVALID);
         }

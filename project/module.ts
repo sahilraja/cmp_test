@@ -439,7 +439,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
     headers: { 'Authorization': `Bearer ${userToken}` }
   })
   return (list || []).map((_list) => {
-    const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list.id && task.status != 8)
+    const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list._id.toString() && task.status != 8)
     return ({
       ..._list, progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0,
       phase: getCurrentPhase(_list) || {}

@@ -15,11 +15,12 @@
             // "sourceMaps": true
             "env": {
                 "FILE_SERVICE_HOST":"localhost",
-                "FILE_SERVICE_PORT":4040,
+                "FILE_SERVICE_PORT": 4040,
                 "USE_REMOTE_DB" : "false",
                 "NODE_ENV": "DEVELOPMENT",
                 "MONGO_URL": "mongodb://localhost/rbac",
                 "RBAC_URL": "http://localhost:8081",
+                "CMP_URL":"http://localhost:3000",
                 "ANGULAR_URL": "http://localhost:4200",
                 "FILES_SERVER_BASE":"http://localhost:4040",
                 "GROUPS_URL": "http://localhost:5051",
