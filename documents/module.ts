@@ -34,7 +34,7 @@ import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, 
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
-import { importExcelAndFormatData } from "../project/module";
+import { importExcelAndFormatData, add_tag } from "../project/module";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import request = require("request");
@@ -3114,23 +3114,9 @@ export async function bulkUploadDocument(filePath: any, userObj: any, siteConsta
     if (!excelFormattedData.length) {
       throw new APIError(DOCUMENT_ROUTER.UPLOAD_EMPTY_FOLDER)
     }
-    let formateExcel = await bulkValidation(excelFormattedData, userObj, siteConstants)
-    // await Promise.all()
-    await request({
-      method: "POST",
-      url: process.env.CMP_URL || "http://localhost:3000",
-      port: 3000,
-      headers: {
-        "Authorization": "Basic " + token,
-        "Content-Type": "multipart/form-data"
-      },
-      form: {
-        "upfile": readFileSync("./images/scr1.png")
-      }
-    }
-    )
-
-
+    let formateExcel: any = await bulkValidation(excelFormattedData, userObj, siteConstants)
+    await Promise.all(formateExcel.map((excelObj: any) => documentCreateApi(excelObj["Document Name"], join(__dirname, excelObj.Location, excelObj.Filename), excelObj.Tags ? excelObj.Tags.split() : [], token, userObj)))
+    return { success: true, message: "documents created successfully" }
   } catch (error) {
     throw error
   }
@@ -3167,7 +3153,7 @@ async function bulkValidation(excelFormattedData: any[], userObj: any, siteConst
       throw new Error("Invalid key found in access column")
     }
 
-    if (formateExcel.some(({ Location, Filename }: any) => !existsSync(join(__dirname, "..", "..", "..", "..", "..", "apple", "Downloads", Filename)))) {
+    if (formateExcel.some(({ Location, Filename }: any) => !existsSync(join(__dirname, Location, Filename)))) {
       throw new Error("File not Found.")
     }
 
@@ -3183,9 +3169,37 @@ async function bulkValidation(excelFormattedData: any[], userObj: any, siteConst
     })) {
       throw new Error("Duplicate mails found in document.")
     }
-
     return formateExcel
   } catch (err) {
     throw err;
   }
+}
+
+async function getTagIdWithNames(tagNames: string[], userObj: any) {
+  let arrayTagObjs = await Promise.all(tagNames.map(tag => getTag(tag)))
+  let unCreatedTags: any = arrayTagObjs.filter((anything) => typeof (anything) == "string")
+  unCreatedTags = await Promise.all(unCreatedTags.map((tag: string) => add_tag({ tag }, userObj)))
+  arrayTagObjs = arrayTagObjs.filter((anything) => typeof (anything) != "string")
+  return [...arrayTagObjs, ...unCreatedTags].map(obj => obj.id || typeof (obj._id) != "string" ? obj._id.toString() : obj._id).filter(id => Types.ObjectId(id))
+}
+async function getTag(tag: string) {
+  return await tags.find({ tag }) || tag
+}
+
+async function documentCreateApi(name: string, filepath: any, tags: string[], token: string, userObj: any) {
+  let tagId = await getTagIdWithNames(tags, userObj)
+  await request({
+    method: "POST",
+    url: process.env.CMP_URL || "http://localhost:3000",
+    port: 3000,
+    headers: {
+      "Authorization": "Basic " + token,
+      "Content-Type": "multipart/form-data"
+    },
+    form: {
+      "docName": name,
+      "upfile": readFileSync(filepath),
+      "tags": tags
+    }
+  })
 }
