@@ -8,5 +8,6 @@ const SchemaDef = new Schema({
     disabled: { type: Boolean, default: false }
 }, { timestamps: true })
 
+SchemaDef.index({name:1})
 SchemaDef.plugin(plugin)
 export const StepsSchema = model('steps', SchemaDef)

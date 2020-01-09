@@ -21,6 +21,10 @@ const SchemaDef = new Schema({
     deleted: { type: Boolean, default: false },
     createdBy: { type: String }
 }, { timestamps: true })
+
+SchemaDef.index({projectId: 1})
+SchemaDef.index({parentId: 1})
+SchemaDef.index({parentId: 1, projectId: 1})
 SchemaDef.plugin(plugin)
 
 export const OpportunitySchema = model('opportunities', SchemaDef)

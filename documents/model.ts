@@ -28,5 +28,8 @@ const schema = new Schema(
   },
   { timestamps: true }
 );
+schema.index({ parentId: 1 })
+schema.index({ parentId: 1, ownerId: 1 })
+schema.index({ codeName: 1, parentId: 1 })
 schema.plugin(mongoosePaginate)
 export const documents = model("documents", schema);

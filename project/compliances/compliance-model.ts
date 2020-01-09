@@ -9,4 +9,6 @@ const SchemaDef = new Schema({
     document: { type: String },
     createdBy: { type: String }
 }, { timestamps: true })
+
+SchemaDef.index({ projectId: 1 })
 export const ComplianceSchema = model('compliances', SchemaDef)
