@@ -105,7 +105,7 @@ export async function getProfileLogs(profileId: string, token: string) {
         let logs = await Promise.all(activities.map((activity: any) => {
             return profileFetchDetails(activity.toJSON())
         }))
-        return (logs.map(logObj=> getFormantedUserLogs(logObj))).reverse()
+        return (logs.map(logObj => getFormantedUserLogs(logObj))).reverse()
     } catch (err) {
         throw err
     };
@@ -295,16 +295,40 @@ function getFormantedTaskLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} has updated the pillar from ${activityLog.updatedPillar.name} to ${activityLog.updatedPillar.name}`;
             break;
         case 'APPROVERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as approvers`;
+            if (activityLog.addedUserIds && activityLog.addedUserIds.length && activityLog.removedUserIds && activityLog.removedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as approver(s)`;
+            } else if (activityLog.addedUserIds && activityLog.addedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} as approver(s)`;
+            } else {
+                message = `${UserFullName(activityLog.activityBy)} has removed ${getNamesFromIds(activityLog.removedUserIds)} as approver(s)`;
+            }
             break;
         case 'ENDORSERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as endorsers`;
+            if (activityLog.addedUserIds && activityLog.addedUserIds.length && activityLog.removedUserIds && activityLog.removedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as endorser(s)`;
+            } else if (activityLog.addedUserIds && activityLog.addedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} as endorser(s)`;
+            } else {
+                message = `${UserFullName(activityLog.activityBy)} has removed ${getNamesFromIds(activityLog.removedUserIds)} as endorser(s)`;
+            }
             break;
         case 'SUPPORTERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as supporters`;
+            if (activityLog.addedUserIds && activityLog.addedUserIds.length && activityLog.removedUserIds && activityLog.removedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as supporter(s)`;
+            } else if (activityLog.addedUserIds && activityLog.addedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} as supporter(s)`;
+            } else {
+                message = `${UserFullName(activityLog.activityBy)} has removed ${getNamesFromIds(activityLog.removedUserIds)} as supporter(s)`;
+            }
             break;
         case 'VIEWERS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as viewers`;
+            if (activityLog.addedUserIds && activityLog.addedUserIds.length && activityLog.removedUserIds && activityLog.removedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} and removed ${getNamesFromIds(activityLog.removedUserIds)} as viewer(s)`;
+            } else if (activityLog.addedUserIds && activityLog.addedUserIds.length) {
+                message = `${UserFullName(activityLog.activityBy)} has added ${getNamesFromIds(activityLog.addedUserIds)} as viewer(s)`;
+            } else {
+                message = `${UserFullName(activityLog.activityBy)} has removed ${getNamesFromIds(activityLog.removedUserIds)} as viewer(s)`;
+            }
             break;
         case 'TASK_STATUS_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} has updated the task status from ${getStatus(activityLog.oldStatus, "")} to ${getStatus(activityLog.updatedStatus, "")}`

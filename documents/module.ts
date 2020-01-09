@@ -1331,7 +1331,10 @@ export async function published(body: any, docId: string, userObj: any, host: st
       }
     }
     let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
-    await create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId })
+    await Promise.all([
+      create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId }),
+      create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: docId, fromPublished: docId })
+    ]) 
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
