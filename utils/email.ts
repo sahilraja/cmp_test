@@ -4,7 +4,7 @@ var nodemailer = require('nodemailer');
 var smtpTransport = require('nodemailer-smtp-transport');
 let EMAIL: string
 let PASSWORD: string
-if (process.env.EMAI_ENV == "UAT") {
+if (process.env.EMAIL_ENV == "UAT") {
   EMAIL = process.env.EMAIL || "cmp@niua.org";
   PASSWORD = process.env.PASSWORD || "hahahaha"
 } else {
@@ -15,7 +15,7 @@ if (process.env.EMAI_ENV == "UAT") {
   PASSWORD = process.env.PASSWORD || 'Hello@12';
 }
 
-let transport = process.env.EMAI_ENV == "UAT" ? smtpTransport({
+let transport = process.env.EMAIL_ENV == "UAT" ? smtpTransport({
   host: 'smtp.rediffmailpro.com',
   port: '465',
   secure: true,
