@@ -2667,7 +2667,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
                 {
                   "bool": {
                     "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName'], type: 'bool_prefix' } },
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName','groupName'], type: 'bool_prefix' } },
                       { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
                     ]
                   }
