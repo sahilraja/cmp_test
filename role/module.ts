@@ -228,7 +228,7 @@ export async function updateCapabilities(addCapabilities: any, removeCapabilitie
         if (!isEligible) {
             throw new APIError("Unauthorized for this Action", 403);
         }
-        let [addCapability, removeCapability] = await Promise.all([
+        let [capabilityAdd, capabilityRemove] = await Promise.all([
             (addCapabilities && addCapabilities)?addCapabilities.map(async (capability: any) => {
                 if(!capability.role || !capability.capability){
                     throw Error("All mandatory fields are required")
