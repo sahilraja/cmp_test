@@ -1,7 +1,7 @@
 import { Router, Request, Response, Handler } from "express";
 import {
     role_list, capabilities_list, updaterole, userRoleAndScope, usersForRole, capabilities, allrolecapabilities, addCapability, removeCapability,
-    addRolesFromJSON, addRole, addRoleCapabilitiesFromJSON
+    addRolesFromJSON, addRole, addRoleCapabilitiesFromJSON,updateCapabilities
 } from "./module";
 import { authenticate } from "../utils/utils";
 import { APIError } from "../utils/custom-error";
@@ -106,6 +106,13 @@ router.post('/add/roleCapabilities', authenticate, async (req: Request, res: Res
         res.status(200).send(await addRoleCapabilitiesFromJSON(res.locals.user._id));
     } catch (err) {
         res.status(400).send({ error: err.message });
+    };
+});
+router.post('/capabilities/update', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        res.status(200).send(await updateCapabilities(req.body.addCapabilities,req.body.removeCapabilities,res.locals.user._id));
+    } catch (err) {
+        next(new APIError(err.message, 409))
     };
 });
 export = router;
