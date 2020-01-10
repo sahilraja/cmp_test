@@ -171,7 +171,7 @@ export async function allrolecapabilities() {
 
 export async function addCapability(role: string, scope: string, capability: string, userId: string, auth?: Boolean) {
     try {
-        auth = auth == false?  false : true
+        auth = auth == false ? false : true
         if (auth) {
             let userRoles = await userRoleAndScope(userId);
             let userRole = userRoles.data[0];
@@ -219,6 +219,37 @@ export async function removeCapability(role: string, scope: string, capability: 
         throw err;
     };
 };
+
+export async function updateCapabilities(addCapabilities: any, removeCapabilities: any, userId: string) {
+    try {
+        let userRoles = await userRoleAndScope(userId);
+        let userRole = userRoles.data[0];
+        const isEligible = await checkRoleScope(userRole, "display-role-management");
+        if (!isEligible) {
+            throw new APIError("Unauthorized for this Action", 403);
+        }
+        let [addCapability, removeCapability] = await Promise.all([
+            (addCapabilities && addCapabilities)?addCapabilities.map(async (capability: any) => {
+                if(!capability.role || !capability.capability){
+                    throw Error("All mandatory fields are required")
+                }
+                await addCapability(capability.role, 'global', capability.capability, userId)
+            }):[],
+            (removeCapabilities && removeCapabilities)?removeCapabilities.map(async (capability: any) => {
+                if(!capability.role || !capability.capability){
+                    throw Error("All mandatory fields are required")
+                }
+                await removeCapability(capability.role, 'global', capability.capability, userId)
+            }):[]
+        ])
+        return {
+            success: true,
+            message: "permissions updated successfully"
+        }
+    } catch (err) {
+        throw err;
+    };
+}
 export async function updaterole(role: string, bodyObj: any, userId: string) {
     try {
         let userRoles = await userRoleAndScope(userId);
