@@ -81,7 +81,7 @@ async function activityFetchDetails(activity: any) {
     const userIds = userObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
     const groupIds = groupObj.reduce((main: string[], curr: any) => main.concat(curr.id), [])
     let groupsData = await groupPatternMatch({}, {}, { "_id": groupIds }, {})
-    let usersData = await userFindMany('_id', userIds.concat(activity.activityBy), { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 });
+    let usersData = await userFindMany('_id', [... new Set(userIds.concat(activity.activityBy, activity.requestUserId).filter((id: string) => Types.ObjectId(id)))], { firstName: 1, lastName: 1, middleName: 1, email: 1, phoneNumber: 1, countryCode: 1, profilePic: 1, phone: 1, is_active: 1 });
     usersData = groupsData.concat(usersData)
     const tagIds = (activity.tagsAdded || []).concat(activity.tagsRemoved || [])
     const tagsData = await tags.find({ _id: { $in: tagIds } })
@@ -92,7 +92,8 @@ async function activityFetchDetails(activity: any) {
             documentAddedUsers: usersData.filter((obj: any) => (activity.documentAddedUsers || []).map((d: any) => d.id).includes(obj._id)),
             documentRemovedUsers: usersData.filter((obj: any) => (activity.documentRemovedUsers || []).map((d: any) => d.id).includes(obj._id)),
             tagsAdded: tagsData.filter((obj: any) => (activity.tagsAdded || []).includes(obj.id)),
-            tagsRemoved: tagsData.filter((obj: any) => (activity.tagsRemoved || []).includes(obj.id))
+            tagsRemoved: tagsData.filter((obj: any) => (activity.tagsRemoved || []).includes(obj.id)),
+            requestUserId: usersData.find((users: any) => activity.requestUserId == users._id)
         }
     } catch (err) {
         throw err
@@ -228,10 +229,37 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} added a comment to this document`;
             break;
         case 'DOCUMENT_DOWNLOAD':
-            message = `${UserFullName(activityLog.activityBy)} Dowloaded this document`;
+            message = `${UserFullName(activityLog.activityBy)} dowloaded this document`;
             break;
         case "TAGS_ADD_AND_REMOVED":
             message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to this document and removed tags ${getTagName(activityLog.tagsRemoved)} from this document`
+            break;
+        case "REQUEST_DOCUMENT":
+            message = `${UserFullName(activityLog.activityBy)} requested for document access.`
+            break;
+        case "REQUEST_APPROVED":
+            message = `${UserFullName(activityLog.activityBy)} approved the requested for document access to ${UserFullName(activityLog.requestUserId)}.`
+            break;
+        case "REQUEST_DENIED":
+            message = `${UserFullName(activityLog.activityBy)} reject requested for document access to ${UserFullName(activityLog.requestUserId)}.`
+            break;
+        case "SUGGEST_TAGS":
+            message = `${UserFullName(activityLog.activityBy)} suggest tags ${getTagName(activityLog.tagsAdded)} to this document.`
+            break;
+        case "SUGGEST_MODIFIED_TAGS":
+            message = `${UserFullName(activityLog.activityBy)} suggest tags ${getTagName(activityLog.tagsAdded)} and removed tags ${getTagName(activityLog.tagsRemoved)} to this document.`
+            break;
+        case "SUGGEST_TAGS_ADD_APPROVED":
+            message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to this document.`
+            break;
+        case "SUGGEST_TAGS_REMOVE_APPROVED":
+            message = `${UserFullName(activityLog.activityBy)} approved the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to this document.`
+            break;
+        case "SUGGEST_TAGS_ADD_REJECTED":
+            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tags  ${getTagName(activityLog.tagsRemoved)} to this document.`
+            break;
+        case "SUGGEST_TAGS_REMOVE_REJECTED":
+            message = `${UserFullName(activityLog.activityBy)} rejected the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to this document.`
             break;
         default:
             message = "";
