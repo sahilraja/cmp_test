@@ -507,13 +507,14 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
     }));
     let usersDataForRemoveTag = await Promise.all(userDataForRemoveTag.map((suggestedTagsInfo: any) => userInfo(suggestedTagsInfo)))
     docList.suggestTagsToRemove = usersDataForRemoveTag
-    let [tagObjects, ownerRole, ownerObj, taskDetailsObj, projectDetails] = await Promise.all([
+    let [tagObjects, ownerRole, ownerObj, taskDetailsObj] = await Promise.all([
       getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       userRoleAndScope(docList.ownerId),
       userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 }),
       getTasksForDocument(docList.parentId || docList._id, token),
-      project_schema.find({ $or: [{ "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
     ])
+    let projectIds = taskDetailsObj.filter(({projectId}: any) => projectId ).map(({projectId}: any)=> projectId)
+    let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,
