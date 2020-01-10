@@ -8,7 +8,7 @@ import {
     addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments,
      getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, 
      editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments, addFunds, getFinancialInfoNew, 
-     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates
+     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -49,6 +49,14 @@ router.get("/list", async (req, res, next) => {
         next(new APIError(err.message));
     }
 });
+
+router.get(`/dashboard-info`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await projectInfo())
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
 
 //get project details
 router.get("/:id/detail", async (req, res, next) => {

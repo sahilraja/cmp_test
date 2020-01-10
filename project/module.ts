@@ -66,6 +66,20 @@ export async function createProject(reqObject: any, user: any) {
   }
 }
 
+export async function projectInfo() {
+  const projects = await ProjectSchema.find({}).exec()
+  let response = projects.reduce((p, c: any) => 
+  ({...p, 
+    projectCost: p.projectCost + (c.projectCost || 0),
+    citiisGrants:p.citiisGrants + (c.citiisGrants || 0),
+    released: p.released + c.funds.reduce((p1: any, c1: any) => p1 + (c1.released.amount || 0) ,0),
+    utilized: p.utilized + c.funds.reduce((p1: any, c1: any) => p1 + (c1.utilized.amount || 0) ,0)
+  }),{projectCost:0, citiisGrants:0, released:0, utilized:0})
+  return {...response, 
+    costPercentage: Math.round((response.citiisGrants/response.projectCost)/100),
+    releasedPercentage: Math.round((response.utilized/response.released)/100),
+  }
+}
 //  Edit city Code
 export async function editProject(id: any, reqObject: any, user: any,token:string) {
   try {
