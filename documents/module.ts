@@ -1057,7 +1057,7 @@ async function getAllFinancialDocIds() {
       if (fundObj.released && fundObj.released.documents && fundObj.released.documents.length) return fundObj.released.documents
       if (fundObj.utilized && fundObj.utilized.documents && fundObj.utilized.documents.length) return fundObj.utilized.documents
       return []
-    }).flat(Infinity) : [])
+    }).reduce((main: any[], curr: any)=> main.concat(curr), []) : [])
   }, []).filter((id: string) => Types.ObjectId(id))
 }
 
