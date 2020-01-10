@@ -152,11 +152,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupName: [],
       createdBy: userId
     }
-    // let result = await esClient.index({
-    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
-    //   body: docObj,
-    //   id: doc.id
-    // });
+    let result = await esClient.index({
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      body: docObj,
+      id: doc.id
+    });
     return doc;
   } catch (err) {
     throw err
@@ -513,7 +513,7 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
       userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 }),
       getTasksForDocument(docList.parentId || docList._id, token),
     ])
-    let projectIds = taskDetailsObj.filter(({projectId}: any) => projectId ).map(({projectId}: any)=> projectId)
+    let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
     let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
@@ -1063,7 +1063,7 @@ async function getAllFinancialDocIds() {
       if (fundObj.released && fundObj.released.documents && fundObj.released.documents.length) return fundObj.released.documents
       if (fundObj.utilized && fundObj.utilized.documents && fundObj.utilized.documents.length) return fundObj.utilized.documents
       return []
-    }).reduce((main: any[], curr: any)=> main.concat(curr), []) : [])
+    }).reduce((main: any[], curr: any) => main.concat(curr), []) : [])
   }, []).filter((id: string) => Types.ObjectId(id))
 }
 
@@ -2092,6 +2092,7 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+      await create({ activityType: "SUGGEST_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags })
       webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
       sendNotification({ id: doc.ownerId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       return {
@@ -2166,6 +2167,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       }
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        await create({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tags })
         webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
@@ -2214,6 +2216,8 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       }
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        await create({ activityType: "SUGGEST_TAGS_REMOVE_APPROVED", activityBy: userId, documentId: docId, tagsRemoved: body.tags })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveRemoveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
           sucess: true,
@@ -2263,6 +2267,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        await create({ activityType: "SUGGEST_TAGS_ADD_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
         webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
@@ -2295,6 +2300,8 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+        await create({ activityType: "SUGGEST_TAGS_REMOVE_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
           sucess: true,
@@ -2457,6 +2464,8 @@ export async function requestAccept(requestId: string, userObj: any) {
     } else {
       throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
     }
+    await create({ activityType: "REQUEST_APPROVED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
+    webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestApproved(requestDetails.docId.name), from: userObj._id })
     if (addedCapability && addedCapability.user.length) {
       await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
       return { message: "Shared successfully." }
@@ -2472,7 +2481,10 @@ export async function requestDenied(requestId: string, userObj: any) {
     if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
-    return await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
+    let success = await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
+    await create({ activityType: "REQUEST_DENIED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
+    webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestRejected(requestDetails.docId.name), from: userObj._id })
+    return success
   } catch (err) {
     throw err;
   }
@@ -2481,8 +2493,12 @@ export async function requestDenied(requestId: string, userObj: any) {
 export async function requestRaise(docId: string, userId: string) {
   try {
     if (!Types.ObjectId.isValid(docId) || !Types.ObjectId.isValid(userId)) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
+    let docDetails: any = await documents.findById(docId);
+    if (!docDetails || docDetails.parentId || docDetails.status == 2) throw new Error(DOCUMENT_ROUTER.INVALID_FILE_ID)
     let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
     if (existRequest) throw new Error(DOCUMENT_ROUTER.ALREADY_REQUEST_EXIST)
+    await create({ activityType: "REQUEST_DOCUMENT", activityBy: userId, documentId: docId })
+    webNotification({ notificationType: `DOCUMENTS`, userId: docDetails.owner, docId: docId, title: DOC_NOTIFICATIONS.documentRequest(docDetails.name), from: userId })
     return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
     throw err;
@@ -2678,6 +2694,8 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
+      await create({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags, tagsRemoved: body.removeTags })
+      webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.documentSuggestTagsModified(doc.name), from: userId })
       sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       return {
         sucess: true,
