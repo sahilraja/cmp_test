@@ -9,12 +9,12 @@ import { userInit, init, siteConstants, notifications, templates, smsTemplates, 
 
 async function initializeDB() {
     try {
-        await userInit();
         await rolesInit()
         await siteConstants();
         await templates();
-        await notifications();
         await smsTemplates();
+        await userInit();
+        await notifications();
         // await init();
     } catch (err) {
         console.error(err);
