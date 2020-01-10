@@ -642,12 +642,12 @@ export async function cancelUpdate(docId: string, userId: string) {
 
 export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "edit-document");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
+    // let userRoles = await userRoleAndScope(userId);
+    // let userRole = userRoles.data[0];
+    // const isEligible = await checkRoleScope(userRole, "edit-document");
+    // if (!isEligible) {
+    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    // }
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let capability = await documnetCapabilities(docId, userId);
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_UPDATE_USER);
@@ -1103,12 +1103,12 @@ async function inviteMail(userId: string, doc: any, actionUserId: string) {
 
 export async function invitePeople(docId: string, users: any, role: string, userId: string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(getUserRole, "share-document");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
+    // let userRoles = await userRoleAndScope(userId);
+    // let getUserRole = userRoles.data[0];
+    // const isEligible = await checkRoleScope(getUserRole, "share-document");
+    // if (!isEligible) {
+    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    // }
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     let doc: any = await documents.findById(docId);
     if (doc.status == 2) throw new Error(DOCUMENT_ROUTER.SHARE_PUBLISHED_DOCUMENT)
@@ -1189,12 +1189,12 @@ export async function invitePeople(docId: string, users: any, role: string, user
 
 export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(getUserRole, "share-document");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
+    // let userRoles = await userRoleAndScope(userId);
+    // let getUserRole = userRoles.data[0];
+    // const isEligible = await checkRoleScope(getUserRole, "share-document");
+    // if (!isEligible) {
+    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    // }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let actionUserRole = await documnetCapabilities(docId, userObj._id)
     if (actionUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
@@ -1218,12 +1218,12 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
 
 export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(getUserRole, "share-document");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
+    // let userRoles = await userRoleAndScope(userId);
+    // let getUserRole = userRoles.data[0];
+    // const isEligible = await checkRoleScope(getUserRole, "share-document");
+    // if (!isEligible) {
+    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    // }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let userRole = await documnetCapabilities(docId, userObj._id)
     if (!userRole.includes("owner")) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY)
