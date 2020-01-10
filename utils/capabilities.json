@@ -551,6 +551,20 @@
     "description": "View Edit Configurations",
     "scope": "global",
     "category": "User Management"
+  },
+  {
+    "capability": "edit-document",
+    "shortDescription": "Edit Document",
+    "description": "Ability to edit a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "share-document",
+    "shortDescription": "Share Document",
+    "description": "Ability to share a document",
+    "category": "Document Management",
+    "scope": "global"
   }
 ]
 
