@@ -72,12 +72,12 @@ export async function projectInfo() {
   ({...p, 
     projectCost: p.projectCost + (c.projectCost || 0),
     citiisGrants:p.citiisGrants + (c.citiisGrants || 0),
-    released: p.released + c.funds.reduce((p1: any, c1: any) => p1 + (c1.released.amount || 0) ,0),
-    utilized: p.utilized + c.funds.reduce((p1: any, c1: any) => p1 + (c1.utilized.amount || 0) ,0)
+    released: p.released + c.funds.reduce((p1: any, c1: any) => p1 + ((c1.released || {}).amount || 0) ,0),
+    utilized: p.utilized + c.funds.reduce((p1: any, c1: any) => p1 + ((c1.utilized || {}).amount || 0) ,0)
   }),{projectCost:0, citiisGrants:0, released:0, utilized:0})
   return {...response, 
-    costPercentage: Math.round((response.citiisGrants/response.projectCost)/100),
-    releasedPercentage: Math.round((response.utilized/response.released)/100),
+    costPercentage: Math.round((response.citiisGrants/response.projectCost)*100),
+    releasedPercentage: Math.round((response.utilized/response.released)*100),
   }
 }
 //  Edit city Code
