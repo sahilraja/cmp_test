@@ -357,6 +357,13 @@
     "scope": "global"
   },
   {
+    "capability": "view-all-finanacial-documents",
+    "shortDescription": "View All Financial Documents",
+    "description": "Ability to view all Finanacial documents ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
     "capability": "mark-as-public-document",
     "shortDescription": "Mark document as public",
     "description": "Ability to mark document as public ",

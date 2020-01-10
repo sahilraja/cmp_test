@@ -68,7 +68,7 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc, updateUserInDOcs,
-  createIndex, removeIndex, getDocsAndInsertInCasbin, getDocDetailsForSuccessResp, bulkUploadDocument
+  createIndex, removeIndex, getDocsAndInsertInCasbin, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -189,6 +189,15 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
 router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await sharedList(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+// Get My shared list
+router.get("/financial-documents/list", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getFinancialDocList(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }

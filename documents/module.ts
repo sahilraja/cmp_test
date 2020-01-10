@@ -38,6 +38,7 @@ import { importExcelAndFormatData, add_tag } from "../project/module";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import request = require("request");
+import { project as project_schema } from "../project/project_model";
 
 
 enum STATUS {
@@ -151,11 +152,11 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupName: [],
       createdBy: userId
     }
-    let result = await esClient.index({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      body: docObj,
-      id: doc.id
-    });
+    // let result = await esClient.index({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   body: docObj,
+    //   id: doc.id
+    // });
     return doc;
   } catch (err) {
     throw err
@@ -269,6 +270,25 @@ export async function getDocListOfMe(userId: string, page: number = 1, limit: nu
       });
     })
     result = documentsSort(result, "updatedAt", true)
+    return manualPagination(page, limit, result)
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+//  Get Fianancial Doc List
+export async function getFinancialDocList(userId: string, page: number = 1, limit: number = 30, host: string) {
+  try {
+    let [isExist, docIds] = await Promise.all([
+      checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents"),
+      getAllFinancialDocIds()
+    ])
+    let docs = await documents.find({ _id: { $in: docIds }, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 })
+    const docList = await Promise.all(docs.map((doc) => {
+      return docData(doc, host);
+    }));
+    let result = documentsSort(docList, "updatedAt", true)
     return manualPagination(page, limit, result)
   } catch (error) {
     console.error(error);
@@ -437,8 +457,11 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
-    const allCmp = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents");
-    if (!allCmp) {
+    const [allCmp, allFinancial] = await Promise.all([
+      checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents"),
+      checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-finanacial-documents")
+    ]);
+    if (!allCmp || !allFinancial) {
       if (publishDocs.isDeleted) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DELETED(publishDocs.name))
       if (publishDocs.status != 2 && publishDocs.parentId == null) {
         let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
@@ -488,12 +511,15 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
       getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       userRoleAndScope(docList.ownerId),
       userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 }),
-      getTasksForDocument(docList.parentId || docList._id, token)
+      getTasksForDocument(docList.parentId || docList._id, token),
     ])
+    let projectIds = taskDetailsObj.filter(({projectId}: any) => projectId ).map(({projectId}: any)=> projectId)
+    let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,
-      owner: { ...ownerObj, role: await formateRoles((ownerRole.data || [""])[0]) }, taskDetails: taskDetailsObj,
+      owner: { ...ownerObj, role: await formateRoles((ownerRole.data || [""])[0]) },
+      taskDetails: taskDetailsObj, projectDetails,
       sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''
     }
   } catch (err) {
@@ -1011,13 +1037,29 @@ export async function documnetCapabilities(docId: string, userId: string): Promi
     if (viewer) {
       return request ? ["viewer", true] : ["viewer"]
     }
-    const isEligible = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [[]])[0], "view-all-cmp-documents");
-    if (isEligible) return request ? ["viewer", "all_cmp", true] : ["viewer", "all_cmp"]
+    const [allCmp, allFinancial, allFinancialDocIds] = await Promise.all([
+      checkRoleScope(((await userRoleAndScope(userId) as any).data || [[]])[0], "view-all-cmp-documents"),
+      checkRoleScope(((await userRoleAndScope(userId) as any).data || [[]])[0], "view-all-finanacial-documents"),
+      getAllFinancialDocIds()
+    ])
+    if (allCmp) return request ? ["viewer", "all_cmp", true] : ["viewer", "all_cmp"]
+    if (allFinancial && allFinancialDocIds.includes(docId)) return request ? ["viewer", "all_financial", true] : ["viewer", "all_financial"]
     return request ? ["no_access", true] : ["no_access"]
   } catch (err) {
     throw err;
   };
 };
+
+async function getAllFinancialDocIds() {
+  let all_projects: any = await project_schema.find({}, { funds: 1 }).exec();
+  return all_projects.reduce((main: string[], curr: any) => {
+    return main.concat((curr.funds && curr.funds.length) ? (curr.toJSON()).funds.map((fundObj: any) => {
+      if (fundObj.released && fundObj.released.documents && fundObj.released.documents.length) return fundObj.released.documents
+      if (fundObj.utilized && fundObj.utilized.documents && fundObj.utilized.documents.length) return fundObj.utilized.documents
+      return []
+    }).reduce((main: any[], curr: any)=> main.concat(curr), []) : [])
+  }, []).filter((id: string) => Types.ObjectId(id))
+}
 
 function documentsSort(data: any[], key: string, date: boolean = false) {
   try {
@@ -1334,7 +1376,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
     await Promise.all([
       create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId }),
       create({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: docId, fromPublished: docId })
-    ]) 
+    ])
     let role = await groupsAddPolicy(`user/${userObj._id}`, publishedDoc._id, "owner");
     if (!role.user) {
       await documents.findByIdAndRemove(publishedDoc._id);
@@ -2674,7 +2716,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
                 {
                   "bool": {
                     "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName','groupName'], type: 'bool_prefix' } },
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName', 'groupName'], type: 'bool_prefix' } },
                       { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
                     ]
                   }
