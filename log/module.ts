@@ -172,19 +172,19 @@ function getFormantedDocLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'DOCUMENT_CREATED':
-            message = `${UserFullName(activityLog.activityBy)} created this document`;
+            message = `${UserFullName(activityLog.activityBy)} created the document`;
             break;
         case 'DOCUMENT_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} updated this document`;
+            message = `${UserFullName(activityLog.activityBy)} updated the document`;
             break;
         case 'CANCEL_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} canceled this document update`;
+            message = `${UserFullName(activityLog.activityBy)} canceled the document update`;
             break;
         case 'TAGS_ADDED':
-            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to this document`;
+            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
             break;
         case 'TAGS_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} from this document`;
+            message = `${UserFullName(activityLog.activityBy)} removed tags ${getTagName(activityLog.tagsRemoved)} from the document`;
             break;
         case 'MODIFIED_USER_SHARED_AS_VIEWER':
             message = `${UserFullName(activityLog.activityBy)} modified document access from collaborator to viewer for ${getNamesFromIds(activityLog.documentAddedUsers)}`;
@@ -205,34 +205,34 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} shared document with ${getNamesFromIds(activityLog.documentAddedUsers)} with edit access`;
             break;
         case 'REMOVED_USER_FROM_DOCUMENT':
-            message = `${UserFullName(activityLog.activityBy)} removed access to this document for ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
+            message = `${UserFullName(activityLog.activityBy)} removed access to the document for ${getNamesFromIds(activityLog.documentRemovedUsers)}`;
             break;
         case 'REMOVED_GROUP_FROM_DOCUMENT':
-            message = `${UserFullName(activityLog.activityBy)} removed access to this document for ${getNamesFromIds(activityLog.documentRemovedUsers)} group`;
+            message = `${UserFullName(activityLog.activityBy)} removed access to the document for ${getNamesFromIds(activityLog.documentRemovedUsers)} group`;
             break;
         case 'DOUCMENT_PUBLISHED':
-            message = `${UserFullName(activityLog.activityBy)} published this document`;
+            message = `${UserFullName(activityLog.activityBy)} published the document`;
             break;
         case 'DOUCMENT_UNPUBLISHED':
-            message = `${UserFullName(activityLog.activityBy)} unpublished this document`;
+            message = `${UserFullName(activityLog.activityBy)} unpublished the document`;
             break;
         case 'DOUCMENT_REPLACED':
-            message = `${UserFullName(activityLog.activityBy)} replaced this document`;
+            message = `${UserFullName(activityLog.activityBy)} replaced the document`;
             break;
         case 'DOCUMENT_DELETED':
-            message = `${UserFullName(activityLog.activityBy)} deleted this document`;
+            message = `${UserFullName(activityLog.activityBy)} deleted the document`;
             break;
         case 'DOCUMENT_VIEWED':
-            message = `${UserFullName(activityLog.activityBy)} viewed this document`;
+            message = `${UserFullName(activityLog.activityBy)} viewed the document`;
             break;
         case 'DOCUMENT_COMMENT':
-            message = `${UserFullName(activityLog.activityBy)} added a comment to this document`;
+            message = `${UserFullName(activityLog.activityBy)} added a comment to the document`;
             break;
         case 'DOCUMENT_DOWNLOAD':
-            message = `${UserFullName(activityLog.activityBy)} dowloaded this document`;
+            message = `${UserFullName(activityLog.activityBy)} downloaded the document`;
             break;
         case "TAGS_ADD_AND_REMOVED":
-            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to this document and removed tags ${getTagName(activityLog.tagsRemoved)} from this document`
+            message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} from the document`
             break;
         case "REQUEST_DOCUMENT":
             message = `${UserFullName(activityLog.activityBy)} requested for document access.`
@@ -244,33 +244,33 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} reject requested for document access to ${UserFullName(activityLog.requestUserId)}.`
             break;
         case "SUGGEST_TAGS":
-            message = `${UserFullName(activityLog.activityBy)} suggest tags ${getTagName(activityLog.tagsAdded)} to this document.`
+            message = `${UserFullName(activityLog.activityBy)} suggest tags ${getTagName(activityLog.tagsAdded)} to the document.`
             break;
         case "SUGGEST_MODIFIED_TAGS":
             if (activityLog.tagsAdded && activityLog.tagsAdded.length && activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
-                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""}${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""}${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to the document.`
             } else if (activityLog.tagsAdded && activityLog.tagsAdded.length) {
-                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""} to this document.`
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""} to the document.`
             } else if (activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
-                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to the document.`
             } else {
-                message = `${UserFullName(activityLog.activityBy)} suggest new tags to this document.`
+                message = `${UserFullName(activityLog.activityBy)} suggest new tags to the document.`
             }
             break;
         case "SUGGEST_TAGS_ADDED_MODIFIED":
-            message = `${UserFullName(activityLog.activityBy)} remove from the suggested tags ${getTagName(activityLog.tagsRemoved)} to this document.`
+            message = `${UserFullName(activityLog.activityBy)} remove from the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
             break;
         case "SUGGEST_TAGS_ADD_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to this document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to the document.`
             break;
         case "SUGGEST_TAGS_REMOVE_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to this document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to the document.`
             break;
         case "SUGGEST_TAGS_ADD_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tags  ${getTagName(activityLog.tagsRemoved)} to this document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
             break;
         case "SUGGEST_TAGS_REMOVE_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to this document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tag to remove ${getTagName(activityLog.tagsRemoved)} from the document.`
             break;
         default:
             message = "";
