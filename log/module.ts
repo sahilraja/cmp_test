@@ -248,11 +248,11 @@ function getFormantedDocLogs(activityLog: any) {
             break;
         case "SUGGEST_MODIFIED_TAGS":
             if (activityLog.tagsAdded && activityLog.tagsAdded.length && activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
-                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""}${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and removed tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""}${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
             } else if (activityLog.tagsAdded && activityLog.tagsAdded.length) {
                 message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""} to this document.`
             } else if (activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
-                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and removed tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
             } else {
                 message = `${UserFullName(activityLog.activityBy)} suggest new tags to this document.`
             }
