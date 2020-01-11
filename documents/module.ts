@@ -2391,6 +2391,7 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToAdd: filteredDocs
       })
       if (doc) {
+        await create({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
         return {
           sucess: true,
           message: "Tag removed Successfully"
@@ -2420,6 +2421,7 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToRemove: filteredDocs
       })
       if (doc) {
+        await create({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd || body.tagIdToRemove })
         return {
           sucess: true,
           message: "Tag removed Successfully"
@@ -2694,8 +2696,8 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      await create({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags, tagsRemoved: body.removeTags })
-      webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.documentSuggestTagsModified(doc.name), from: userId })
+      await create({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.addTags, tagsRemoved: body.removeTags })
+      webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
       sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       return {
         sucess: true,
