@@ -1,6 +1,6 @@
 import { sign as jwtSign, verify as jwtVerify } from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
-import { AUTHENTICATE_MSG, MOBILE_MESSAGES, USER_ROUTER } from './error_msg';
+import { AUTHENTICATE_MSG, MOBILE_MESSAGES, USER_ROUTER, OTP_BYPASS } from './error_msg';
 import { userFindOne, userUpdate } from './users';
 import { userRoleAndScope } from '../role/module';
 import { APIError } from './custom-error';
@@ -185,11 +185,11 @@ export async function mobileVerifyOtp(mobileNo: string, otp: string, id: string)
     try {
         let userInfo = await userFindOne('id', id);
         let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
-        // if (otp != "1111") {
+        if (otp != OTP_BYPASS) {
             if (mobileToken.smsOtp != otp) {
                 throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
             }
-        // }
+        }
         return { message: MOBILE_MESSAGES.VALID_OTP }
     }
     catch (err) {

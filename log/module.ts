@@ -478,35 +478,60 @@ function getFormantedUserLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'INVITE-USER':
-            message = `${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} sent Invitation to ${activityLog.profileId.email} .`
+            message = `${UserFullName(activityLog.activityBy)} sent Invitation to ${activityLog.profileId.email} .`
             break;
         case 'REGISTER-USER':
-            message = `${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} has been Registered on CMP .`
+            message = `${UserFullName(activityLog.activityBy)} has been Registered on CMP .`
             break;
 
         case 'EDIT-PROFILE':
-            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName} edited their profile for ${activityLog.editedFields.length > 0 ? (activityLog.editedFields.slice(0, activityLog.editedFields.length)) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
+            message = `${UserFullName(activityLog.profileId)} profile has been updated with ${activityLog.editedFields.length > 0 ? (activityLog.editedFields.slice(0, activityLog.editedFields.length)) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
             break;
 
         case 'EDIT-PROFILE-BY-ADMIN':
-            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s profile has been edited by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} for ${activityLog.editedFields.length > 0 ? (activityLog.editedFields) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
+            message = `${UserFullName(activityLog.profileId)}'s profile has been edited by ${UserFullName(activityLog.activityBy)} with ${activityLog.editedFields.length > 0 ? (activityLog.editedFields) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
             break;
 
         case 'ACTIVATE-PROFILE':
-            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s profile has been activated by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} .`
+            message = `${UserFullName(activityLog.profileId)}'s profile has been activated by ${UserFullName(activityLog.activityBy)} .`
             break;
 
         case 'DEACTIVATE-PROFILE':
-            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s profile has been deactivated by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} .`
+            message = `${UserFullName(activityLog.profileId)}'s profile has been deactivated by ${UserFullName(activityLog.activityBy)} .`
             break;
 
         case 'RESEND-INVITE-USER':
-            message = `${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} has resent the invitation to ${activityLog.profileId.email} .`
+            message = `${UserFullName(activityLog.activityBy)} has resent the invitation to ${activityLog.profileId.email} .`
             break;
 
         case 'EDIT-ROLE':
-            message = `${activityLog.profileId.firstName} ${activityLog.profileId.lastName}'s role has been edited by ${activityLog.activityBy.firstName} ${activityLog.activityBy.lastName} .`
+            message = `${UserFullName(activityLog.profileId)}'s role has been edited by ${UserFullName(activityLog.activityBy)} .`
             break;
+
+        case 'ADMIN-PASSWORD-UPDATE':
+            message = `${UserFullName(activityLog.activityBy)} has been updated the password to ${activityLog.profileId.email}.`
+            break;
+
+        case 'ADMIN-EMAIL-UPDATE':
+            message = `${UserFullName(activityLog.activityBy)} has been updated the email ${activityLog.profileId.email}.`
+            break;
+
+        case 'ADMIN-PHONENO-UPADTE':
+            message = `${UserFullName(activityLog.activityBy)} has been updated the phone number to ${UserFullName(activityLog.profileId)}.`
+            break;
+
+        case 'USER-EMAIL-UPADTE':
+            message = `${UserFullName(activityLog.activityBy)} has been updated the email.`
+            break;
+
+        case 'USER-PHONE-UPADTE':
+            message = `${UserFullName(activityLog.activityBy)} has been updated the phone number.`
+            break;
+
+        case 'USER-PASSWORD-UPADTE':
+            message = `${UserFullName(activityLog.activityBy)} has been updated the password.`
+            break;
+
         default:
             message = "";
 

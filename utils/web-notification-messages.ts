@@ -22,3 +22,12 @@ export const GROUP_NOTIFICATIONS = {
     groupStatus: `Group status for [groupId], which you are a part of, has been updated on CITIIS Management Platform.`,
     addGroupMember: `A new member is added to the user group [groupId] on CITIIS Management Platform.`
 }
+
+export const USER_PROFILE = {
+    passwordUpdateByAdmin: `Your password has been updated by [from]`,
+    emailUpdateByAdmin: `Your email has been updated by [from]`,
+    phoneUpdateByAdmin: `Your phone number has been updated by [from]`,
+    emailUpdateByUser: `successfully you email has been updated`,
+    phoneUpdateByUser: `successfully you phone number has been updated`,
+    passwordUpdateByUser: `successfully you password has been updated`,
+}

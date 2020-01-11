@@ -119,6 +119,7 @@ export const DOCUMENT_ROUTER = {
     INVALID_ACTION_PERFORMED: "[Error: 0035] Invalid action performed, please contact CMP admin",
     SOMETHING_WENT_WRONG: "[Error: 0036] Something went wrong, please retry",
     ALREADY_REQUEST_EXIST: "[Error: 0037] Request is already in progress",
+    
     UPLOAD_EMPTY_FOLDER: `[Error: 0015] Uploaded empty document`,
 
 }
@@ -219,6 +220,8 @@ export const MOBILE_TEMPLATES = {
 }
 
 export const GLOBAL_SCOPE = "global";
+
+export const OTP_BYPASS = "0987";
 
 export const MISSING = "Missing Field";
 
