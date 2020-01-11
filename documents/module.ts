@@ -2703,7 +2703,7 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
       let addedTags = body.addTags.filter((tag: string) => !addSuggestedTagsExist.includes(tag))
       let removedTags = body.removeTags.filter((tag: string) => !removeSuggestedTagsExist.includes(tag))
-      if (addedTags.length || removedTags.lenght) {
+      if (addedTags.length || removedTags.length) {
         await create({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.addTags, tagsRemoved: body.removeTags })
         webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
         sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
@@ -3244,7 +3244,7 @@ async function bulkValidation(excelFormattedData: any[], userObj: any, siteConst
     }
 
     if (formateExcel.some(({ "Document Name": name }: any) => name.length > siteConstants.docNameLength)) {
-      throw new Error(`Document Name lenght should less than ${siteConstants.docNameLength}`)
+      throw new Error(`Document Name length should less than ${siteConstants.docNameLength}`)
     }
 
     if (formateExcel.some(({ Access }: any) => Access && !ACCESS.includes(Access))) {
