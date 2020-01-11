@@ -2167,7 +2167,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       }
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        await create({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tags })
+        await create({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tagIdToAdd })
         webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
@@ -2391,6 +2391,7 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToAdd: filteredDocs
       })
       if (doc) {
+        await create({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
         return {
           sucess: true,
           message: "Tag removed Successfully"
@@ -2420,6 +2421,7 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToRemove: filteredDocs
       })
       if (doc) {
+        await create({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd || body.tagIdToRemove })
         return {
           sucess: true,
           message: "Tag removed Successfully"
@@ -2668,7 +2670,10 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
       throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
     }
     if (!body.addTags && !body.removeTags) { throw new Error(DOCUMENT_ROUTER.MANDATORY) }
-    let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
+    let [docData, child]: any = await Promise.all([
+      documents.findById(docId).exec(),
+      documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
+    ])
     if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
@@ -2676,6 +2681,8 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    let addSuggestedTagsExist = docData.suggestTagsToAdd.filter(({ userId: user }: any) => user == userId).map(({ tags }: any) => tags).reduce((main: [], curr: any) => main.concat(curr), [])
+    let removeSuggestedTagsExist = docData.suggestTagsToRemove.filter(({ userId: user }: any) => user == userId).map(({ tags }: any) => tags).reduce((main: [], curr: any) => main.concat(curr), [])
     let [doc, childUpdate]: any = await Promise.all([
       documents.findByIdAndUpdate(docId, {
         "$push":
@@ -2694,9 +2701,13 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      await create({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags, tagsRemoved: body.removeTags })
-      webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.documentSuggestTagsModified(doc.name), from: userId })
-      sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
+      let addedTags = body.addTags.filter((tag: string) => !addSuggestedTagsExist.includes(tag))
+      let removedTags = body.removeTags.filter((tag: string) => !removeSuggestedTagsExist.includes(tag))
+      if (addedTags.length || removedTags.length) {
+        await create({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.addTags, tagsRemoved: body.removeTags })
+        webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
+        sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
+      }
       return {
         sucess: true,
         message: "Tag suggested successfully"
@@ -3233,7 +3244,7 @@ async function bulkValidation(excelFormattedData: any[], userObj: any, siteConst
     }
 
     if (formateExcel.some(({ "Document Name": name }: any) => name.length > siteConstants.docNameLength)) {
-      throw new Error(`Document Name lenght should less than ${siteConstants.docNameLength}`)
+      throw new Error(`Document Name length should less than ${siteConstants.docNameLength}`)
     }
 
     if (formateExcel.some(({ Access }: any) => Access && !ACCESS.includes(Access))) {
@@ -3290,10 +3301,10 @@ async function documentCreateApi(name: string, filepath: any, tags: string[], to
     }
   })
 }
-async function getProjectNamesForES(docId: string,token: string) {
+async function getProjectNamesForES(docId: string, token: string) {
   let publishDocs: any = await documents.findById(docId);
   const docList = publishDocs.toJSON();
-let taskDetailsObj:any = getTasksForDocument(docList.parentId || docList._id, token)
-let projectIds = taskDetailsObj.filter(({projectId}: any) => projectId ).map(({projectId}: any)=> projectId)
-let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
+  let taskDetailsObj: any = getTasksForDocument(docList.parentId || docList._id, token)
+  let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
+  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
 }

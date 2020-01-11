@@ -247,7 +247,18 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} suggest tags ${getTagName(activityLog.tagsAdded)} to this document.`
             break;
         case "SUGGEST_MODIFIED_TAGS":
-            message = `${UserFullName(activityLog.activityBy)} suggest tags ${getTagName(activityLog.tagsAdded)} and removed tags ${getTagName(activityLog.tagsRemoved)} to this document.`
+            if (activityLog.tagsAdded && activityLog.tagsAdded.length && activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""}${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
+            } else if (activityLog.tagsAdded && activityLog.tagsAdded.length) {
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""} to this document.`
+            } else if (activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to this document.`
+            } else {
+                message = `${UserFullName(activityLog.activityBy)} suggest new tags to this document.`
+            }
+            break;
+        case "SUGGEST_TAGS_ADDED_MODIFIED":
+            message = `${UserFullName(activityLog.activityBy)} remove from the suggested tags ${getTagName(activityLog.tagsRemoved)} to this document.`
             break;
         case "SUGGEST_TAGS_ADD_APPROVED":
             message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to this document.`
