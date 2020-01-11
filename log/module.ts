@@ -310,22 +310,22 @@ function getFormantedTaskLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'TASK_CREATED':
-            message = `${UserFullName(activityLog.activityBy)} created this task`;
+            message = `${UserFullName(activityLog.activityBy)} created the task`;
             break;
         case 'ASSIGNEE_CHANGED':
-            message = `${UserFullName(activityLog.activityBy)} has changed the assignee for the task from ${activityLog.removedUserIds[0].firstName} ${activityLog.removedUserIds[0].lastName} to ${activityLog.addedUserIds[0].firstName} ${activityLog.addedUserIds[0].lastName}`;
+            message = `${UserFullName(activityLog.activityBy)} has changed the assignee for the task from ${UserFullName(activityLog.removedUserIds[0])} to ${UserFullName(activityLog.addedUserIds[0])}`;
             break;
         case 'APPROVED_BY_USER':
-            message = `${UserFullName(activityLog.activityBy)} approved this task`;
+            message = `${UserFullName(activityLog.activityBy)} approved the task`;
             break;
         case 'ENDORSED_BY_USER':
-            message = `${UserFullName(activityLog.activityBy)} endorsed this task`;
+            message = `${UserFullName(activityLog.activityBy)} endorsed the task`;
             break;
         case 'TASK_REOPENED':
-            message = `${UserFullName(activityLog.activityBy)} reopened this task`;
+            message = `${UserFullName(activityLog.activityBy)} reopened the task`;
             break;
         case 'TASK_REJECTED':
-            message = `${UserFullName(activityLog.activityBy)} rejected this task`;
+            message = `${UserFullName(activityLog.activityBy)} rejected the task`;
             break;
         case 'STEP_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} has updated the step from ${activityLog.oldStep.name} to ${activityLog.updatedStep.name}`;
@@ -379,25 +379,25 @@ function getFormantedTaskLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} has updated the due date from ${activityLog.previousEndDate} to ${activityLog.updatedEndDate}`;
             break;
         case 'DOCUMENTS_ADDED':
-            message = `${UserFullName(activityLog.activityBy)} added documents to this task`;
+            message = `${UserFullName(activityLog.activityBy)} added documents to the task`;
             break;
         case 'SUBTASK_ADDED':
-            message = `${UserFullName(activityLog.activityBy)} added subtask ${(activityLog.subTask || {}).name} to this task`;
+            message = `${UserFullName(activityLog.activityBy)} added subtask ${(activityLog.subTask || {}).name} to the task`;
             break;
         case 'DOCUMENTS_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed documents from this task`;
+            message = `${UserFullName(activityLog.activityBy)} removed documents from the task`;
             break;
         case 'SUBTASK_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed subtask ${(activityLog.subTask || {}).name} from this task`;
+            message = `${UserFullName(activityLog.activityBy)} removed subtask ${(activityLog.subTask || {}).name} from the task`;
             break;
         case 'NEW_TASK_LINKED':
-            message = `${UserFullName(activityLog.activityBy)} linked ${(activityLog.subTask || {}).name} task to this task`;
+            message = `${UserFullName(activityLog.activityBy)} linked ${(activityLog.subTask || {}).name} task to the task`;
             break;
         case 'LINKED_TASK_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed linked task ${(activityLog.subTask || {}).name} from this task`;
+            message = `${UserFullName(activityLog.activityBy)} removed linked task ${(activityLog.subTask || {}).name} from the task`;
             break;
         case 'TAGS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} updated tags of this task`;
+            message = `${UserFullName(activityLog.activityBy)} updated tags to the task`;
             break;
         default:
             message = "";
@@ -436,7 +436,7 @@ function getFormantedProjectLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
         case 'PROJECT_CREATED':
-            message = `${UserFullName(activityLog.activityBy)} created this Project`;
+            message = `${UserFullName(activityLog.activityBy)} created the Project`;
             break;
         case 'TASK_DATES_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} updated the task start date`;
