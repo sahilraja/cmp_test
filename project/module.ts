@@ -855,7 +855,7 @@ export async function addFundReleased(projectId: string, payload: any, user: any
     ]).sort((a: any, b: any) => a.installment - b.installment)
   }
   const updatedFund = await ProjectSchema.findByIdAndUpdate(projectId, { $set: updates }, { new: true }).exec()
-  createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: user._id })
+  // createLog({ activityType: ACTIVITY_LOG.ADDED_FUND_RELEASE, projectId, updatedCost: payload.cost, activityBy: user._id })
   return updatedFund
 }
 
@@ -901,7 +901,7 @@ export async function updateReleasedFund(projectId: string, payload: any, user: 
   updates['fundsReleased.$.documents'] = documents
   updates['fundsReleased.$.cost'] = cost
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'fundsReleased._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id })
+  // createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id })
   return updatedProject
   // if(!payload.installment || !payload.subInstallment){
   //   throw new APIError(`Installment is required`)
@@ -1630,7 +1630,7 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
     throw new APIError(PROJECT_ROUTER.TOTAL_RELEASED_EXCEED_CITIIS)
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.releasedCost, projectId, activityBy: user._id })
+  // createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.releasedCost, projectId, activityBy: user._id })
   return updatedProject
 }
 
