@@ -123,7 +123,8 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
       obj.phases = reqObject.phases
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
-    let updateTasksInElasticSearch = updateProjectTasks({projectId:id},token);
+    let phases= await listPhasesOfProject(id);
+    let updateTasksInElasticSearch = updateProjectTasks({projectId:id,phases},token);
     return updatedProject
   } catch (err) {
     console.error(err);
@@ -477,9 +478,9 @@ export async function createTask(payload: any, projectId: string, userToken: str
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
   if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
-  // if (!payload.isCompliance && (payload.assignee == userObj._id)) {
-  //   throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
-  // }
+  if (!payload.isCompliance && (payload.assignee == userObj._id)) {
+    throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
+  }
   if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
     throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
   }
@@ -489,9 +490,10 @@ export async function createTask(payload: any, projectId: string, userToken: str
   if(!payload.isCompliance && !payload.pillarId){
     throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
   }
+  let phases: any= await listPhasesOfProject(projectId);
   const options = {
     url: `${TASKS_URL}/task/create`,
-    body: { ...taskPayload, defaultTags: payload.isCompliance ? ['Compliance'] : [] },
+    body: { ...taskPayload, defaultTags: payload.isCompliance ? ['Compliance'] : [],phases:phases },
     method: 'POST',
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
@@ -1285,7 +1287,8 @@ export async function editTriPartiteDate(id: string, payload: any, user: any) {
 }
 
 export async function addPhaseToProject(projectId: string, payload: any) {
-  return await ProjectSchema.findByIdAndUpdate(projectId, { $set: { phases: formatAndValidatePhasePayload(payload) } }, { new: true }).exec()
+  let phases= await ProjectSchema.findByIdAndUpdate(projectId, { $set: { phases: formatAndValidatePhasePayload(payload) } }, { new: true }).exec()
+  
 }
 
 export async function listPhasesOfProject(projectId: string) {
