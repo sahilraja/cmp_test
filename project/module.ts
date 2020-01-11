@@ -440,9 +440,10 @@ async function mapPhases(projectObj: any) {
 }
 
 function getCurrentPhase(projectObj: any) {
-  return (projectObj.phases && projectObj.phases.length ? projectObj.phases.find((phaseObj: any) =>
-    (new Date(phaseObj.startDate) <= new Date() && new Date(phaseObj.endDate) >= new Date())
-  ) : {})
+  return (projectObj.phases && projectObj.phases.length ? projectObj.phases.find((phaseObj: any) => {
+    console.log(phaseObj)
+    return (new Date(phaseObj.startDate) <= new Date() && new Date(phaseObj.endDate) >= new Date())
+  }) : {})
 }
 
 async function mapProgressPercentageForProjects(projectIds: string[], userToken: string, list: any[]) {
@@ -999,7 +1000,7 @@ export function importExcelAndFormatData(filePath: string) {
   return excelFormattedData
 }
 
-export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any) {
+export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any, isCompliance = false) {
   const roleData: any = await role_list()
   const isEligible = await checkRoleScope(userObj.role, `upload-task-excel`)
   if (!isEligible) {
@@ -1011,7 +1012,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
     throw new APIError(PROJECT_ROUTER.EMPTY_DOC)
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
-  const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj)))
+  const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj, isCompliance)))
   for (let taskData of tasksDataWithIds) {
     await createTask(taskData, projectId, userToken, userObj)
   }
@@ -1019,7 +1020,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   return { message: 'Tasks uploaded successfully' }
 }
 
-async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any) {
+async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any, isCompliance:boolean) {
   const [projectData, memberRoles] = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     projectMembers(projectId, userObj)
@@ -1067,6 +1068,7 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any)
     endorsers: endorserIds,
     viewers: viewerIds,
     pillarId: taskObj.pillarId,
+    isCompliance,
     stepId: taskObj.stepId,
     startDate: new Date(taskObj.initialStartDate || taskObj.startDate),
     dueDate: new Date(taskObj.initialDueDate || taskObj.dueDate)
@@ -1309,18 +1311,20 @@ function formatAndValidatePhasePayload(payload: any) {
       if (_data.startDate > _data.endDate) {
         throw new APIError(PROJECT_ROUTER.PHASE_BEFORE_END_DATE)
       }
-      if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.endDate).setHours(23, 59, 59, 0)))) {
-        throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
-      }
-      if (payload[index + 1] && Math.abs((new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)).getTime() - new Date(new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0)).getTime()) / 1000) > 2) {
-        throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
-      }
+      // if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.endDate).setHours(23, 59, 59, 0)))) {
+      //   throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
+      // }
+      // if (payload[index + 1] && Math.abs((new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)).getTime() - new Date(new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0)).getTime()) / 1000) > 2) {
+      //   throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
+      // }
     }
     if(!Types.ObjectId.isValid(_data.phase)) throw new Error(PROJECT_ROUTER.SELECT_PHASE)
     return {
       phase: _data.phase,
-      startDate: new Date(new Date(_data.startDate).setHours(0, 0, 0, 0)),
-      endDate: new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)),
+      // startDate: new Date(_data.startDate).setHours(0, 0, 0, 0),
+      // endDate: new Date(_data.endDate).setHours(23, 59, 59, 0),
+      startDate: _data.startDate,
+      endDate: _data.endDate,
     }
   })
 }
@@ -1662,11 +1666,11 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+  const { releasedDocuments, releasedCost, _id } = payload
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
   if(currentObj.utilized && !currentObj.utilized.deleted){
     throw new APIError(PROJECT_ROUTER.CANNOT_REMOVE_RELEASED_AMOUNT)
   }
-  const { releasedDocuments, releasedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), releasedBy: user._id }
   updates['funds.$.released.deleted'] = true

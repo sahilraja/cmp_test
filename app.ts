@@ -4,6 +4,8 @@ import { Application, Request, Response, Handler } from "express";
 import { OK, INTERNAL_SERVER_ERROR } from "http-status-codes";
 import * as bodyParser from 'body-parser'
 import * as cors from 'cors';
+import { init as SentryInit, captureException } from "@sentry/node";
+SentryInit({ dsn: 'https://a5929734fe1748df85c79e15836e1c93@sentry.io/1878141' });
 
 //  module imports
 import * as usersRouter from "./users/router";
@@ -82,6 +84,10 @@ app.use(`/miscellaneous`, miscellaneousRouter)
 app.use(`/web-notifications`, webNotificationRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
+    console.log((error as any).code, `Error Code`)
+    if((error as any).code >= 500){
+        captureException(error)
+    }
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })
 });
 
