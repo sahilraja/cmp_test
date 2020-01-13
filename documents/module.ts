@@ -644,10 +644,10 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "edit-document");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    }
+    // const isEligible = await checkRoleScope(userRole, "edit-document");
+    // if (!isEligible) {
+    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    // }
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let capability = await documnetCapabilities(docId, userId);
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_UPDATE_USER);
