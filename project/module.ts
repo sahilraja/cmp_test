@@ -297,6 +297,9 @@ export async function add_tag(reqObject: any, userObj: any) {
     //   })
     // }
 
+    if (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.tag)) {
+      throw new Error(DOCUMENT_ROUTER.NAME_ERROR)
+    }
     return await tags.create({
       tag: reqObject.tag,
       description: reqObject.description || "N/A"
@@ -1311,12 +1314,12 @@ function formatAndValidatePhasePayload(payload: any) {
       if (_data.startDate > _data.endDate) {
         throw new APIError(PROJECT_ROUTER.PHASE_BEFORE_END_DATE)
       }
-      // if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0) <= new Date(_data.endDate).setHours(23, 59, 59, 0)))) {
-      //   throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
-      // }
-      // if (payload[index + 1] && Math.abs((new Date(new Date(_data.endDate).setHours(23, 59, 59, 0)).getTime() - new Date(new Date(payload[index + 1].startDate).setHours(0, 0, 0, 0)).getTime()) / 1000) > 2) {
-      //   throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
-      // }
+      if (payload[index + 1] && (!payload[index + 1].startDate || (new Date(payload[index + 1].startDate) <= new Date(_data.endDate)))) {
+        throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
+      }
+      if (payload[index + 1] && Math.abs((new Date(_data.endDate).getTime() - new Date(payload[index + 1].startDate).getTime()) / 1000) > 2) {
+        throw new APIError(PROJECT_ROUTER.PHASE_OVER_LAP)
+      }
     }
     if(!Types.ObjectId.isValid(_data.phase)) throw new Error(PROJECT_ROUTER.SELECT_PHASE)
     return {

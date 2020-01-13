@@ -27,11 +27,23 @@ async function formatNotification(notificationObj: any, details: any) {
     let keys = (notificationObj.title.match(/\[(.*?)\]/g))
     keys = keys && keys.length? keys.map((key: string) => key.substring(1, key.length - 1)) : []
     let replaceAllObj = keys.map((key: string) => {
-        if (userKeys.includes(key)) return { key: key, match: (getFullNameAndMobile(details.users.find((userObj: any) => notificationObj[key] == userObj._id)) || { fullName: "" }).fullName }
-        if (key == "taskId") return { key: key, match: details.tasks.find((taskObj: any) => notificationObj[key] == taskObj._id || { name: "" }).name }
-        if (key == "docId") return { key: key, match: notificationObj.docId.name }
-        if (key == "groupId") return { key: key, match: details.groups.find((groupObj: any) => notificationObj[key] == groupObj._id || { name: "" }).name }
-        else return { key: [key], match: "" }
+        if (userKeys.includes(key)) {
+            return { key: key, match: (getFullNameAndMobile(details.users.find((userObj: any) => notificationObj[key] == userObj._id)) || { fullName: "" }).fullName }
+        }
+        if (key == "taskId"){
+            return { 
+                key: key, match: details.tasks.find((taskObj: any) => notificationObj[key] == taskObj._id).name 
+            }
+        }
+        if (key == "docId") {
+            return { key: key, match: notificationObj.docId.name }
+        }
+        if (key == "groupId"){ 
+            return { key: key, match: details.groups.find((groupObj: any) => notificationObj[key] == groupObj._id).name }
+        }
+        else {
+            return { key: [key], match: "" }
+        }
     })
     for (const { key, match } of replaceAllObj) {
         notificationObj.title = replaceAll(notificationObj.title, `[${key}]`, match)
