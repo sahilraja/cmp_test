@@ -1278,7 +1278,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-          esClient.update({
+          await await esClient.update({
             index: `${ELASTIC_SEARCH_INDEX}_documents`,
             id: user.docId,
             body: {
@@ -2783,7 +2783,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
         }
       }
     }
-    let searchdoc: any =  esClient.search({
+    let searchdoc: any = await esClient.search({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: data
@@ -2859,7 +2859,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
 
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
-        return  esClient.update({
+        return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
@@ -2901,7 +2901,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
 
     let updateTags = await Promise.all(bodyObj.map(async (tag: any) => {
       if (docIds.includes(tag.docId)) {
-        return  esClient.update({
+        return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: tag.docId,
           body: {
@@ -3341,7 +3341,9 @@ export async function getProjectNamesForES(docId: string, token: string) {
 }
 
 export async function updateGroupInElasticSearch(groupId:string){
-  let updated = esClient.updateByQuery({
+  let docIds = await GetDocIdsForUser(groupId, "group")
+
+  let updated =await esClient.updateByQuery({
     index: `${ELASTIC_SEARCH_INDEX}_messages`,
     body: {
       "query": { "match": { "groupId": groupId } },
