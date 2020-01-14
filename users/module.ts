@@ -588,8 +588,13 @@ export async function createGroup(objBody: any, userObj: any) {
         const { name, description, users } = objBody
         if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (name && (!/.*[A-Za-z0-9]{1}.*$/.test(name))) throw new Error("you have entered invalid name. please try again.")
+        const existingGroup = await groupFindOne(`lowercaseName`, name.toLowerCase().trim())
+        if(existingGroup){
+            throw new APIError(`Group name already exists`)
+        }
         let group: any = await groupCreate({
-            name: name.toLowerCase().trim(),
+            name,
+            lowercaseName:name.toLowerCase().trim(),
             description: description.trim(),
             createdBy: userObj._id
         });
@@ -719,7 +724,7 @@ export async function changeGroupOwnerShip(oldUser: string, newUser: string) {
         if (groupIds.length) await groupUpdateMany({}, { createdBy: newUser }, { _id: groupIds })
         let olduseGroupIds = await userGroupsList(oldUser);
         let newUseGroupIds = await userGroupsList(newUser)
-        Promise.all(olduseGroupIds.map((groupId) => changeOwner(groupId, oldUser, newUser, newUseGroupIds)))
+        Promise.all(olduseGroupIds.map((groupId: any) => changeOwner(groupId, oldUser, newUser, newUseGroupIds)))
         return true
     } catch (err) {
         throw err
