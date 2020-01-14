@@ -221,7 +221,7 @@ export const MOBILE_TEMPLATES = {
 
 export const GLOBAL_SCOPE = "global";
 
-export const OTP_BYPASS = "0987";
+export const OTP_BYPASS = "0050";
 
 export const MISSING = "Missing Field";
 
@@ -233,6 +233,7 @@ export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 
 export const UNAUTHORIZED_ACTION = "Unauthorized Action."
 
+export const TAG_NAME_ERROR = "[Error: 0024] You have entered an invalid tag, please try again"
 export const TASK_ERROR = {
     INVALID_STEP:`Invalid step`,
     INVALID_PILLAR:`Invalid pillar`,

@@ -1,4 +1,4 @@
-import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR, USER_ROUTER, COMPLIANCES, DOCUMENT_ROUTER, UNAUTHORIZED_ACTION } from "../utils/error_msg";
+import { MISSING, PROJECT_ROUTER, ACTIVITY_LOG, TASK_ERROR, USER_ROUTER, COMPLIANCES, DOCUMENT_ROUTER, UNAUTHORIZED_ACTION, TAG_NAME_ERROR } from "../utils/error_msg";
 import { project as ProjectSchema, project } from "./project_model";
 import { Types } from "mongoose";
 import { tags } from "../tags/tag_model";
@@ -297,8 +297,8 @@ export async function add_tag(reqObject: any, userObj: any) {
     //   })
     // }
 
-    if (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.tag)) {
-      throw new Error(DOCUMENT_ROUTER.NAME_ERROR)
+    if (!/[A-Za-z0-9 ]$/.test(reqObject.tag)) {
+      throw new Error(TAG_NAME_ERROR)
     }
     return await tags.create({
       tag: reqObject.tag,
