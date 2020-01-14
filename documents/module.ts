@@ -663,7 +663,8 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
-      obj.name = objBody.docName.toLowerCase();
+      obj.name = objBody.docName;
+      obj.codeName = objBody.docName.toLowerCase();
     }
     if (objBody.description || objBody.description == "") {
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DESCRIPTION_LENGTH(siteConstants.docDescriptionSize))
