@@ -32,7 +32,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
     if (!isEligible) {
         throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
     }
-    const activities = await ActivitySchema.find({ taskId }).sort({ createdAt: 1 }).exec()
+    const activities = await ActivitySchema.find({ taskId }).populate([{path:'oldStepId'},{path:'stepId'},{path:'oldPillarId'},{path:'pillarId'}]).sort({ createdAt: 1 }).exec()
     const userIds = activities.reduce((p: any, activity: any) =>
         [...p, ...
             ((activity.addedUserIds || []).concat(activity.removedUserIds || []).concat([activity.activityBy]))
@@ -175,7 +175,7 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} created the document`;
             break;
         case 'DOCUMENT_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} updated the document`;
+            message = `${UserFullName(activityLog.activityBy)} updated the document with ${activityLog.message}`;
             break;
         case 'CANCEL_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} canceled the document update`;
@@ -328,10 +328,10 @@ function getFormantedTaskLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} rejected the task`;
             break;
         case 'STEP_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the step from ${activityLog.oldStep.name} to ${activityLog.updatedStep.name}`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the step from ${activityLog.oldStepId ? activityLog.oldStepId.name : `None`} to ${activityLog.stepId ? activityLog.stepId.name : `None`}`;
             break;
         case 'PILLAR_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the pillar from ${activityLog.updatedPillar.name} to ${activityLog.updatedPillar.name}`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the pillar from ${activityLog.oldPillarId ? activityLog.oldPillarId.name : `None`} to ${activityLog.pillarId ? activityLog.pillarId.name : `None`}`;
             break;
         case 'APPROVERS_UPDATED':
             if (activityLog.addedUserIds && activityLog.addedUserIds.length && activityLog.removedUserIds && activityLog.removedUserIds.length) {
@@ -410,7 +410,7 @@ function getStatus(status_code: any, status: any = "") {
         case 0:
             return "Create";
         case 1:
-            return status = "reject" ? ' Rejected ' : status = "reopen" ? 'Reopened' : 'To Do';
+            return status == "reject" ? ' Rejected ' : status == "reopen" ? 'Reopened' : 'To Do';
         case 2:
             return 'In Progress';
         case 3:
