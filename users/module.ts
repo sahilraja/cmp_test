@@ -630,6 +630,9 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         // if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
+        if(objBody.name){
+            objBody.lowercaseName = objBody.name.toLowerCase()
+        }
         let groupData: any = await groupEdit(id, objBody);
         let updateInES = updateGroupInElasticSearch(id);
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
