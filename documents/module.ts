@@ -705,7 +705,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       });
       const message = `${_document.name != parent.name ? "name" : ""}${(_document.description != null && _document.description != parent.description) ? _document.name != parent.name ? (_document.fileId != parent.fileId ? ", description" : " and description") : "description" : ""}${_document.fileId != parent.fileId ? (_document.description != null && _document.description != parent.description) ? " and file" : _document.name != parent.name ? " and file" : "file" : ""}`
       mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-      await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId })
+      await create({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId, message })
     } else {
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))

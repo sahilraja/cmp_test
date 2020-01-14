@@ -175,7 +175,7 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} created the document`;
             break;
         case 'DOCUMENT_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} updated the document`;
+            message = `${UserFullName(activityLog.activityBy)} updated the document with ${activityLog.message}`;
             break;
         case 'CANCEL_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} canceled the document update`;

@@ -43,7 +43,8 @@ const SchemaDef = new Schema({
     linkedTasks: {type: Array},
     unlinkedTasks:{type: Array},
     tagsToMerge:{type: Array},
-    mergedTag: {type: String}
+    mergedTag: {type: String},
+    message: {type: String}
 }, { timestamps: true })
 
 SchemaDef.index({ projectId: 1 })
