@@ -31,7 +31,7 @@ import { promises } from "fs";
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
-import { manualPagination, replaceDocumentUser, addGroupMembersInDocs, removeGroupMembersInDocs } from "../documents/module";
+import { manualPagination, replaceDocumentUser, addGroupMembersInDocs, removeGroupMembersInDocs,updateGroupInElasticSearch } from "../documents/module";
 import { patternSubstitutions } from "../patterns/module";
 import { updateUserInDOcs } from "../documents/module";
 import { updateUserInMessages, updateUserInTasks } from "../tags/module"
@@ -626,6 +626,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         // if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
         let groupData: any = await groupEdit(id, objBody);
+        // let updateInES = updateGroupInElasticSearch(id);
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;
     } catch (err) {

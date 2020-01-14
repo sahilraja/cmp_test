@@ -2845,7 +2845,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
         })
       }
     }))
-    let allDocs: any =  esClient.search({
+    let allDocs: any = await esClient.search({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
@@ -2887,7 +2887,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
 export async function updateTagsInDOcs(bodyObj: any, userId: string) {
   try {
 
-    let allDocs: any =  esClient.search({
+    let allDocs: any = await esClient.search({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
@@ -2961,7 +2961,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
         userIds: groupUserIds
       }
     }))
-    let allDocs: any =  esClient.search({
+    let allDocs: any = await esClient.search({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
@@ -2973,7 +2973,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
 
     let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
-    let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+    let updateUsers =  Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
         return  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
@@ -3018,7 +3018,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
         userId: groupUserId
       }
     }))
-    let allDocs: any =  esClient.search({
+    let allDocs: any = await esClient.search({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       size: 1000,
       body: {
@@ -3338,4 +3338,21 @@ export async function getProjectNamesForES(docId: string, token: string) {
       }
     })
   }
+}
+
+export async function updateGroupInElasticSearch(groupId:string){
+  let updated = esClient.updateByQuery({
+    index: `${ELASTIC_SEARCH_INDEX}_messages`,
+    body: {
+      "query": { "match": { "groupId": groupId } },
+      "script": {
+        "source": "ctx._source.tags=(params.tags)",
+        "lang": "painless",
+        "params": {
+          "tags": tags
+        }
+      }
+    }
+  })
+  return updated
 }
