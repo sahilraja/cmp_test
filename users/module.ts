@@ -631,7 +631,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         // if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
         let groupData: any = await groupEdit(id, objBody);
-        // let updateInES = updateGroupInElasticSearch(id,objBody.name);
+        let updateInES = updateGroupInElasticSearch(id);
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;
     } catch (err) {

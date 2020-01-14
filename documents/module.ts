@@ -3343,19 +3343,25 @@ export async function getProjectNamesForES(docId: string, token: string) {
 
 export async function updateGroupInElasticSearch(groupId:string){
   let docIds = await GetDocIdsForUser(groupId, "group")
-
-  let updated =await esClient.updateByQuery({
-    index: `${ELASTIC_SEARCH_INDEX}_messages`,
-    body: {
-      "query": { "match": { "groupId": groupId } },
-      "script": {
-        "source": "ctx._source.tags=(params.tags)",
-        "lang": "painless",
-        "params": {
-          "tags": tags
+  let update = await Promise.all( docIds.map(async(docId:any)=>{
+      let groupDetails = await invitePeopleList(docId);
+      let groupData =  groupDetails && groupDetails.length?groupDetails.filter((group: any) => group.type == 'group') : []
+      let groupNames = groupData && groupData.length?(await  groupData.map((group:any)=>{return group.Name})): []
+      if(groupNames && groupNames.length){
+      let updatedData =  esClient.update({
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.groupName=(params.groupName);",
+            "lang": "painless",
+            "params": {
+              "groupName": groupNames
+            }
+          }
         }
-      }
+      })
     }
-  })
-  return updated
-}
+    }
+  ))
+  }
