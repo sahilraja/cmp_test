@@ -1291,9 +1291,10 @@ export async function editTriPartiteDate(id: string, payload: any, user: any) {
   return await ProjectSchema.findByIdAndUpdate(id, { $set: { tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } } }, { new: true }).exec()
 }
 
-export async function addPhaseToProject(projectId: string, payload: any) {
+export async function addPhaseToProject(projectId: string, payload: any,token:string) {
   let phases= await ProjectSchema.findByIdAndUpdate(projectId, { $set: { phases: formatAndValidatePhasePayload(payload) } }, { new: true }).exec()
-  
+  let phaseList= await listPhasesOfProject(projectId);
+  let updateTasksInElasticSearch = updateProjectTasks({projectId:projectId,phases:phaseList},token);
 }
 
 export async function listPhasesOfProject(projectId: string) {
@@ -1784,4 +1785,13 @@ export async function getStates() {
   return Object.keys(cities).map(state => ({state:state, cities: cities[state]}))
   // writeFileSync(join(__dirname, '..', 'utils', 'cities.json'), Object.keys(cities).map(c => cities[c].sort((a: any,b: any) => a.localeCompare(b))))
   // return cities
+}
+
+export async function editProjectPhaseInES(phaseId:string,token:string){
+  const projects:any = await ProjectSchema.find({'phases.phase':phaseId}).exec();
+  let projectIds =  Promise.all(projects.map(async(project:any)=>{
+    let phases: any= await listPhasesOfProject(project.id || project._id);
+    let updateTasksInElasticSearch = updateProjectTasks({projectId:project.id || project._id,phases},token);
+  }))
+  return projectIds
 }

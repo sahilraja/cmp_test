@@ -3,7 +3,7 @@ import { APIError } from "../utils/custom-error";
 import { userDetails } from "../users/module";
 import { USER_ROUTER, UNAUTHORIZED_ACTION } from "../utils/error_msg";
 import { checkRoleScope } from "../utils/role_management";
-
+import { editProjectPhaseInES } from "../project/module";
 
 export async function createPhase(payload: any, userObj: any) {
     try {
@@ -22,13 +22,14 @@ export async function createPhase(payload: any, userObj: any) {
     }
 }
 
-export async function editPhase(phaseId: string, body: any, userObj: any) {
+export async function editPhase(phaseId: string, body: any, userObj: any, token: string) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "phase-manage");
         if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
         if (!/.*[A-Za-z0-9]{1}.*$/.test(body.phaseName)) throw new Error(USER_ROUTER.NAME_ERROR)
         let phaseInfo: any = await phaseSchema.findByIdAndUpdate(phaseId, { $set: { phaseName: body.phaseName, phaseCode: body.phaseName.toLowerCase(), colorCode: body.colorCode } }, { new: true }).exec()
         let { disable, ...phaseResult } = phaseInfo.toObject();
+        editProjectPhaseInES(phaseResult.id || phaseResult._id, token)
         return phaseResult
     }
     catch (err) {
