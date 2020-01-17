@@ -69,7 +69,7 @@ router.get("/:id/detail", async (req, res, next) => {
 
 router.post(`/:id/add-phases`, async (req, res, next) => {
     try {
-        res.status(OK).send(await addPhaseToProject(req.params.id, req.body))
+        res.status(OK).send(await addPhaseToProject(req.params.id, req.body,(req as any).token))
     } catch (error) {
         next(new APIError(error.message))
     }

@@ -19,16 +19,16 @@ export async function list(userId: string, currentPage = 1, limit = 30, token: s
         getTasksByIds([... new Set((notifications.map(({ taskId }: any) => taskId)).filter(id => Types.ObjectId(id)))], token),
         groupPatternMatch({ "_id": [... new Set((notifications.map(({ groupId }: any) => groupId)).filter(id => Types.ObjectId(id)))] })
     ])
-    return { docs: await Promise.all(notifications.map((notificationObj: any) => formatNotification(notificationObj.toJSON(), { users: userObjs, tasks: taskObjs, groups: groupObjs }))), page, limit: pageLimit, pages }
+    return { docs: await Promise.all(notifications.map((notificationObj: any) => formatNotification(notificationObj.toJSON(), userId, { users: userObjs, tasks: taskObjs, groups: groupObjs }))), page, limit: pageLimit, pages }
 }
 
-async function formatNotification(notificationObj: any, details: any) {
+async function formatNotification(notificationObj: any, userId: string, details: any) {
     let userKeys = ["from", "userId"];
     let keys = (notificationObj.title.match(/\[(.*?)\]/g))
     keys = keys && keys.length? keys.map((key: string) => key.substring(1, key.length - 1)) : []
     let replaceAllObj = keys.map((key: string) => {
         if (userKeys.includes(key)) {
-            return { key: key, match: (getFullNameAndMobile(details.users.find((userObj: any) => notificationObj[key] == userObj._id)) || { fullName: "" }).fullName }
+            return { key: key, match: notificationObj.from == userId ? `You` : (getFullNameAndMobile(details.users.find((userObj: any) => notificationObj[key] == userObj._id)) || { fullName: "" }).fullName }
         }
         if (key == "taskId"){
             return { 

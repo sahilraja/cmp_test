@@ -31,7 +31,7 @@ import { promises } from "fs";
 import { error } from "util";
 import { getSmsTemplateBySubstitutions } from "../sms/module";
 import { smsTemplateSchema } from "../sms/model";
-import { manualPagination, replaceDocumentUser, addGroupMembersInDocs, removeGroupMembersInDocs } from "../documents/module";
+import { manualPagination, replaceDocumentUser, addGroupMembersInDocs, removeGroupMembersInDocs,updateGroupInElasticSearch } from "../documents/module";
 import { patternSubstitutions } from "../patterns/module";
 import { updateUserInDOcs } from "../documents/module";
 import { updateUserInMessages, updateUserInTasks } from "../tags/module"
@@ -100,8 +100,8 @@ export async function inviteUser(objBody: any, user: any) {
             }
         }
         //  Check User Capability
-        // let admin_scope = await checkRoleScope(user.role, "create-user");
-        // if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+        let admin_scope = await checkRoleScope(user.role, "create-user");
+        if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         let userData: any = await createUser({
             email: objBody.email,
             firstName: objBody.firstName,
@@ -588,8 +588,13 @@ export async function createGroup(objBody: any, userObj: any) {
         const { name, description, users } = objBody
         if (!name || name.trim() == "" || !Array.isArray(users) || !users.length) throw new Error(USER_ROUTER.MANDATORY);
         if (name && (!/.*[A-Za-z0-9]{1}.*$/.test(name))) throw new Error("you have entered invalid name. please try again.")
+        const existingGroup = await groupFindOne(`lowercaseName`, name.toLowerCase().trim())
+        if(existingGroup){
+            throw new APIError(`Group name already exists`)
+        }
         let group: any = await groupCreate({
-            name: name.toLowerCase().trim(),
+            name,
+            lowercaseName:name.toLowerCase().trim(),
             description: description.trim(),
             createdBy: userObj._id
         });
@@ -625,7 +630,13 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         // if (objBody.name) throw new Error(GROUP_ROUTER.GROUP_NAME);
+        if(objBody.name){
+            objBody.lowercaseName = objBody.name.toLowerCase()
+        }
         let groupData: any = await groupEdit(id, objBody);
+        if(objBody.name){
+        let updateInES = updateGroupInElasticSearch(id);
+        }
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;
     } catch (err) {
@@ -718,7 +729,7 @@ export async function changeGroupOwnerShip(oldUser: string, newUser: string) {
         if (groupIds.length) await groupUpdateMany({}, { createdBy: newUser }, { _id: groupIds })
         let olduseGroupIds = await userGroupsList(oldUser);
         let newUseGroupIds = await userGroupsList(newUser)
-        Promise.all(olduseGroupIds.map((groupId) => changeOwner(groupId, oldUser, newUser, newUseGroupIds)))
+        Promise.all(olduseGroupIds.map((groupId: any) => changeOwner(groupId, oldUser, newUser, newUseGroupIds)))
         return true
     } catch (err) {
         throw err

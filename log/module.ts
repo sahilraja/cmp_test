@@ -6,6 +6,7 @@ import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
 import { TASK_ERROR } from "../utils/error_msg";
 import { TASKS_URL } from "../utils/urls";
+import { replaceAll } from "../patterns/module";
 
 export async function create(payload: any) {
     return await ActivitySchema.create(payload)
@@ -178,7 +179,7 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} updated the document with ${activityLog.message}`;
             break;
         case 'CANCEL_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} canceled the document update`;
+            message = `${UserFullName(activityLog.activityBy)} cancelled the document update`;
             break;
         case 'TAGS_ADDED':
             message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
@@ -297,7 +298,7 @@ function getNamesFromIds(userIdsArr: []) {
     let namesStr: string;
     userIdsArr.map((item: any) => {
         if (item.firstName && item.lastName) {
-            namesArr.push(`${item.firstName} ${item.lastName} `);
+            namesArr.push(`${item.firstName} ${item.middleName || ''} ${item.lastName} `);
         } else {
             namesArr.push(item.name)
         }
@@ -370,13 +371,13 @@ function getFormantedTaskLogs(activityLog: any) {
             }
             break;
         case 'TASK_STATUS_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the task status from ${getStatus(activityLog.oldStatus, "")} to ${getStatus(activityLog.updatedStatus, "")}`
+            message = activityLog.displayMessage ? replaceAll(activityLog.displayMessage, `[from]`, `${UserFullName(activityLog.activityBy)}`)  : `${UserFullName(activityLog.activityBy)} has updated the task status from ${getStatus(activityLog.oldStatus, "")} to ${getStatus(activityLog.updatedStatus, "")}`
             break;
         case 'TASK_START_DATE_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the start date from ${activityLog.previousStartDate} to ${activityLog.updatedStartDate}`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the start date from %date:${activityLog.previousStartDate}% to %date:${activityLog.updatedStartDate}%`;
             break;
         case 'TASK_DUE_DATE_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the due date from ${activityLog.previousEndDate} to ${activityLog.updatedEndDate}`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the due date from %date:${activityLog.previousDueDate}% to %date:${activityLog.updatedDueDate}%`;
             break;
         case 'DOCUMENTS_ADDED':
             message = `${UserFullName(activityLog.activityBy)} added documents to the task`;
