@@ -634,7 +634,9 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
             objBody.lowercaseName = objBody.name.toLowerCase()
         }
         let groupData: any = await groupEdit(id, objBody);
+        if(objBody.name){
         let updateInES = updateGroupInElasticSearch(id);
+        }
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;
     } catch (err) {
