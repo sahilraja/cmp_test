@@ -305,12 +305,12 @@ export async function addRolesFromJSON() {
 
 export async function addRole(userId: string, bodyObj: any) {
     try {
-        // let userRoles = await userRoleAndScope(userId);
-        // let userRole = userRoles.data[0];
-        // const isEligible = await checkRoleScope(userRole, "display-role-management");
-        // if (!isEligible) {
-        //     throw new APIError("Unauthorized for this Action", 403);
-        // }
+        let userRoles = await userRoleAndScope(userId);
+        let userRole = userRoles.data[0];
+        const isEligible = await checkRoleScope(userRole, "display-role-management");
+        if (!isEligible) {
+            throw new APIError("Unauthorized for this Action", 403);
+        }
         if (!bodyObj.role || !bodyObj.category || !bodyObj.roleName) throw new Error("All mandatory fields are reuired")
         let role = bodyObj.role.replace(/[^a-zA-Z0-9]/g, "")      
         role = role.toLowerCase().trim()
