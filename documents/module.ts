@@ -3350,7 +3350,7 @@ export async function updateGroupInElasticSearch(groupId: string) {
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
       if (groupNames && groupNames.length) {
-        let updatedData = await esClient.update({
+        let updatedData =  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
