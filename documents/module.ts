@@ -2977,7 +2977,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
 
     let updateUsers = Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
-        return esClient.update({
+        return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
@@ -3034,7 +3034,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
 
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
-        return esClient.update({
+        return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
