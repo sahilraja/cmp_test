@@ -2860,7 +2860,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
     let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-      if (docIds.includes(user.docId)) {
+      // if (docIds.includes(user.docId)) {
         return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
@@ -2875,7 +2875,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
             }
           }
         })
-      }
+      // }
     }))
 
     return { userIds, collaboratedDocsIds, idsToUpdate, updateUsers }
@@ -2902,7 +2902,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
     let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
     let updateTags = await Promise.all(bodyObj.map(async (tag: any) => {
-      if (docIds.includes(tag.docId)) {
+      // if (docIds.includes(tag.docId)) {
         return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: tag.docId,
@@ -2916,7 +2916,7 @@ export async function updateTagsInDOcs(bodyObj: any, userId: string) {
             }
           }
         })
-      }
+      // }
     }))
 
     return { updateTags }
@@ -3033,7 +3033,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
     let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-      if (docIds.includes(user.docId)) {
+      // if (docIds.includes(user.docId)) {
         return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
@@ -3048,7 +3048,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
             }
           }
         })
-      }
+      // }
     }))
 
     return { idsToUpdate, updateUsers }
