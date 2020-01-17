@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const SchemaDef = new Schema({
+    displayMessage:{type: String},
     activityType: { type: String, trim: true },
     activityBy: { type: String },
     taskId: { type: String },

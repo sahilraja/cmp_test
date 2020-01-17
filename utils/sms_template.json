@@ -25,7 +25,7 @@
         "displayName" : "change email notification"
     },
     {
-        "content" : "You are invited to collaborate on the document [documentName] on CMP. Click [documentUrl] to access it.",
+        "content" : "You are invited to collaborate on the document [documentName] on CMP. Please log on to check the details.",
         "templateName" : "inviteForDocument",
         "displayName" : "invite for document"
     },
@@ -35,27 +35,27 @@
         "displayName" : "New Message"
     },
     {
-        "content" : "You have a tag suggestion.You can click this [documentUrl] to view it.",
+        "content" : "You have a tag suggestion. Please log on to check the details.",
         "templateName" : "suggestTagNotification",
         "displayName" : "suggest tag notification"
     },
     {
-        "content" : "A tag suggested by you on CMP is approved. Click [documentUrl] to view it.",
+        "content" : "A tag suggested by you on CMP is approved. Please log on to check the details.",
         "templateName" : "approveTagNotification",
         "displayName" : "approve tag notification"
     },
     {
-        "content" : "A tag suggested by you on CMP is rejected. Click [documentUrl] to view it.",
+        "content" : "A tag suggested by you on CMP is rejected. Please log on to check the details.",
         "templateName" : "rejectTagNotification",
         "displayName" : "reject tag notification"
     },
     {
-        "content" : "Document [documentName] has been published on CMP. Click [documentUrl] to access it.",
+        "content" : "Document [documentName] has been published on CMP. Please log on to check the details.",
         "templateName" : "publishDocument",
         "displayName" : "publish document"
     },
     {
-        "content" : "Document [documentName] is unpublished from CMP. Click [documentUrl] to access it.",
+        "content" : "Document [documentName] is unpublished from CMP. Please log on to check the details.",
         "templateName" : "unPublishDocument",
         "displayName" : "unPublish document"
     },
@@ -65,7 +65,7 @@
         "displayName" : "New Comment"
     },
     {
-        "content" : "The document [documentName] on CMP, is replaced with a new document. Click [documentUrl] to access it.",
+        "content" : "The document [documentName] on CMP, is replaced with a new document. Please log on to check the details.",
         "templateName" : "replaceDocument",
         "displayName" : "replace document"
 

@@ -115,3 +115,21 @@ export async function getNotifications() {
     const notificationScenarios = notifications[0].templates.reduce((p:string[], template:any) => [...p, (template.displayName || template.templateName)] ,[])
     return {data: notifications, notificationScenarios}
 }
+
+export async function notificationsUpdateNew(reqObject: any) {
+    try {
+        if(!reqObject.data && reqObject.data.length==0){
+            throw new APIError(USER_ROUTER.MANDATORY);
+        }
+        let updateInfo= await Promise.all(reqObject.data.map(async(roleObj:any)=>{
+            if(!roleObj.role || (!roleObj.templates && roleObj.templates.length == 0)){
+                throw new APIError(USER_ROUTER.MANDATORY);
+            }
+            return await notificationSchema.update({'role':roleObj.role},{$set:{ templates: roleObj.templates}})
+        }))
+        return { message: "Updated successfully", status: true}
+        }
+    catch (err) {
+        throw err
+    }
+}

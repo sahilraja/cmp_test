@@ -150,9 +150,13 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       id: doc.id,
       groupId: [],
       groupName: [],
-      createdBy: userId
+      createdBy: userId,
+      projectName: [],
+      city:[],
+      reference:[],
+      phases:[]
     }
-    let result = await esClient.index({
+    let result =  esClient.index({
       index: `${ELASTIC_SEARCH_INDEX}_documents`,
       body: docObj,
       id: doc.id
@@ -607,7 +611,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
     if (isDocExists) {
       let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
       let tagNames = tags.map((tag: any) => { return tag.tag })
-      let updatedData = await esClient.update({
+      let updatedData =  esClient.update({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
@@ -659,7 +663,8 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       if (data) {
         throw new Error(DOCUMENT_ROUTER.DOC_ALREADY_EXIST);
       }
-      obj.name = objBody.docName.toLowerCase();
+      obj.name = objBody.docName;
+      obj.codeName = objBody.docName.toLowerCase();
     }
     if (objBody.description || objBody.description == "") {
       if (objBody.description.length > Number(siteConstants.docDescriptionSize || configLimit.description)) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DESCRIPTION_LENGTH(siteConstants.docDescriptionSize))
@@ -739,7 +744,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     if (isDocExists) {
       let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
       let tagNames = tags.map((tag: any) => { return tag.tag })
-      let updatedData = await esClient.update({
+      let updatedData =  esClient.update({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
@@ -1146,7 +1151,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
       if (groupIds.length && groupNames.length) {
-        let update = await esClient.update({
+        let update =  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
@@ -1163,7 +1168,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
           }
         })
       } else {
-        let updatedData = await esClient.update({
+        let updatedData =  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
@@ -1274,7 +1279,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-          esClient.update({
+          await await esClient.update({
             index: `${ELASTIC_SEARCH_INDEX}_documents`,
             id: user.docId,
             body: {
@@ -1487,7 +1492,7 @@ export async function unPublished(docId: string, userObj: any) {
     await create({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-      let updatedData = await esClient.update({
+      let updatedData =  esClient.update({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
@@ -1518,9 +1523,9 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
       let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, host, false)
       await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success, true, userObj._id)
-      let isDocExists = await checkDocIdExistsInEs(docId)
+      let isDocExists =  checkDocIdExistsInEs(docId)
       if (isDocExists) {
-        let updatedData = await esClient.update({
+        let updatedData =  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
@@ -1886,7 +1891,7 @@ export async function deleteDoc(docId: any, userId: string) {
     await create({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-      let deleted = await esClient.delete({
+      let deleted =  esClient.delete({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
       })
@@ -2151,7 +2156,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let tagNames = tags.map((tag: any) => { return tag.tag })
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
-        let updatedData = await esClient.update({
+        let updatedData =  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
@@ -2199,7 +2204,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let tagNames = tags[0].tag
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
-        let updatedData = await esClient.update({
+        let updatedData =  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
@@ -2969,9 +2974,9 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
 
     let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
-    let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+    let updateUsers =  Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
-        return await esClient.update({
+        return  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
@@ -3028,7 +3033,7 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
 
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
       if (docIds.includes(user.docId)) {
-        return await esClient.update({
+        return  esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
           body: {
@@ -3058,7 +3063,7 @@ export async function getDocsAndInsertInCasbin(host: string) {
   const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
 
   let insert = await Promise.all(finalData.map(async (doc: any) => {
-    return await esClient.index({
+    return  esClient.index({
       index: `${process.env.ELASTIC_SEARCH_INDEX}_documents`,
       body: doc,
       id: doc.id
@@ -3184,7 +3189,7 @@ export async function replaceUserInES(docId: string, newUserId: string, newUserN
   try {
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
-      let data = await esClient.update({
+      let data =  esClient.update({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
         id: docId,
         body: {
@@ -3301,10 +3306,62 @@ async function documentCreateApi(name: string, filepath: any, tags: string[], to
     }
   })
 }
-async function getProjectNamesForES(docId: string, token: string) {
+
+//update project names, cities, reference in documents for search.
+export async function getProjectNamesForES(docId: string, token: string) {
   let publishDocs: any = await documents.findById(docId);
   const docList = publishDocs.toJSON();
   let taskDetailsObj: any = getTasksForDocument(docList.parentId || docList._id, token)
   let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
-  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
+  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }).exec()
+  let projectName:any = [];
+  let city:any = [];
+  let reference :any= [];
+  let projects = projectDetails.map((project:any)=>{
+    projectName.push(project.name);
+    city.push(project.city);
+    reference.push(project.reference);
+  }) 
+  if(projectName.length){ 
+  let updatedData =  esClient.update({
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      id: docId,
+      body: {
+        "script": {
+          "source": "ctx._source.projectName.addAll(params.projectName);ctx._source.city.addAll(params.city);ctx._source.reference.addAll(params.reference);",
+          "lang": "painless",
+          "params": {
+            "projectName": projectName,
+            "city": city,
+            "reference": reference
+          }
+        }
+      }
+    })
+  }
 }
+
+export async function updateGroupInElasticSearch(groupId:string){
+  let docIds = await GetDocIdsForUser(groupId, "group")
+  let update = await Promise.all( docIds.map(async(docId:any)=>{
+      let groupDetails = await invitePeopleList(docId);
+      let groupData =  groupDetails && groupDetails.length?groupDetails.filter((group: any) => group.type == 'group') : []
+      let groupNames = groupData && groupData.length?(await  groupData.map((group:any)=>{return group.Name})): []
+      if(groupNames && groupNames.length){
+      let updatedData =  esClient.update({
+        index: `${ELASTIC_SEARCH_INDEX}_documents`,
+        id: docId,
+        body: {
+          "script": {
+            "source": "ctx._source.groupName=(params.groupName);",
+            "lang": "painless",
+            "params": {
+              "groupName": groupNames
+            }
+          }
+        }
+      })
+    }
+    }
+  ))
+  }

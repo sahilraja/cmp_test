@@ -4,6 +4,7 @@ export enum NotificationType {
     DOCUMENT, TASK, MESSAGE, PROJECT
 }
 const schemaDef = new Schema({
+    displayMessage:{type: String},
     from:{type: String},
     title:{type: String},
     notificationType: { type: String, required: true },

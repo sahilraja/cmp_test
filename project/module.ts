@@ -557,14 +557,14 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
     throw new Error(PROJECT_ROUTER.NOT_MEMBER_OF_PROJECT)
   }
   const options = {
-    url: `${TASKS_URL}/task/${taskId}/soft-edit`,
+    url: `${TASKS_URL}/task/${taskId}/soft-edit?projectId=${projectId}`,
     body: payload,
     method: 'POST',
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
   const updatedTask = await httpRequest(options)
-  createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
+  // createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
 }
 
@@ -1291,9 +1291,10 @@ export async function editTriPartiteDate(id: string, payload: any, user: any) {
   return await ProjectSchema.findByIdAndUpdate(id, { $set: { tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } } }, { new: true }).exec()
 }
 
-export async function addPhaseToProject(projectId: string, payload: any) {
+export async function addPhaseToProject(projectId: string, payload: any,token:string) {
   let phases= await ProjectSchema.findByIdAndUpdate(projectId, { $set: { phases: formatAndValidatePhasePayload(payload) } }, { new: true }).exec()
-  
+  let phaseList= await listPhasesOfProject(projectId);
+  let updateTasksInElasticSearch = updateProjectTasks({projectId:projectId,phases:phaseList},token);
 }
 
 export async function listPhasesOfProject(projectId: string) {
@@ -1633,7 +1634,7 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
     throw new APIError(PROJECT_ROUTER.TOTAL_RELEASED_EXCEED_CITIIS)
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
-  // createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.releasedCost, projectId, activityBy: user._id })
+  createLog({ activityType: (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
   return updatedProject
 }
 
@@ -1657,7 +1658,7 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
 
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.utilisedCost, updatedCost: amount, activityBy: user._id })
+  createLog({ activityType: (!currentObj || currentObj.utilized.deleted) ? ACTIVITY_LOG.ADDED_FUND_UTILIZATION: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: currentObj.utilized.amount, updatedCost: amount, activityBy: user._id })
   return updatedProject
 }
 
@@ -1680,7 +1681,7 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   updates['funds.$.released.documents'] = []
   updates['funds.$.released.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
-  // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: userId})
+  createLog({activityType: ACTIVITY_LOG.DELETED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id})
   return updatedProject
 }
 
@@ -1699,7 +1700,7 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   updates['funds.$.utilized.documents'] = []
   updates['funds.$.utilized.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
-  // createLog({activityType: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: userId})
+  createLog({activityType: ACTIVITY_LOG.DELETED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id})
   return updatedProject
 }
 
@@ -1784,4 +1785,13 @@ export async function getStates() {
   return Object.keys(cities).map(state => ({state:state, cities: cities[state]}))
   // writeFileSync(join(__dirname, '..', 'utils', 'cities.json'), Object.keys(cities).map(c => cities[c].sort((a: any,b: any) => a.localeCompare(b))))
   // return cities
+}
+
+export async function editProjectPhaseInES(phaseId:string,token:string){
+  const projects:any = await ProjectSchema.find({'phases.phase':phaseId}).exec();
+  let projectIds =  Promise.all(projects.map(async(project:any)=>{
+    let phases: any= await listPhasesOfProject(project.id || project._id);
+    let updateTasksInElasticSearch = updateProjectTasks({projectId:project.id || project._id,phases},token);
+  }))
+  return projectIds
 }
