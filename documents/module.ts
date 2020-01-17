@@ -2938,6 +2938,8 @@ async function checkDocIdExistsInEs(docId: string) {
     }
   })
   if (checkDoc.hits.hits.length) {
+    console.log(checkDoc.hits.hits.length,"length");
+    
     return true
   } else {
     return false
