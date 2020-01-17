@@ -1523,9 +1523,9 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
       let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, host, false)
       await create({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success, true, userObj._id)
-      let isDocExists = checkDocIdExistsInEs(docId)
+      let isDocExists =await checkDocIdExistsInEs(docId)
       if (isDocExists) {
-        let updatedData = esClient.update({
+        let updatedData = await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
           body: {
@@ -2938,8 +2938,6 @@ async function checkDocIdExistsInEs(docId: string) {
     }
   })
   if (checkDoc.hits.hits.length) {
-    console.log(checkDoc.hits.hits.length,"length");
-    
     return true
   } else {
     return false
@@ -2978,7 +2976,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
     let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
     let updateUsers = Promise.all(idsToUpdate.map(async (user: any) => {
-      if (docIds.includes(user.docId)) {
+      // if (docIds.includes(user.docId)) {
         return await esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: user.docId,
@@ -2993,7 +2991,7 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
             }
           }
         })
-      }
+      // }
     }))
 
     return { idsToUpdate, updateUsers }
