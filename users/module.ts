@@ -692,7 +692,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
         if (!filteredUsers.length && users.some(user => existUsers.includes(user))) throw new Error("User already exist.")
         if (!filteredUsers.length) throw new APIError(USER_ROUTER.INVALID_ACTION);
         await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
-        await addGroupMembersInDocs(id, users, userObj._id)
+        addGroupMembersInDocs(id, users, userObj._id)
         sendNotificationToGroup(id, data.name, userObj._id, { templateName: "addGroupMember", mobileTemplateName: "addGroupMember" })
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
@@ -714,7 +714,7 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => {
             await removeUserToGroup(user, id),
-                await removeGroupMembersInDocs(id, user, userObj._id)
+             removeGroupMembersInDocs(id, user, userObj._id)
         }))
         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
