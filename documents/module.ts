@@ -3347,6 +3347,10 @@ export async function updateGroupInElasticSearch(groupId:string){
       let groupDetails = await invitePeopleList(docId);
       let groupData =  groupDetails && groupDetails.length?groupDetails.filter((group: any) => group.type == 'group') : []
       let groupNames = groupData && groupData.length?(await  groupData.map((group:any)=>{return group.Name})): []
+      console.log(groupDetails,'groupDetails');
+      console.log(groupData,'groupData');
+      console.log(groupNames,'groupNames');
+      
       if(groupNames && groupNames.length){
       let updatedData =  esClient.update({
         index: `${ELASTIC_SEARCH_INDEX}_documents`,
