@@ -558,6 +558,13 @@
     "description": "Ability to edit a document",
     "category": "Document Management",
     "scope": "global"
+  },
+  {
+    "capability":"view-compliance",
+    "shortDescription":"View Compliance",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Compliance"
   }
 ]
 
