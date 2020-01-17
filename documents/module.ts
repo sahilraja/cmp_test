@@ -3346,7 +3346,7 @@ export async function updateGroupInElasticSearch(groupId: string) {
   let update = await Promise.all(docIds.map(async (docId: any) => {
     let groupDetails = await invitePeopleList(docId);
     let groupData = groupDetails && groupDetails.length ? groupDetails.filter((group: any) => group.type == 'group') : []
-    let groupNames = groupData && groupData.length ? (groupData.map((group: any) => { return group.Name })) : []
+    let groupNames = groupData && groupData.length ? (groupData.map((group: any) => { return group.name })) : []
     console.log(groupDetails, 'groupDetails');
     console.log(groupData, 'groupData');
     console.log(groupNames, 'groupNames');
