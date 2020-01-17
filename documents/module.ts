@@ -2182,6 +2182,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       }
     }
     if (body.tagIdToRemove) {
+      let tagExists = docdetails.tags.length && docdetails.tags.includes(body.tagIdToRemove)?true:false
       let [suggestedToRemove, suggestedToRemove1]: any = await Promise.all([
         docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -2203,7 +2204,7 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let tags: any = await getTags([body.tagIdToRemove])
       let tagNames = tags[0].tag
       let isDocExists = await checkDocIdExistsInEs(docId)
-      if (isDocExists) {
+      if (isDocExists && tagExists) {
         let updatedData = esClient.update({
           index: `${ELASTIC_SEARCH_INDEX}_documents`,
           id: docId,
