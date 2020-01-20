@@ -76,8 +76,8 @@ export async function projectInfo() {
     utilized: p.utilized + c.funds.reduce((p1: any, c1: any) => p1 + ((c1.utilized || {}).amount || 0) ,0)
   }),{projectCost:0, citiisGrants:0, released:0, utilized:0})
   return {...response, 
-    costPercentage: Math.round((response.citiisGrants/response.projectCost)*100),
-    releasedPercentage: Math.round((response.utilized/response.released)*100),
+    costPercentage: Math.round((isNaN(response.citiisGrants/response.projectCost) ? 0 : (response.citiisGrants/response.projectCost))*100),
+    releasedPercentage: Math.round((isNaN(response.utilized/response.released) ? 0 : (response.utilized/response.released))*100),
   }
 }
 //  Edit city Code

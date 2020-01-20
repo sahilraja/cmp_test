@@ -1005,12 +1005,12 @@ export async function profileOtpVerify(objBody: any, user: any) {
         if (token.newEmail) {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
             await userLog({ activityType: "USER-EMAIL-UPADTE", activityBy: user._id, profileId: user._id })
-            webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.emailUpdateByUser, from: user._id })
+            // webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.emailUpdateByUser, from: user._id })
             sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage" })
         }
         if (objBody.phone && objBody.countryCode) {
             await userLog({ activityType: "USER-PHONE-UPADTE", activityBy: user._id, profileId: user._id })
-            webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.phoneUpdateByUser, from: user._id })
+            // webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.phoneUpdateByUser, from: user._id })
         }
         return userUpdate
     } catch (err) {
@@ -1337,7 +1337,9 @@ export async function sendNotificationToGroup(groupId: string, groupName: string
         userObjs.forEach((user: any) => {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
             let messageNotification = templateNamesInfo.templateName == "createGroup" ? GROUP_NOTIFICATIONS.youAddTOGroup : (GROUP_NOTIFICATIONS as any)[templateNamesInfo.templateName]
-            webNotification({ notificationType: `GROUP`, userId: user._id, groupId, title: messageNotification, from: userId })
+            if(![`addGroupMember`, `groupStatus`].includes(messageNotification)){
+                webNotification({ notificationType: `GROUP`, userId: user._id, groupId, title: messageNotification, from: userId })
+            }
             if (userId == user._id && templateNamesInfo.templateName == "youAddTOGroup") {
                 sendNotification({
                     id: userId, mobileNo, email: user.email, fullName, groupName,
@@ -1395,7 +1397,7 @@ export async function verificationOtpByUser(objBody: any, userObj: any) {
         let success = await changePasswordInfo({ password: mobileToken.password }, userObj._id);
         if (user.emailVerified) {
             await userLog({ activityType: "USER-PASSWORD-UPADTE", activityBy: user._id, profileId: user._id })
-            webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.passwordUpdateByUser, from: user._id })
+            // webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.passwordUpdateByUser, from: user._id })
         }
         return success
     } catch (err) {
@@ -1450,11 +1452,11 @@ export async function verifyOtpByAdmin(admin: any, objBody: any, id: string) {
                 await userLog({ activityType: "ADMIN-PHONENO-UPADTE", activityBy: admin._id, profileId: user._id })
         }
         if (user.emailVerified) {
-            let titleMessge
-            if (token.password) titleMessge = USER_PROFILE.passwordUpdateByAdmin
-            else if (token.email) titleMessge = USER_PROFILE.emailUpdateByAdmin
-            else titleMessge = USER_PROFILE.phoneUpdateByAdmin
-            webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: titleMessge, from: admin._id })
+            // let titleMessge
+            // if (token.password) titleMessge = USER_PROFILE.passwordUpdateByAdmin
+            // else if (token.email) titleMessge = USER_PROFILE.emailUpdateByAdmin
+            // else titleMessge = USER_PROFILE.phoneUpdateByAdmin
+            // webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: titleMessge, from: admin._id })
         }
         return result
     }
@@ -1503,7 +1505,7 @@ export async function changeEmailByAdmin(admin: any, objBody: any, id: string) {
     let { mobileNo, fullName } = await getFullNameAndMobile(user);
     let { otp, token } = await generateOtp(4, { email: objBody.email });
     let { mobileOtp, smsToken } = await generatemobileOtp(4, { email: objBody.email });;
-    sendNotification({ id: admin._id, fullName, email: user.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
+    sendNotification({ id: admin._id, fullName, email: objBody.email, mobileNo, otp, mobileOtp, templateName: "changeEmailOTP", mobileTemplateName: "sendOtp" });
     await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
     return { message: RESPONSE.SUCCESS_OTP }
 }
@@ -1523,7 +1525,7 @@ export async function changeMobileByAdmin(admin: any, objBody: any, id: string) 
     }
     let { otp, token } = await generateOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
     let { mobileOtp, smsToken } = await generatemobileOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
-    sendNotification({ id: admin._id, fullName, email: user.email, mobileNo, otp, mobileOtp, templateName: "changeMobileOTP", mobileTemplateName: "sendOtp" });
+    sendNotification({ id: admin._id, fullName, email: user.email, mobileNo:objBody.countryCode + objBody.phone, otp, mobileOtp, templateName: "changeMobileOTP", mobileTemplateName: "sendOtp" });
     await userUpdate({ id, otp_token: token, smsOtpToken: smsToken });
     return { message: "Otp is sent successfully" }
 }

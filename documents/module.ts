@@ -2357,7 +2357,9 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
         let notificationMessage = (DOC_NOTIFICATIONS as any)[type](docDetails.name)
         if (type == "invitePeopleDoc") notificationMessage = DOC_NOTIFICATIONS.invitePeopleDoc(sharedUsers, role, docDetails.name)
         if (type == "documentUpdate") notificationMessage = DOC_NOTIFICATIONS.documentUpdate(text, docDetails.name)
-        webNotification({ notificationType: `DOCUMENTS`, userId: user._id, docId: docDetails._id, title: notificationMessage, from: actionUser })
+        if(type != `invitePeopleDoc`){
+          webNotification({ notificationType: `DOCUMENTS`, userId: user._id, docId: docDetails._id, title: notificationMessage, from: actionUser })
+        }
         sendNotification({
           id: user._id,
           fullName, text,
@@ -2483,7 +2485,7 @@ export async function requestAccept(requestId: string, userObj: any) {
       throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
     }
     await create({ activityType: "REQUEST_APPROVED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
-    webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestApproved(requestDetails.docId.name), from: userObj._id })
+    // webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestApproved(requestDetails.docId.name), from: userObj._id })
     if (addedCapability && addedCapability.user.length) {
       await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
       return { message: "Shared successfully." }
@@ -2501,7 +2503,7 @@ export async function requestDenied(requestId: string, userObj: any) {
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let success = await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
     await create({ activityType: "REQUEST_DENIED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
-    webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestRejected(requestDetails.docId.name), from: userObj._id })
+    // webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestRejected(requestDetails.docId.name), from: userObj._id })
     return success
   } catch (err) {
     throw err;
@@ -2516,7 +2518,7 @@ export async function requestRaise(docId: string, userId: string) {
     let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
     if (existRequest) throw new Error(DOCUMENT_ROUTER.ALREADY_REQUEST_EXIST)
     await create({ activityType: "REQUEST_DOCUMENT", activityBy: userId, documentId: docId })
-    webNotification({ notificationType: `DOCUMENTS`, userId: docDetails.owner, docId: docId, title: DOC_NOTIFICATIONS.documentRequest(docDetails.name), from: userId })
+    // webNotification({ notificationType: `DOCUMENTS`, userId: docDetails.owner, docId: docId, title: DOC_NOTIFICATIONS.documentRequest(docDetails.name), from: userId })
     return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
     throw err;
