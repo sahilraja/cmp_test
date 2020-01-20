@@ -1125,15 +1125,18 @@ export async function invitePeople(docId: string, users: any, role: string, user
     let userNames: any = []
     let groupIds: any = []
     let groupNames: any = []
-    let request = await docRequestModel.findOne({ docId, requestedBy: userId, isDelete: false })
-    if (request && role == "collaborator") {
-      await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
-    }
+    
     await Promise.all(
       users.map(async (user: any) => {
         if (doc.ownerId != user._id) {
           addUsers.push({ id: user._id, type: user.type, role: role })
-          if (user.type == 'user') userIds.push(user._id);
+          if (user.type == 'user') {
+            userIds.push(user._id);
+            let request = await docRequestModel.findOne({ docId, requestedBy: user._id, isDelete: false })
+            if (request && role == "collaborator") {
+              await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
+            }
+          }
           else if (user.type == 'group') {
             groupIds.push(user._id);
             let groupName: any = await groupFindOne('_id', user._id);
@@ -1141,6 +1144,12 @@ export async function invitePeople(docId: string, users: any, role: string, user
             let groupUserIds = await groupUserList(user._id)
             groupUserIds = groupUserIds.filter(userId => userId != doc.ownerId)
             userIds.push(...groupUserIds)
+            let requestList:any = await docRequestModel.find({ docId, requestedBy: { $in: groupUserIds} , isDelete: false })
+            if(requestList && requestList.length && role == "collaborator"){
+               let requestDocs = await Promise.all(requestList.map(async(request:any)=>{
+                await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
+               }))
+            }
           }
           return await invite(user, docId, role, doc, userId)
         }
