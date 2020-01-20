@@ -1265,6 +1265,7 @@ export async function validatePassword(password: string) {
         const PASSWORD_MAX_LENGTH = Number(constantsInfo.passwordMaxLength);
         const PASSWORD_MIN_LENGTH = Number(constantsInfo.passwordMinLength);
         let lower = 0, upper = 0, num = 0, special = 0;
+        const specialCharacters = `~\`!@#$%^&*()_-+={[}]|\:;"'<,>.?/`
         for (var char of password) {
             if (char >= "A" && char <= "Z") {
                 upper += 1
@@ -1272,7 +1273,7 @@ export async function validatePassword(password: string) {
             else if (char >= "0" && char <= "9") {
                 num += 1
             }
-            else if (char == "_" || char == "." || char == "@") {
+            else if (specialCharacters.includes(char)) {
                 special += 1
             }
         }
