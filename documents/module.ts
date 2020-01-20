@@ -1212,6 +1212,16 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     if (request && role == "collaborator") {
       await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
     }
+    if(type ==  'group'){
+      let groupData: any = await groupFindOne('_id', userId);
+      let groupUserIds = await groupUserList(userId);
+      let requestList:any = await docRequestModel.find({ docId, requestedBy: { $in: groupUserIds} , isDelete: false })
+      if(requestList && requestList.length){
+         let requestDocs = await Promise.all(requestList.map(async(request:any)=>{
+          await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
+         }))
+      }
+    }
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
     await create({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
     // mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
