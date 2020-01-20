@@ -941,7 +941,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
         }
         //  find User
         let emailExist = await userFindOne("email", objBody.email);
-        if (emailExist) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
+        if (emailExist) throw new Error(USER_ROUTER.EMAIL_EXIST(objBody.Email))
         let validUser = await userLogin({ email: user.email, password: objBody.password })
 
         let { otp, token } = await generateOtp(4, { "newEmail": objBody.email });
@@ -1495,6 +1495,8 @@ export async function changeEmailByAdmin(admin: any, objBody: any, id: string) {
         throw Error(USER_ROUTER.MANDATORY);
     }
     if (objBody.email) {
+        let emailExist = await userFindOne("email", objBody.email);
+        if (emailExist) throw new Error(USER_ROUTER.EMAIL_EXIST(objBody.Email))
         if (!validateEmail(objBody.email)) {
             throw Error(USER_ROUTER.EMAIL_WRONG);
         }
