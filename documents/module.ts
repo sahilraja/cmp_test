@@ -1125,6 +1125,10 @@ export async function invitePeople(docId: string, users: any, role: string, user
     let userNames: any = []
     let groupIds: any = []
     let groupNames: any = []
+    let request = await docRequestModel.findOne({ docId, requestedBy: userId, isDelete: false })
+    if (request && role == "collaborator") {
+      await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
+    }
     await Promise.all(
       users.map(async (user: any) => {
         if (doc.ownerId != user._id) {
@@ -1184,6 +1188,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
         })
       }
     }
+
     await create({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     mailAllCmpUsers("invitePeopleDoc", doc, false, userId, addUsers)
     return { message: "Shared successfully." };
@@ -1212,7 +1217,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
     if (request && role == "collaborator") {
       await docRequestModel.findByIdAndUpdate(request.id, { $set: { isDelete: true } }, {})
     }
-    if(type ==  'group'){
+    if(type == 'group' && role == "collaborator"){
       let groupData: any = await groupFindOne('_id', userId);
       let groupUserIds = await groupUserList(userId);
       let requestList:any = await docRequestModel.find({ docId, requestedBy: { $in: groupUserIds} , isDelete: false })
