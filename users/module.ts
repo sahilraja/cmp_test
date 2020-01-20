@@ -63,7 +63,7 @@ export async function bulkInvite(filePath: string, user: any) {
         const formattedDataWithRoles = excelFormattedData.map(data => {
             const matchedRole = roleData.roles.find((role: any) => role.roleName == data.Role)
             if (existingEmails.includes(data.Email.toLowerCase())) {
-                throw new APIError(USER_ROUTER.EMAIL_EXIST(data.email))
+                throw new APIError(USER_ROUTER.EMAIL_EXIST(data.Email))
             }
             // if (!categories.includes(data.Category)) {
             //     throw new APIError(USER_ROUTER.CATEGORY_NOT_MATCH(data.Category))
@@ -941,7 +941,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
         }
         //  find User
         let emailExist = await userFindOne("email", objBody.email);
-        if (emailExist) throw new Error(USER_ROUTER.EMAIL_EXIST(objBody.Email))
+        if (emailExist) throw new Error(USER_ROUTER.EMAIL_EXIST(objBody.email))
         let validUser = await userLogin({ email: user.email, password: objBody.password })
 
         let { otp, token } = await generateOtp(4, { "newEmail": objBody.email });
