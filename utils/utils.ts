@@ -56,6 +56,7 @@ export async function authenticate(req: any, res: any, next: any) {
         if (tokenData && new Date(tokenData.lastUsedAt).setMinutes(new Date(tokenData.lastUsedAt).getMinutes() + Number(systemTimeOut)) < new Date().getTime()) {
             console.error(`user ${user._id} session inactive from last ${systemTimeOut} `)
             next(new APIError(`Your session has timed out. Please login again.`, 401))
+            return
         }
         if(!tokenData) next(new APIError(`You have been logged out. Please login again.`, 401))
         tokenData.set('lastUsedAt', new Date())
