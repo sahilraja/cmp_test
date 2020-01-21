@@ -438,7 +438,7 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
   }
 }
 
-async function mapPhases(projectObj: any) {
+export async function mapPhases(projectObj: any) {
   return { ...projectObj.toJSON(), phases: await listPhasesOfProject(projectObj._id) }
 }
 

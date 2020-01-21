@@ -34,7 +34,7 @@ import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, 
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
-import { importExcelAndFormatData, add_tag } from "../project/module";
+import { importExcelAndFormatData, add_tag, mapPhases } from "../project/module";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import request = require("request");
@@ -518,7 +518,8 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
       getTasksForDocument(docList.parentId || docList._id, token),
     ])
     let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
-    let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1 }).exec()
+    let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1, city: 1, reference: 1, phases:1 }).exec()
+    projectDetails = await Promise.all(projectDetails.map(p => mapPhases(p)))
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,
@@ -3148,8 +3149,11 @@ export async function getDocDetailsForSuccessResp(docId: any, userId: string, to
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let publishDocs: any = await documents.findById(docId);
-    const allCmp = await checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents");
-    if (!allCmp) {
+    const [allCmp, allFinancial] = await Promise.all([
+      checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-cmp-documents"),
+      checkRoleScope(((await userRoleAndScope(userId) as any).data || [""])[0], "view-all-finanacial-documents")
+    ]);
+    if (!allCmp || !allFinancial) {
       if (publishDocs.isDeleted) throw new Error(DOCUMENT_ROUTER.DOCUMENT_DELETED(publishDocs.name))
       if (publishDocs.status != 2 && publishDocs.parentId == null) {
         let userCapability = await documnetCapabilities(publishDocs.parentId || publishDocs._id, userId)
@@ -3199,12 +3203,16 @@ export async function getDocDetailsForSuccessResp(docId: any, userId: string, to
       getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       userRoleAndScope(docList.ownerId),
       userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 }),
-      getTasksForDocument(docList.parentId || docList._id, token)
+      getTasksForDocument(docList.parentId || docList._id, token),
     ])
-    // await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
+    let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
+    let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1, city: 1, reference: 1, phases:1 }).exec()
+    projectDetails = await Promise.all(projectDetails.map(p => mapPhases(p)))
+    await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,
-      role: (ownerRole.data || [""])[0], owner: { ...ownerObj, role: (ownerRole.data || [""])[0] }, taskDetails: taskDetailsObj,
+      owner: { ...ownerObj, role: await formateRoles((ownerRole.data || [""])[0]) },
+      taskDetails: taskDetailsObj, projectDetails,
       sourceId: docList.sourceId ? await documents.findById(docList.sourceId).exec() : ''
     }
   } catch (err) {
