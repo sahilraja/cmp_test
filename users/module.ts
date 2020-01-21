@@ -314,7 +314,7 @@ export async function user_list(query: any, userId: string, searchKey: string, p
         let findQuery = {} //{ _id: { $ne: Types.ObjectId(userId) } }
         let docs: any
         if (searchKey) {
-            docs = await userListForHome(searchKey)
+            docs = await userListForHome(searchKey, query.sortBy || `firstName`, query.ascending || true)
 
             let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
             let rolesBody: any = await role_list();
@@ -322,12 +322,12 @@ export async function user_list(query: any, userId: string, searchKey: string, p
             if (pagination) return manualPaginationForUserList(+page, limit, data)
             return data
         } else {
-            docs = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 });
+            docs = await userList(findQuery, { firstName: 1, lastName: 1, middleName: 1, email: 1, emailVerified: 1, is_active: 1 }, query.sortBy || `firstName`, query.ascending || true);
             let data: any = await Promise.all(docs.map((doc: any) => userWithRoleAndType(doc)));
             let rolesBody: any = await role_list();
             data = await roleFormanting(data)
-            let nonVerifiedUsers = userSort(data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active), true)
-            let existUsers = userSort(data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active))
+            let nonVerifiedUsers = data.filter(({ emailVerified, is_active }: any) => !emailVerified || !is_active)
+            let existUsers = data.filter(({ emailVerified, is_active }: any) => emailVerified && is_active)
             if (pagination) return manualPaginationForUserList(+page, limit, [...nonVerifiedUsers, ...existUsers])
             return [...nonVerifiedUsers, ...existUsers]
         }
@@ -1145,11 +1145,15 @@ export async function sendNotification(objBody: any) {
                 //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
                 if (mobileOtp) {
                     let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
-                    smsRequest(mobileNo, smsContent);
+                    if(mobileNo != `919533715452`){
+                        smsRequest(mobileNo, smsContent);
+                    }
                 }
                 else {
                     let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, notificationInfo);
-                    smsRequest(mobileNo, smsContent);
+                    if(mobileNo != `919533715452`){
+                        smsRequest(mobileNo, smsContent);
+                    }
                 }
             }
         }
