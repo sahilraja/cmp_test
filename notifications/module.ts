@@ -118,7 +118,7 @@ export async function getNotifications() {
 
 export async function getNotificationsNew() {
     const notifications: any[] = await notificationSchema.find({}).exec()
-    const notificationScenariosList:any = notifications[0].templates.reduce((p:string[], template:any) => [...p, ({template:template.displayName || template.templateName,catogery:template.catogery})] ,[])
+    const notificationScenariosList:any = notifications[0].templates.reduce((p:string[], template:any) => [...p, ({template:template.displayName || template.templateName,category:template.category})] ,[])
     let notificationScenarios = notificationScenariosList.reduce((response:any, template:any) => {
         response[template.category] = response[template.category] || [];
         response[template.category].push(template);
