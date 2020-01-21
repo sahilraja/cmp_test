@@ -311,7 +311,7 @@ export async function addRole(userId: string, bodyObj: any) {
         if (!isEligible) {
             throw new APIError("Unauthorized for this Action", 403);
         }
-        if (!bodyObj.role || !bodyObj.category || !bodyObj.roleName) throw new Error("All mandatory fields are reuired")
+        if (!bodyObj.category || !bodyObj.roleName) throw new Error("All mandatory fields are reuired")
         let role = bodyObj.roleName.replace(/[^a-zA-Z0-9]/g, "")      
         role = role.toLowerCase().trim()
         let response = await roleSchema.create({
