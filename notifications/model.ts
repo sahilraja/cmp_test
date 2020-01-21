@@ -6,7 +6,8 @@ const schema = new Schema({
         templateName: {type: String},
         displayName: {type: String},
         email:{type:Boolean},
-        mobile:{type: Boolean}
+        mobile:{type: Boolean},
+        category: { type: String}
     }]
     },{ timestamps: true }
 );

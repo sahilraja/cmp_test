@@ -126,6 +126,7 @@ export async function notifications() {
             displayName: template.displayName || template.templateName,
             email: true,
             mobile: true,
+            category: template.category || null
           })
         // }
       });
