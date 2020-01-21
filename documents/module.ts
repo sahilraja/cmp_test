@@ -34,7 +34,7 @@ import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, 
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
 import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
-import { importExcelAndFormatData, add_tag, mapPhases } from "../project/module";
+import { importExcelAndFormatData, add_tag, mapPhases, getCurrentPhase } from "../project/module";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import request = require("request");
@@ -519,7 +519,7 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
     ])
     let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
     let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1, city: 1, reference: 1, phases:1 }).exec()
-    projectDetails = await Promise.all(projectDetails.map(p => mapPhases(p)))
+    projectDetails = (await Promise.all(projectDetails.map(project => mapPhases(project)))).map(project =>({...project, phase: getCurrentPhase(project) || {}}))
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,
@@ -3207,7 +3207,7 @@ export async function getDocDetailsForSuccessResp(docId: any, userId: string, to
     ])
     let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
     let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1, city: 1, reference: 1, phases:1 }).exec()
-    projectDetails = await Promise.all(projectDetails.map(p => mapPhases(p)))
+    projectDetails = (await Promise.all(projectDetails.map(project => mapPhases(project)))).map(project =>({...project, phase:getCurrentPhase(project) || {}}))
     await create({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,

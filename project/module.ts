@@ -27,6 +27,7 @@ import { some } from "bluebird";
 import { PillarSchema } from "../pillars/model";
 import { StepsSchema } from "../steps/model";
 import { UNAUTHORIZED } from "http-status-codes";
+import { createCompliance } from "./compliances/module";
 
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
@@ -442,9 +443,8 @@ export async function mapPhases(projectObj: any) {
   return { ...projectObj.toJSON(), phases: await listPhasesOfProject(projectObj._id) }
 }
 
-function getCurrentPhase(projectObj: any) {
+export function getCurrentPhase(projectObj: any) {
   return (projectObj.phases && projectObj.phases.length ? projectObj.phases.find((phaseObj: any) => {
-    console.log(phaseObj)
     return (new Date(phaseObj.startDate) <= new Date() && new Date(phaseObj.endDate) >= new Date())
   }) : {})
 }
@@ -1014,10 +1014,11 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   if (!excelFormattedData.length) {
     throw new APIError(PROJECT_ROUTER.EMPTY_DOC)
   }
-  const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames))
+  const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames, isCompliance))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj, isCompliance)))
-  for (let taskData of tasksDataWithIds) {
-    await createTask(taskData, projectId, userToken, userObj)
+  const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
+  if(isCompliance){
+    await Promise.all(createdData.map((data, i) => createCompliance({taskId: data.id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
   }
   // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
   return { message: 'Tasks uploaded successfully' }
@@ -1092,7 +1093,7 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any,
   return taskObj
 }
 
-function validateObject(data: any, roleNames: any, projectMembersData?: any) {
+function validateObject(data: any, roleNames: any, isCompliance: boolean) {
   let errorRole
   if (!data.Name || !data.Name.trim().length) {
     throw new APIError(TASK_ERROR.TASK_NAME_REQUIRED)
@@ -1136,6 +1137,14 @@ function validateObject(data: any, roleNames: any, projectMembersData?: any) {
   // }
   if (data['End Date'] && new Date(data['Start Date']).setHours(0, 0, 0, 0) > new Date(data['End Date']).setHours(23, 59, 59, 0)) {
     throw new Error(PROJECT_ROUTER.START_NOT_LESS_THAN_DUE)
+  }
+  if(isCompliance){
+    if(!data['Compliance Type']){
+      throw new APIError(`Compliance type required for ${data.name}`)
+    }
+    if(![`SPV`, `PROJECT`].includes(data['Compliance Type'])){
+      throw new APIError(`Invalid compliance type found for ${data.name}`)
+    }
   }
 
   return {
