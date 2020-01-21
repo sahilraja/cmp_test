@@ -131,10 +131,10 @@ export async function getNamePatternMatch(queryString: string, selectFields: obj
 }
 
 // user List
-export async function userList(searchQuery: any, selectFields?: any) {
+export async function userList(searchQuery: any, selectFields?: any, sortBy?: string, ascending?: boolean) {
     try {
         let Options = {
-            uri: `${USERS_URL}/user/list`,
+            uri: sortBy ? `${USERS_URL}/user/list?sortBy=${sortBy}&ascending=${ascending}` : `${USERS_URL}/user/list`,
             method: "POST",
             body: {
                 searchQuery: searchQuery,
@@ -148,10 +148,10 @@ export async function userList(searchQuery: any, selectFields?: any) {
     };
 };
 
-export async function userListForHome(searchQuery: any) {
+export async function userListForHome(searchQuery: any, sortBy: string, ascending: boolean) {
     try {
         let Options = {
-            uri: `${USERS_URL}/user/homepage-search?search=${searchQuery}`,
+            uri: sortBy ? `${USERS_URL}/user/homepage-search?search=${searchQuery}&sortBy=${sortBy}&ascending=${ascending}` : `${USERS_URL}/user/homepage-search?search=${searchQuery}`,
             method: "GET",
             json: true
         }
