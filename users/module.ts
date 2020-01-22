@@ -1548,13 +1548,13 @@ export async function updateTaskEndorser(userId: string, taskId: string, userTok
 
 export async function registerNewEmail(id:string,objBody: any,userId: string) {
     try{
-    if (!objBody.oldEmail || !objBody.newEmail) {
+    if (!objBody.newEmail) {
         throw Error(USER_ROUTER.MANDATORY);
     }
     if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
-        let emailExist = await userFindOne("email", objBody.oldEmail);
-        if (!emailExist) throw new Error(USER_ROUTER.EMAIL_NOT_EXIST(objBody.oldEmail))
-        if (!validateEmail(objBody.oldEmail) || !validateEmail(objBody.newEmail)) {
+        let emailExist = await userFindOne("id", id);
+        if (!emailExist) throw new Error(USER_ROUTER.USER_NOT_EXIST)
+        if ( !validateEmail(objBody.newEmail)) {
             throw Error(USER_ROUTER.EMAIL_WRONG);
         }
         let userUpdate = await userEdit(id, { email: objBody.newEmail,emailVerified: false, is_active: false });
