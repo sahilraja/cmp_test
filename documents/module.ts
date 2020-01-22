@@ -1304,7 +1304,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
         let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-          await await esClient.update({
+          await  esClient.update({
             index: `${ELASTIC_SEARCH_INDEX}_documents`,
             id: user.docId,
             body: {
