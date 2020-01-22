@@ -49,6 +49,7 @@ export const USER_ROUTER = {
     DISABLED_BULK_UPLOAD: `[Error: 0020] Bulk upload disabled`,
     MINIMUM_ONE_ROLE: "[Error: 0021] Minimum one role is required",
     INVALID_ACTION: "[Error: 0022] Invalid Action",
+    EMAIL_NOT_EXIST: (email: string) => `[Error: 0023] ${email} doesnot exist`,
     PASSWORD_VALIDATION_UPPERCASE: (SPECIAL_CHAR: any, UPPER_CASE_COUNT: any) => `${SPECIAL_CHAR} ${UPPER_CASE_COUNT} Capital letters`,
     PASSWORD_VALIDATION_NUMBER: (PASSOWRD_NUMBERS_COUNT: any, NUMBERS_COUNT: any) => `${PASSOWRD_NUMBERS_COUNT} ${NUMBERS_COUNT} Numbers`,
     PASSWORD_VALIDATION_SPECIALCHAR: (PASSWORD_SPECIAL_COUNT: any, SPECIAL_COUNT: any) => `${PASSWORD_SPECIAL_COUNT} ${SPECIAL_COUNT} Special Characters`

@@ -1545,3 +1545,22 @@ export async function updateTaskEndorser(userId: string, taskId: string, userTok
         headers: { 'Authorization': `Bearer ${userToken}` }
     })
 }
+
+export async function registerNewEmail(id:string,objBody: any,userId: string) {
+    try{
+    if (!objBody.oldEmail || !objBody.newEmail) {
+        throw Error(USER_ROUTER.MANDATORY);
+    }
+    if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
+        let emailExist = await userFindOne("email", objBody.oldEmail);
+        if (!emailExist) throw new Error(USER_ROUTER.EMAIL_NOT_EXIST(objBody.oldEmail))
+        if (!validateEmail(objBody.oldEmail) || !validateEmail(objBody.newEmail)) {
+            throw Error(USER_ROUTER.EMAIL_WRONG);
+        }
+        let userUpdate = await userEdit(id, { email: objBody.newEmail,emailVerified: false, is_active: false });
+        let removeToken = await RefreshTokenSchema.remove({ userId: id }).exec() 
+        return { success: true,response: userUpdate, message: "New Email updated successfully"}
+    }catch (err) {
+        throw err
+    }
+}
