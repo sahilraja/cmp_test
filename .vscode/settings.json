@@ -6,6 +6,7 @@
         "**/bower_components": true,
         "**/*.zip": true
     },
+    "editor.minimap.enabled": false,
     "files.exclude": {
         "**/*.js": {
             "when": "$(basename).ts"
