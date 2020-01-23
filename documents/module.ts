@@ -2650,13 +2650,23 @@ function getCapabilityPriority(capability: string) {
 }
 
 
-export async function getAllPublicDocuments(currentPage = 1, limit = 20, host: string) {
+export async function getAllPublicDocuments(currentPage = 1, limit = 20, host: string, tags: any, search: string) {
   // const isEligible = await checkRoleScope(userRole, 'view-all-public-documents')
   // if(!isEligible){
   //   throw new APIError(DOCUMENT_ROUTER.VIEW_PUBLIC_DOCS_DENIED)
   // }
-  let { docs, page, pages } = await documents.paginate({ isPublic: true }, { page: currentPage, limit })
+  let query: any = {isPublic: true}
+  if(search){
+    query = {...query, name:new RegExp(search, 'i')}
+  }
+  let { docs, page, pages } = await documents.paginate(query, { page: currentPage, limit })
   docs = await Promise.all(docs.map(doc => docData(doc, host)))
+  if(tags){
+    tags = tags.split(`,`).map((tag: any) => new RegExp(tag, 'i'))
+    if(tags.length){
+      docs = docs.filter((doc: any) => doc.tags.some((tag: any) => tags.some((_tag: any) => _tag.test(tag.tag))))
+    }
+  }
   return {
     docs,
     page,

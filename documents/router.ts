@@ -861,7 +861,7 @@ router.get("/allcmp/list", authenticate, async (req, res, next: NextFunction) =>
 
 router.get(`/public/all`, async (req, res, next) => {
   try {
-    res.status(OK).send(await getAllPublicDocuments(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`))
+    res.status(OK).send(await getAllPublicDocuments(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`, req.query.tags, req.query.search))
   } catch (error) {
     next(new APIError(error.message))
   }

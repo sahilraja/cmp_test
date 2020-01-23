@@ -60,7 +60,13 @@ export async function bulkInvite(filePath: string, user: any) {
         ])
         const existingEmails = usersList.map((user: any) => (user.email || '').toLowerCase()).filter((v: any) => !!v)
         const categories = Array.from(new Set(roleData.roles.map((role: any) => role.category)))
-        const formattedDataWithRoles = excelFormattedData.map(data => {
+        const formattedDataWithRoles = excelFormattedData.map((data, i) => {
+            if(!data.Email){
+                throw new APIError(`Email is required at row ${i + 1}`)
+            }
+            if(!data.Role){
+                throw new APIError(`Role is required at row ${i + 1}`)
+            }
             const matchedRole = roleData.roles.find((role: any) => role.roleName == data.Role)
             if (existingEmails.includes(data.Email.toLowerCase())) {
                 throw new APIError(USER_ROUTER.EMAIL_EXIST(data.Email))
@@ -1113,6 +1119,8 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
             })
         ])
         // changeGroupOwnerShip(userId, replaceTo)      
+        // Mark user as inactive
+        let userInfo = await userEdit(userId, {is_active: false});        
         return { message: RESPONSE.REPLACE_USER }
     } catch (err) {
         throw err
