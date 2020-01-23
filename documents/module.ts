@@ -716,6 +716,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
+      await approveTagsAuto(docId,addtags,removedtags);
       if (addtags.length && removedtags.length) {
         let tagObjs = await Tags.find({ "_id": { $in: [...addtags, ...removedtags] } })
         let addTagNames = tagObjs.filter(({ _id }) => addtags.includes(_id)).map(({ tag }: any) => tag).join(",")
@@ -3413,3 +3414,41 @@ export async function updateGroupInElasticSearch(groupId: string) {
   }
   ))
 }
+
+export async function approveTagsAuto(docId: string, addTags: any, removedtags: any ) {
+  try {
+    let docdetails: any = await documents.findById(docId)
+    if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
+    if (addTags && addTags.length) {
+      let filteredDoc: any = await Promise.all(
+        docdetails.suggestTagsToAdd.map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => !addTags.includes(tag))
+            }
+          })
+      )
+      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDoc})
+        return {
+          sucess: true,
+          message: "Tag Adding approved successfully"
+        }
+      }
+    
+    if (removedtags && removedtags.length) {
+      let suggestedToRemove: any = await Promise.all(
+        docdetails.suggestTagsToRemove.map(
+          (_respdata: any) => {
+            return {
+              userId: _respdata.userId,
+              tags: _respdata.tags.filter((tag: any) => !removedtags.includes(tag))
+            }
+          })
+      )
+      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: suggestedToRemove})
+      }
+  } catch (err) {
+    throw err
+  };
+};
