@@ -374,10 +374,12 @@ function getFormantedTaskLogs(activityLog: any) {
             message = activityLog.displayMessage ? replaceAll(activityLog.displayMessage, `[from]`, `${UserFullName(activityLog.activityBy)}`)  : `${UserFullName(activityLog.activityBy)} has updated the task status from ${getStatus(activityLog.oldStatus, "")} to ${getStatus(activityLog.updatedStatus, "")}`
             break;
         case 'TASK_START_DATE_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the start date from %date:${activityLog.previousStartDate}% to %date:${activityLog.updatedStartDate}%`;
+            // message = `${UserFullName(activityLog.activityBy)} has updated the start date from %date:${activityLog.previousStartDate}% to %date:${activityLog.updatedStartDate}%`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the task start date`;
             break;
         case 'TASK_DUE_DATE_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} has updated the due date from %date:${activityLog.previousDueDate}% to %date:${activityLog.updatedDueDate}%`;
+            // message = `${UserFullName(activityLog.activityBy)} has updated the due date from %date:${activityLog.previousDueDate}% to %date:${activityLog.updatedDueDate}%`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the task due date`;
             break;
         case 'DOCUMENTS_ADDED':
             message = `${UserFullName(activityLog.activityBy)} added documents to the task`;
