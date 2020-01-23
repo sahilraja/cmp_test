@@ -32,7 +32,7 @@ export const USER_ROUTER = {
     CREATE_ROLE_NOTIFICATION_FAIL: "[Error: 0010] Failed to create notification",
     ADD_NOTIFICATION_FAIL: "[Error: 0011] Failed to add template to notification",
     BOTH_INVALID: "Invalid OTP: Please enter valid OTP",
-    TOKEN_EXPIRED: "Verification link has expired. Please contact admin to send the link again",
+    TOKEN_EXPIRED: "Registration link has expired. Please contact admin to send the link again",
     TOKEN_EXPIRED_OTP: "[Error: 0012] OTP verification link is expired",
     USER_EXIST: "User already registered",
     CONSTANT_INVALID: "[Error: 0013] Constant type is invalid, please try again",
