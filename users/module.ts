@@ -1559,6 +1559,18 @@ export async function registerNewEmail(id:string,objBody: any,userId: string) {
         }
         let userUpdate = await userEdit(id, { email: objBody.newEmail,emailVerified: false, is_active: false });
         let removeToken = await RefreshTokenSchema.remove({ userId: id }).exec() 
+        let { fullName } = getFullNameAndMobile(userUpdate);
+        let user_roles: any = await userRoles(id, false)
+
+        //  Create 24hr Token
+        let token = await jwt_for_url({
+            id: userUpdate._id,
+            email: userUpdate.email,
+            role: user_roles
+        });
+        let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
+        sendNotification({ id: userId, fullName, email: objBody.newEmail, linkExpire: Number(configLink.value), role: user_roles, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        await userLog({ activityType: "INVITE-USER", activityBy: userId, profileId: id })
         return { success: true,response: userUpdate, message: "New Email updated successfully"}
     }catch (err) {
         throw err
