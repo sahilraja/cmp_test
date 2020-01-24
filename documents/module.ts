@@ -3386,7 +3386,7 @@ export async function getProjectNamesForES(docIds: any[], token: string) {
       id: docId,
       body: {
         "script": {
-          "source": "ctx._source.projectName.addAll(params.projectName);ctx._source.city.addAll(params.city);ctx._source.reference.addAll(params.reference);",
+          "source": "ctx._source.projectName=params.projectName;ctx._source.city=params.city;ctx._source.reference=params.reference;",
           "lang": "painless",
           "params": {
             "projectName": projectName,
