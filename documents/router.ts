@@ -68,7 +68,7 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc, updateUserInDOcs,
-  createIndex, removeIndex, getDocsAndInsertInCasbin, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList
+  createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -155,7 +155,7 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 router.get(`/insert-in-elastic-search`, async (req, res, next) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(OK).send(await getDocsAndInsertInCasbin(host))
+    res.status(OK).send(await getDocsAndInsertInElasticSearch(host))
   } catch (error) {
     next(new APIError(error.message))
   }

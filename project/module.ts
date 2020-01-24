@@ -1645,7 +1645,7 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
  });
   let docIds = fundsReleased && fundsReleased.length? fundsReleased.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
-  let docsToUpdateInES:any = [...existingDocs, ...payload.releasedDocuments]
+  let docsToUpdateInES:any = [...existingDocs, ...payload.documents]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   const { documents: releasedDocuments, amount: releasedCost, _id } = payload
   let updates: any = {}
@@ -1690,7 +1690,7 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
  });
   let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
-  let docsToUpdateInES:any = [...existingDocs, ...payload.utilizedDocuments]
+  let docsToUpdateInES:any = [...existingDocs, ...payload.documents]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   const { documents, amount, _id } = payload
   let updates: any = {}

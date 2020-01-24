@@ -3097,9 +3097,9 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
   }
 }
 
-export async function getDocsAndInsertInCasbin(host: string) {
+export async function getDocsAndInsertInElasticSearch(host: string,token:string) {
   const docs = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
-  const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host)))
+  const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host,token)))
 
   let insert = await Promise.all(finalData.map(async (doc: any) => {
     return esClient.index({
@@ -3113,7 +3113,7 @@ export async function getDocsAndInsertInCasbin(host: string) {
   // connect to elastic search, remove old doc data & add finalData
 }
 
-async function getShareInfoForEachDocument(doc: any, host: string) {
+async function getShareInfoForEachDocument(doc: any, host: string,token:string) {
   const [collaboratorIds, viewerIds, ownerIds] = await Promise.all([
     GetUserIdsForDocWithRole(doc.id, 'collaborator'),
     GetUserIdsForDocWithRole(doc.id, 'viewer'),
@@ -3136,6 +3136,7 @@ async function getShareInfoForEachDocument(doc: any, host: string) {
   ])
   const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
   let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
+  let projectDetails = await getProjectDetailsForES(doc.id,token)
   return {
     docId: doc.id,
     accessedBy: userIds,
@@ -3151,7 +3152,11 @@ async function getShareInfoForEachDocument(doc: any, host: string) {
     id: doc.id,
     groupId: groupIds,
     groupName: groupsInfo.map((group: any) => group.name),
-    createdBy: doc.ownerId
+    createdBy: doc.ownerId,
+    projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
+    city: projectDetails&& projectDetails.city?projectDetails.city:[],
+    reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
+    phases: []
   }
 }
 
@@ -3455,3 +3460,20 @@ export async function approveTagsAuto(docId: string, addTags: any, removedtags: 
     throw err
   };
 };
+
+export async function getProjectDetailsForES(docId: string, token: string) {
+  let publishDocs: any = await documents.findById(docId);
+  const docList = publishDocs.toJSON();
+  let taskDetailsObj: any = await getTasksForDocument(docList.parentId || docList._id, token)
+  let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
+  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }).exec()
+  let projectName: any = [];
+  let city: any = [];
+  let reference: any = [];
+  let projects = projectDetails.map((project: any) => {
+    projectName.push(project.name);
+    city.push(project.city?project.city:null);
+    reference.push(project.reference?project.reference:null);
+  })
+  return{ projectName,city,reference }
+}
