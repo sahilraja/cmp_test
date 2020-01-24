@@ -502,8 +502,12 @@ export async function createTask(payload: any, projectId: string, userToken: str
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
+  
   const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask._id, projectId, activityBy: userObj._id })
+  if(payload.documents && payload.documents.length){
+    getProjectNamesForES(payload.documents,userToken)
+  }
   return createdTask
 }
 
@@ -564,6 +568,9 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
     json: true
   }
   const updatedTask = await httpRequest(options)
+  if(payload.documents){
+    
+  }
   // createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
 }
@@ -1628,12 +1635,18 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   }
   let projectInfo:any = await ProjectSchema.findById(projectId).exec();
   const { funds } = projectInfo.toJSON()
-  let fundsReleased:any = funds.released&& funds.released.length?funds.released.filter((fund:any)=>fund._id == _id):[]
-  let docIds = fundsReleased && fundsReleased.length? fundsReleased.map((docs:any)=>{return docs.documents}):[]
+  let fundsReleased:any = funds.map((fund:any)=>{
+    if(fund.released._id == payload._id){
+      return fund.released;
+    }
+  })
+  fundsReleased = fundsReleased.filter(function( element:any ) {
+    return element !== undefined;
+ });
+  let docIds = fundsReleased && fundsReleased.length? fundsReleased.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
-  let docsToUpdateInES:any = [...existingDocs, ...payload.documents]
+  let docsToUpdateInES:any = [...existingDocs, ...payload.releasedDocuments]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
-
   const { documents: releasedDocuments, amount: releasedCost, _id } = payload
   let updates: any = {}
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
@@ -1664,12 +1677,20 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+  
   let projectInfo:any = await ProjectSchema.findById(projectId).exec();
   const { funds } = projectInfo.toJSON()
-  let fundsUtilized:any = funds.utilized&& funds.utilized.length?funds.utilized.filter((fund:any)=>fund._id == _id):[]
-  let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents}):[]
+  let fundsUtilized:any = funds.map((fund:any)=>{
+    if(fund.utilized._id == payload._id){
+      return fund.utilized;
+    }
+  })
+  fundsUtilized = fundsUtilized.filter(function( element:any ) {
+    return element !== undefined;
+ });
+  let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
-  let docsToUpdateInES:any = [...existingDocs, ...payload.documents]
+  let docsToUpdateInES:any = [...existingDocs, ...payload.utilizedDocuments]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   const { documents, amount, _id } = payload
   let updates: any = {}
@@ -1696,13 +1717,22 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+ 
   let projectInfo:any = await ProjectSchema.findById(projectId).exec();
   const { funds } = projectInfo.toJSON()
-  let fundsReleased:any = funds.released&& funds.released.length?funds.released.filter((fund:any)=>fund._id == _id):[]
-  let docIds = fundsReleased && fundsReleased.length? fundsReleased.map((docs:any)=>{return docs.documents}):[]
+  let fundsReleased:any = funds.map((fund:any)=>{
+    if(fund.released._id == payload._id){
+      return fund.released;
+    }
+  })
+  fundsReleased = fundsReleased.filter(function( element:any ) {
+    return element !== undefined;
+ });
+  let docIds = fundsReleased && fundsReleased.length? fundsReleased.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
   let docsToUpdateInES:any = [...existingDocs]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
+
   const { releasedDocuments, releasedCost, _id } = payload
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
   if(currentObj.utilized && !currentObj.utilized.deleted){
@@ -1727,12 +1757,21 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+ 
+   
   let projectInfo:any = await ProjectSchema.findById(projectId).exec();
   const { funds } = projectInfo.toJSON()
-  let fundsUtilized:any = funds.utilized&& funds.utilized.length?funds.utilized.filter((fund:any)=>fund._id == _id):[]
-  let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents}):[]
+  let fundsUtilized:any = funds.map((fund:any)=>{
+    if(fund.utilized._id == payload._id){
+      return fund.utilized;
+    }
+  })
+  fundsUtilized = fundsUtilized.filter(function( element:any ) {
+    return element !== undefined;
+ });
+  let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
-  let docsToUpdateInES:any = [...existingDocs]
+  let docsToUpdateInES:any = [...existingDocs, ...payload.utilizedDocuments]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   const { utilisedDocuments, utilisedCost, _id } = payload
   let updates: any = {}
