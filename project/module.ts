@@ -14,7 +14,7 @@ import { userFindMany, userFindOne, userList } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { updateProjectTasks } from "../utils/utils"
 import { create as createLog } from "../log/module";
-import { documentsList, updateUserInDOcs } from "../documents/module";
+import { documentsList, updateUserInDOcs,getProjectNamesForES } from "../documents/module";
 import { unlinkSync, readFileSync, writeFileSync } from "fs";
 import { extname, join } from "path";
 import * as xlsx from "xlsx";
@@ -1618,7 +1618,7 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
   }
 }
 
-export async function updateReleasedFundNew(projectId: string, payload: any, user: any) {
+export async function updateReleasedFundNew(projectId: string, payload: any, user: any,token:string) {
   const [isEligible, detail]: any = await Promise.all([
     checkRoleScope(user.role, `manage-project-released-fund`),
     ProjectSchema.findById(projectId).exec()
@@ -1626,6 +1626,14 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+  let projectInfo:any = await ProjectSchema.findById(projectId).exec();
+  const { funds } = projectInfo.toJSON()
+  let fundsReleased:any = funds.released&& funds.released.length?funds.released.filter((fund:any)=>fund._id == _id):[]
+  let docIds = fundsReleased && fundsReleased.length? fundsReleased.map((docs:any)=>{return docs.documents}):[]
+  const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
+  let docsToUpdateInES:any = [...existingDocs, ...payload.documents]
+  docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
+
   const { documents: releasedDocuments, amount: releasedCost, _id } = payload
   let updates: any = {}
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
@@ -1644,10 +1652,11 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({ activityType: (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
+  getProjectNamesForES(docsToUpdateInES,token)
   return updatedProject
 }
 
-export async function updateUtilizedFundNew(projectId: string, payload: any, user: any) {
+export async function updateUtilizedFundNew(projectId: string, payload: any, user: any,token:string) {
   const [projectDetail, isEligible]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
@@ -1655,6 +1664,13 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+  let projectInfo:any = await ProjectSchema.findById(projectId).exec();
+  const { funds } = projectInfo.toJSON()
+  let fundsUtilized:any = funds.utilized&& funds.utilized.length?funds.utilized.filter((fund:any)=>fund._id == _id):[]
+  let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents}):[]
+  const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
+  let docsToUpdateInES:any = [...existingDocs, ...payload.documents]
+  docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   const { documents, amount, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
@@ -1668,10 +1684,11 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({ activityType: (!currentObj || currentObj.utilized.deleted) ? ACTIVITY_LOG.ADDED_FUND_UTILIZATION: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: currentObj.utilized.amount, updatedCost: amount, activityBy: user._id })
+  getProjectNamesForES(docsToUpdateInES,token)
   return updatedProject
 }
 
-export async function deleteReleasedFundNew(projectId: string, payload: any, user: any) {
+export async function deleteReleasedFundNew(projectId: string, payload: any, user: any,token:string) {
   const [isEligible, detail]: any = await Promise.all([
     checkRoleScope(user.role, `manage-project-released-fund`),
     ProjectSchema.findById(projectId).exec()
@@ -1679,6 +1696,13 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   if (!isEligible) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+  let projectInfo:any = await ProjectSchema.findById(projectId).exec();
+  const { funds } = projectInfo.toJSON()
+  let fundsReleased:any = funds.released&& funds.released.length?funds.released.filter((fund:any)=>fund._id == _id):[]
+  let docIds = fundsReleased && fundsReleased.length? fundsReleased.map((docs:any)=>{return docs.documents}):[]
+  const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
+  let docsToUpdateInES:any = [...existingDocs]
+  docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   const { releasedDocuments, releasedCost, _id } = payload
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
   if(currentObj.utilized && !currentObj.utilized.deleted){
@@ -1691,10 +1715,11 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   updates['funds.$.released.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id})
+  getProjectNamesForES(docsToUpdateInES,token)
   return updatedProject
 }
 
-export async function deleteUtilizedFundNew(projectId: string, payload: any, user: any) {
+export async function deleteUtilizedFundNew(projectId: string, payload: any, user: any,token:string) {
   const [projectDetail, isEligible]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
@@ -1702,6 +1727,13 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   if (!isEligible || (!projectDetail.members.includes(user._id))) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
   }
+  let projectInfo:any = await ProjectSchema.findById(projectId).exec();
+  const { funds } = projectInfo.toJSON()
+  let fundsUtilized:any = funds.utilized&& funds.utilized.length?funds.utilized.filter((fund:any)=>fund._id == _id):[]
+  let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents}):[]
+  const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
+  let docsToUpdateInES:any = [...existingDocs]
+  docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   const { utilisedDocuments, utilisedCost, _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
@@ -1710,6 +1742,7 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   updates['funds.$.utilized.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id})
+  getProjectNamesForES(docsToUpdateInES,token)
   return updatedProject
 }
 
