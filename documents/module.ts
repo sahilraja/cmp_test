@@ -3358,7 +3358,7 @@ export async function getProjectNamesForES(docIds: any[], token: string) {
   let docsUpdate = await Promise.all(docIds&&docIds.length?docIds.map(async(docId)=>{
   let publishDocs: any = await documents.findById(docId);
   const docList = publishDocs.toJSON();
-  let taskDetailsObj: any = getTasksForDocument(docList.parentId || docList._id, token)
+  let taskDetailsObj: any = await getTasksForDocument(docList.parentId || docList._id, token)
   let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
   let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }).exec()
   let projectName: any = [];
@@ -3366,8 +3366,8 @@ export async function getProjectNamesForES(docIds: any[], token: string) {
   let reference: any = [];
   let projects = projectDetails.map((project: any) => {
     projectName.push(project.name);
-    city.push(project.city);
-    reference.push(project.reference);
+    city.push(project.city?project.city:null);
+    reference.push(project.reference?project.reference:null);
   })
   if (projectName.length) {
     let updatedData = esClient.update({
