@@ -161,8 +161,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       body: docObj,
       id: doc.id
     });
-    console.log(result);
-    
+
     return doc;
   } catch (err) {
     throw err
