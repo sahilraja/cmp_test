@@ -31,3 +31,7 @@ export const USER_PROFILE = {
     phoneUpdateByUser: `successfully you phone number has been updated`,
     passwordUpdateByUser: `successfully you password has been updated`,
 }
+
+export const PROJECT_NOTIFICATIONS = {
+    MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`
+}

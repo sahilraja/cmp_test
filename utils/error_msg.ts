@@ -10,7 +10,6 @@ export const USER_ROUTER = {
     SOMETHING_WENT_WRONG: "[Error: 0005] Something went wrong. Please retry",
     MANDATORY: "Please fill all mandatory fields",
     VALID_PHONE_NO: "Please enter valid phone number",
-    VALID_PASSWORD: "Password must have one special character and at least 6 characters",
     ALREADY_REGISTER: "You are already registered, please use login functionality",
     INVALID_PARAMS_ID: "[Error: 0006] Invalid user ID. Please try again",
     USER_NOT_EXIST: "User doesn't exist, please contact CMP administrator",
@@ -23,12 +22,12 @@ export const USER_ROUTER = {
     EMAIL_VERIFIED: "Email ID is already verified",
     EMAIL_WRONG: "Invalid email ID, please enter a valid email ID",
     GROUP_NOT_FOUND: "Please enter a valid group name",
+    // While sending API payload while adding members to group
     USER_ARRAY: "[Error: 0009] Users must be an array list",
     ABOUTME_LIMIT: "Please limit the response to {} characters",
     SIMILAR_MOBILE: "This mobile number exists. Please add a new mobile number",
     INVALID_PASSWORD: "Please enter valid password",
     INVALID_OTP: "Invalid OTP: Please enter valid OTP sent to your email address",
-    INVALID_COUNTRYCODE: "Given country code is invalid",
     CREATE_ROLE_NOTIFICATION_FAIL: "[Error: 0010] Failed to create notification",
     ADD_NOTIFICATION_FAIL: "[Error: 0011] Failed to add template to notification",
     BOTH_INVALID: "Invalid OTP: Please enter valid OTP",
@@ -59,7 +58,6 @@ export const GROUP_ROUTER = {
     GROUP_NAME: "Group name cannot be modified"
 }
 export const MOBILE_MESSAGES = {
-    VALID_MOBILE_OTP: "Please enter a valid OTP",
     SEND_OTP: "OTP sent successfully",
     VALID_OTP: "OTP is verified",
     INVALID_OTP: "Invalid OTP: Please enter valid OTP sent to your mobile number",

@@ -203,6 +203,13 @@
         "category": "User Management"
     },
     {
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As updated on the CITIIS Management Platform, your Password has been updated.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName" : "changePassword",
+        "displayName" : "change password notification",
+        "subject" : "[CMP] Password Updated",
+        "category": "User Management"
+    },
+    {
         "content":  "Dear <b>[fullName]</b>,<br/><br/>You are added to a project <b>[projectName]</b>, on CITIIS Management Platform. Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName": "addedToProject",
         "displayName": "Added to Project",

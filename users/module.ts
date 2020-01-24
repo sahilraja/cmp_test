@@ -1012,7 +1012,7 @@ export async function profileOtpVerify(objBody: any, user: any) {
             let { mobileNo, fullName } = getFullNameAndMobile(user);
             await userLog({ activityType: "USER-EMAIL-UPADTE", activityBy: user._id, profileId: user._id })
             // webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.emailUpdateByUser, from: user._id })
-            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage" })
+            sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: token.newEmail, templateName: "changeEmailMessage", mobileTemplateName:'changeEmailMessage' })
         }
         if (objBody.phone && objBody.countryCode) {
             await userLog({ activityType: "USER-PHONE-UPADTE", activityBy: user._id, profileId: user._id })
@@ -1431,6 +1431,9 @@ export async function changeOldPassword(body: any, userObj: any) {
         let admin_scope = await checkRoleScope(userObj.role, "bypass-otp");
         if (admin_scope) {
             await changePasswordInfo({ password: body.new_password }, userObj._id);
+            // Send Notification here
+            let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
+            sendNotification({ id: userObj._id, fullName, email: userObj.email, mobileNo, templateName: "changePassword", mobileTemplateName: "changePassword" });
             return { message: "Password updated successfully.", bypass_otp: true }
         }
         let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
@@ -1457,6 +1460,8 @@ export async function verificationOtpByUser(objBody: any, userObj: any) {
         if (email_flag == 1) throw new APIError(USER_ROUTER.INVALID_OTP);
         if (mobile_flag == 1) throw new APIError(MOBILE_MESSAGES.INVALID_OTP)
         let success = await changePasswordInfo({ password: mobileToken.password }, userObj._id);
+        let { mobileNo, fullName } = await getFullNameAndMobile(userObj);
+        sendNotification({ id: userObj._id, fullName, email: userObj.email, mobileNo, templateName: "changePassword", mobileTemplateName: "changePassword" });
         if (user.emailVerified) {
             await userLog({ activityType: "USER-PASSWORD-UPADTE", activityBy: user._id, profileId: user._id })
             // webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.passwordUpdateByUser, from: user._id })

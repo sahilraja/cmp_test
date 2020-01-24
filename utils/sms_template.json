@@ -126,6 +126,11 @@
         "displayName" : "Document updated"
     },
     {
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As updated on the CITIIS Management Platform, your Password has been updated.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName" : "changePassword",
+        "displayName" : "change password notification"
+    },
+    {
         "content" : "You are added to a project [projectName] on CMP.",
         "templateName" : "addedToProject",
         "displayName" : "you are added to project"
