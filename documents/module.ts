@@ -151,7 +151,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       groupId: [],
       groupName: [],
       createdBy: userId,
-      projectName: [12],
+      projectName: [],
       city: [],
       reference: [],
       phases: []
