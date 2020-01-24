@@ -576,7 +576,6 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
     let document = taskDetails.documents
     document = [...document, ...payload.documents]
     documents = Array.from(new Set(document))
-
   }
   const options = {
     url: `${TASKS_URL}/task/${taskId}/soft-edit?projectId=${projectId}`,
