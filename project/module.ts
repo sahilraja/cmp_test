@@ -560,6 +560,20 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
   if (!((projectDetail as any).members || []).includes(userObj._id)) {
     throw new Error(PROJECT_ROUTER.NOT_MEMBER_OF_PROJECT)
   }
+  let documents: any[]
+  if(payload.documents && payload.documents.length){
+    const options = {
+      url: `${TASKS_URL}/task/${taskId}/detail?isFromProject=${true}`,
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${userToken}` },
+      json: true
+    }
+    let taskDetails:any = await httpRequest(options)
+    let document = taskDetails.documents
+    document = [...document, ...payload.documents]
+    documents = Array.from(new Set(document))
+
+  }
   const options = {
     url: `${TASKS_URL}/task/${taskId}/soft-edit?projectId=${projectId}`,
     body: payload,
@@ -568,9 +582,9 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
     json: true
   }
   const updatedTask = await httpRequest(options)
-  if(payload.documents){
-    
-  }
+   if(payload.documents && payload.documents.length){
+    getProjectNamesForES(payload.documents,userToken)
+   }
   // createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
 }
