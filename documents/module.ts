@@ -3354,7 +3354,8 @@ async function documentCreateApi(name: string, filepath: any, tags: string[], to
 }
 
 //update project names, cities, reference in documents for search.
-export async function getProjectNamesForES(docId: string, token: string) {
+export async function getProjectNamesForES(docIds: any[], token: string) {
+  let docsUpdate = await Promise.all(docIds&&docIds.length?docIds.map(async(docId)=>{
   let publishDocs: any = await documents.findById(docId);
   const docList = publishDocs.toJSON();
   let taskDetailsObj: any = getTasksForDocument(docList.parentId || docList._id, token)
@@ -3385,6 +3386,8 @@ export async function getProjectNamesForES(docId: string, token: string) {
       }
     })
   }
+}):[]
+  )
 }
 
 export async function updateGroupInElasticSearch(groupId: string) {
