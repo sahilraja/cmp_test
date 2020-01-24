@@ -152,10 +152,10 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
   }
 });
 
-router.get(`/insert-in-elastic-search`, async (req, res, next) => {
+router.get(`/insert-in-elastic-search`,authenticate, async (req:any, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(OK).send(await getDocsAndInsertInElasticSearch(host))
+    res.status(OK).send(await getDocsAndInsertInElasticSearch(host,req.token))
   } catch (error) {
     next(new APIError(error.message))
   }
