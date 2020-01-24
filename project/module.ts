@@ -484,20 +484,20 @@ export async function getProjectDetail(projectId: string, userToken: string) {
 
 export async function createTask(payload: any, projectId: string, userToken: string, userObj: any) {
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
-  // if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
+  if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
-  // // if (!payload.isCompliance && (payload.assignee == userObj._id)) {
-  // //   throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
-  // // }
-  // if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
-  //   throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
+  // if (!payload.isCompliance && (payload.assignee == userObj._id)) {
+  //   throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
   // }
-  // if(!payload.isCompliance && !payload.stepId){
-  //   throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
-  // }
-  // if(!payload.isCompliance && !payload.pillarId){
-  //   throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
-  // }
+  if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
+    throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
+  }
+  if(!payload.isCompliance && !payload.stepId){
+    throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
+  }
+  if(!payload.isCompliance && !payload.pillarId){
+    throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
+  }
   let phases: any= await listPhasesOfProject(projectId);
   const options = {
     url: `${TASKS_URL}/task/create`,
