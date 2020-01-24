@@ -35,7 +35,7 @@
         "category": "Message Management"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <b><u>[otp]</u></b> is the One Time Password (OTP) to update your Mobile Number on CITIIS Management Platform<br/><br/>.Best Regards,<br/>CMP Administrator",
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <b><u>[otp]</u></b> is the One Time Password (OTP) to update your Mobile Number on CITIIS Management Platform.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "changeMobileOTP",
         "displayName" : "change mobile otp",
         "subject" : "[CMP] OTP to Update Mobile Number",
@@ -126,27 +126,6 @@
         "category": "User Management"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>A new user group with the name [groupName] is created on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "createGroup",
-        "displayName" : "create group",
-        "subject" : "[CMP] New User Group Created",
-        "category": "Group Management"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>A new member is added to the user group [groupName] on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "addGroupMember",
-        "displayName" : "Add Group Member",
-        "subject" : "[CMP] New Member added to User Group",
-        "category": "Group Management"
-    },
-    {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>Group status for [groupName], which you are a part of, has been updated to [groupNewStatus] on CITIIS Management Platform. Please log on to check the details.<br><br>Best Regards,<br>CMP Administrator",
-        "templateName" : "groupStatus",
-        "displayName" : "Group Status",
-        "subject" : "[CMP] User Group Status Updated",
-        "category": "Group Management"
-    },
-    {
         "content" : "Dear <b>[fullName]</b>,<br/><br/>A new comment has been added to the document <b>[documentName]</b> on CITIIS Management Platform. Please log on to check the details and latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "addCommentToDoc",
         "displayName" : "add New Comment ",
@@ -210,13 +189,6 @@
         "category": "User Management"
     },
     {
-        "content" : "Dear <b>[fullName]</b>,<br/><br/>You are added to a user group, <b>[groupName]</b>, on CITIIS Management Platform. Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName" : "youAddTOGroup",
-        "displayName" : "you are added to group",
-        "subject" : "[CMP] You're Added to a User Group",
-        "category": "Group Management"
-    },
-    {
         "content" : "Dear <b>[fullName]</b>,<br/><br/>As requested by you, <u>[otp]</u> is the One Time Password (OTP) to update your Password on CITIIS Management Platform.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName" : "changePasswordOTP",
         "displayName" : "change password otp",
@@ -228,6 +200,13 @@
         "templateName" : "registrationSuccess",
         "displayName" : "Registration Success",
         "subject" : "Registration Confirmation for CITIIS Management Platform",
+        "category": "User Management"
+    },
+    {
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As updated on the CITIIS Management Platform, your Password has been updated.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName" : "changePassword",
+        "displayName" : "change password notification",
+        "subject" : "[CMP] Password Updated",
         "category": "User Management"
     },
     {

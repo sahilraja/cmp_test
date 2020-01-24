@@ -6,9 +6,9 @@ export const DOC_NOTIFICATIONS = {
     rejectTagNotification: (name: string) => `A tag you suggested has been rejected on the document ${name}`,
     rejectRemoveTagNotification: (name: string) => `A tag you suggested for removal has been rejected on the document ${name}`,
     addCommentToDoc: (name: string) => `A new comment has been added to the document ${name}`,
-    documentUpdate: (text: string, name: string) => `Document ${name}, has been updated ${text ? "with " + text : ""}`,
+    documentUpdate: (text: string, name: string) => `Document ${name} has been updated ${text ? "with " + text : ""}`,
     invitePeopleDoc: (sharedUsers: string, role: string, name: string) => `Your document ${name} on CITIIS Management Platform, is shared with ${sharedUsers} in the capacity of ${role}`,
-    publishDocument: (name: string) => `Document ${name}, is published`,
+    publishDocument: (name: string) => `Document ${name} is published`,
     unPublishDocument: (name: string) => `Document ${name} is unpublished`,
     replaceDocument: (name: string) => `Document ${name} is replaced with a new document.`,
     documentRequest: (name: string) => `Someone request your document for access on ${name}.`,
@@ -30,4 +30,8 @@ export const USER_PROFILE = {
     emailUpdateByUser: `successfully you email has been updated`,
     phoneUpdateByUser: `successfully you phone number has been updated`,
     passwordUpdateByUser: `successfully you password has been updated`,
+}
+
+export const PROJECT_NOTIFICATIONS = {
+    MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`
 }

@@ -76,21 +76,6 @@
         "displayName" : "change user role"
     },
     {
-        "content" : "A new user group with the name [groupName] is created on CMP.",
-        "templateName" : "createGroup",
-        "displayName" : "Create Group"
-    },
-    {
-        "content" : "A new member is added to the user group [groupName] on CMP",
-        "templateName" : "addGroupMember",
-        "displayName" : "Add Group Member"
-    },
-    {
-        "content" : "Group status for [groupName], which you are a part of, has been updated to [groupNewStatus] on CMP.",
-        "templateName" : "groupStatus",
-        "displayName" : "Group Status"
-    },
-    {
         "content" : "A new comment has been added to Document [documentName] in CMP. Please log on to check.",
         "templateName" : "openComment",
         "displayName" : "New Comment"
@@ -141,9 +126,9 @@
         "displayName" : "Document updated"
     },
     {
-        "content" : "You are added to a user group [groupName] on CMP.",
-        "templateName" : "youAddTOGroup",
-        "displayName" : "you are added to group"
+        "content" : "Dear <b>[fullName]</b>,<br/><br/>As updated on the CITIIS Management Platform, your Password has been updated.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName" : "changePassword",
+        "displayName" : "change password notification"
     },
     {
         "content" : "You are added to a project [projectName] on CMP.",
