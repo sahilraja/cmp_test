@@ -3370,7 +3370,8 @@ export async function getProjectNamesForES(docIds: any[], token: string) {
   const docList = publishDocs.toJSON();
   let taskDetailsObj: any = await getTasksForDocument(docList.parentId || docList._id, token)
   let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
-  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }).exec()
+  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] }, "funds.released.deleted":false}, { "funds.utilized.documents": { $in: [docId] },"funds.utilized.deleted":false }] }).exec()
+  // let projectDetailsForDeletedDocs = await project_schema.find({ $or: [{ "funds.released.documents": { $in: [docId] }, "funds.released.deleted":true}, { "funds.utilized.documents": { $in: [docId] },"funds.utilized.deleted":true }] }).exec()
   let projectName: any = [];
   let city: any = [];
   let reference: any = [];
