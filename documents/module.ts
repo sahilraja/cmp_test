@@ -2792,7 +2792,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
           query: {
             multi_match: {
               "query": search,
-              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName', 'fileName'],
+              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName', 'fileName','projectName','city','reference','phases'],
               "type": 'bool_prefix'
             }
           }
@@ -2814,7 +2814,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
                 {
                   "bool": {
                     "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName', 'groupName'], type: 'bool_prefix' } },
+                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName', 'groupName','projectName','city','reference','phases'], type: 'bool_prefix' } },
                       { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
                     ]
                   }
