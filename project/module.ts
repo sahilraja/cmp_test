@@ -28,7 +28,8 @@ import { PillarSchema } from "../pillars/model";
 import { StepsSchema } from "../steps/model";
 import { UNAUTHORIZED } from "http-status-codes";
 import { createCompliance } from "./compliances/module";
-
+import { create as webNotification } from "../socket-notifications/module"
+import { PROJECT_NOTIFICATIONS } from "../utils/web-notification-messages";
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
   try {
@@ -198,17 +199,20 @@ export async function manageProjectMembers(id: string, members: string[], userId
   const addedUserIds = updatedProject.members.filter((member: string) => !previousProjectData.members.includes(member))
   createLog({ activityType: ACTIVITY_LOG.PROJECT_MEMBERS_UPDATED, activityBy: userId, projectId: id, addedUserIds, removedUserIds })
   const usersData = await userFindMany(`_id`, addedUserIds, {firstName:1, lastName:1, middleName:1, phone:1, countryCode:1, email:1})
-  sendAddedToProjectNotification(usersData, updatedProject.name)
+  sendAddedToProjectNotification(usersData, updatedProject.name, userId)
   return updatedProject
 }
 
-async function sendAddedToProjectNotification(users: any[], projectName: string){
+async function sendAddedToProjectNotification(users: any[], projectName: string, userId: string){
   return Promise.all(users.map((user: any) => {
     let { fullName, mobileNo } = getFullNameAndMobile(user);
-    return sendNotification({
-      id: user._id, mobileNo, email: user.email, fullName,
-      projectName, templateName: "addedToProject", mobileTemplateName: "addedToProject"
-    })
+    return Promise.all([
+      sendNotification({
+        id: user._id, mobileNo, email: user.email, fullName,
+        projectName, templateName: "addedToProject", mobileTemplateName: "addedToProject"
+      }),
+      webNotification({ notificationType: `PROJECT`, userId: user._id, title: PROJECT_NOTIFICATIONS.MEMBER_ADDED_TO_PROJECT(projectName), from: userId })
+    ])
   }))
 }
 
@@ -1039,7 +1043,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj, isCompliance)))
   const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
   if(isCompliance){
-    await Promise.all(createdData.map((data, i) => createCompliance({taskId: data.id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
+    await Promise.all(createdData.map((data, i) => createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
   }
   // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
   return { message: 'Tasks uploaded successfully' }

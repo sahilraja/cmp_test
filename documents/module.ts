@@ -2664,9 +2664,9 @@ export async function getAllPublicDocuments(currentPage = 1, limit = 20, host: s
   let { docs, page, pages } = await documents.paginate(query, { page: currentPage, limit })
   docs = await Promise.all(docs.map(doc => docData(doc, host)))
   if(tags){
-    tags = tags.split(`,`).map((tag: any) => new RegExp(tag, 'i'))
+    tags = tags.split(`,`)
     if(tags.length){
-      docs = docs.filter((doc: any) => doc.tags.some((tag: any) => tags.some((_tag: any) => _tag.test(tag.tag))))
+      docs = docs.filter((doc: any) => doc.tags.some((tag: any) => tags.includes(tag)))
     }
   }
   return {

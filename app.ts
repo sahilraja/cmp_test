@@ -67,7 +67,7 @@ app.use('/user', usersRouter);
 app.use("/role", roleRouter);
 app.use("/project", authenticate, projectRouter);
 app.use("/docs", documentRouter)
-app.use("/task", taskRouter)
+app.use("/task", authenticate, taskRouter)
 app.use("/tag", tagRouter);
 app.use("/pattern", patternRouter);
 app.use("/template", templateRouter);
