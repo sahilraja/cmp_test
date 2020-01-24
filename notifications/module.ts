@@ -69,17 +69,69 @@ export async function addTemplateNotification(objBody: any) {
         throw err
     }
 }
+// Old Code
+
+// export async function getRoleNotification(roleName: string, templateName: string) {
+//     try {
+//         //let notificationInfo:any = await notificationSchema.aggregate([{$match:{ role: roleName}},{$unwind : "$templates"},{ $replaceRoot: { newRoot:{ $mergeObjects: [ { email: "$email", mobile:"$mobile",role:"$role"}, "$templates" ] }} }])
+//         let notificationInfo: any = await notificationSchema.findOne({ role: roleName }).exec();
+//         notificationInfo = notificationInfo.toObject();
+//         let [userTemplateInfo]: any = notificationInfo.templates.filter((notif: any) => {
+//             return notif.templateName == templateName
+//         })
+//         let {mobile,email} = userTemplateInfo;
+//         return { role: roleName,templateName, mobile,email }
+//     }
+//     catch (err) {
+//         throw err
+//     }
+// }
+
+
+// export async function userRolesNotification(userId: any, templateName: string) {
+//     try {
+//         let { data } = await getRoles(userId);
+//         let roleInfo: any = await Promise.all(data.map(async (role: any) => {
+//             return await getRoleNotification(role, templateName);
+//         }))
+//         //return roleInfo
+//         let notificationResult: any = roleInfo.reduce((acc: any, roleObj: any) => {
+//             if (roleObj.email == true) {
+//                 acc['email'] = true
+//             }
+//             if (roleObj.mobile == true ) {
+//                 acc['mobile'] = true
+//             }
+//             return acc
+//         }, { email: false, mobile: false });
+//         return notificationResult;
+//     }
+//     catch (err) {
+//         throw err
+//     }
+// }
 
 export async function getRoleNotification(roleName: string, templateName: string) {
     try {
-        //let notificationInfo:any = await notificationSchema.aggregate([{$match:{ role: roleName}},{$unwind : "$templates"},{ $replaceRoot: { newRoot:{ $mergeObjects: [ { email: "$email", mobile:"$mobile",role:"$role"}, "$templates" ] }} }])
-        let notificationInfo: any = await notificationSchema.findOne({ role: roleName }).exec();
-        notificationInfo = notificationInfo.toObject();
-        let [userTemplateInfo]: any = notificationInfo.templates.filter((notif: any) => {
-            return notif.templateName == templateName
+        if(Array.isArray(roleName)){
+            var notificationInfo: any = await notificationSchema.find({ role: {$in: roleName} }).exec();
+        } else {
+            var notificationInfo: any = await notificationSchema.find({ role: roleName }).exec();
+        }
+        let roleInfo = notificationInfo.map((info: any) => {
+            return info.templates.find((template: any) => {
+                return template.templateName == templateName
+            })
         })
-        let {mobile,email} = userTemplateInfo;
-        return { role: roleName,templateName, mobile,email }
+        return roleInfo.reduce((acc: any, roleObj: any) => {
+            if (roleObj.email == true) {
+                acc['email'] = true
+            }
+            if (roleObj.mobile == true ) {
+                acc['mobile'] = true
+            }
+            return acc
+        }, { email: false, mobile: false });
     }
     catch (err) {
         throw err
@@ -93,17 +145,7 @@ export async function userRolesNotification(userId: any, templateName: string) {
         let roleInfo: any = await Promise.all(data.map(async (role: any) => {
             return await getRoleNotification(role, templateName);
         }))
-        //return roleInfo
-        let notificationResult: any = roleInfo.reduce((acc: any, roleObj: any) => {
-            if (roleObj.email == true) {
-                acc['email'] = true
-            }
-            if (roleObj.mobile == true ) {
-                acc['mobile'] = true
-            }
-            return acc
-        }, { email: false, mobile: false });
-        return notificationResult;
+        return roleInfo[0]
     }
     catch (err) {
         throw err

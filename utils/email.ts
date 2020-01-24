@@ -50,7 +50,7 @@ export async function nodemail(objBody: any) {
       if (error) {
         console.error(error);
       } else {
-        console.log('Email sent: ' + info.response);
+        console.log('Email sent to : ' + mailOptions.to + ` ` + info.response);
       }
     });
     transporter.close()

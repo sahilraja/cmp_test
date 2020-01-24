@@ -133,7 +133,7 @@ export async function inviteUser(objBody: any, user: any) {
             role: await formateRoles(objBody.role)
         });
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
-        sendNotification({ id: user._id, fullName, email: objBody.email, linkExpire: Number(configLink.value), role: await formateRoles(objBody.role), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        sendNotification({ id: userData._id, fullName, email: objBody.email, linkExpire: Number(configLink.value), role: await formateRoles(objBody.role), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         await userLog({ activityType: "INVITE-USER", activityBy: user._id, profileId: userData._id })
         return { userId: userData._id };
     } catch (err) {
@@ -382,7 +382,7 @@ export async function user_status(id: string, user: any) {
         if (!userData.emailVerified) throw new Error(USER_ROUTER.USER_NOT_REGISTER)
 
         let data: any = await userEdit(id, { is_active: userData.is_active ? false : true })
-        let state = data.is_active ? "Activated" : "Inactivated";
+        let state = data.is_active ? "Activated" : "Deactivated";
         const { mobileNo, fullName } = getFullNameAndMobile(userData);
         await userLog({ activityType: data.is_active ? "ACTIVATE-PROFILE" : "DEACTIVATE-PROFILE", activityBy: user._id, profileId: id })
         sendNotification({ id: user._id, fullName, mobileNo, email: userData.email, state, templateName: "userState", mobileTemplateName: "userState" });
@@ -448,7 +448,7 @@ export async function userInviteResend(id: string, role: any, user: any) {
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         await userLog({ activityType: "RESEND-INVITE-USER", activityBy: user._id, profileId: id })
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
-        sendNotification({ id: user._id, fullName, email: userData.email, role: role, linkExpire: Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
+        sendNotification({ id, fullName, email: userData.email, role: role, linkExpire: Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
         throw err;
@@ -604,7 +604,7 @@ export async function createGroup(objBody: any, userObj: any) {
             description: description.trim(),
             createdBy: userObj._id
         });
-        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "createGroup", mobileTemplateName: "createGroup" })
+        // sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "createGroup", mobileTemplateName: "createGroup" })
         await addMember(group._id, objBody.users, userObj, false)
         return group
     } catch (err) {
@@ -621,7 +621,7 @@ export async function groupStatus(id: any, userObj: any) {
         let group: any = await groupFindOne("id", id);
         if (!group) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         let data: any = await groupEdit(id, { is_active: group.is_active ? false : true });
-        sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "groupStatus", mobileTemplateName: "groupStatus", status: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE })
+        // sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "groupStatus", mobileTemplateName: "groupStatus", groupNewStatus: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE, status: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE })
         return { message: data.is_active ? RESPONSE.ACTIVE : RESPONSE.INACTIVE };
     } catch (err) {
         console.error(err);
@@ -699,7 +699,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
         if (!filteredUsers.length) throw new APIError(USER_ROUTER.INVALID_ACTION);
         await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
         addGroupMembersInDocs(id, users, userObj._id)
-        sendNotificationToGroup(id, data.name, userObj._id, { templateName: "addGroupMember", mobileTemplateName: "addGroupMember" })
+        // sendNotificationToGroup(id, data.name, userObj._id, { templateName: "addGroupMember", mobileTemplateName: "addGroupMember" })
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
         throw err
@@ -1343,6 +1343,55 @@ export async function validatePassword(password: string) {
 //     }
 // }
 
+// Groups SMS Content
+// {
+//     "content" : "A new user group with the name [groupName] is created on CMP.",
+//     "templateName" : "createGroup",
+//     "displayName" : "Create Group"
+// },
+// {
+//     "content" : "A new member is added to the user group [groupName] on CMP",
+//     "templateName" : "addGroupMember",
+//     "displayName" : "Add Group Member"
+// },
+// {
+//     "content" : "Group status for [groupName], which you are a part of, has been updated to [groupNewStatus] on CMP.",
+//     "templateName" : "groupStatus",
+//     "displayName" : "Group Status"
+// },
+// {
+//     "content" : "You are added to a user group [groupName] on CMP.",
+//     "templateName" : "youAddTOGroup",
+//     "displayName" : "you are added to group"
+// },
+// {
+//     "content" : "Dear <b>[fullName]</b>,<br/><br/>A new user group with the name [groupName] is created on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+//     "templateName" : "createGroup",
+//     "displayName" : "create group",
+//     "subject" : "[CMP] New User Group Created",
+//     "category": "Group Management"
+// },
+// {
+//     "content" : "Dear <b>[fullName]</b>,<br/><br/>A new member is added to the user group [groupName] on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+//     "templateName" : "addGroupMember",
+//     "displayName" : "Add Group Member",
+//     "subject" : "[CMP] New Member added to User Group",
+//     "category": "Group Management"
+// },
+// {
+//     "content" : "Dear <b>[fullName]</b>,<br/><br/>Group status for [groupName], which you are a part of, has been updated to [groupNewStatus] on CITIIS Management Platform. Please log on to check the details.<br><br>Best Regards,<br>CMP Administrator",
+//     "templateName" : "groupStatus",
+//     "displayName" : "Group Status",
+//     "subject" : "[CMP] User Group Status Updated",
+//     "category": "Group Management"
+// },
+// {
+//     "content" : "Dear <b>[fullName]</b>,<br/><br/>You are added to a user group, <b>[groupName]</b>, on CITIIS Management Platform. Please ignore if you think this is not intended for you.<br/><br/>Best Regards,<br/>CMP Administrator",
+//     "templateName" : "youAddTOGroup",
+//     "displayName" : "you are added to group",
+//     "subject" : "[CMP] You're Added to a User Group",
+//     "category": "Group Management"
+// },
 export async function sendNotificationToGroup(groupId: string, groupName: string, userId: string, templateNamesInfo: any) {
     try {
         let userIds = await groupUserList(groupId);
