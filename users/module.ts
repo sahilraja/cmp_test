@@ -948,7 +948,11 @@ export async function changeEmailInfo(objBody: any, user: any) {
         //  find User
         let emailExist = await userFindOne("email", objBody.email);
         if (emailExist) throw new Error(USER_ROUTER.EMAIL_EXIST(objBody.email))
-        let validUser = await userLogin({ email: user.email, password: objBody.password })
+        try {            
+            await userLogin({ email: user.email, password: objBody.password })
+        } catch (error) {
+            throw new APIError(USER_ROUTER.INVALID_LOGIN_DETAILS)
+        }
 
         let { otp, token } = await generateOtp(4, { "newEmail": objBody.email });
         let { mobileOtp, smsToken } = await generatemobileOtp(4, { "newEmail": objBody.email });
@@ -1149,7 +1153,7 @@ export async function sendNotification(objBody: any) {
             if (!mobileOtp && templateName) {
                 userNotification = await userRolesNotification(id, templateName);
             }
-            if ((mobileNo && mobileOtp) || (mobileNo && userNotification.mobile)) {
+            if ((mobileNo && mobileOtp && userNotification.mobile) || (mobileNo && userNotification.mobile)) {
                 //let smsTemplateInfo:any= await smsTemplateSchema.findOne({templateName:mobileTemplateName})
                 if (mobileOtp) {
                     let smsContent: any = await getSmsTemplateBySubstitutions(mobileTemplateName, { mobileOtp, ...notificationInfo });
@@ -1183,7 +1187,7 @@ export async function sendNotification(objBody: any) {
                 }
             }
         }
-        if ((mobileOtp && templateName) || (userNotification && userNotification.email && templateName)) {
+        if ((mobileOtp && templateName && userNotification.email) || (userNotification && userNotification.email && templateName)) {
             let templatInfo = await getTemplateBySubstitutions(templateName, notificationInfo);
             let subject = await patternSubstitutions(templatInfo.subject);
             let content = await patternSubstitutions(templatInfo.content);

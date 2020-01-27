@@ -7,6 +7,7 @@ import { UploadFormatSchema } from "../project/upload-format-model";
 import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { uploadToFileService } from "../documents/module";
+import { backGroudJobForPhase } from "../project/module";
 const router = Router()
 
 router.get(`/step-info`, async (req, res, next) =>  {
@@ -119,6 +120,14 @@ router.get(`/download-bulk-user-excel`,async (request, response, next) => {
         next(e);
     });
     req.end();
+})
+
+router.post(`/getCurrentPhases`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await backGroudJobForPhase(req.body.projectIds))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
 })
 
 export = router

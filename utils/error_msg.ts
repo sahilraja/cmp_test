@@ -15,7 +15,7 @@ export const USER_ROUTER = {
     USER_NOT_EXIST: "User doesn't exist, please contact CMP administrator",
     INVALID_FIELDS: "Please enter valid Email ID/Password",
     USER_NOT_REGISTER: "User is not registered",
-    INVALID_LOGIN_DETAILS: "Invalid login or password",
+    INVALID_LOGIN_DETAILS: "Invalid password",
     DEACTIVATED_BY_ADMIN: "Your account has been deactivated, please contact the admin to reactivate",
     ROLE_NOT_FOUND: "[Error: 0007] Failed to fetch user details",
     CAPABILITIES_NOT_FOUND: "[Error: 0008] Failed to fetch access privileges",
