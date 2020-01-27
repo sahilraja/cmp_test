@@ -1388,7 +1388,7 @@ export async function invitePeopleList(docId: string) {
     }
     if (userGroup.group) {
       var groupData: any = await listGroup(
-        { _id: { $in: userGroup.group }, is_active: true },
+        { _id: { $in: userGroup.group } },
         { name: 1 }
       );
       groupData = await Promise.all(groupData.map((group: any) => groupUsers(group, docId)));
@@ -2680,7 +2680,8 @@ export async function getAllPublicDocuments(currentPage = 1, limit = 20, host: s
   if(tags){
     tags = tags.split(`,`)
     if(tags.length){
-      docs = docs.filter((doc: any) => doc.tags.some((tag: any) => tags.includes(tag)))
+      docs = docs.filter((doc: any) => doc.tags.some((tag: any) => tags.includes(tag.tag)))
+      pages = manualPagination(currentPage, limit, docs).pages
     }
   }
   return {
