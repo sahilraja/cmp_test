@@ -565,6 +565,13 @@
     "category":"Project Management",
     "scope":"global",
     "description":"View Compliance"
+  },
+  {
+    "capability":"View-risks-Opurtunities",
+    "shortDescription":"View Risks and Opurtunities",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"Ability to View Risks and Opurtunities"
   }
 ]
 
