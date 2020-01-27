@@ -1305,6 +1305,22 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
       }))
       let isDocExists = await checkDocIdExistsInEs(docId)
       if (isDocExists) {
+
+          await  esClient.update({
+            index: `${ELASTIC_SEARCH_INDEX}_documents`,
+            id: docId,
+            body: {
+              "script": {
+                "inline": "ctx._source.groupName.remove(ctx._source.groupName.indexOf(params.groupName));ctx._source.groupId.remove(ctx._source.groupId.indexOf(params.groupId));",
+                "lang": "painless",
+                "params": {
+                  "groupName": groupName,
+                  "groupId": userId
+                }
+              }
+            }
+          })
+        
         let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
           await  esClient.update({
             index: `${ELASTIC_SEARCH_INDEX}_documents`,
@@ -1316,8 +1332,6 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
                 "params": {
                   "userId": user.userId,
                   "userName": user.userName,
-                  "groupName": user.groupName,
-                  "groupId": user.groupId
                 }
               }
             }

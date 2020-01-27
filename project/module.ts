@@ -184,6 +184,7 @@ export async function memberExistInProjectTask(projectId: string, userId: string
   return await httpRequest(options)
 }
 
+
 export async function manageProjectMembers(id: string, members: string[], userId: string, userRole: any) {
   members = Array.from(new Set(members))
   const isEligible = await checkRoleScope(userRole, `project-add-core-team`)
@@ -1892,4 +1893,18 @@ export async function editProjectPhaseInES(phaseId:string,token:string){
     let updateTasksInElasticSearch = updateProjectTasks({projectId:project.id || project._id,phases},token);
   }))
   return projectIds
+}
+
+export async function backGroudJobForPhase(projectIds:any){
+  let projectsInfo = await Promise.all(projectIds.map(async(id:any)=>{
+    let phases: any= await listPhasesOfProject(id);
+    let matchedPhase = phases&&phases.length?phases.filter((phase:any)=>(
+      new Date(phase.startDate) <= new Date() && new Date(phase.endDate) > new Date())
+      ):null
+    return{
+      projectId : id,
+      phase: matchedPhase && matchedPhase.length ? matchedPhase[0].phase.phaseName: null
+    }
+  }))
+  return projectsInfo
 }
