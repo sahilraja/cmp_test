@@ -184,6 +184,7 @@ export async function memberExistInProjectTask(projectId: string, userId: string
   return await httpRequest(options)
 }
 
+
 export async function manageProjectMembers(id: string, members: string[], userId: string, userRole: any) {
   members = Array.from(new Set(members))
   const isEligible = await checkRoleScope(userRole, `project-add-core-team`)
