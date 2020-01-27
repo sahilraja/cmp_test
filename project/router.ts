@@ -8,7 +8,7 @@ import {
     addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments,
      getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, 
      editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments, addFunds, getFinancialInfoNew, 
-     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo
+     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo,backGroudJobForPhase
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -520,6 +520,15 @@ router.post(`/:id/add-installments/new`, async (req, res, next) => {
         next(new APIError(error.message))
     }
 })
+
+router.post(`/getCurrentPhases`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await backGroudJobForPhase(req.body.projectIds))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
 
 
 export = router;
