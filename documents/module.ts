@@ -1327,7 +1327,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
             id: user.docId,
             body: {
               "script": {
-                "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName));ctx._source.groupName.remove(ctx._source.groupName.indexOf(params.groupName));ctx._source.groupId.remove(ctx._source.groupId.indexOf(params.groupId));",
+                "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName));",
                 "lang": "painless",
                 "params": {
                   "userId": user.userId,
