@@ -2879,8 +2879,8 @@ export async function updateUserInDOcs(id: any, userId: string) {
     // let userIds, userNames;
     let allDocIds: any = []
     // let collaboratedDocsIds: any = await GetDocIdsForUser(id, "user", ["collaborator", "owner","viewer"])
-    let groups = await userGroupsList(id)
-    allDocIds = await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")));
+    let groups:any = await userGroupsList(id)
+    allDocIds = groups && groups.lenght?(await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")))):[]
     allDocIds = allDocIds.reduce((main: [], arr: []) => main.concat(arr), [])
     allDocIds = [... new Set(allDocIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
     let userIds = await Promise.all(allDocIds.map(async (docId: any) => {
