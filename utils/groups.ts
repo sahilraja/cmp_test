@@ -88,7 +88,8 @@ export async function GetDocIdsForUser(userId: string, type?:string, docRole?: s
         let docRoles = docRole || ["collaborator", "viewer"] 
         if(userType == "group"){
             let group: any = await groupFindOne("id", userId);
-            if(!group || !group.is_active) return []
+            // if(!group || !group.is_active) return []
+            if(!group) return []
         }
         let policies = await groupsPolicyFilter(`${userType}/${userId}`, 0, "p")
         let users = policies.data.filter((policy: string[]) => {
