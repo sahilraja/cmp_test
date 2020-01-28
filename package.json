@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/request-ip": "0.0.34",
     "@sentry/node": "^5.11.0",
+    "@types/request-ip": "0.0.34",
     "aws-sdk": "^2.513.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",

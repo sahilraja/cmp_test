@@ -29,11 +29,12 @@ export async function listCompliances(userToken: string, projectId: string) {
         headers: { 'Authorization': `Bearer ${userToken}` },
         json: true
     })
+    const filteredTasks = tasks.filter((task: any) => task.status != 8)
     let complianceData = compliances.map((compliance: any) => {
         return {
             ...compliance.toJSON(),
-            task: tasks.find((task: any) => task._id == compliance.taskId),
-            taskStatus: tasks.find((task: any) => task._id == compliance.taskId).status
+            task: filteredTasks.find((task: any) => task._id == compliance.taskId),
+            taskStatus: filteredTasks.find((task: any) => task._id == compliance.taskId).status
         }
     })
     let spvCompliance = complianceData.filter(({ complianceType }) => complianceType == "SPV")

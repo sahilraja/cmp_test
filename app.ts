@@ -55,6 +55,7 @@ app.use((req, res, next) => {
     res.header('Pragma', 'no-cache');
     next()
 })
+app.set('trust proxy', true)
 
 //  Hello world Router
 app.get('/', (request: Request, response: Response) => {

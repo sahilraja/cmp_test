@@ -152,7 +152,7 @@ router.post(`/:id/manage-members`, async (req, res, next) => {
 
 router.get("/:id/manage-members/:userId/remove", async (req, res, next) => {
     try {
-        res.status(OK).send(await RemoveProjectMembers(req.params.id, req.params.userId, (req as any).token))
+        res.status(OK).send(await RemoveProjectMembers(req.params.id, req.params.userId, res.locals.user._id, (req as any).token))
     } catch (error) {
         next(new APIError(error.message))
     };
