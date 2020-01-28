@@ -131,7 +131,7 @@ router.put('/status/:id', authenticate, async (req: Request, res: Response, next
 });
 
 //  login user
-router.post('/email/login', ipMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/email/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
         res.status(200).send(await user_login(req));
     } catch (err) {
@@ -139,7 +139,7 @@ router.post('/email/login', ipMiddleware, async (req: Request, res: Response, ne
     };
 });
 
-router.post("/email/logout", ipMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+router.post("/email/logout", async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.query.userId) throw new Error("required userId")
         res.status(200).send(await userLogout(req, req.query.userId, req.body.token))

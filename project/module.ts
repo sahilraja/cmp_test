@@ -78,8 +78,8 @@ export async function projectInfo() {
     utilized: p.utilized + c.funds.reduce((p1: any, c1: any) => p1 + ((c1.utilized || {}).amount || 0) ,0)
   }),{projectCost:0, citiisGrants:0, released:0, utilized:0})
   return {...response, 
-    costPercentage: Math.round((isNaN(response.citiisGrants/response.projectCost) ? 0 : (response.citiisGrants/response.projectCost))*100),
-    releasedPercentage: Math.round((isNaN(response.utilized/response.released) ? 0 : (response.utilized/response.released))*100),
+    costPercentage: Math.floor((isNaN(response.citiisGrants/response.projectCost) ? 0 : (response.citiisGrants/response.projectCost))*100),
+    releasedPercentage: Math.floor((isNaN(response.utilized/response.released) ? 0 : (response.utilized/response.released))*100),
   }
 }
 //  Edit city Code
@@ -134,13 +134,14 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
   }
 }
 
-export async function RemoveProjectMembers(projectId: string, userId: string, token: string) {
+export async function RemoveProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
   try {
     // let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
     // if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
     const previousProjectData: any = await ProjectSchema.findById(projectId).exec()
     let members = previousProjectData.members.filter((id: any) => id != userId)
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
+    createLog({ activityType: ACTIVITY_LOG.MEMBER_REMOVED, activityBy: loginUserId, projectId, addedUserIds:[], removedUserIds:[userId] })
     return { success: true, project: updatedProject }
   } catch (err) {
     throw err
@@ -465,7 +466,7 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
   return (list || []).map((_list) => {
     const tasksForTheProject = (projectRelatedTasks as any).filter((task: any) => task.projectId == _list._id.toString() && task.status != 8)
     return ({
-      ..._list, progressPercentage: tasksForTheProject.length ? (tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0,
+      ..._list, progressPercentage: tasksForTheProject.length ? Math.floor(tasksForTheProject.reduce((p: number, c: any) => p + (c.progressPercentage || 0), 0) / tasksForTheProject.length).toFixed(0) : 0,
       phase: getCurrentPhase(_list) || {}
     })
   })
