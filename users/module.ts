@@ -210,8 +210,8 @@ export async function edit_user(id: string, objBody: any, user: any, token: any)
             }
         }
         if (id != user._id) {
-            // let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
-            // if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
+            let admin_scope = await checkRoleScope(user.role, "edit-user-profile");
+            if (!admin_scope) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         }
         if (objBody.password) {
             await validatePassword(objBody.password);
