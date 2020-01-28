@@ -1841,7 +1841,7 @@ async function userData(folder: any, host: string) {
       role: ((userRole as any).data || [""])[0],
       owner,
       thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${folder.doc_id.fileId}` : "N/A",
-      date: folder.doc_id.createdAt,
+      createdAt: folder.doc_id.createdAt,
       isDeleted: folder.doc_id.isDeleted
     }])
     return data
