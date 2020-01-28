@@ -2882,7 +2882,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
     let groups:any = await userGroupsList(id)
     allDocIds = groups && groups.lenght?(await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")))):[]
     allDocIds = allDocIds.reduce((main: [], arr: []) => main.concat(arr), [])
-    allDocIds = [... new Set(allDocIds.concat(await GetDocIdsForUser(userId)))].filter((id: any) => Types.ObjectId.isValid(id));
+    allDocIds = [... new Set(allDocIds.concat(await GetDocIdsForUser(id,"user", ["collaborator", "owner","viewer"])))].filter((id: any) => Types.ObjectId.isValid(id));
     let userIds = await Promise.all(allDocIds.map(async (docId: any) => {
       return {
         docId: docId,
@@ -2920,7 +2920,7 @@ export async function updateUserInDOcs(id: any, userId: string) {
       }
     })
 
-    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+    // let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
       // if (docIds.includes(user.docId)) {

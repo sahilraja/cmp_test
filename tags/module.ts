@@ -106,7 +106,7 @@ export async function updateUserInMessages(body: any, token: string) {
       body: body,
       json: true
     }
-    return await request(Options);
+      return await request(Options);
   } catch (err) {
     throw err
   };
