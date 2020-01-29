@@ -11,9 +11,9 @@ export const DOC_NOTIFICATIONS = {
     publishDocument: (name: string) => `Document ${name} is published`,
     unPublishDocument: (name: string) => `Document ${name} is unpublished`,
     replaceDocument: (name: string) => `Document ${name} is replaced with a new document.`,
-    documentRequest: (name: string) => `Someone request your document for access on ${name}.`,
-    documentRequestApproved: (name: string) => `your request for access was accecpt on his ${name} document.`,
-    documentRequestRejected: (name: string) => `your request for access was rejected on his ${name} document.`,
+    documentRequest: (name: string) => `Someone request your document for access on the document ${name}.`,
+    documentRequestApproved: (name: string) => `your request for access was approved on the document ${name}.`,
+    documentRequestRejected: (name: string) => `your request for access was rejected on the document ${name}.`,
     documentSuggestTagsModified: (name: string) => `You have new update in tag suggestion on the document ${name} from [from]`,
 }
 
@@ -33,5 +33,6 @@ export const USER_PROFILE = {
 }
 
 export const PROJECT_NOTIFICATIONS = {
+    PHASES_UPDATED:(projectName: string) => `Phases has been updated for the project ${projectName}`,
     MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`
 }

@@ -82,7 +82,8 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
                     if (oldObject.probability != riskObj.probability)
                         riskObj['previousTrend'] = oldObject.impact * oldObject.probability;
                 let riskDetails: any = await RiskSchema.findByIdAndUpdate(riskObj._id || riskObj.id, { $set: riskObj }, { new: true }).exec()
-                await RiskSchema.create({ ...riskDetails.toJSON(), projectId, parentId: riskDetails._id })
+                const {createdAt, updatedAt, ...others} = riskDetails.toJSON()
+                await RiskSchema.create({ ...others, projectId, parentId: riskDetails._id, updatedAt: new Date() })
             };
         } else {
             let risk = await RiskSchema.create({ ...riskObj, projectId, createdBy: userObj._id });
@@ -95,6 +96,7 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
 };
 
 export async function logList(projectId: string, riskId: string) {
-    return await RiskSchema.find({ deleted: false, projectId, parentId: riskId }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
+    let list = await RiskSchema.find({ deleted: false, projectId, parentId: riskId }).populate({ path: 'phase' }).sort({ createdAt: 1 }).exec()
+    return list
 }
 

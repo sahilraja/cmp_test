@@ -262,16 +262,16 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} remove from the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
             break;
         case "SUGGEST_TAGS_ADD_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the tags ${getTagName(activityLog.tagsAdded)} suggested to the document.`
             break;
         case "SUGGEST_TAGS_REMOVE_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the tags ${getTagName(activityLog.tagsRemoved)} suggested for removal on the document.`
             break;
         case "SUGGEST_TAGS_ADD_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the tags ${getTagName(activityLog.tagsRemoved)} suggested to the document.`
             break;
         case "SUGGEST_TAGS_REMOVE_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tag to remove ${getTagName(activityLog.tagsRemoved)} from the document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the tags ${getTagName(activityLog.tagsRemoved)} suggested for removal on the document.`
             break;
         default:
             message = "";
