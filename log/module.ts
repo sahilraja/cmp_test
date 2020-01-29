@@ -262,16 +262,16 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} remove from the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
             break;
         case "SUGGEST_TAGS_ADD_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the tags ${getTagName(activityLog.tagsAdded)} suggested to the document.`
             break;
         case "SUGGEST_TAGS_REMOVE_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the tags ${getTagName(activityLog.tagsRemoved)} suggested for removal on the document.`
             break;
         case "SUGGEST_TAGS_ADD_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the tags ${getTagName(activityLog.tagsRemoved)} suggested to the document.`
             break;
         case "SUGGEST_TAGS_REMOVE_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tag to remove ${getTagName(activityLog.tagsRemoved)} from the document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the tags ${getTagName(activityLog.tagsRemoved)} suggested for removal on the document.`
             break;
         default:
             message = "";
@@ -394,13 +394,25 @@ function getFormantedTaskLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} removed subtask ${(activityLog.subTask || {}).name} from the task`;
             break;
         case 'NEW_TASK_LINKED':
-            message = `${UserFullName(activityLog.activityBy)} linked ${(activityLog.subTask || {}).name} task to the task`;
+            message = `${UserFullName(activityLog.activityBy)} linked ${(activityLog.linkedTasks.reduce((p: string[],c: any) => p.concat([c.name]) , []).join(`,`))} task to the task`;
             break;
         case 'LINKED_TASK_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed linked task ${(activityLog.subTask || {}).name} from the task`;
+            message = `${UserFullName(activityLog.activityBy)} removed linked task ${(activityLog.unlinkedTasks.reduce((p: string[],c: any) => p.concat([c.name]) , []).join(`,`))} from the task`;
             break;
         case 'TAGS_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} updated tags to the task`;
+            break;
+        case "SUGGEST_TAGS_ADD_APPROVED":
+            message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to the document.`
+            break;
+        case "SUGGEST_TAGS_REMOVE_APPROVED":
+            message = `${UserFullName(activityLog.activityBy)} approved the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            break;
+        case "SUGGEST_TAGS_ADD_REJECTED":
+            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            break;
+        case "SUGGEST_TAGS_REMOVE_REJECTED":
+            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tag to remove ${getTagName(activityLog.tagsRemoved)} from the document.`
             break;
         default:
             message = "";
@@ -450,6 +462,9 @@ function getFormantedProjectLogs(activityLog: any) {
         case 'PROJECT_MEMBERS_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} added ${getNamesFromIds(activityLog.addedUserIds)} as a core team member`;
             break;
+        case 'MEMBER_REMOVED':
+            message = `${UserFullName(activityLog.activityBy)} removed ${getNamesFromIds(activityLog.removedUserIds)} from core team`;
+            break;
         case 'ADDED_FUND_RELEASE':
             message = `${UserFullName(activityLog.activityBy)} added ${activityLog.updatedCost} INR to fund released`;
             break;
@@ -492,7 +507,7 @@ function getFormantedUserLogs(activityLog: any) {
             break;
 
         case 'EDIT-PROFILE-BY-ADMIN':
-            message = `${UserFullName(activityLog.profileId)}'s profile has been edited by ${UserFullName(activityLog.activityBy)} with ${activityLog.editedFields.length > 0 ? (activityLog.editedFields) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
+            message = `${UserFullName(activityLog.profileId) || `User`}'s profile has been edited by ${UserFullName(activityLog.activityBy)} with ${activityLog.editedFields.length > 0 ? (activityLog.editedFields) : 'No'} ${activityLog.editedFields.length > 1 ? 'fields.' : 'field.'}`
             break;
 
         case 'ACTIVATE-PROFILE':
@@ -508,7 +523,7 @@ function getFormantedUserLogs(activityLog: any) {
             break;
 
         case 'EDIT-ROLE':
-            message = `${UserFullName(activityLog.profileId)}'s role has been edited by ${UserFullName(activityLog.activityBy)} .`
+            message = `${UserFullName(activityLog.profileId) || `User`}'s role has been edited by ${UserFullName(activityLog.activityBy)} .`
             break;
 
         case 'ADMIN-PASSWORD-UPDATE':
@@ -531,7 +546,7 @@ function getFormantedUserLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} has been updated the phone number.`
             break;
 
-        case 'USER-PASSWORD-UPADTE':
+        case 'USER_PASSWORD_UPDATE':
             message = `${UserFullName(activityLog.activityBy)} has been updated the password.`
             break;
 

@@ -8,7 +8,7 @@ import {
     addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments,
      getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, 
      editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments, addFunds, getFinancialInfoNew, 
-     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo,backGroudJobForPhase
+     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo,backGroudJobForPhase, getProjectMemberIds
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -69,7 +69,7 @@ router.get("/:id/detail", async (req, res, next) => {
 
 router.post(`/:id/add-phases`, async (req, res, next) => {
     try {
-        res.status(OK).send(await addPhaseToProject(req.params.id, req.body,(req as any).token))
+        res.status(OK).send(await addPhaseToProject(req.params.id, req.body,(req as any).token, res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -150,9 +150,17 @@ router.post(`/:id/manage-members`, async (req, res, next) => {
     }
 });
 
+router.get(`/:id/get-member-ids`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getProjectMemberIds(req.params.id))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
 router.get("/:id/manage-members/:userId/remove", async (req, res, next) => {
     try {
-        res.status(OK).send(await RemoveProjectMembers(req.params.id, req.params.userId, (req as any).token))
+        res.status(OK).send(await RemoveProjectMembers(req.params.id, req.params.userId, res.locals.user._id, (req as any).token))
     } catch (error) {
         next(new APIError(error.message))
     };
