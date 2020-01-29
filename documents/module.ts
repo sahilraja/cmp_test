@@ -3162,7 +3162,7 @@ async function getShareInfoForEachDocument(doc: any, host: string,token:string) 
   ])
   const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
   let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
-  let projectDetails = await getProjectDetailsForES(doc.id,token)
+  // let projectDetails = await getProjectDetailsForES(doc.id,token)
   return {
     docId: doc.id,
     accessedBy: userIds,
@@ -3179,9 +3179,12 @@ async function getShareInfoForEachDocument(doc: any, host: string,token:string) 
     groupId: groupIds,
     groupName: groupsInfo.map((group: any) => group.name),
     createdBy: doc.ownerId,
-    projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
-    city: projectDetails&& projectDetails.city?projectDetails.city:[],
-    reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
+    projectName: [],
+    city: [],
+    reference: [],
+    // projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
+    // city: projectDetails&& projectDetails.city?projectDetails.city:[],
+    // reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
     phases: []
   }
 }
