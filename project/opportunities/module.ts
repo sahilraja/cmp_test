@@ -77,7 +77,8 @@ async function saveaAllOpportunities(opportunityObj: any, projectId: string, use
                     if (oldObject.probability != opportunityObj.probability)
                         opportunityObj['previousTrend'] = oldObject.impact * oldObject.probability;
                 let opportunityDetails: any = await OpportunitySchema.findByIdAndUpdate(opportunityObj._id || opportunityObj.id, { $set: opportunityObj }, { new: true }).exec()
-                await OpportunitySchema.create({ ...opportunityDetails.toJSON(), projectId, parentId: opportunityDetails._id })
+                const {createdAt, updatedAt, ...others} = opportunityDetails.toJSON()
+                await OpportunitySchema.create({ ...others, projectId, parentId: opportunityDetails._id, createdAt: new Date(), updatedAt: new Date() })
             };
         } else {
             let opportunity = await OpportunitySchema.create({ ...opportunityObj, projectId, createdBy: userObj._id });

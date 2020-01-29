@@ -134,5 +134,15 @@
         "content" : "You are added to a project [projectName] on CMP.",
         "templateName" : "addedToProject",
         "displayName" : "you are added to project"
+    },
+    {
+        "templateName":"progressPercentUpdate",
+        "displayName":"Progress percentage updated",
+        "content":"Progress percentage has been updated for the task [taskId] at project [projectName]"
+    },
+    {
+        "content": "Phases has been updated for the project [projectName].",
+        "templateName":"phaseUpdate",
+        "displayName": "Phases updated"
     }
 ]

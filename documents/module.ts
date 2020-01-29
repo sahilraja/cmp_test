@@ -2517,7 +2517,7 @@ export async function requestAccept(requestId: string, userObj: any) {
       throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
     }
     await create({ activityType: "REQUEST_APPROVED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
-    // webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestApproved(requestDetails.docId.name), from: userObj._id })
+    webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestApproved(requestDetails.docId.name), from: userObj._id })
     if (addedCapability && addedCapability.user.length) {
       await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
       return { message: "Shared successfully." }
@@ -2535,7 +2535,7 @@ export async function requestDenied(requestId: string, userObj: any) {
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let success = await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
     await create({ activityType: "REQUEST_DENIED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
-    // webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestRejected(requestDetails.docId.name), from: userObj._id })
+    webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestRejected(requestDetails.docId.name), from: userObj._id })
     return success
   } catch (err) {
     throw err;

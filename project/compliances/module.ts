@@ -34,7 +34,7 @@ export async function listCompliances(userToken: string, projectId: string) {
         return {
             ...compliance.toJSON(),
             task: filteredTasks.find((task: any) => task._id == compliance.taskId),
-            taskStatus: filteredTasks.find((task: any) => task._id == compliance.taskId).status
+            taskStatus: tasks.find((task: any) => task._id == compliance.taskId).status
         }
     })
     let spvCompliance = complianceData.filter(({ complianceType }) => complianceType == "SPV")
