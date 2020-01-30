@@ -322,7 +322,7 @@ export async function addRole(userId: string, bodyObj: any) {
             category: bodyObj.category,
             createdBy: userId
         });
-        addRoleNotification(bodyObj.role);
+        addRoleNotification(role);
         return { success: true, response };
 
     } catch (err) {
