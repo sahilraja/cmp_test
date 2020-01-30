@@ -7,7 +7,7 @@
         "category": "User Management"
     },
     {
-        "content": "Dear <b>[fullName]</b>,<br/><br/>Your current role on the CITIIS Management Platform has been replaced with <b>[role]</b>. Please log in to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content": "Dear <b>[fullName]</b>,<br/><br/>Your current role on the CITIIS Management Platform is replaced with <b>[role]</b>. Please log in to check the details.<br/><br/>Regards,<br/>CMP Team",
         "templateName": "changeUserRole",
         "displayName": "change user role",
         "subject": "[CMP] Role Replacement Notification",
@@ -70,21 +70,21 @@
         "category": "Document Management"
     },
     {
-        "content": "Dear <b>[fullName]</b>,<br/><br/>Document <b>[documentName]</b> has been updated with a new [text]. You can click here <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content": "Dear <b>[fullName]</b>,<br/><br/>Document <b>[documentName]</b> has been updated with a new [text]. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName": "documentUpdate",
         "displayName": "document Update",
         "subject": "[CMP] Document Update Notification",
         "category": "Document Management"
     },
     {
-        "content": "Hi <b>[fullName]</b>,<br /><br />You have a tag suggestion on CMP.<br /><br />You can click here <a href=[documentUrl]>link</a> to view it.<br /><br />Please ignore if you think this is not intended for you.<br /><br />Best Regards,<br /><br />CMP Administrator",
+        "content": "Hi <b>[fullName]</b>,<br /><br />You have a tag suggestion on CMP.<br /><br />You can click this <a href=[documentUrl]>link</a> to view it.<br /><br />Please ignore if you think this is not intended for you.<br /><br />Best Regards,<br /><br />CMP Administrator",
         "templateName": "suggestTagNotification",
         "displayName": "suggest Tag notification",
         "subject": "A Tag has been Suggested",
         "category": "Document Management"
     },
     {
-        "content": "Dear <b>[userName]</b>,<br/><br/>A tag suggested by you has been approved. You can click this <b><a href=[documentUrl]>link</a></b> to view the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "content": "Dear <b>[userName]</b>,<br/><br/>A tag you suggested has been approved. You can click this <b><a href=[documentUrl]>link</a></b> to view the details.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName": "approveTagNotification",
         "displayName": "approve tag notification",
         "subject": "[CMP] Tag Approval Notification",
@@ -182,13 +182,6 @@
         "category": "Task Management"
     },
     {
-        "content": "Dear <b>[fullName]</b>,<br/><br/>Another task is linked to the task <b>[taskId]</b> on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards, <br/>CMP Administrator",
-        "templateName": "linkTask",
-        "displayName": "Link Task",
-        "subject": "[CMP] New Task Linked",
-        "category": "Task Management"
-    },
-    {
         "content": "Dear <b>[fullName]</b>,<br/><br/>Start Date of the task <b>[taskId]</b> is updated on CITIIS Management Platform. Please log on to check the latest updates.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName": "updateTaskStartDate",
         "displayName": "Update Task Start date",
@@ -217,15 +210,15 @@
         "category": "Project Management"
     },
     {
-        "content": "Dear <b>[fullName]</b>,<br/><br/>Progress percentage has been updated for the task <b>[taskId]</b> at project <b>[projectName]</b>.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName":"progressPercentUpdate",
+        "content": "Dear <b>[fullName]</b>,<br/><br/>Progress has been updated for the task <b>[taskId]</b> at project <b>[projectName]</b> on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName": "progressPercentUpdate",
         "displayName": "Progress percentage updated",
         "subject": "[CMP] Task Progress percentage updated",
         "category": "Project Management"
     },
     {
-        "content": "Dear <b>[fullName]</b>,<br/><br/>Phases has been updated for the project <b>[projectName]</b>.<br/><br/>Best Regards,<br/>CMP Administrator",
-        "templateName":"phaseUpdate",
+        "content": "Dear <b>[fullName]</b>,<br/><br/>Phases are updated for the project <b>[projectName]</b> on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName": "phaseUpdate",
         "displayName": "Phases updated",
         "subject": "[CMP] Project phases updated",
         "category": "Project Management"

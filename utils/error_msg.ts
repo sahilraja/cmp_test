@@ -59,7 +59,7 @@ export const GROUP_ROUTER = {
 }
 export const MOBILE_MESSAGES = {
     SEND_OTP: "OTP sent successfully",
-    VALID_OTP: "OTP is verified",
+    VALID_OTP: "OTP verified successfully",
     INVALID_OTP: "Invalid OTP: Please enter valid OTP sent to your mobile number",
 }
 

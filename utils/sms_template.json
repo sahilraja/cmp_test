@@ -96,11 +96,6 @@
         "displayName" : "Document attached"
     },
     {
-        "content" : "Another task is linked to the task:[taskId] on CMP.",
-        "templateName" : "linkTask",
-        "displayName" : "Link Task"
-    },
-    {
         "content" : "New tag is added to task:[taskId] on CMP.",
         "templateName" : "addTaskTag",
         "displayName" : "Add Tag"
@@ -138,10 +133,10 @@
     {
         "templateName":"progressPercentUpdate",
         "displayName":"Progress percentage updated",
-        "content":"Progress percentage has been updated for the task [taskId] at project [projectName]"
+        "content":"Progress has been updated for the task [taskId] at project [projectName] on CMP"
     },
     {
-        "content": "Phases has been updated for the project [projectName].",
+        "content": "Phases are updated for the project [projectName] on CMP",
         "templateName":"phaseUpdate",
         "displayName": "Phases updated"
     }

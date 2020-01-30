@@ -124,8 +124,8 @@ export async function notifications() {
           templates.push({
             templateName: template.templateName,
             displayName: template.displayName || template.templateName,
-            email: true,
-            mobile: true,
+            email: false,
+            mobile: false,
             category: template.category || null
           })
         // }
