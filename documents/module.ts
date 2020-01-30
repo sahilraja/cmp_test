@@ -2441,7 +2441,7 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToAdd: filteredDocs
       })
       if (doc) {
-        createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
+        // createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
         return {
           sucess: true,
           message: "Tag removed Successfully"
@@ -2471,7 +2471,7 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToRemove: filteredDocs
       })
       if (doc) {
-        createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd || body.tagIdToRemove })
+        // createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd || body.tagIdToRemove })
         return {
           sucess: true,
           message: "Tag removed Successfully"
@@ -2765,7 +2765,7 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
       let addedTags = body.addTags.filter((tag: string) => !addSuggestedTagsExist.includes(tag))
       let removedTags = body.removeTags.filter((tag: string) => !removeSuggestedTagsExist.includes(tag))
       if (addedTags.length || removedTags.length) {
-        createActivityLog({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.addTags, tagsRemoved: body.removeTags })
+        // createActivityLog({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.addTags, tagsRemoved: body.removeTags })
         webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
         sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       }
