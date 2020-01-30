@@ -18,6 +18,9 @@ export async function addComment(body: any, user: any, userToken: string) {
     if (!body.type || !body.comment || !body.entity_id) throw new Error(COMMENT_ROUTER.MANDATORY)
     if (body.type == "document") {
       var doc: any = await documents.findById(body.entity_id)
+      if(doc.parentId){
+        doc = await documents.findById(doc.parentId).exec()
+      }
       // Added if -> add comments to task is also triggering the same API
       if (doc) {
         let admin_scope = (doc.status == 2) ? await checkRoleScope(user.role, "document-comments-publish") : await checkRoleScope(user.role, "document-comments")

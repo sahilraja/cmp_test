@@ -310,6 +310,9 @@ function getNamesFromIds(userIdsArr: []) {
 function getFormantedTaskLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
+        case `PROGRESS_PERCENTAGE_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} updated the progress percentage`
+            break;
         case 'TASK_CREATED':
             message = `${UserFullName(activityLog.activityBy)} created the task`;
             break;
@@ -450,6 +453,17 @@ function getStatus(status_code: any, status: any = "") {
 function getFormantedProjectLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
+        case `PROGRESS_PERCENTAGE_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} updated the progress percentage for the task ${activityLog.taskId ? activityLog.taskId.name : ""}`
+            break;
+        case 'TASK_START_DATE_UPDATED':
+            // message = `${UserFullName(activityLog.activityBy)} has updated the start date from %date:${activityLog.previousStartDate}% to %date:${activityLog.updatedStartDate}%`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the start date for the task ${activityLog.taskId ? activityLog.taskId.name : ""}`;
+            break;
+        case 'TASK_DUE_DATE_UPDATED':
+            // message = `${UserFullName(activityLog.activityBy)} has updated the due date from %date:${activityLog.previousDueDate}% to %date:${activityLog.updatedDueDate}%`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the due date for the task ${activityLog.taskId ? activityLog.taskId.name : ""}`;
+            break;
         case 'PROJECT_CREATED':
             message = `${UserFullName(activityLog.activityBy)} created the Project`;
             break;
