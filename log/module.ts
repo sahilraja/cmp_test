@@ -176,10 +176,10 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} created the document`;
             break;
         case 'DOCUMENT_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} updated the document with ${activityLog.message}`;
+            message = `${UserFullName(activityLog.activityBy)} updated the document with new ${activityLog.message}`;
             break;
         case 'CANCEL_UPDATED':
-            message = `${UserFullName(activityLog.activityBy)} cancelled the document update`;
+            message = `${UserFullName(activityLog.activityBy)} cancelled editing the document`;
             break;
         case 'TAGS_ADDED':
             message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document`;
@@ -236,22 +236,22 @@ function getFormantedDocLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} added tags ${getTagName(activityLog.tagsAdded)} to the document and removed tags ${getTagName(activityLog.tagsRemoved)} from the document`
             break;
         case "REQUEST_DOCUMENT":
-            message = `${UserFullName(activityLog.activityBy)} requested for document access.`
+            message = `${UserFullName(activityLog.activityBy)} requested for document access`
             break;
         case "REQUEST_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the requested for document access to ${UserFullName(activityLog.requestUserId)}.`
+            message = `${UserFullName(activityLog.activityBy)} approved the request for document access to ${UserFullName(activityLog.requestUserId)}.`
             break;
         case "REQUEST_DENIED":
-            message = `${UserFullName(activityLog.activityBy)} reject requested for document access to ${UserFullName(activityLog.requestUserId)}.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the request for document access to ${UserFullName(activityLog.requestUserId)}.`
             break;
         case "SUGGEST_TAGS":
-            message = `${UserFullName(activityLog.activityBy)} suggest tags ${getTagName(activityLog.tagsAdded)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} suggested tags ${getTagName(activityLog.tagsAdded)} to the document.`
             break;
         case "SUGGEST_MODIFIED_TAGS":
             if (activityLog.tagsAdded && activityLog.tagsAdded.length && activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
-                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""}${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to the document.`
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggested tags " + getTagName(activityLog.tagsAdded) : ""}${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to the document.`
             } else if (activityLog.tagsAdded && activityLog.tagsAdded.length) {
-                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggest tags " + getTagName(activityLog.tagsAdded) : ""} to the document.`
+                message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsAdded && activityLog.tagsAdded.length ? "suggested tags " + getTagName(activityLog.tagsAdded) : ""} to the document.`
             } else if (activityLog.tagsRemoved && activityLog.tagsRemoved.length) {
                 message = `${UserFullName(activityLog.activityBy)} ${activityLog.tagsRemoved && activityLog.tagsRemoved.length ? "and suggest remove tags " + getTagName(activityLog.tagsRemoved) : ""} to the document.`
             } else {
@@ -310,6 +310,9 @@ function getNamesFromIds(userIdsArr: []) {
 function getFormantedTaskLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
+        case `PROGRESS_PERCENTAGE_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} updated the progress percentage`
+            break;
         case 'TASK_CREATED':
             message = `${UserFullName(activityLog.activityBy)} created the task`;
             break;
@@ -403,16 +406,16 @@ function getFormantedTaskLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} updated tags to the task`;
             break;
         case "SUGGEST_TAGS_ADD_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested tags ${getTagName(activityLog.tagsAdded)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the tags ${getTagName(activityLog.tagsAdded)} suggested to the task.`
             break;
         case "SUGGEST_TAGS_REMOVE_APPROVED":
-            message = `${UserFullName(activityLog.activityBy)} approved the suggested to remove tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} approved the tags ${getTagName(activityLog.tagsRemoved)} suggested for removal on the task.`
             break;
         case "SUGGEST_TAGS_ADD_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tags ${getTagName(activityLog.tagsRemoved)} to the document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the tags ${getTagName(activityLog.tagsRemoved)} suggested to the task.`
             break;
         case "SUGGEST_TAGS_REMOVE_REJECTED":
-            message = `${UserFullName(activityLog.activityBy)} rejected the suggested tag to remove ${getTagName(activityLog.tagsRemoved)} from the document.`
+            message = `${UserFullName(activityLog.activityBy)} rejected the tags ${getTagName(activityLog.tagsRemoved)} suggested for removal on the task.`
             break;
         default:
             message = "";
@@ -450,6 +453,20 @@ function getStatus(status_code: any, status: any = "") {
 function getFormantedProjectLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
+        case `TRIPART_DATE_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} has updated the Tri-partite Agreement Date`
+            break;
+        case `PROGRESS_PERCENTAGE_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} updated the progress percentage for the task ${activityLog.taskId ? activityLog.taskId.name : ""}`
+            break;
+        case 'TASK_START_DATE_UPDATED':
+            // message = `${UserFullName(activityLog.activityBy)} has updated the start date from %date:${activityLog.previousStartDate}% to %date:${activityLog.updatedStartDate}%`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the start date for the task ${activityLog.taskId ? activityLog.taskId.name : ""}`;
+            break;
+        case 'TASK_DUE_DATE_UPDATED':
+            // message = `${UserFullName(activityLog.activityBy)} has updated the due date from %date:${activityLog.previousDueDate}% to %date:${activityLog.updatedDueDate}%`;
+            message = `${UserFullName(activityLog.activityBy)} has updated the due date for the task ${activityLog.taskId ? activityLog.taskId.name : ""}`;
+            break;
         case 'PROJECT_CREATED':
             message = `${UserFullName(activityLog.activityBy)} created the Project`;
             break;
@@ -463,7 +480,7 @@ function getFormantedProjectLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} added ${getNamesFromIds(activityLog.addedUserIds)} as a core team member`;
             break;
         case 'MEMBER_REMOVED':
-            message = `${UserFullName(activityLog.activityBy)} removed ${getNamesFromIds(activityLog.removedUserIds)} from core team`;
+            message = `${UserFullName(activityLog.activityBy)} removed ${getNamesFromIds(activityLog.removedUserIds)} from the core team`;
             break;
         case 'ADDED_FUND_RELEASE':
             message = `${UserFullName(activityLog.activityBy)} added ${activityLog.updatedCost} INR to fund released`;
@@ -472,10 +489,10 @@ function getFormantedProjectLogs(activityLog: any) {
             message = `${UserFullName(activityLog.activityBy)} added ${activityLog.updatedCost} INR to fund utilised`;
             break;
         case 'UPDATED_FUND_RELEASE':
-            message = `${UserFullName(activityLog.activityBy)} updated fund release to ${activityLog.updatedCost} INR`;
+            message = `${UserFullName(activityLog.activityBy)} updated fund released to ${activityLog.updatedCost} INR`;
             break;
         case 'UPDATED_FUND_UTILIZATION':
-            message = `${UserFullName(activityLog.activityBy)} updated fund utilization to ${activityLog.updatedCost} INR`;
+            message = `${UserFullName(activityLog.activityBy)} updated fund utilised to ${activityLog.updatedCost} INR`;
             break;
         case 'UPDATED_CITIIS_GRANTS':
             message = `${UserFullName(activityLog.activityBy)} updated citiis grants to ${activityLog.updatedCost} INR`;
@@ -527,27 +544,27 @@ function getFormantedUserLogs(activityLog: any) {
             break;
 
         case 'ADMIN-PASSWORD-UPDATE':
-            message = `${UserFullName(activityLog.activityBy)} has been updated the password to ${activityLog.profileId.email}.`
+            message = `${UserFullName(activityLog.activityBy)} has been updated the password.`
             break;
 
         case 'ADMIN-EMAIL-UPDATE':
-            message = `${UserFullName(activityLog.activityBy)} has been updated the email ${activityLog.profileId.email}.`
+            message = `${UserFullName(activityLog.activityBy)} has updated the email to ${activityLog.profileId.email}.`
             break;
 
         case 'ADMIN-PHONENO-UPADTE':
-            message = `${UserFullName(activityLog.activityBy)} has been updated the phone number to ${UserFullName(activityLog.profileId)}.`
+            message = `${UserFullName(activityLog.activityBy)} has updated the phone number to ${UserFullName(activityLog.profileId)}.`
             break;
 
         case 'USER-EMAIL-UPADTE':
-            message = `${UserFullName(activityLog.activityBy)} has been updated the email.`
+            message = `${UserFullName(activityLog.activityBy)} has updated the email.`
             break;
 
         case 'USER-PHONE-UPADTE':
-            message = `${UserFullName(activityLog.activityBy)} has been updated the phone number.`
+            message = `${UserFullName(activityLog.activityBy)} has updated the phone number.`
             break;
 
         case 'USER_PASSWORD_UPDATE':
-            message = `${UserFullName(activityLog.activityBy)} has been updated the password.`
+            message = `${UserFullName(activityLog.activityBy)} has updated the password.`
             break;
 
         default:

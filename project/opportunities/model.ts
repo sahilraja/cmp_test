@@ -8,7 +8,7 @@ const SchemaDef = new Schema({
     projectId: {type: Schema.Types.ObjectId, ref:'project'},
     opportunityFamily: { type: String, trim: true },
     description: { type: String, trim: true },
-    phase: { type: Schema.Types.ObjectId, ref: 'phase' },
+    phase: [{ type: Schema.Types.ObjectId, ref: 'phase' }],
     impact: { type: Number, default: 0 },
     probability: { type: Number, default: 0 },
     actions: { type: String, trim: true },

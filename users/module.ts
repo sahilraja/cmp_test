@@ -1149,7 +1149,7 @@ export function getFullNameAndMobile(userObj: any) {
 
 export async function sendNotification(objBody: any) {
     let { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
-    notificationInfo = { ...notificationInfo, fullName: notificationInfo.fullName || "user" }
+    notificationInfo = { ...notificationInfo, fullName: notificationInfo.fullName || "User" }
     let userNotification: any;
     let config = 1
     if (templateName == "invalidPassword") {
@@ -1653,7 +1653,7 @@ export async function registerNewEmail(id:string,objBody: any,userId: string) {
         let token = await jwt_for_url({
             id: userUpdate._id,
             email: userUpdate.email,
-            role: user_roles
+            role: user_roles.roles
         });
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
         sendNotification({ id: userId, fullName, email: objBody.newEmail, linkExpire: Number(configLink.value), role: user_roles.roles, link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
