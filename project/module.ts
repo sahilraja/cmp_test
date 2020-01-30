@@ -127,6 +127,7 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
     let phases= await listPhasesOfProject(id);
     let updateTasksInElasticSearch = updateProjectTasks({projectId:id,phases},token);
+    let tasksDocIds =  editProjectInDocsES(id,token);
     return updatedProject
   } catch (err) {
     console.error(err);
@@ -134,6 +135,30 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
   }
 }
 
+export async function editProjectInDocsES(projectId:string,userToken:string){
+  const options = {
+    url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
+    body: { projectId },
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${userToken}` },
+    json: true
+  }
+  let docIds = await httpRequest(options)  
+  const projectData: any = await ProjectSchema.findById(projectId).exec();
+  const { funds } = projectData.toJSON()
+  let fundsReleased:any = [];
+  let fundsUtilized:any = [];
+  let fundsInfo:any = await Promise.all(funds.map((fund:any)=>{
+    let releasedDocuments = fund.released && fund.released.length?fund.released.map((fundInfo:any)=>{
+       fundsReleased.push(fundInfo.documents && fundInfo.documents.length? fundInfo.documents: [])
+    }):[];
+    let utilizedDocuments = fund.utilized && fund.utilized.length?fund.utilized.map((fundInfo:any)=>{
+      fundsUtilized.push(fundInfo.documents && fundInfo.documents.length? fundInfo.documents: [])
+   }):[];
+  }))
+  let fundsDocuments = [...fundsReleased, ...fundsUtilized]
+  
+}
 export async function RemoveProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
   try {
     // let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
@@ -512,7 +537,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
   const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask._id, projectId, activityBy: userObj._id })
   if(payload.documents && payload.documents.length){
-    // getProjectNamesForES(payload.documents,userToken)
+    // getProjectNamesForES(payload.documents,host,userToken)
   }
   return createdTask
 }
@@ -588,7 +613,7 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
   }
   const updatedTask = await httpRequest(options)
    if(payload.documents && payload.documents.length){
-    // getProjectNamesForES(payload.documents,userToken)
+    // getProjectNamesForES(payload.documents,host,userToken)
    }
   // createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
@@ -1685,7 +1710,7 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({ activityType: (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
-  // getProjectNamesForES(docsToUpdateInES,token)
+  // getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 
@@ -1725,7 +1750,7 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({ activityType: (!currentObj || currentObj.utilized.deleted) ? ACTIVITY_LOG.ADDED_FUND_UTILIZATION: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: currentObj.utilized.amount, updatedCost: amount, activityBy: user._id })
-  // getProjectNamesForES(docsToUpdateInES,token)
+  // getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 
@@ -1765,7 +1790,7 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   updates['funds.$.released.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id})
-  // getProjectNamesForES(docsToUpdateInES,token)
+  // getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 
@@ -1801,7 +1826,7 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   updates['funds.$.utilized.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id})
-  // getProjectNamesForES(docsToUpdateInES,token)
+  // getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 

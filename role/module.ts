@@ -8,6 +8,7 @@ import { init } from '../utils/role_management';
 import { APIError } from "../utils/custom-error";
 import { checkRoleScope } from '../utils/role_management'
 import { USER_ROUTER } from "../utils/error_msg";
+
 // Get Roles List
 export async function role_list() {
     let roles = await roleSchema.find()

@@ -200,7 +200,7 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
 }
 
 //  Edit user
-export async function edit_user(id: string, objBody: any, user: any, token: any) {
+export async function edit_user(id: string, objBody: any, user: any, token: any,host: string) {
     try {
         let user_roles: any = await userRoles(id, true)
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
@@ -269,7 +269,7 @@ export async function edit_user(id: string, objBody: any, user: any, token: any)
         // update user with edited fields
         let userInfo: any = await userEdit(id, objBody);
         let userData: any = getFullNameAndMobile(userInfo);
-        let updateUserInElasticSearch = updateUserInDOcs(id, user.id)
+        let updateUserInElasticSearch = updateUserInDOcs(id, user.id,host,token)
         let updateUsersInMessages = updateUserInMessages({ id }, token)
         let updateUsersInTasks = updateUserInTasks({ id }, token);
         userInfo.role = userRole;
@@ -587,7 +587,7 @@ export async function setNewPassword(objBody: any) {
 
 
 //  Create Group
-export async function createGroup(objBody: any, userObj: any) {
+export async function createGroup(objBody: any, userObj: any, host: string, token:string) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "create-group");
         if (!isEligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
@@ -605,7 +605,7 @@ export async function createGroup(objBody: any, userObj: any) {
             createdBy: userObj._id
         });
         // sendNotificationToGroup(group._id, group.name, userObj._id, { templateName: "createGroup", mobileTemplateName: "createGroup" })
-        await addMember(group._id, objBody.users, userObj, false)
+        await addMember(group._id, objBody.users, userObj,host,token,false)
         return group
     } catch (err) {
         throw err;
@@ -630,7 +630,7 @@ export async function groupStatus(id: any, userObj: any) {
 };
 
 //  Edit Group
-export async function editGroup(objBody: any, id: string, userObj: any) {
+export async function editGroup(objBody: any, id: string, userObj: any,host:string, token:string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
@@ -641,7 +641,7 @@ export async function editGroup(objBody: any, id: string, userObj: any) {
         }
         let groupData: any = await groupEdit(id, objBody);
         if(objBody.name){
-        let updateInES = updateGroupInElasticSearch(id);
+        let updateInES = updateGroupInElasticSearch(id,host,token);
         }
         //sendNotificationToGroup(groupData._id, groupData.name, userObj._id, { templateName: "updateGroup", mobileTemplateName: "updateGroup" })        
         return groupData;
@@ -682,7 +682,7 @@ export async function groupDetail(id: string) {
 };
 
 //  Add Member to Group
-export async function addMember(id: string, users: any[], userObj: any, validation: boolean = true) {
+export async function addMember(id: string, users: any[], userObj: any,host: string, token:string,validation: boolean = true) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         if (validation) {
@@ -698,7 +698,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
         if (!filteredUsers.length && users.some(user => existUsers.includes(user))) throw new Error("User already exist.")
         if (!filteredUsers.length) throw new APIError(USER_ROUTER.INVALID_ACTION);
         await Promise.all(filteredUsers.map((user: any) => addUserToGroup(user, id)))
-        addGroupMembersInDocs(id, users, userObj._id)
+        addGroupMembersInDocs(id, host, token)
         // sendNotificationToGroup(id, data.name, userObj._id, { templateName: "addGroupMember", mobileTemplateName: "addGroupMember" })
         return { message: RESPONSE.ADD_MEMBER }
     } catch (err) {
@@ -707,7 +707,7 @@ export async function addMember(id: string, users: any[], userObj: any, validati
 };
 
 //  Remove Member From Group
-export async function removeMembers(id: string, users: any[], userObj: any) {
+export async function removeMembers(id: string, users: any[], userObj: any, host : string, token:string) {
     try {
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let isEligible = await checkRoleScope(userObj.role, "edit-group");
@@ -720,7 +720,7 @@ export async function removeMembers(id: string, users: any[], userObj: any) {
         if (!data) throw new Error(USER_ROUTER.GROUP_NOT_FOUND);
         await Promise.all(users.map(async (user: any) => {
             await removeUserToGroup(user, id),
-             removeGroupMembersInDocs(id, user, userObj._id)
+             removeGroupMembersInDocs(id, host, token)
         }))
         return { message: RESPONSE.REMOVE_MEMBER }
     } catch (err) {
