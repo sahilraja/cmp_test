@@ -25,7 +25,7 @@ router.post(`/:id/compliance/create`, async (req, res, next) => {
 
 router.post(`/:id/compliance/bulk-upload`, upload.single('upfile'), async (req, res, next) => {
     try {
-        res.status(OK).send(await uploadTasksExcel(req.file.path, req.params.id, (req as any).token, res.locals.user, true))
+        res.status(OK).send(await uploadTasksExcel(req.file.path, req.params.id, (req as any).token, res.locals.user,`${req.protocol}://${req.get('host')}`, true))
     } catch (error) {
         next(new APIError(error.message))
     }

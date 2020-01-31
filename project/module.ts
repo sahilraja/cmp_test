@@ -143,7 +143,7 @@ export async function editProjectInDocsES(projectId:string,userToken:string){
     headers: { 'Authorization': `Bearer ${userToken}` },
     json: true
   }
-  let docIds = await httpRequest(options)  
+  let docIds :any= await httpRequest(options)  
   const projectData: any = await ProjectSchema.findById(projectId).exec();
   const { funds } = projectData.toJSON()
   let fundsReleased:any = [];
@@ -157,7 +157,10 @@ export async function editProjectInDocsES(projectId:string,userToken:string){
    }):[];
   }))
   let fundsDocuments = [...fundsReleased, ...fundsUtilized]
-  
+  const existingDocs = fundsDocuments.reduce((a:any, b:any) => a.concat(b), []);
+  let docsToUpdateInES = [...existingDocs, ...docIds ]
+   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
+  return docsToUpdateInES;
 }
 export async function RemoveProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
   try {
@@ -509,7 +512,7 @@ export async function getProjectDetail(projectId: string, userToken: string) {
   };
 };
 
-export async function createTask(payload: any, projectId: string, userToken: string, userObj: any) {
+export async function createTask(payload: any, projectId: string, userToken: string, userObj: any,host: string) {
   let isEligible = await checkRoleScope(userObj.role, "project-create-task");
   if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
   const taskPayload = await formatTaskPayload(payload, projectId)
@@ -537,7 +540,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
   const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask._id, projectId, activityBy: userObj._id })
   if(payload.documents && payload.documents.length){
-    // getProjectNamesForES(payload.documents,host,userToken)
+    getProjectNamesForES(payload.documents,host,userToken)
   }
   return createdTask
 }
@@ -581,7 +584,7 @@ export async function getProjectTasks(projectId: string, userToken: string) {
   return await httpRequest(options)
 }
 
-export async function editTask(projectId: string, taskId: string, userObj: any, userToken: string, payload: any) {
+export async function editTask(projectId: string, taskId: string, userObj: any, userToken: string, payload: any,host: string) {
   let isEligible = await checkRoleScope(userObj.role, "edit-task-progress-dates");
   if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
   const projectDetail: any = await ProjectSchema.findById(projectId).exec()
@@ -613,7 +616,7 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
   }
   const updatedTask = await httpRequest(options)
    if(payload.documents && payload.documents.length){
-    // getProjectNamesForES(payload.documents,host,userToken)
+    getProjectNamesForES(payload.documents,host,userToken)
    }
   // createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
@@ -1054,7 +1057,7 @@ export function importExcelAndFormatData(filePath: string) {
   return excelFormattedData
 }
 
-export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any, isCompliance = false) {
+export async function uploadTasksExcel(filePath: string, projectId: string, userToken: string, userObj: any,host: string, isCompliance = false) {
   const roleData: any = await role_list()
   const isEligible = await checkRoleScope(userObj.role, `upload-task-excel`)
   if (!isEligible) {
@@ -1067,7 +1070,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames, isCompliance))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj, isCompliance)))
-  const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
+  const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj,host)))
   if(isCompliance){
     await Promise.all(createdData.map((data, i) => createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
   }
@@ -1670,7 +1673,7 @@ export async function getFinancialInfoNew(projectId: string, userId: string, use
   }
 }
 
-export async function updateReleasedFundNew(projectId: string, payload: any, user: any,token:string) {
+export async function updateReleasedFundNew(projectId: string, payload: any, user: any,token:string,host:string) {
   const [isEligible, detail]: any = await Promise.all([
     checkRoleScope(user.role, `manage-project-released-fund`),
     ProjectSchema.findById(projectId).exec()
@@ -1710,11 +1713,11 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({ activityType: (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
-  // getProjectNamesForES(docsToUpdateInES,host,token)
+  getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 
-export async function updateUtilizedFundNew(projectId: string, payload: any, user: any,token:string) {
+export async function updateUtilizedFundNew(projectId: string, payload: any, user: any,token:string,host:string) {
   const [projectDetail, isEligible]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
@@ -1750,11 +1753,11 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({ activityType: (!currentObj || currentObj.utilized.deleted) ? ACTIVITY_LOG.ADDED_FUND_UTILIZATION: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: currentObj.utilized.amount, updatedCost: amount, activityBy: user._id })
-  // getProjectNamesForES(docsToUpdateInES,host,token)
+  getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 
-export async function deleteReleasedFundNew(projectId: string, payload: any, user: any,token:string) {
+export async function deleteReleasedFundNew(projectId: string, payload: any, user: any,token:string,host:string) {
   const [isEligible, detail]: any = await Promise.all([
     checkRoleScope(user.role, `manage-project-released-fund`),
     ProjectSchema.findById(projectId).exec()
@@ -1790,11 +1793,11 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   updates['funds.$.released.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id})
-  // getProjectNamesForES(docsToUpdateInES,host,token)
+  getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 
-export async function deleteUtilizedFundNew(projectId: string, payload: any, user: any,token:string) {
+export async function deleteUtilizedFundNew(projectId: string, payload: any, user: any,token:string,host:string) {
   const [projectDetail, isEligible]: any = await Promise.all([
     ProjectSchema.findById(projectId).exec(),
     checkRoleScope(user.role, `manage-project-utilized-fund`)
@@ -1826,7 +1829,7 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   updates['funds.$.utilized.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id})
-  // getProjectNamesForES(docsToUpdateInES,host,token)
+  getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }
 
@@ -1935,6 +1938,18 @@ export async function backGroudJobForPhase(projectIds:any){
   }))
   return projectsInfo
 }
+
+export async function backGroudJobForPhaseDocs(projectIds:any){
+  let projectsInfo = await Promise.all(projectIds.map(async(id:any)=>{
+    let phases: any= await listPhasesOfProject(id);
+    let matchedPhase = phases&&phases.length?phases.filter((phase:any)=>(
+      new Date(phase.startDate) <= new Date() && new Date(phase.endDate) > new Date())
+      ):null
+    return matchedPhase && matchedPhase.length ? matchedPhase[0].phase.phaseName: null
+  }))
+  return projectsInfo
+}
+
 
 export async function getProjectMemberIds(projectId: string) {
   const detail:any = await ProjectSchema.findById(projectId).exec()
