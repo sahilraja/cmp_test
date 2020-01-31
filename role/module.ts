@@ -8,7 +8,7 @@ import { init } from '../utils/role_management';
 import { APIError } from "../utils/custom-error";
 import { checkRoleScope } from '../utils/role_management'
 import { USER_ROUTER } from "../utils/error_msg";
-
+import {  addRoleNotification } from "../notifications/module"
 // Get Roles List
 export async function role_list() {
     let roles = await roleSchema.find()
@@ -322,6 +322,7 @@ export async function addRole(userId: string, bodyObj: any) {
             category: bodyObj.category,
             createdBy: userId
         });
+        addRoleNotification(role);
         return { success: true, response };
 
     } catch (err) {

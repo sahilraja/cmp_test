@@ -46,7 +46,8 @@ export async function addRoleNotification(roleName: any) {
                 templateName: template.templateName,
                 displayName: template.displayName,
                 email: false,
-                mobile: false
+                mobile: false,
+                category: template.category || null
             })
         })
         return await notificationSchema.create({ role: roleName, templates });
