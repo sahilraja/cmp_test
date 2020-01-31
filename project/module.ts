@@ -1980,7 +1980,7 @@ async function sendNotificationOnPhaseUpdate(projectId: string, userId: string) 
 
 export async function allDocsOfProjects(userToken:string){
   let allProjects:any = await ProjectSchema.find({}).exec();
-  let AllDocIds = await Promise.all(allProjects.map((project:any)=>{
+  let AllDocIds = await Promise.all(allProjects.map(async(project:any)=>{
     const options = {
       url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
       body: { projectId:project.id || project._id },
@@ -2006,7 +2006,7 @@ export async function allDocsOfProjects(userToken:string){
     let docsToUpdateInES = [...existingDocs, ...docIds ]
      docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
     return docsToUpdateInES;
-  })
+  }))
   // const options = {
   //   url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
   //   body: { projectId },
