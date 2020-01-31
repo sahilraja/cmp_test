@@ -1707,7 +1707,7 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   let updates: any = {}
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
   if(currentObj.utilized && !currentObj.utilized.deleted && currentObj.utilized.amount > releasedCost){
-    throw new APIError(PROJECT_ROUTER.UTILIZED_AMOUNT_EXCEED_RELEASED)
+    throw new APIError(PROJECT_ROUTER.RELEASED_AMOUNT_LESSTHAN_UTILIZED)
   }
   updates = { ...updates, modifiedAt: new Date(), releasedBy: user._id }
   // updates['funds.$.releasedDocuments'] = releasedDocuments
