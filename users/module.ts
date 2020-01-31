@@ -1087,8 +1087,7 @@ export async function changeMobileNumber(objBody: any, userData: any) {
             sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName: "invalidPassword", mobileTemplateName: "invalidPassword" });
             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
         }
-        let admin_scope = null
-        // await checkRoleScope(userData.role, "bypass-otp");
+        let admin_scope = await checkRoleScope(userData.role, "bypass-otp");
         if(admin_scope){ 
             await userEdit(userData._id, { phone: objBody.phone, countryCode: objBody.countryCode });
             userLog({ activityType: "USER-PHONE-UPADTE", activityBy: userData._id, profileId: userData._id })

@@ -595,7 +595,9 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
 }
 
 export async function taskProjectDetails(projectId: string) {
-  return project.findById(projectId).exec()
+  let projectDetail: any = await project.findById(projectId).exec()
+  const updatedProject = await mapPhases(projectDetail)
+  return {...updatedProject, phase: getCurrentPhase(updatedProject)}
 };
 
 export async function linkTask(projectId: string, taskId: string, userToken: string, userId: string) {

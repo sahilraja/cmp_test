@@ -2154,19 +2154,14 @@ export async function suggestTags(docId: string, body: any, userId: string) {
 
 async function userInfo(docData: any) {
   try {
-    const [tags, user, role] = await Promise.all([
-      getTags(docData.tags && docData.tags.length),
-      userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, is_active: 1 }),
-      userRoleAndScope(docData.userId)
-    ]) 
-    return {
-      ...docData,
-      tags: tags ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [],
-      user,
-      role: (role as any).data[0]
-    };
+      return {
+          ...docData,
+          tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
+          user: await userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }),
+          role: await formateRoles(((await userRoleAndScope(docData.userId)) as any).data[0])
+      };
   } catch (err) {
-    throw err;
+      throw err;
   }
 }
 
