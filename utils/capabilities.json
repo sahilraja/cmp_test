@@ -212,7 +212,7 @@
   {
     "capability": "create-folder",
     "shortDescription": "Create/Delete Folder",
-    "description": "Ability to create and delete a folder",
+    "description": "Ability to create & delete a folder",
     "category": "Document Management",
     "scope": "global"
   },
@@ -499,7 +499,7 @@
   {
     "capability": "view-user-contact-details",
     "shortDescription": "View User Contact Details",
-    "description": "Ability to view phone number and Email details",
+    "description": "Ability to view phone number & Email details",
     "scope": "global",
     "category": "User Management"
   },
@@ -568,10 +568,10 @@
   },
   {
     "capability":"view-risks-opportunities",
-    "shortDescription":"View Risks and Opportunities",
+    "shortDescription":"View Risks & Opportunities",
     "category":"Project Management",
     "scope":"global",
-    "description":"Ability to View Risks and Opportunities"
+    "description":"Ability to View Risks & Opportunities"
   },
   {
     "capability":"edit-task-completed-date",
