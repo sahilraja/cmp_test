@@ -2160,14 +2160,14 @@ export async function suggestTags(docId: string, body: any, userId: string) {
 
 async function userInfo(docData: any) {
   try {
-    return {
-      ...docData,
-      tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
-      user: await userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, is_active: 1 }),
-      role: ((await userRoleAndScope(docData.userId)) as any).data[0]
-    };
+      return {
+          ...docData,
+          tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
+          user: await userFindOne("id", docData.userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }),
+          role: await formateRoles(((await userRoleAndScope(docData.userId)) as any).data[0])
+      };
   } catch (err) {
-    throw err;
+      throw err;
   }
 }
 
@@ -2382,7 +2382,7 @@ export async function mailAllCmpUsers(type: string, docDetails: any, allcmp: boo
       let userIds = docInvited.filter((obj: any) => obj.type == "user").map(({ id }: any) => id)
       let groupIds = docInvited.filter((obj: any) => obj.type == "group").map(({ id }: any) => id)
       let groupUsers = await Promise.all(groupIds.map((group: string) => groupUserList(group)));
-      userIds = userIds.concat(groupUsers.reduce((main: any[], curr: any) => main.concat(curr), []))
+      userIds = userIds.concat(groupUsers.reduce((main: any[], curr: any) => main.concat(curr), [])).filter((userId: string) => userId != actionUser)
       users = await userFindMany("_id", userIds, selectFields);
       if (type == "invitePeopleDoc" || type == "invitePeopleEditDoc" || type == "invitePeopleRemoveDoc") {
         let actionedUsers = users.filter((user: any) => text.some((acUser: any) => acUser.id == user._id)).map((user: any) => `${user.firstName} ${user.middleName || ""} ${user.lastName || ""}`)
