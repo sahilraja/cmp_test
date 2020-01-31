@@ -213,7 +213,7 @@
     "capability": "create-folder",
     "shortDescription": "Create/Delete Folder",
     "description": "Ability to create and delete a folder",
-    "category": "Folder Management",
+    "category": "Document Management",
     "scope": "global"
   },
   {
@@ -248,13 +248,13 @@
     "capability": "display-role-management",
     "shortDescription": "Display Role Management",
     "description": "Display Role Management",
-    "category": "Role Management",
+    "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "manage-project",
-    "shortDescription": "Manage Project",
-    "description": "Manage Project",
+    "shortDescription": "Manage Project (Edit Project Reference)",
+    "description": "Manage Project (Edit Project Reference)",
     "category": "Project Management",
     "scope": "global"
   },
@@ -290,21 +290,21 @@
     "capability": "create-group",
     "shortDescription": "create group",
     "description": "create group",
-    "category": "Group Management",
+    "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "edit-group",
     "shortDescription": "edit group",
     "description": "edit group",
-    "category": "Group Management",
+    "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "deactivate-group",
     "shortDescription": "deactivate group",
     "description": "deactivate group",
-    "category": "Group Management",
+    "category": "User Management",
     "scope": "global"
   },
   {
@@ -414,16 +414,16 @@
   },
   {
     "capability": "manage-compliance",
-    "shortDescription": "Manage Compliances",
-    "category": "Compliances",
+    "shortDescription": "Add/Edit Compliances",
+    "category": "Project Management",
     "description": "Manage Compliances",
     "scope": "global"
   },
   {
     "capability": "manage-risk-opportunity",
-    "shortDescription": "Risk & Opportunity Management",
-    "category": "Risk Management",
-    "description": "Risk Management",
+    "shortDescription": "Add/Edit Risk & Opportunity",
+    "category": "Project Management",
+    "description": "Ability to Add/Edit Risk & Opportunity",
     "scope": "global"
   },
   {
@@ -472,21 +472,21 @@
     "capability": "edit-template",
     "shortDescription": "Edit Template",
     "description": "Ability to edit template",
-    "category": "Template Management",
+    "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "display-template-management",
     "shortDescription": "Display Template Management",
     "description": "Display Template Management ",
-    "category": "Template Management",
+    "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "patterns-management",
     "shortDescription": "patterns Management",
     "description": "Ability to create patterns",
-    "category": "Template Management",
+    "category": "User Management",
     "scope": "global"
   },
   {
