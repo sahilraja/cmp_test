@@ -1061,6 +1061,12 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any,
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
   // }
   // taskObj.approvers = Object.keys(taskObj).filter(key => key == `approvers`).map
+  const allRoles = memberRoles.reduce((p: any[],c) => [...p, ...c.key] ,[])
+  const duplicateRoles = allRoles.filter((v,i,a) => a.indexOf(v) !== i)
+  const allRolesFromTask = [...(taskObj.approvers || []), ...(taskObj.endorsers || []), ...(taskObj.viewers || []), taskObj.assignee]
+  if(allRolesFromTask.some((role) => duplicateRoles.includes(role))){
+    throw new APIError(`Duplicate members found`)
+  }
   const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
   const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
   const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
