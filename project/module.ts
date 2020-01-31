@@ -1977,3 +1977,43 @@ async function sendNotificationOnPhaseUpdate(projectId: string, userId: string) 
   })))
   return
 }
+
+export async function allDocsOfProjects(userToken:string){
+  let allProjects:any = await ProjectSchema.find({}).exec();
+  let AllDocIds = await Promise.all(allProjects.map((project:any)=>{
+    const options = {
+      url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
+      body: { projectId:project.id || project._id },
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${userToken}` },
+      json: true
+    }
+    let docIds :any= await httpRequest(options) 
+    const projectData: any = await ProjectSchema.findById(project.id || project._id ).exec();
+    const { funds } = projectData.toJSON()
+    let fundsReleased:any = [];
+    let fundsUtilized:any = [];
+    let fundsInfo:any = await Promise.all(funds.map((fund:any)=>{
+      let releasedDocuments = fund.released && fund.released.length?fund.released.map((fundInfo:any)=>{
+         fundsReleased.push(fundInfo.documents && fundInfo.documents.length? fundInfo.documents: [])
+      }):[];
+      let utilizedDocuments = fund.utilized && fund.utilized.length?fund.utilized.map((fundInfo:any)=>{
+        fundsUtilized.push(fundInfo.documents && fundInfo.documents.length? fundInfo.documents: [])
+     }):[];
+    }))
+    let fundsDocuments = [...fundsReleased, ...fundsUtilized]
+    const existingDocs = fundsDocuments.reduce((a:any, b:any) => a.concat(b), []);
+    let docsToUpdateInES = [...existingDocs, ...docIds ]
+     docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
+    return docsToUpdateInES;
+  })
+  // const options = {
+  //   url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
+  //   body: { projectId },
+  //   method: 'POST',
+  //   headers: { 'Authorization': `Bearer ${userToken}` },
+  //   json: true
+  // }
+  // let docIds :any= await httpRequest(options)  
+
+}
