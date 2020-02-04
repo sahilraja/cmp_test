@@ -121,7 +121,7 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
         $push: { doc_id: doc.id }
       })
     }
-    await createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
+     createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
     // const insertDoc = async function(indexName, _id, mappingType, data){
     let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
     let userName;
@@ -193,7 +193,7 @@ export async function createDoc(body: any, userId: string) {
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     let response: any = await insertDOC(body, userId);
-    await createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc.id })
+     createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc.id })
     return { doc_id: doc.id };
   } catch (error) {
     throw error;
@@ -521,7 +521,7 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
     let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
     let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1, city: 1, reference: 1, phases:1 }).exec()
     projectDetails = (await Promise.all(projectDetails.map(project => mapPhases(project)))).map(project =>({...project, phase: getCurrentPhase(project) || {}}))
-    await createActivityLog({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
+    createActivityLog({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,
       owner: { ...ownerObj, role: await formateRoles((ownerRole.data || [""])[0]) },
@@ -640,7 +640,7 @@ export async function updateDoc(objBody: any, docId: any, userId: string,host:st
 
 export async function cancelUpdate(docId: string, userId: string) {
   try {
-    await createActivityLog({ activityType: `CANCEL_UPDATED`, activityBy: userId, documentId: docId })
+     createActivityLog({ activityType: `CANCEL_UPDATED`, activityBy: userId, documentId: docId })
     return { success: true }
   } catch (err) {
     throw err;
@@ -713,7 +713,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       });
       const message = `${_document.name != parent.name ? "name" : ""}${(_document.description != null && _document.description != parent.description) ? _document.name != parent.name ? (_document.fileId != parent.fileId ? ", description" : " and description") : "description" : ""}${_document.fileId != parent.fileId ? (_document.description != null && _document.description != parent.description) ? " and file" : _document.name != parent.name ? " and file" : "file" : ""}`
       mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-      await createActivityLog({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId, message })
+       createActivityLog({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId, message })
     } else {
       await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
@@ -727,20 +727,20 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         const removedMessage = removedTagNames.lastIndexOf(",") == -1 ? `${removedTagNames} tag removed` : `${removedTagNames.slice(0, removedTagNames.lastIndexOf(",")) + " and " + removedTagNames.slice(removedTagNames.lastIndexOf(",") + 1)} tags removed`
         const message = addMessage + "and" + removedMessage;
         mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-        await createActivityLog({ activityType: `TAGS_ADD_AND_REMOVED`, activityBy: userId, documentId: docId, tagsAdded: addtags, tagsRemoved: removedtags })
+         createActivityLog({ activityType: `TAGS_ADD_AND_REMOVED`, activityBy: userId, documentId: docId, tagsAdded: addtags, tagsRemoved: removedtags })
       } else {
         if (addtags.length) {
           let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
           // const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
           const message = `tag`
           mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-          await createActivityLog({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
+          createActivityLog({ activityType: `TAGS_ADDED`, activityBy: userId, documentId: docId, tagsAdded: addtags })
         }
         if (removedtags.length) {
           let tags = ((await Tags.find({ "_id": { $in: removedtags } })).map(({ tag }: any) => tag)).join(",")
           const message = tags.lastIndexOf(",") == -1 ? `${tags} tag` : `${tags.slice(0, tags.lastIndexOf(",")) + " and " + tags.slice(tags.lastIndexOf(",") + 1)} tags`
           // mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-          await createActivityLog({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
+          createActivityLog({ activityType: `TAGS_REMOVED`, activityBy: userId, documentId: docId, tagsRemoved: removedtags })
         }
       }
     }
@@ -1203,7 +1203,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
     //   }
     // }
 
-    await createActivityLog({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
+    createActivityLog({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     mailAllCmpUsers("invitePeopleDoc", doc, false, userId, addUsers)
     updateOrCreateDocInElasticSearch(docId,host,token)
     return { message: "Shared successfully." };
@@ -1243,7 +1243,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
       }
     }
     await groupsAddPolicy(`${type}/${userId}`, docId, role);
-    await createActivityLog({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
+    createActivityLog({ activityType: `MODIFIED_${type}_SHARED_AS_${role}`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentAddedUsers: [{ id: userId, type: type, role: role }] })
     // mailAllCmpUsers("invitePeopleEditDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
     return { message: "Edit user successfully." };
   } catch (err) {
@@ -1263,7 +1263,7 @@ export async function invitePeopleRemove(docId: string, userId: string, type: st
     let userRole = await documnetCapabilities(docId, userObj._id)
     if (!userRole.includes("owner")) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY)
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
-    await createActivityLog({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
+     createActivityLog({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     // mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
     // if (type == 'user') {
     //   let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
@@ -1534,7 +1534,7 @@ export async function unPublished(docId: string, userObj: any,host: string,token
       throw new APIError(DOCUMENT_ROUTER.UNPUBLISH_PUBLIC_DOCUMENT)
     }
     let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
-    await createActivityLog({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
+     createActivityLog({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
     // let isDocExists = await checkDocIdExistsInEs(docId)
     // if (isDocExists) {
     //   let updatedData = esClient.update({
@@ -1567,7 +1567,7 @@ export async function replaceDoc(docId: string, replaceDoc: string, userObj: any
       let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
       documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
       let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, host,token, false)
-      await createActivityLog({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
+       createActivityLog({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success, true, userObj._id)
       // let isDocExists =await checkDocIdExistsInEs(docId)
       // if (isDocExists) {
@@ -1936,7 +1936,7 @@ export async function deleteDoc(docId: any, userId: string) {
     }
     if (findDoc.status == 2) throw new Error(DOCUMENT_ROUTER.PUBLISH_CANT_BE_DELETE)
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
-    await createActivityLog({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
+     createActivityLog({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
     let isDocExists = await checkDocIdExistsInEs(docId)
     if (isDocExists) {
       let deleted = esClient.delete({
@@ -2145,7 +2145,7 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      await createActivityLog({ activityType: "SUGGEST_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags })
+       createActivityLog({ activityType: "SUGGEST_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags })
       webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
       sendNotification({ id: doc.ownerId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       return {
@@ -2221,7 +2221,7 @@ export async function approveTags(docId: string, body: any, userId: string,host:
       updateOrCreateDocInElasticSearch(docId,host,token)
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        await createActivityLog({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tagIdToAdd })
+       createActivityLog({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tagIdToAdd })
         webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
@@ -2272,7 +2272,7 @@ export async function approveTags(docId: string, body: any, userId: string,host:
       updateOrCreateDocInElasticSearch(docId,host,token)
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        await createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_APPROVED", activityBy: userId, documentId: docId, tagsRemoved: body.tags })
+         createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_APPROVED", activityBy: userId, documentId: docId, tagsRemoved: body.tags })
         webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveRemoveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
@@ -2323,7 +2323,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        await createActivityLog({ activityType: "SUGGEST_TAGS_ADD_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
+         createActivityLog({ activityType: "SUGGEST_TAGS_ADD_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
         webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
@@ -2356,7 +2356,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        await createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
+         createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
         webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
@@ -2524,7 +2524,7 @@ export async function requestAccept(requestId: string, userObj: any) {
     } else {
       throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
     }
-    await createActivityLog({ activityType: "REQUEST_APPROVED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
+     createActivityLog({ activityType: "REQUEST_APPROVED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
     webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestApproved(requestDetails.docId.name), from: userObj._id })
     if (addedCapability && addedCapability.user.length) {
       await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
@@ -2542,7 +2542,7 @@ export async function requestDenied(requestId: string, userObj: any) {
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let success = await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
-    await createActivityLog({ activityType: "REQUEST_DENIED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
+     createActivityLog({ activityType: "REQUEST_DENIED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
     webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestRejected(requestDetails.docId.name), from: userObj._id })
     return success
   } catch (err) {
@@ -2557,7 +2557,7 @@ export async function requestRaise(docId: string, userId: string) {
     if (!docDetails || docDetails.parentId || docDetails.status == 2) throw new Error(DOCUMENT_ROUTER.INVALID_FILE_ID)
     let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
     if (existRequest) throw new Error(DOCUMENT_ROUTER.ALREADY_REQUEST_EXIST)
-    await createActivityLog({ activityType: "REQUEST_DOCUMENT", activityBy: userId, documentId: docId })
+     createActivityLog({ activityType: "REQUEST_DOCUMENT", activityBy: userId, documentId: docId })
     // webNotification({ notificationType: `DOCUMENTS`, userId: docDetails.owner, docId: docId, title: DOC_NOTIFICATIONS.documentRequest(docDetails.name), from: userId })
     return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
@@ -2643,7 +2643,7 @@ async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: stri
       if (newOwnerCapabilityNumber) await groupsRemovePolicy(`user/${newOwnerId}`, doc._id, addingUserCapability[0])
       await groupsAddPolicy(`user/${newOwnerId}`, doc._id, existingUserCapability[0])
     }
-    await createActivityLog({
+     createActivityLog({
       activityType: "REPLACE_USER",
       activityBy: userObj._id,
       documentId: doc._id,
