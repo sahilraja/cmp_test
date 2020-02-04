@@ -2869,6 +2869,7 @@ export async function searchDoc(search: string, userId: string, page: number = 1
         groupId: doc._source.groupId,
         groupName: doc._source.groupName,
         createdByMe: doc._source.createdBy == userId,
+        projectId: doc._source.projectId,
         projectName: doc._source.projectName,
         city: doc._source.city,
         reference: doc._source.reference,
@@ -3195,10 +3196,11 @@ async function getShareInfoForEachDocument(doc: any, host: string,token:string) 
     // projectName: [],
     // city: [],
     // reference: [],
+    projectId:projectDetails&& projectDetails.projectId?projectDetails.projectId:[], 
     projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
     city: projectDetails&& projectDetails.city?projectDetails.city:[],
     reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
-    phases: []
+    phases: projectDetails&& projectDetails.phases?projectDetails.phases:[],
   }
 }
 
@@ -3581,7 +3583,7 @@ async function updateOrCreateDocInElasticSearch(docId: string, host: string,toke
     // projectName: [],
     // city: [],
     // reference: [],
-    projectId:projectDetails&& projectDetails.projectName?projectDetails.projectName:[], 
+    projectId:projectDetails&& projectDetails.projectId?projectDetails.projectId:[], 
     projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
     city: projectDetails&& projectDetails.city?projectDetails.city:[],
     reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
@@ -3610,4 +3612,45 @@ async function updateOrCreateDocInElasticSearch(docId: string, host: string,toke
         id: doc.id
       });
     }
+}
+export async function updateProjectPhaseInDocs(projectId: any,phase: string) {
+        let updated = esClient.updateByQuery({
+            index: `${ELASTIC_SEARCH_INDEX}_documents`,
+            body: {
+                "query": { "match": { "projectId": projectId } },
+                "script": {
+                    "source": "ctx._source.phases=(params.phase)",
+                    "lang": "painless",
+                    "params": {
+                        "phase": phase
+                    }
+                }
+            }
+        })
+        return updated
+}
+
+export async function backgroundJobForDocumentPhases(token:string) {
+  const docs:any = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
+ 
+  let docsUpdate = await Promise.all(docs.map(async(doc:any)=>{
+    let idExist = await checkDocIdExistsInEs(doc.id)
+    if (idExist) {
+    let projectDetails = await getProjectDetailsForES(doc.id,token)
+    let phases= projectDetails&& projectDetails.phases?projectDetails.phases:[]
+    return  esClient.update({
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      id: doc.id,
+      body: {
+          "script": {
+              "source": `ctx._source.phases=(params.phases)`,
+              "lang": "painless",
+              "params": {
+                phases: phases
+              }
+          }
+        }
+    })
+  }
+  }))
 }

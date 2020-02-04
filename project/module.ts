@@ -14,7 +14,7 @@ import { userFindMany, userFindOne, userList } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { updateProjectTasks } from "../utils/utils"
 import { create as createLog } from "../log/module";
-import { documentsList, updateUserInDOcs,getProjectNamesForES } from "../documents/module";
+import { documentsList, updateUserInDOcs,getProjectNamesForES,updateProjectPhaseInDocs } from "../documents/module";
 import { unlinkSync, readFileSync, writeFileSync } from "fs";
 import { extname, join } from "path";
 import * as xlsx from "xlsx";
@@ -83,7 +83,7 @@ export async function projectInfo() {
   }
 }
 //  Edit city Code
-export async function editProject(id: any, reqObject: any, user: any,token:string) {
+export async function editProject(id: any, reqObject: any, user: any,token:string,host:string) {
   try {
     if (!id || !user) throw new Error(MISSING);
     let obj: any = {};
@@ -127,7 +127,7 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
     const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
     let phases= await listPhasesOfProject(id);
     let updateTasksInElasticSearch = updateProjectTasks({projectId:id,phases},token);
-    let tasksDocIds =  editProjectInDocsES(id,token);
+    let tasksDocIds =  editProjectInDocsES(id,token,host);
     return updatedProject
   } catch (err) {
     console.error(err);
@@ -135,7 +135,7 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
   }
 }
 
-export async function editProjectInDocsES(projectId:string,userToken:string){
+export async function editProjectInDocsES(projectId:string,userToken:string,host:string){
   const options = {
     url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
     body: { projectId },
@@ -160,7 +160,7 @@ export async function editProjectInDocsES(projectId:string,userToken:string){
   const existingDocs = fundsDocuments.reduce((a:any, b:any) => a.concat(b), []);
   let docsToUpdateInES = [...existingDocs, ...docIds ]
    docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
-  return docsToUpdateInES;
+  return getProjectNamesForES(docsToUpdateInES,host,userToken)
 }
 export async function RemoveProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
   try {
@@ -1924,12 +1924,19 @@ export async function getStates() {
   // return cities
 }
 
-export async function editProjectPhaseInES(phaseId:string,token:string){
+export async function editProjectPhaseInES(phaseId:string,token:string,host: string){
   const projects:any = await ProjectSchema.find({'phases.phase':phaseId}).exec();
   let projectIds =  Promise.all(projects.map(async(project:any)=>{
     let phases: any= await listPhasesOfProject(project.id || project._id);
+    let matchedPhase = phases&&phases.length?phases.filter((phase:any)=>(
+      new Date(phase.startDate) <= new Date() && new Date(phase.endDate) > new Date())
+      ):null
+      let phase= matchedPhase && matchedPhase.length ? matchedPhase[0].phase.phaseName: null
     let updateTasksInElasticSearch = updateProjectTasks({projectId:project.id || project._id,phases},token);
+    let tasksDocIds =  editProjectInDocsES(project.id || project._id,token,host);
+    // let updateProjectsInElasticSearch = updateProjectPhaseInDocs({projectId:project.id || project._id,phase:phase});
   }))
+  
   return projectIds
 }
 

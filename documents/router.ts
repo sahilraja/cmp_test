@@ -68,7 +68,7 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc, updateUserInDOcs,
-  createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList,getProjectNamesForES
+  createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList,getProjectNamesForES,backgroundJobForDocumentPhases
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -920,6 +920,14 @@ router.post(`/bulk-document/upload`, authenticate, siteConstants, upload.single(
 router.post("/project-info-for-docs", authenticate, async (req, res, next: NextFunction) => {
   try {
     res.status(200).send(await getProjectNamesForES(req.body.docIds,`${req.protocol}://${req.get('host')}`,(req as any).token));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.get("/background", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await  backgroundJobForDocumentPhases((req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
