@@ -68,7 +68,7 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc, updateUserInDOcs,
-  createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList,getProjectNamesForES
+  createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList,getProjectNamesForES,backgroundJobForDocumentPhases
 } from "./module";
 
 import { get as httpGet } from "http";
@@ -285,7 +285,7 @@ router.post("/add-user-capabilities", authenticate, async (req, res, next) => {
 
 router.post("/add-user-capabilities-new", authenticate, async (req, res, next) => {
   try {
-    res.status(200).send(await shareDocForUsersNew(req.body, res.locals.user))
+    res.status(200).send(await shareDocForUsersNew(req.body, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token))
   } catch (err) {
     next(new APIError(err.message));
   };
@@ -551,7 +551,7 @@ router.get(
 //  invite user
 router.post("/:id/share", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id));
+    res.status(200).send(await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -580,7 +580,7 @@ router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next:
 router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, next: NextFunction) => {
   try {
     const { id, type, userId } = req.params;
-    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role, res.locals.user));
+    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -600,7 +600,7 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await published(req.body, req.params.id, res.locals.user, host));
+    res.status(200).send(await published(req.body, req.params.id, res.locals.user, host,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -609,7 +609,7 @@ router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) =
 //  update exist doc
 router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await unPublished(req.params.id, res.locals.user));
+    res.status(200).send(await unPublished(req.params.id, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -634,7 +634,7 @@ router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
 router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body, host));
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body, host,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -653,7 +653,7 @@ router.get("/:id/cancel", authenticate, ensureCanEditDocument, async (req, res, 
 //  update exist doc
 router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id));
+    res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -663,7 +663,7 @@ router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: 
 router.post("/:id/new", authenticate, ensureCanEditDocument, siteConstants, async (req: any, res, next: NextFunction) => {
   try {
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
-    res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id, req.siteConstants));
+    res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id, req.siteConstants,`${req.protocol}://${req.get('host')}`,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -788,7 +788,7 @@ router.post("/:docId/suggest/tags/addOrRemove", authenticate, async (req, res, n
 
 router.post("/:docId/approve/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await approveTags(req.params.docId, req.body, res.locals.user._id));
+    res.status(200).send(await approveTags(req.params.docId, req.body, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -887,7 +887,7 @@ router.get("/search/doc", authenticate, async (req, res, next: NextFunction) => 
 
 router.post("/update/userDocs", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await updateUserInDOcs(req.body, res.locals.user._id));
+    res.status(200).send(await updateUserInDOcs(req.body, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -917,9 +917,17 @@ router.post(`/bulk-document/upload`, authenticate, siteConstants, upload.single(
   };
 });
 
-router.post("/project-info-for-docs", authenticate, async (req:any, res, next: NextFunction) => {
+router.post("/project-info-for-docs", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getProjectNamesForES(req.body.docIds, req.token));
+    res.status(200).send(await getProjectNamesForES(req.body.docIds,`${req.protocol}://${req.get('host')}`,(req as any).token));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.get("/background", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await  backgroundJobForDocumentPhases((req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }

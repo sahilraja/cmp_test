@@ -26,7 +26,7 @@ router.get(`/getPhase/:id`, async (req, res, next) => {
 
 router.put('/edit/:id', async (req, res, next) => {
     try {
-        res.status(OK).send(await editPhase(req.params.id, req.body, res.locals.user,(req as any).token));
+        res.status(OK).send(await editPhase(req.params.id, req.body, res.locals.user,(req as any).token, `${req.protocol}://${req.get('host')}`));
     } catch (error) {
         if (error.code == 11000) {
             error.message = `Phase already exists`

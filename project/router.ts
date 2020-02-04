@@ -8,7 +8,8 @@ import {
     addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments,
      getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, 
      editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments, addFunds, getFinancialInfoNew, 
-     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo,backGroudJobForPhase, getProjectMemberIds
+     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo,backGroudJobForPhase,
+    getProjectMemberIds
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -117,7 +118,7 @@ router.get(`/:id/gantt-chart`, async (req, res, next) => {
 //  Edit Project
 router.post("/:id/edit", async (req: any, res: any, next: any) => {
     try {
-        res.status(OK).send(await editProject(req.params.id, req.body, res.locals.user,req.token))
+        res.status(OK).send(await editProject(req.params.id, req.body, res.locals.user,req.token,`${req.protocol}://${req.get('host')}`))
     } catch (err) {
         if (err.code == 11000) {
             err.message = `Reference code already exists`
@@ -314,7 +315,7 @@ router.put("/theme/status/:id", async (req: any, res: any, next: any) => {
 // add task
 router.post("/:id/create-task", async (req, res, next) => {
     try {
-        res.status(OK).send(await createTask(req.body, req.params.id, (req as any).token, res.locals.user))
+        res.status(OK).send(await createTask(req.body, req.params.id, (req as any).token, res.locals.user,`${req.protocol}://${req.get('host')}`))
     } catch (err) {
         next(new APIError(err.message));
     }
@@ -339,7 +340,7 @@ router.get(`/:id/task/:task_id/view`, async (req, res, next) => {
 
 router.post(`/:id/task/:task_id/edit-date`, async (req, res, next) => {
     try {
-        res.status(OK).send(await editTask(req.params.id, req.params.task_id, res.locals.user, (req as any).token, req.body))
+        res.status(OK).send(await editTask(req.params.id, req.params.task_id, res.locals.user, (req as any).token, req.body,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -437,7 +438,7 @@ const upload = multer({ storage })
 
 router.post(`/:id/upload-task-excel`, upload.single('upfile'), async (req, res, next) => {
     try {
-        res.status(OK).send(await uploadTasksExcel(req.file.path, req.params.id, (req as any).token, res.locals.user))
+        res.status(OK).send(await uploadTasksExcel(req.file.path, req.params.id, (req as any).token, res.locals.user,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -491,7 +492,7 @@ router.get(`/:id/financial-info/new`, async (req, res, next) => {
 
 router.put(`/:id/update-released-fund/new`, async (req, res, next) => {
     try {
-        res.status(OK).send(await updateReleasedFundNew(req.params.id, req.body, res.locals.user,(req as any).token))
+        res.status(OK).send(await updateReleasedFundNew(req.params.id, req.body, res.locals.user,(req as any).token,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -499,7 +500,7 @@ router.put(`/:id/update-released-fund/new`, async (req, res, next) => {
 
 router.put(`/:id/update-utilized-fund/new`, async (req, res, next) => {
     try {
-        res.status(OK).send(await updateUtilizedFundNew(req.params.id, req.body, res.locals.user,(req as any).token))
+        res.status(OK).send(await updateUtilizedFundNew(req.params.id, req.body, res.locals.user,(req as any).token,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -507,7 +508,7 @@ router.put(`/:id/update-utilized-fund/new`, async (req, res, next) => {
 
 router.put(`/:id/delete-released-fund/new`, async (req, res, next) => {
     try {
-        res.status(OK).send(await deleteReleasedFundNew(req.params.id, req.body, res.locals.user,(req as any).token))
+        res.status(OK).send(await deleteReleasedFundNew(req.params.id, req.body, res.locals.user,(req as any).token,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(new APIError(error.message));
     }
@@ -515,7 +516,7 @@ router.put(`/:id/delete-released-fund/new`, async (req, res, next) => {
 
 router.put(`/:id/delete-utilized-fund/new`, async (req, res, next) => {
     try {
-        res.status(OK).send(await deleteUtilizedFundNew(req.params.id, req.body, res.locals.user,(req as any).token))
+        res.status(OK).send(await deleteUtilizedFundNew(req.params.id, req.body, res.locals.user,(req as any).token,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(new APIError(error.message));
     }
@@ -536,7 +537,4 @@ router.post(`/getCurrentPhases`, async (req, res, next) => {
         next(new APIError(error.message))
     }
 })
-
-
-
 export = router;

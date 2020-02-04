@@ -24,7 +24,7 @@ export async function tag_list(search: string) {
 }
 
 //  get list of tags
-export async function mergeTags(body: any, token: string, userId: string) {
+export async function mergeTags(body: any, token: string, userId: string,host:string) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
@@ -70,7 +70,7 @@ export async function mergeTags(body: any, token: string, userId: string) {
         tags: tags.map((tagData: any) => { return tagData.tag })
       }
     }))
-    let updateTagsInElasticSearch =  updateTagsInDOcs(val, userId)
+    let updateTagsInElasticSearch =  updateTagsInDOcs(val, token,host)
     await create({ activityType: "MERGED-TAG", activityBy: userId, mergedTag: body.mergeTag, tagsToMerge: tagData })
     return {
       status: true,
