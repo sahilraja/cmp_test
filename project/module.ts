@@ -124,7 +124,10 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
     if (reqObject.phases) {
       obj.phases = reqObject.phases
     }
-    const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
+    const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
+    if([`name`, `city`, `reference`, `state`].some((key: string) => updatedProject[key] != preProjectRecord[key])){
+      createLog({ activityType: ACTIVITY_LOG.PROJECT_UPDATED, activityBy: user._id, projectId: id })
+    }
     let phases= await listPhasesOfProject(id);
     let updateTasksInElasticSearch = updateProjectTasks({projectId:id,phases},token);
     let tasksDocIds =  editProjectInDocsES(id,token,host);
@@ -162,10 +165,21 @@ export async function editProjectInDocsES(projectId:string,userToken:string,host
    docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
   return getProjectNamesForES(docsToUpdateInES,host,userToken)
 }
+
+export async function AddProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
+  try {
+    const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $push: { members: userId } }, { new: true }).exec()
+    createLog({ activityType: ACTIVITY_LOG.MEMBER_ADDED, activityBy: loginUserId, projectId, addedUserIds:[userId], removedUserIds:[] })
+    return { success: true, project: updatedProject }
+  } catch (err) {
+    throw err
+  }
+}
+
 export async function RemoveProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
   try {
-    // let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
-    // if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
+    let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
+    if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
     const previousProjectData: any = await ProjectSchema.findById(projectId).exec()
     let members = previousProjectData.members.filter((id: any) => id != userId)
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
@@ -1347,7 +1361,8 @@ export async function editProjectMiscompliance(projectId: string, payload: any, 
     let obj: any = {};
     if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
     if ("miscomplianceProject" in payload) obj.miscomplianceProject = payload.miscomplianceProject
-    await project.findByIdAndUpdate(projectId, obj);
+    const beforeUpdated: any = await project.findByIdAndUpdate(projectId, obj);
+    createLogOnMiscomplianceUpdate(beforeUpdated, payload, userObj._id)
     return { message: `Saved successfully` }
   } catch (err) {
     throw err
@@ -1359,7 +1374,9 @@ export async function editTriPartiteDate(id: string, payload: any, user: any) {
   if (!isEligible) {
     throw new APIError(USER_ROUTER.INVALID_ADMIN)
   }
-  return await ProjectSchema.findByIdAndUpdate(id, { $set: { tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } } }, { new: true }).exec()
+  const updated: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } } }, { new: true }).exec()
+  createLog({activityType:ACTIVITY_LOG.TRIPART_DATE_UPDATED,projectId: id, activityBy: user._id})
+  return updated
 }
 
 export async function addPhaseToProject(projectId: string, payload: any,token:string, userId: string) {
@@ -1865,6 +1882,18 @@ export async function addInstallmentsNew(projectId: string, payload: any, user?:
     throw new APIError(PROJECT_ROUTER.PERCENTAGE_NOT_EXCEED)
   }
   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { funds: finalPayload } }, { new: true }).exec()
+  if(!projectDetail.funds.length){
+    // Installments added
+    createLog({activityType:ACTIVITY_LOG.INSTALLMENT_ADDED, activityBy:user._id, projectId})
+    return updated
+  }
+  if(projectDetail.funds.some((fund: any, i: number) => 
+    !finalPayload[i] || (fund.percentage != finalPayload[i].percentage) || (fund.phase != finalPayload[i].phase)
+  )){
+    // Installments updated
+    createLog({activityType:ACTIVITY_LOG.INSTALLMENT_UPDATED, activityBy:user._id, projectId})    
+    return updated
+  }
   return updated
 }
 
@@ -2014,6 +2043,7 @@ export async function allDocsOfProjects(userToken:string){
      docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
     return docsToUpdateInES;
   }))
+}
   // const options = {
   //   url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
   //   body: { projectId },
@@ -2023,4 +2053,45 @@ export async function allDocsOfProjects(userToken:string){
   // }
   // let docIds :any= await httpRequest(options)  
 
+async function createLogOnMiscomplianceUpdate(beforeUpdated: any, payload: any, userId: string) {
+  let logPayload: any = null
+  // createLog({activityType:ACTIVITY_LOG.TRIPART_DATE_UPDATED,projectId: id, activityBy: user._id})  
+  if (!beforeUpdated.miscomplianceSpv && payload.miscomplianceSpv) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.ADDED_MISCOMPLIANCE_SPV, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: ``, message: payload.miscomplianceSpv
+    }
+  } else if (!beforeUpdated.miscomplianceProject && payload.miscomplianceProject) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.ADDED_MISCOMPLIANCE_PROJECT, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: ``, message: payload.miscomplianceSpv
+    }
+  } else if (payload.miscomplianceSpv && (payload.miscomplianceSpv != beforeUpdated.miscomplianceSpv)) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.EDIT_MISCOMPLIANCE_SPV, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceSpv, message: payload.miscomplianceSpv
+    }
+  } else if(payload.miscomplianceProject && (beforeUpdated.miscomplianceProject != payload.miscomplianceProject)) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.EDIT_MISCOMPLIANCE_PROJECT, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceProject, message: payload.miscomplianceProject
+    }
+  } else if ((payload.miscomplianceSpv == "") && beforeUpdated.miscomplianceSpv){
+    logPayload = {
+      activityType: ACTIVITY_LOG.REMOVE_MISCOMPLIANCE_SPV, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceProject, message: payload.miscomplianceProject
+    }
+  }
+  else if ((payload.miscomplianceProject == "") && beforeUpdated.miscomplianceProject){
+    logPayload = {
+      activityType: ACTIVITY_LOG.REMOVE_MISCOMPLIANCE_PROJECT, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceProject, message: payload.miscomplianceProject
+    }
+  } else {
+    logPayload = null
+  }
+  if(logPayload){
+    createLog(logPayload)
+  }
+  return
 }

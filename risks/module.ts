@@ -1,11 +1,11 @@
 import { RiskSchema } from "./model";
 import { checkRoleScope } from "../utils/role_management";
 import { APIError } from "../utils/custom-error";
-import { RISK } from "../utils/error_msg";
+import { RISK, ACTIVITY_LOG } from "../utils/error_msg";
 import { userFindOne } from "../utils/users";
 import { dateDifference } from "../utils/utils";
 import { formateRoles, roleFormanting, userFindManyWithRole } from "../users/module";
-
+import { create as createLog } from "../log/module";
 export async function create(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
     if (!isEligible) {
@@ -65,8 +65,10 @@ export async function riskSaveAll(projectId: string, updateObjs: any[], userObj:
 async function saveaAll(riskObj: any, projectId: string, userObj: any) {
     try {
         if ("_id" in riskObj || "id" in riskObj) {
+            const {riskCriticality, phase, riskPrevTrend, showDeleteIcon, showHistoryIcon, dateRaised, ...others} = riskObj
             const oldObject: any = await RiskSchema.findById(riskObj._id || riskObj.id).exec();
-            if (Object.keys(riskObj).some(key => riskObj[key] != oldObject[key])) {
+            if (Object.keys(others).some(key => others[key] != oldObject[key]) || 
+            phase.some((_phase: string) => !(oldObject.phase || []).map((p: any) => p.toString()).includes(_phase))) {
                 if (!riskObj.riskTrend && riskObj.riskTrend != 0) {
                     riskObj.riskTrend = 0
                 } else {
@@ -82,11 +84,13 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
                     if (oldObject.probability != riskObj.probability)
                         riskObj['previousTrend'] = oldObject.impact * oldObject.probability;
                 let riskDetails: any = await RiskSchema.findByIdAndUpdate(riskObj._id || riskObj.id, { $set: riskObj }, { new: true }).exec()
+                createLog({projectId, riskOpportunityNumber:riskDetails.riskNumber, activityBy: userObj._id, activityType:ACTIVITY_LOG.RISK_UPDATED, opportunityId: riskDetails._id})
                 const {createdAt, updatedAt, ...others} = riskDetails.toJSON()
                 await RiskSchema.create({ ...others, projectId, parentId: riskDetails._id, updatedAt: new Date() })
             };
         } else {
-            let risk = await RiskSchema.create({ ...riskObj, projectId, createdBy: userObj._id });
+            let risk: any = await RiskSchema.create({ ...riskObj, projectId, createdBy: userObj._id });
+            createLog({projectId, riskOpportunityNumber:risk.riskNumber, activityBy: userObj._id, activityType:ACTIVITY_LOG.RISK_CREATED, riskId: risk._id})
             await RiskSchema.create({ ...riskObj, parentId: risk._id, projectId, createdBy: userObj._id })
         }
         return true

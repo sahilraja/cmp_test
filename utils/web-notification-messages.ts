@@ -33,6 +33,9 @@ export const USER_PROFILE = {
 }
 
 export const PROJECT_NOTIFICATIONS = {
+    TRIPART_DATE_UPDATED:(projectName: string) => `Tripart date has been updated for the project ${projectName}`,
+    MIS_COMPLIANCE_UPDATED:(projectName: string) => `Miscompliance has been updated for the project ${projectName}`,
+    // RISK_CREATED:(projectName: string) => ``,
     PHASES_UPDATED:(projectName: string) => `Phases has been updated for the project ${projectName}`,
     MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`
 }
