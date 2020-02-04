@@ -1126,18 +1126,18 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any,
   if (!assigneeId) {
     throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
   }
-  if (!taskObj.pillarId){
+  if (!taskObj.isCompliance && !taskObj.pillarId){
     throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
   }
-  if (!taskObj.stepId){
+  if (!taskObj.isCompliance && !taskObj.stepId){
     throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
   }
   if (taskObj.pillarId) taskObj.pillarId = (await PillarSchema.findOne({ name: taskObj.pillarId }).exec() as any || { _id: undefined })._id || undefined
   if (taskObj.stepId) taskObj.stepId = (await StepsSchema.findOne({ name: taskObj.stepId }).exec() as any || { _id: undefined })._id || undefined
-  if(!taskObj.stepId){
+  if(!taskObj.isCompliance && !taskObj.stepId){
     throw new APIError(TASK_ERROR.INVALID_STEP)
   }
-  if(!taskObj.pillarId){
+  if(!taskObj.isCompliance && !taskObj.pillarId){
     throw new APIError(TASK_ERROR.INVALID_PILLAR)
   }
   taskObj = {
@@ -1233,6 +1233,7 @@ function validateObject(data: any, roleNames: any, isCompliance: boolean) {
     assignee: data.Assignee,
     viewers,
     approvers,
+    isCompliance,
     endorsers,
     stepId: data.Step,
     pillarId: data.Pillar,
