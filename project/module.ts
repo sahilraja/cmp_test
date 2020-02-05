@@ -30,6 +30,8 @@ import { UNAUTHORIZED } from "http-status-codes";
 import { createCompliance } from "./compliances/module";
 import { create as webNotification } from "../socket-notifications/module"
 import { PROJECT_NOTIFICATIONS } from "../utils/web-notification-messages";
+import { RiskSchema } from "../risks/model";
+import { OpportunitySchema } from "./opportunities/model";
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
   try {
@@ -168,6 +170,10 @@ export async function editProjectInDocsES(projectId:string,userToken:string,host
 
 export async function AddProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
   try {
+    const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+    if(projectDetail.members.includes(userId)){
+      throw new APIError(PROJECT_ROUTER.MEMBER_ALREADY_EXISTS)
+    }
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $push: { members: userId } }, { new: true }).exec()
     createLog({ activityType: ACTIVITY_LOG.MEMBER_ADDED, activityBy: loginUserId, projectId, addedUserIds:[userId], removedUserIds:[] })
     return { success: true, project: updatedProject }
@@ -199,6 +205,10 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
     if (success && !success.success) throw new Error(success)
     let members = [... new Set((ProjectData.members.filter((id: any) => id != objBody.oldUser)).concat([objBody.newUser]))]
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
+    Promise.all([
+      RiskSchema.updateMany({ projectId, riskOwner: objBody.oldUser }, { $set: { riskOwner: objBody.newUser } }, { multi: true }).exec(),
+      OpportunitySchema.updateMany({ projectId, opportunityOwner: objBody.oldUser }, { $set: { opportunityOwner: objBody.newUser } }, { multi: true }).exec()
+    ]) 
     return { message: "User replaced successfully." }
   } catch (err) {
     throw err
@@ -1088,13 +1098,16 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj, isCompliance)))
   let createdData: any[] = []
   for (const taskData in tasksDataWithIds){
-    let createdTask =await createTask(tasksDataWithIds[taskData], projectId, userToken, userObj, host)
-    createdData.push(createdTask)    
+    let data =await createTask(tasksDataWithIds[taskData], projectId, userToken, userObj, host)
+    createdData.push(data)  
+    if(isCompliance){
+      await createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[taskData]['Compliance Type']}, projectId, userObj)
+    }  
   }
   // const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
-  if(isCompliance){
-    await Promise.all(createdData.map((data, i) => createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
-  }
+  // if(isCompliance){
+  //   await Promise.all(createdData.map((data, i) => createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
+  // }
   // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
   return { message: 'Tasks uploaded successfully' }
 }
