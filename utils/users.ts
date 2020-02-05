@@ -51,7 +51,7 @@ export async function validateUserCurrentPassword(userId: string, password: stri
 };
 
 // user find One
-export async function userFindOne(key: string, value: string, selectFields?: any) {
+export async function userFindOne(key: string, value: any, selectFields?: any) {
     try {
         let Options = {
             uri: `${USERS_URL}/user/findOne`,
