@@ -23,8 +23,7 @@ const MSG_API_KEY = "301746A16myISu5dbc0bc7";//"9d67e9da3bXX"; //"301746A16myISu
 const SENDER_ID = "CMPIND";//"INFOSM";
 const ROUTE_NO = "4";
 const MSG_EXPIRE_OTP = 15;
-
-
+const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "http://localhost:4002"
 const msg = msg91(MSG_API_KEY, SENDER_ID, ROUTE_NO);
 const sendOtp = new SendOtp(MSG_API_KEY, 'Your Verification code is {{otp}}');
 
@@ -268,6 +267,59 @@ export async function updateProjectTasks(body: any, token: string) {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: body,
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };    
+
+  export async function createDocInElasticSearch(docId:string,host:string,token:string) {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/create`,
+        method: "POST",
+        body: {docId,host,token},
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };
+
+  export async function scriptInElasticSearch(host:string) {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/insert-all-docs?host=${host}`,
+        method: "GET",
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };
+
+  export async function searchInElasticSearch(queryObj:any) {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/search?search=${queryObj.search}&userId=${queryObj.userId}&page=${queryObj.page}&limit=${queryObj.limit}&pagination=${queryObj.pagination}&searchAllCmp=${queryObj.searchAllCmp}`,
+        method: "GET",
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };
+
+  export async function backGroundJobForPhasesInElasticSearch() {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/background/job`,
+        method: "GET",
         json: true
       }
       return await request(Options);

@@ -14,7 +14,7 @@ import { userFindMany, userFindOne, userList } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { updateProjectTasks } from "../utils/utils"
 import { create as createLog } from "../log/module";
-import { documentsList, updateUserInDOcs,getProjectNamesForES,updateProjectPhaseInDocs } from "../documents/module";
+import { documentsList, updateUserInDOcs,getProjectNamesForES } from "../documents/module";
 import { unlinkSync, readFileSync, writeFileSync } from "fs";
 import { extname, join } from "path";
 import * as xlsx from "xlsx";

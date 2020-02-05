@@ -1662,3 +1662,20 @@ export async function registerNewEmail(id:string,objBody: any,userId: string) {
         throw err
     }
 }
+export async function createRefreshToken(objBody:any) {
+    try {
+        return await RefreshTokenSchema.create({ userId: objBody.id, access_token: objBody.token, lastUsedAt: new Date() })
+    }
+    catch (err) {
+        throw err
+    }
+}
+
+export async function removeRefreshToken(objBody:any) {
+    try {
+        return await RefreshTokenSchema.remove({ userId: objBody.id, access_token: objBody.token})
+    }
+    catch (err) {
+        throw err
+    }
+}
