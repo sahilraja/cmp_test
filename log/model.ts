@@ -45,6 +45,10 @@ const SchemaDef = new Schema({
     unlinkedTasks:{type: Array},
     tagsToMerge:{type: Array},
     mergedTag: {type: String},
+    oldMessage:{type: String},
+    riskOpportunityNumber:{type: String},
+    riskId:{type: Schema.Types.ObjectId, ref:`risks`},
+    opportunityId:{type: Schema.Types.ObjectId, ref:`opportunities`},
     message: {type: String}
 }, { timestamps: true })
 
