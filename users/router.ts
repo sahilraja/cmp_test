@@ -137,7 +137,7 @@ router.post('/email/login', async (req: Request, res: Response, next: NextFuncti
     } catch (err) {
         next(new APIError(err.message));
     };
-});
+});  
 
 router.post("/email/logout", async (req: Request, res: Response, next: NextFunction) => {
     try {

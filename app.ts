@@ -27,6 +27,7 @@ import * as patternRouter from "./patterns/router"
 import * as smsRouter from "./sms/router"
 import * as miscellaneousRouter from "./miscellaneous/router";
 import * as webNotificationRouter from "./socket-notifications/router";
+import { createJob, jobRouter } from "./jobs";
 // implement multer
 import * as multer from "multer";
 import { authenticate } from "./utils/utils";
@@ -44,6 +45,7 @@ require('./utils/mongoose');
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 const swaggerDocument = YAML.load("./compiled-swagger.yaml");
+createJob(new Date(new Date().setDate(new Date().getDate() + 1)).setHours(0,0,0,0))
 
 // body paser
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -83,6 +85,7 @@ app.use('/notifications/', authenticate, notificationsRouter);
 app.use('/sms', smsRouter);
 app.use(`/miscellaneous`, miscellaneousRouter)
 app.use(`/web-notifications`, webNotificationRouter)
+app.use(`/jobs`, jobRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
     console.log((error as any).code, `Error Code`)
