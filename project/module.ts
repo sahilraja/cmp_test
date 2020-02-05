@@ -1086,7 +1086,12 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   }
   const validatedTaskData = excelFormattedData.map(data => validateObject(data, roleNames, isCompliance))
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj, isCompliance)))
-  const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj,host)))
+  let createdData: any[] = []
+  for (const taskData in tasksDataWithIds){
+    let createdTask =await createTask(tasksDataWithIds[taskData], projectId, userToken, userObj, host)
+    createdData.push(createdTask)    
+  }
+  // const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
   if(isCompliance){
     await Promise.all(createdData.map((data, i) => createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
   }
