@@ -1,6 +1,8 @@
 import { createQueue, app, Job } from "kue";
 import { backgroundJobForDocumentPhases } from "./documents/module";
-import { createJWT,userFindOne } from "./utils/users"
+import { createJWT,userFindOne } from "./utils/users";
+import { createRefreshToken,removeRefreshToken } from "./users/module";
+import { backGroundJobForPhasesInElasticSearch } from "./utils/utils"
 const queue = createQueue({
     redis:process.env.REDIS_URL || `redis://localhost:6379`
 })
@@ -20,9 +22,11 @@ export function createJob(delayTime: number){
 
 queue.process(PHASE_UPDATE, async(job:any, done:any ) => {
     try {
-        let user:any = await userFindOne("is_active", true, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 })
-        let token= await createJWT({ id: user._id }); 
-        backgroundJobForDocumentPhases(token)
+        // let user:any = await userFindOne("is_active", true, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 })
+        // let token= await createJWT({ id: user._id }); 
+        // await createRefreshToken({id:user._id,token:token})
+        backGroundJobForPhasesInElasticSearch()
+        // await removeRefreshToken({ id: user._id, token: token })
     } catch (error) {
         job.log(error)        
     } finally {

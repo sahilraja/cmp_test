@@ -30,10 +30,10 @@ import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
-import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, groupList, formateRoles, changeGroupOwnerShip } from "../users/module";
+import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, groupList, formateRoles, changeGroupOwnerShip,createRefreshToken,removeRefreshToken } from "../users/module";
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
-import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
+import { mobileSendMessage, getTasksForDocument,createDocInElasticSearch,scriptInElasticSearch,searchInElasticSearch } from "../utils/utils";
 import { importExcelAndFormatData, add_tag, mapPhases, getCurrentPhase,backGroudJobForPhaseDocs } from "../project/module";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
@@ -2802,85 +2802,88 @@ export async function renameFolder(folderId: string, body: any, userId: string) 
 }
 export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true, searchAllCmp: boolean = false) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    let data: any;
+    let queryObj = {search,userId,page,limit,pagination,searchAllCmp};
+    let searchResult = await searchInElasticSearch(queryObj)
+    return searchResult;
+    // let userRoles = await userRoleAndScope(userId);
+    // let userRole = userRoles.data[0];
+    // let data: any;
 
-    const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
-    if (isEligible && searchAllCmp) {
-      if (search == (null || "")) {
-        data = {
-          query: {
-            "match_all": {}
-          }
-        }
-      } else {
-        data = {
-          query: {
-            multi_match: {
-              "query": search,
-              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName', 'fileName','projectName','city','reference','phases'],
-              "type": 'bool_prefix'
-            }
-          }
-        }
-      }
-    } else {
-      if (search == (null || "")) {
-        data = {
-          query: {
-            multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
-          }
-        }
-      }
-      else {
-        data = {
-          query: {
-            bool: {
-              "should": [
-                {
-                  "bool": {
-                    "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName', 'groupName','projectName','city','reference','phases'], type: 'bool_prefix' } },
-                      { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
-                    ]
-                  }
-                }]
-            }
-          }
-        }
-      }
-    }
-    let searchdoc: any = await esClient.search({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      size: 1000,
-      body: data
-    });
-    let searchResult = searchdoc.hits.hits.map((doc: any) => {
-      return {
-        _id: doc._source.id,
-        accessedBy: doc._source.accessedBy,
-        userName: doc._source.userName,
-        name: doc._source.name,
-        description: doc._source.description,
-        tags: doc._source.tags,
-        thumbnail: doc._source.thumbnail,
-        status: doc._source.status,
-        fileName: doc._source.fileName,
-        updatedAt: doc._source.updatedAt,
-        createdAt: doc._source.createdAt,
-        groupId: doc._source.groupId,
-        groupName: doc._source.groupName,
-        createdByMe: doc._source.createdBy == userId,
-        projectId: doc._source.projectId,
-        projectName: doc._source.projectName,
-        city: doc._source.city,
-        reference: doc._source.reference,
-        phases: doc._source.phases
-      }
-    })
-    if (pagination == true) return manualPagination(page, limit, searchResult);
-    else return { docs: searchResult };
+    // const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
+    // if (isEligible && searchAllCmp) {
+    //   if (search == (null || "")) {
+    //     data = {
+    //       query: {
+    //         "match_all": {}
+    //       }
+    //     }
+    //   } else {
+    //     data = {
+    //       query: {
+    //         multi_match: {
+    //           "query": search,
+    //           "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName', 'fileName','projectName','city','reference','phases'],
+    //           "type": 'bool_prefix'
+    //         }
+    //       }
+    //     }
+    //   }
+    // } else {
+    //   if (search == (null || "")) {
+    //     data = {
+    //       query: {
+    //         multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
+    //       }
+    //     }
+    //   }
+    //   else {
+    //     data = {
+    //       query: {
+    //         bool: {
+    //           "should": [
+    //             {
+    //               "bool": {
+    //                 "must": [
+    //                   { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName', 'groupName','projectName','city','reference','phases'], type: 'bool_prefix' } },
+    //                   { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
+    //                 ]
+    //               }
+    //             }]
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // let searchdoc: any = await esClient.search({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   size: 1000,
+    //   body: data
+    // });
+    // let searchResult = searchdoc.hits.hits.map((doc: any) => {
+    //   return {
+    //     _id: doc._source.id,
+    //     accessedBy: doc._source.accessedBy,
+    //     userName: doc._source.userName,
+    //     name: doc._source.name,
+    //     description: doc._source.description,
+    //     tags: doc._source.tags,
+    //     thumbnail: doc._source.thumbnail,
+    //     status: doc._source.status,
+    //     fileName: doc._source.fileName,
+    //     updatedAt: doc._source.updatedAt,
+    //     createdAt: doc._source.createdAt,
+    //     groupId: doc._source.groupId,
+    //     groupName: doc._source.groupName,
+    //     createdByMe: doc._source.createdBy == userId,
+    //     projectId: doc._source.projectId,
+    //     projectName: doc._source.projectName,
+    //     city: doc._source.city,
+    //     reference: doc._source.reference,
+    //     phases: doc._source.phases
+    //   }
+    // })
+    // if (pagination == true) return manualPagination(page, limit, searchResult);
+    // else return { docs: searchResult };
   } catch (error) {
     console.error(error);
     throw error;
@@ -3141,21 +3144,24 @@ export async function removeGroupMembersInDocs(id: any, host: string, token: str
 }
 
 export async function getDocsAndInsertInElasticSearch(host: string) {
-  let user:any = await userFindOne("is_active", true, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 })
-  let token= await createJWT({ id: user._id }); 
-  const docs = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
-  const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host,token)))
+  // let user:any = await userFindOne("is_active", true, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 })
+  // let token= await createJWT({ id: user._id }); 
+  // await createRefreshToken({ id: user._id, token: token })
 
-  let insert = await Promise.all(finalData.map(async (doc: any) => {
-    return esClient.index({
-      index: `${process.env.ELASTIC_SEARCH_INDEX}_documents`,
-      body: doc,
-      id: doc.id
-    });
-  }))
-  return insert;
+  // const docs = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
+  // const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host,token)))
+  // await removeRefreshToken({ id: user._id, token: token });
+  // let insert = await Promise.all(finalData.map(async (doc: any) => {
+  //   return esClient.index({
+  //     index: `${process.env.ELASTIC_SEARCH_INDEX}_documents`,
+  //     body: doc,
+  //     id: doc.id
+  //   });
+  // }))
+  // return insert;
   // return doc;
   // connect to elastic search, remove old doc data & add finalData
+  return await scriptInElasticSearch(host);
 }
 
 async function getShareInfoForEachDocument(doc: any, host: string,token:string) {
@@ -3545,94 +3551,7 @@ async function createActivityLog(activity: any) {
 
 
 async function updateOrCreateDocInElasticSearch(docId: string, host: string,token:string) {
-  const doc:any = await documents.findById(docId).exec()
-  const [collaboratorIds, viewerIds, ownerIds] = await Promise.all([
-    GetUserIdsForDocWithRole(doc.id, 'collaborator'),
-    GetUserIdsForDocWithRole(doc.id, 'viewer'),
-    GetUserIdsForDocWithRole(doc.id, 'owner')
-  ])
-  const userIds = Array.from(new Set([
-    ...collaboratorIds.map((collaboratorId: any) => collaboratorId.split(`/`)[1]),
-    ...ownerIds.map((ownerId: any) => ownerId.split(`/`)[1]),
-    ...viewerIds.map((viewerId: any) => viewerId.split(`/`)[1])
-  ]))
-  const usersInfo: any[] = await userFindMany(`_id`, userIds, { firstName: 1, middleName: 1, lastName: 1 })
-  const fetchedUserIds = usersInfo.map(user => user._id)
-  const groupIds = userIds.filter(userId => !fetchedUserIds.includes(userId))
-  let groupMembers: any[] = await Promise.all(groupIds.map(groupId => groupUserList(groupId)))
-  groupMembers = groupMembers.reduce((p, c) => [...p, ...c], [])
-  const [groupMembersInfo, groupsInfo, tagsData]: any = await Promise.all([
-    userFindMany(`_id`, groupMembers),
-    groupsFindMany('_id', groupIds),
-    tags.find({ _id: { $in: doc.tags.filter((tag: any) => Types.ObjectId.isValid(tag)) } }).exec()
-  ])
-  const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
-  let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
-  let projectDetails = await getProjectDetailsForES(doc.id,token)
-  let docObj =  {
-    docId: doc.id,
-    accessedBy: userIds,
-    userName: userNames,
-    name: doc.name,
-    description: doc.description,
-    tags: tagsData.map((tag: any) => tag.tag),
-    thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${doc.fileId}` : "N/A",
-    status: doc.status,
-    fileName: doc.fileName,
-    updatedAt: doc.updatedAt,
-    createdAt: doc.createdAt,
-    id: doc.id,
-    groupId: groupIds,
-    groupName: groupsInfo.map((group: any) => group.name),
-    createdBy: doc.ownerId,
-    // projectName: [],
-    // city: [],
-    // reference: [],
-    projectId:projectDetails&& projectDetails.projectId?projectDetails.projectId:[], 
-    projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
-    city: projectDetails&& projectDetails.city?projectDetails.city:[],
-    reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
-    phases: projectDetails&& projectDetails.phases?projectDetails.phases:[],
-  }
-
-  let idExist = await checkDocIdExistsInEs(doc.id)
-    if (idExist) {
-        return  esClient.update({
-            index: `${ELASTIC_SEARCH_INDEX}_documents`,
-            id: doc.id,
-            body: {
-                "script": {
-                    "source": `ctx._source=(params.docObj)`,
-                    "lang": "painless",
-                    "params": {
-                      docObj: docObj
-                    }
-                }
-            }
-        })
-    }else{
-      return esClient.index({
-        index: `${ELASTIC_SEARCH_INDEX}_documents`,
-        body: docObj,
-        id: doc.id
-      });
-    }
-}
-export async function updateProjectPhaseInDocs(projectId: any,phase: string) {
-        let updated = esClient.updateByQuery({
-            index: `${ELASTIC_SEARCH_INDEX}_documents`,
-            body: {
-                "query": { "match": { "projectId": projectId } },
-                "script": {
-                    "source": "ctx._source.phases=(params.phase)",
-                    "lang": "painless",
-                    "params": {
-                        "phase": phase
-                    }
-                }
-            }
-        })
-        return updated
+  createDocInElasticSearch(docId,host,token);
 }
 
 export async function backgroundJobForDocumentPhases(token:string) {
@@ -3659,3 +3578,9 @@ export async function backgroundJobForDocumentPhases(token:string) {
   }
   }))
 }
+
+export async function getAllDocs() {
+  const docs:any = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
+  return docs;
+}
+
