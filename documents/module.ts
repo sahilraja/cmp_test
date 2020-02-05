@@ -23,7 +23,7 @@ import {
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
 import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch, userEdit, groupsFindMany } from "../utils/users";
+import { userFindOne,createJWT, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch, userEdit, groupsFindMany } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
@@ -3137,7 +3137,9 @@ export async function removeGroupMembersInDocs(id: any, host: string, token: str
   }
 }
 
-export async function getDocsAndInsertInElasticSearch(host: string,token:string) {
+export async function getDocsAndInsertInElasticSearch(host: string) {
+  let user:any = await userFindOne("is_active", true, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 })
+  let token= await createJWT({ id: user._id }); 
   const docs = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
   const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host,token)))
 
