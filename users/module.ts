@@ -1136,13 +1136,13 @@ export async function changeMobileNumber(objBody: any, userData: any) {
     }
 }
 
-export async function replaceUser(userId: string, replaceTo: string, userToken: string, userObj: any) {
+export async function replaceUser(userId: string, replaceTo: string, userToken: string, userObj: any,host:string) {
     try {
         let eligible = await checkRoleScope(userObj.role, "replace-user");
         if (!eligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         await Promise.all([
             changeRoleToReplaceUser(userId, replaceTo),
-            replaceDocumentUser(userId, replaceTo, userObj),
+            replaceDocumentUser(userId, replaceTo, userObj,userToken,host),
             httpRequest({
                 url: `${MESSAGE_URL}/v1/replace-user`,
                 body: { oldUser: userId, updatedUser: replaceTo },

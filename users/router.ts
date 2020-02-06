@@ -411,7 +411,7 @@ router.post("/change/mobile", authenticate, async (req, res, next) => {
 // Replace User
 router.post(`/:id/replace`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await replaceUser(req.params.id, req.body.replaceTo, (req as any).token, res.locals.user))
+        res.status(OK).send(await replaceUser(req.params.id, req.body.replaceTo, (req as any).token, res.locals.user,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(error)
     }

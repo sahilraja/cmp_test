@@ -2587,7 +2587,7 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
   }
 }
 
-export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any) {
+export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any,token:string,host:string) {
   try {
     let userDetails: any = await userFindOne("id", newOwnerId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
     let userName: any;
@@ -2603,7 +2603,8 @@ export async function replaceDocumentUser(ownerId: string, newOwnerId: string, u
     ])
     await Promise.all(mydocs.map((doc: any) => {
       changeOwnerShip(doc, ownerId, newOwnerId, userObj),
-        replaceUserInES(doc.id, newOwnerId, userName)
+       updateOrCreateDocInElasticSearch(doc.id,host,token)
+        // replaceUserInES(doc.id, newOwnerId, userName)
     }
     ))
     // await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
