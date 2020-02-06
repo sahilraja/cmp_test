@@ -1,10 +1,11 @@
 import { OpportunitySchema } from "./model";
 import { APIError } from "../../utils/custom-error";
-import { OPPORTUNITY } from "../../utils/error_msg";
+import { OPPORTUNITY, ACTIVITY_LOG } from "../../utils/error_msg";
 import { userFindOne } from "../../utils/users";
 import { checkRoleScope } from "../../utils/role_management";
 import { dateDifference } from "../../utils/utils";
 import { roleFormanting, userFindManyWithRole } from "../../users/module";
+import { create as createLog } from "../../log/module";
 
 export async function create(payload: any, projectId: string, userObj: any) {
     const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
@@ -61,8 +62,10 @@ export async function opportunitySaveAll(projectId: string, updateObjs: any[], u
 async function saveaAllOpportunities(opportunityObj: any, projectId: string, userObj: any) {
     try {
         if ("_id" in opportunityObj || "id" in opportunityObj) {
+            const {opportunityCriticality, phase, opportunityPrevTrend, showDeleteIcon, showHistoryIcon, dateRaised, ...others} = opportunityObj
             const oldObject: any = await OpportunitySchema.findById(opportunityObj._id || opportunityObj.id).exec();
-            if (Object.keys(opportunityObj).some(key => opportunityObj[key] != oldObject[key])) {
+            if (Object.keys(others).some(key => others[key] != oldObject[key]) || 
+            phase.some((_phase: string) => !(oldObject.phase || []).map((p: any) => p.toString()).includes(_phase))) {
                 if (!opportunityObj.opportunityTrend && opportunityObj.opportunityTrend != 0) {
                     opportunityObj.opportunityTrend = 0
                 } else {
@@ -77,11 +80,13 @@ async function saveaAllOpportunities(opportunityObj: any, projectId: string, use
                     if (oldObject.probability != opportunityObj.probability)
                         opportunityObj['previousTrend'] = oldObject.impact * oldObject.probability;
                 let opportunityDetails: any = await OpportunitySchema.findByIdAndUpdate(opportunityObj._id || opportunityObj.id, { $set: opportunityObj }, { new: true }).exec()
+                createLog({projectId, riskOpportunityNumber:opportunityDetails.opportunityNumber, activityBy: userObj._id, activityType:ACTIVITY_LOG.OPPORTUNITY_UPDATED, opportunityId: opportunityDetails._id})
                 const {createdAt, updatedAt, ...others} = opportunityDetails.toJSON()
                 await OpportunitySchema.create({ ...others, projectId, parentId: opportunityDetails._id, createdAt: new Date(), updatedAt: new Date() })
             };
         } else {
-            let opportunity = await OpportunitySchema.create({ ...opportunityObj, projectId, createdBy: userObj._id });
+            let opportunity: any = await OpportunitySchema.create({ ...opportunityObj, projectId, createdBy: userObj._id });
+            createLog({projectId, riskOpportunityNumber:opportunity.opportunityNumber, activityBy: userObj._id, activityType:ACTIVITY_LOG.OPPORTUNITY_CREATED, opportunityId: opportunity._id})
             await OpportunitySchema.create({ ...opportunityObj, parentId: opportunity._id, projectId, createdBy: userObj._id })
         }
         return true

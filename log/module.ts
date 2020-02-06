@@ -143,7 +143,7 @@ export async function projectLogs(projectId: string, token: string, userObj: any
         const isEligible = await checkRoleScope(userObj.role, `project-activity-log`)
         if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
 
-        const activities: any[] = await ActivitySchema.find({ projectId }).populate({ path: 'projectId' }).exec()
+        const activities: any[] = await ActivitySchema.find({ projectId }).populate([{ path: 'projectId' },{ path: 'oldStepId' },{ path: 'stepId' }, { path: 'oldPillarId' }, { path: 'pillarId' }]).exec()
         let taskObjects: any[] = await getTasksByIds([...new Set((activities.reduce((main, curr) => main.concat([curr.taskId]), [])).filter((id: string) => Types.ObjectId(id)))] as any, token)
         let logs = await Promise.all(activities.map((activity: any) => {
             return fetchProjectLogDetails(activity.toJSON(), taskObjects)
@@ -453,6 +453,45 @@ function getStatus(status_code: any, status: any = "") {
 function getFormantedProjectLogs(activityLog: any) {
     let message: string
     switch (activityLog.activityType) {
+        case `PROJECT_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} has updated the project details`
+            break;
+        case 'STEP_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has updated the step to the task ${activityLog.taskId.name}`;
+            break;
+        case 'PILLAR_UPDATED':
+            message = `${UserFullName(activityLog.activityBy)} has updated the pillar to the task ${activityLog.taskId.name}`;
+            break;
+        case `RISK_CREATED`:
+            message = `${UserFullName(activityLog.activityBy)} has created a risk ${activityLog.riskOpportunityNumber}`
+            break;
+        case `OPPORTUNITY_CREATED`:
+            message = `${UserFullName(activityLog.activityBy)} has created a opportunity ${activityLog.riskOpportunityNumber}`
+            break;
+        case `RISK_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} has updated the risk ${activityLog.riskOpportunityNumber}`
+            break;
+        case `OPPORTUNITY_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} has updated the opportunity ${activityLog.riskOpportunityNumber}`
+            break;
+        case `ADDED_MISCOMPLIANCE_SPV`:
+            message = `${UserFullName(activityLog.activityBy)} has added the SPV compliance`
+            break;
+        case `ADDED_MISCOMPLIANCE_PROJECT`:
+            message = `${UserFullName(activityLog.activityBy)} has added the Project compliance`            
+            break;
+        case `EDIT_MISCOMPLIANCE_SPV`:
+            message = `${UserFullName(activityLog.activityBy)} has updated the SPV compliance`
+            break;
+        case `EDIT_MISCOMPLIANCE_PROJECT`:
+            message = `${UserFullName(activityLog.activityBy)} has updated the Project compliance`            
+            break;
+        case `REMOVE_MISCOMPLIANCE_SPV`:
+            message = `${UserFullName(activityLog.activityBy)} has removed the SPV compliance`
+            break;
+        case `REMOVE_MISCOMPLIANCE_PROJECT`:
+            message = `${UserFullName(activityLog.activityBy)} has removed the Project compliance`
+            break;
         case `TRIPART_DATE_UPDATED`:
             message = `${UserFullName(activityLog.activityBy)} has updated the Tri-partite Agreement Date`
             break;
@@ -479,6 +518,9 @@ function getFormantedProjectLogs(activityLog: any) {
         case 'PROJECT_MEMBERS_UPDATED':
             message = `${UserFullName(activityLog.activityBy)} added ${getNamesFromIds(activityLog.addedUserIds)} as a core team member`;
             break;
+        case 'MEMBER_ADDED':
+            message = `${UserFullName(activityLog.activityBy)} added ${getNamesFromIds(activityLog.addedUserIds)} to the core team`;
+            break;
         case 'MEMBER_REMOVED':
             message = `${UserFullName(activityLog.activityBy)} removed ${getNamesFromIds(activityLog.removedUserIds)} from the core team`;
             break;
@@ -493,6 +535,18 @@ function getFormantedProjectLogs(activityLog: any) {
             break;
         case 'UPDATED_FUND_UTILIZATION':
             message = `${UserFullName(activityLog.activityBy)} updated fund utilised to ${activityLog.updatedCost} INR`;
+            break;
+        case `DELETED_FUND_RELEASE`:
+            message = `${UserFullName(activityLog.activityBy)} deleted the funds released`
+            break;
+        case `DELETED_FUND_UTILIZATION`:
+            message = `${UserFullName(activityLog.activityBy)} deleted the funds utilized`
+            break;
+        case `INSTALLMENT_ADDED`:
+            message = `${UserFullName(activityLog.activityBy)} added installments to the project`
+            break;
+        case `INSTALLMENT_UPDATED`:
+            message = `${UserFullName(activityLog.activityBy)} updated installments to the project`
             break;
         case 'UPDATED_CITIIS_GRANTS':
             message = `${UserFullName(activityLog.activityBy)} updated citiis grants to ${activityLog.updatedCost} INR`;

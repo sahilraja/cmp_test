@@ -161,6 +161,13 @@
         "category": "User Management"
     },
     {
+        "content": "Dear <b>[fullName]</b>,<br /><br />The email address linked to your CMP user account is updated. The new email address is <b>[newMail]</b>. Please use the new email address to log on to CMP.<br /><br />In case you have not changed it and are still getting this message, then please contact cmp@niua.org.<br /><br />Best Regards,<br />CMP Administrator",
+        "templateName": "changePasswordMessage",
+        "displayName": "change password notification",
+        "subject": "[CMP] Email ID Updated",
+        "category": "User Management"
+    },
+    {
         "content": "Dear <b>[fullName]</b>,<br/><br/><b>[documentName]</b> on CITIIS Management Platform, is replaced with a new document. You can click this <a href=[documentUrl]>link</a> to access it.<br/><br/>Best Regards,<br/>CMP Administrator",
         "templateName": "replaceDocument",
         "displayName": "replace document",
