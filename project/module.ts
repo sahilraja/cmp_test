@@ -43,7 +43,7 @@ export async function createProject(reqObject: any, user: any) {
     // }
     let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible) {
-      throw new APIError(UNAUTHORIZED, 403);
+      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS, 403);
     }
     // if (reqObject.name && (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
@@ -95,7 +95,7 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
       checkRoleScope(user.role, "manage-project")
     ])
     // let isEligible = await checkRoleScope(user.role, "manage-project");
-    if (!isEligible) throw new APIError(UNAUTHORIZED, 403);
+    if (!isEligible) throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS, 403);
 
     if (reqObject.startDate || reqObject.endDate) {
       if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error(PROJECT_ROUTER.START_DATE_LESS_THAN)
@@ -1127,10 +1127,14 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any,
   if(allRolesFromTask.some((role) => duplicateRoles.includes(role))){
     throw new APIError(`Duplicate members found`)
   }
-  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
-  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
-  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
-  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => [taskObj.assignee].includes(role))).map((val: any) => val.value).pop()
+  const approverIds = taskObj.approvers.map((approver: string) => (memberRoles.find(role => role.key.includes(approver)) || {value:``}).value)
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
+  const endorserIds = taskObj.endorsers.map((endorser: string) => (memberRoles.find(role => role.key.includes(endorser)) || {value:``}).value)
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
+  const viewerIds = taskObj.viewers.map((viewer: string) => (memberRoles.find(role => role.key.includes(viewer)) || {value:``}).value)
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
+  const assigneeId = [taskObj.assignee].map((assignee: string) => (memberRoles.find(role => role.key.includes(assignee)) || {value:``}).value).pop()
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => [taskObj.assignee].includes(role))).map((val: any) => val.value).pop()
 
   if (approverIds.length != taskObj.approvers.length) {
     throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
@@ -1755,8 +1759,9 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   if((previousReleasedAmount + releasedCost) > detail.citiisGrants){
     throw new APIError(PROJECT_ROUTER.TOTAL_RELEASED_EXCEED_CITIIS)
   }
+  let activityType = (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
+  createLog({ activityType, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
   getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
 }

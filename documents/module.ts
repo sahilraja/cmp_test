@@ -649,9 +649,8 @@ export async function cancelUpdate(docId: string, userId: string) {
 
 export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any,host: string, token: string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(userRole, "edit-document");
+    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    // const isEligible = await checkRoleScope(getUserRole, "edit-document");
     // if (!isEligible) {
     //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
     // }
@@ -1113,8 +1112,7 @@ async function inviteMail(userId: string, doc: any, actionUserId: string) {
 
 export async function invitePeople(docId: string, users: any, role: string, userId: string,host: string,token:string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
+    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
     // const isEligible = await checkRoleScope(getUserRole, "share-document");
     // if (!isEligible) {
     //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
@@ -1123,8 +1121,8 @@ export async function invitePeople(docId: string, users: any, role: string, user
     let doc: any = await documents.findById(docId);
     if (doc.status == 2) throw new Error(DOCUMENT_ROUTER.SHARE_PUBLISHED_DOCUMENT)
     let userRole = await documnetCapabilities(docId, userId)
-    if (userRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
-    if (userRole.includes("viewer") || userRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
+    if (getUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
+    if (getUserRole.includes("viewer") || getUserRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
     let addUsers: any = []
     let userIds: any = []
     let userNames: any = []
@@ -1214,8 +1212,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
 
 export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
+    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
     // const isEligible = await checkRoleScope(getUserRole, "share-document");
     // if (!isEligible) {
     //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
@@ -1253,8 +1250,7 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
 
 export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any,host: string,token:string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
+    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
     // const isEligible = await checkRoleScope(getUserRole, "share-document");
     // if (!isEligible) {
     //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);

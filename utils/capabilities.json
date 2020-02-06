@@ -273,6 +273,20 @@
     "scope": "global"
   },
   {
+    "capability": "share-document",
+    "shortDescription": "Share Documents",
+    "description": "Share documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-document",
+    "shortDescription": "Edit Documents",
+    "description": "Edit documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
     "capability": "publish-document",
     "shortDescription": "Publish Documents",
     "description": "Published documents",
