@@ -1114,7 +1114,7 @@ export async function changeMobileNumber(objBody: any, userData: any) {
         }
         let admin_scope = await checkRoleScope(userData.role, "bypass-otp");
         if(admin_scope){ 
-            await userEdit(userData._id, { phone: objBody.phone, countryCode: objBody.countryCode });
+            await userEdit(userData._id, { phone: objBody.newPhone, countryCode: objBody.newCountryCode });
             userLog({ activityType: "USER-PHONE-UPADTE", activityBy: userData._id, profileId: userData._id })
             otpDisplay = false 
             return {message: 'success', bypass_otp: true}
