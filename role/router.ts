@@ -1,11 +1,13 @@
 import { Router, Request, Response, Handler } from "express";
 import {
-    role_list, capabilities_list, updaterole, userRoleAndScope, usersForRole, capabilities, allrolecapabilities, addCapability, removeCapability,
-    addRolesFromJSON, addRole, addRoleCapabilitiesFromJSON,updateCapabilities
+    role_list, capabilities_list, updaterole, userRoleAndScope, usersForRole, capabilities, allrolecapabilities, 
+    addCapability, removeCapability, addRolesFromJSON, addRole, addRoleCapabilitiesFromJSON,updateCapabilities, 
+    resetPermissions
 } from "./module";
 import { authenticate } from "../utils/utils";
 import { APIError } from "../utils/custom-error";
 import { NextFunction } from "connect";
+import { OK } from "http-status-codes";
 const router = Router();
 
 //  list roles
@@ -115,4 +117,13 @@ router.post('/capabilities/update', authenticate, async (req: Request, res: Resp
         next(new APIError(err.message, 409))
     };
 });
+
+router.get(`/capabilities/reset`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await resetPermissions(res.locals.user))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
 export = router;

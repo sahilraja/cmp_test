@@ -1,0 +1,15 @@
+[
+    {
+        "role": "technology-lead",
+        "permissions": [
+            "display-role-management"
+        ]
+    },
+    {
+        "role":"program-coordinator",
+        "permissions":[
+            "display-role-management",
+            "create-user"
+        ]
+    }
+]
