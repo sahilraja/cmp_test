@@ -1112,7 +1112,8 @@ async function inviteMail(userId: string, doc: any, actionUserId: string) {
 
 export async function invitePeople(docId: string, users: any, role: string, userId: string,host: string,token:string) {
   try {
-    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    let userRoles = await userRoleAndScope(userId);
+    let getUserRole = userRoles.data[0];
     // const isEligible = await checkRoleScope(getUserRole, "share-document");
     // if (!isEligible) {
     //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);

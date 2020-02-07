@@ -37,5 +37,6 @@ export const PROJECT_NOTIFICATIONS = {
     MIS_COMPLIANCE_UPDATED:(projectName: string) => `Miscompliance has been updated for the project ${projectName}`,
     // RISK_CREATED:(projectName: string) => ``,
     PHASES_UPDATED:(projectName: string) => `Phases has been updated for the project ${projectName}`,
-    MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`
+    MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`,
+    ADDED_FUND_RELEASE:(projectName: string) => `New fund release has been added to the project ${projectName}`
 }

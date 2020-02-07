@@ -229,5 +229,12 @@
         "displayName": "Phases updated",
         "subject": "[CMP] Project phases updated",
         "category": "Project Management"
+    },
+    {
+        "content": "Dear <b>[fullName]</b>,<br/><br/>New fund release added for the project <b>[projectName]</b> on CITIIS Management Platform. Please log on to check the details.<br/><br/>Best Regards,<br/>CMP Administrator",
+        "templateName":"addFundsReleased",
+        "displayName":"Funds Released",
+        "subject":"[CMP] Project funds released added",
+        "category":"Project Management"
     }
 ]
