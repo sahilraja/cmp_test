@@ -1763,6 +1763,10 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({ activityType, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
   getProjectNamesForES(docsToUpdateInES,host,token)
+  if(activityType == ACTIVITY_LOG.ADDED_FUND_RELEASE){
+    // send notification to all core team who has manage-funds-released capability
+    // sendAllNotificationsOnAddFund(projectInfo.members, user, projectInfo.name)
+  }
   return updatedProject
 }
 
@@ -1804,6 +1808,19 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   createLog({ activityType: (!currentObj || currentObj.utilized.deleted) ? ACTIVITY_LOG.ADDED_FUND_UTILIZATION: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: currentObj.utilized.amount, updatedCost: amount, activityBy: user._id })
   getProjectNamesForES(docsToUpdateInES,host,token)
   return updatedProject
+}
+
+async function sendAllNotificationsOnAddFund(members:any, activityBy: any, projectName:string) {
+  const fetchedUsers = await userFindMany('_id', members, { firstName: 1, middleName: 1, lastName: 1, phone: 1, countryCode: 1, email: 1 })
+  Promise.all(fetchedUsers.map((user: any) => {
+    const { fullName, mobileNo } = getFullNameAndMobile(user)
+    return sendNotification({ templateName: `addFundsReleased`, mobileTemplateName:`addFundsReleased`, mobileNo, email: user.email, fullName, projectName })
+  }))
+  Promise.all(fetchedUsers.map((user: any) => webNotification({
+    notificationType: `PROJECT`, userId: user._id, from: activityBy._id, 
+    title:PROJECT_NOTIFICATIONS.ADDED_FUND_RELEASE(projectName)
+  })))
+  return
 }
 
 export async function deleteReleasedFundNew(projectId: string, payload: any, user: any,token:string,host:string) {
