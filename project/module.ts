@@ -70,7 +70,11 @@ export async function createProject(reqObject: any, user: any) {
   }
 }
 
-export async function projectInfo() {
+export async function projectInfo(user: any) {
+  const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
+  }
   const projects = await ProjectSchema.find({}).exec()
   let response = projects.reduce((p, c: any) => 
   ({...p, 
@@ -1113,10 +1117,7 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
 }
 
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any, isCompliance:boolean) {
-  const [projectData, memberRoles] = await Promise.all([
-    ProjectSchema.findById(projectId).exec(),
-    projectMembers(projectId, userObj)
-  ])
+  const memberRoles = await projectMembers(projectId, userObj)
   // if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
   // }
@@ -1127,26 +1128,26 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any,
   if(allRolesFromTask.some((role) => duplicateRoles.includes(role))){
     throw new APIError(`Duplicate members found`)
   }
-  const approverIds = taskObj.approvers.map((approver: string) => (memberRoles.find(role => role.key.includes(approver)) || {value:``}).value)
+  const approverIds = taskObj.approvers.map((approver: string) => (memberRoles.find(role => role.key.includes(approver)) || {value:``}).value).filter((val: string) => val)
   // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
-  const endorserIds = taskObj.endorsers.map((endorser: string) => (memberRoles.find(role => role.key.includes(endorser)) || {value:``}).value)
+  const endorserIds = taskObj.endorsers.map((endorser: string) => (memberRoles.find(role => role.key.includes(endorser)) || {value:``}).value).filter((val: string) => val)
   // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
-  const viewerIds = taskObj.viewers.map((viewer: string) => (memberRoles.find(role => role.key.includes(viewer)) || {value:``}).value)
+  const viewerIds = taskObj.viewers.map((viewer: string) => (memberRoles.find(role => role.key.includes(viewer)) || {value:``}).value).filter((val: string) => val)
   // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
   const assigneeId = [taskObj.assignee].map((assignee: string) => (memberRoles.find(role => role.key.includes(assignee)) || {value:``}).value).pop()
   // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => [taskObj.assignee].includes(role))).map((val: any) => val.value).pop()
 
   if (approverIds.length != taskObj.approvers.length) {
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Approver`, taskObj.name))
   }
   if (endorserIds.length != taskObj.endorsers.length) {
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Endorser`, taskObj.name))
   }
   if (viewerIds.length != taskObj.viewers.length) {
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Viewer`, taskObj.name))
   }
   if (!assigneeId) {
-    throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Assignee`, taskObj.name))
   }
   if (!taskObj.isCompliance && !taskObj.pillarId){
     throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
@@ -1238,10 +1239,10 @@ function validateObject(data: any, roleNames: any, isCompliance: boolean) {
   }
   if(isCompliance){
     if(!data['Compliance Type']){
-      throw new APIError(`Compliance type required for ${data.name}`)
+      throw new APIError(`Compliance type required for ${data.Name}`)
     }
     if(![`SPV`, `PROJECT`].includes(data['Compliance Type'])){
-      throw new APIError(`Invalid compliance type found for ${data.name}`)
+      throw new APIError(`Invalid compliance type found for ${data.Name}`)
     }
   }
 

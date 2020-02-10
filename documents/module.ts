@@ -1089,6 +1089,8 @@ function documentsSort(data: any[], key: string, date: boolean = false) {
 
 async function invite(user: any, docId: any, role: any, doc: any, actionUserId: string) {
   await shareDoc(user._id, user.type, docId, role);
+  // Set all previous requests is deleted once user has doc access
+  await docRequestModel.updateMany({ docId, requestedBy: user._id }, { $set: { isDelete: true } }, { multi: true }).exec()
   if (user.type == "user") {
     inviteMail(user._id, doc, actionUserId)
   } else if (user.type == "group") {
@@ -2219,7 +2221,7 @@ export async function approveTags(docId: string, body: any, userId: string,host:
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
        createActivityLog({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name), from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name, tagNames.join(',')), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
           sucess: true,
@@ -2270,7 +2272,7 @@ export async function approveTags(docId: string, body: any, userId: string,host:
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
          createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_APPROVED", activityBy: userId, documentId: docId, tagsRemoved: body.tags })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveRemoveTagNotification(docdetails.name), from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveRemoveTagNotification(docdetails.name, tagNames), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
           sucess: true,
@@ -2553,6 +2555,10 @@ export async function requestRaise(docId: string, userId: string) {
     let docDetails: any = await documents.findById(docId);
     if (!docDetails || docDetails.parentId || docDetails.status == 2) throw new Error(DOCUMENT_ROUTER.INVALID_FILE_ID)
     let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
+    let capability: any[] = await documnetCapabilities(docId, userId);
+    if(capability.includes('collaborator')){
+      throw new APIError(DOCUMENT_ROUTER.ALREADY_COLLABORATOR)
+    }
     if (existRequest) throw new Error(DOCUMENT_ROUTER.ALREADY_REQUEST_EXIST)
      createActivityLog({ activityType: "REQUEST_DOCUMENT", activityBy: userId, documentId: docId })
     // webNotification({ notificationType: `DOCUMENTS`, userId: docDetails.owner, docId: docId, title: DOC_NOTIFICATIONS.documentRequest(docDetails.name), from: userId })

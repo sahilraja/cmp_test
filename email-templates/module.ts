@@ -78,7 +78,9 @@ export async function testTemplate(id:string, email: any){
     })
     return {message:"Email sent successfully"}
 }
-
+function formatRole(roles: string[]){
+    return [roles.slice(0,-1).join(`, `), roles.slice(-1)[0]].join(roles.length < 2 ? '' : ' & ')
+}
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
@@ -88,6 +90,9 @@ export async function getTemplateBySubstitutions(templateId: string, substitutio
         if(!substitutions){
             substitutions = {};
         }
+        // if(substitutions.role && Array.isArray(substitutions.role)){
+        //     substitutions.role = formatRole(substitutions.role)
+        // }
         return {
             subject: Object.keys(substitutions).reduce((prev, key) => {
                 return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
