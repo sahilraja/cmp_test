@@ -119,7 +119,7 @@ export const DOCUMENT_ROUTER = {
     INVALID_ACTION_PERFORMED: "[Error: 0035] Invalid action performed, please contact CMP admin",
     SOMETHING_WENT_WRONG: "[Error: 0036] Something went wrong, please retry",
     ALREADY_REQUEST_EXIST: "[Error: 0037] Request is already in progress",
-    
+    ALREADY_COLLABORATOR:`You already have edit permissions to this document. Please reload the page and try again`,
     UPLOAD_EMPTY_FOLDER: `[Error: 0015] Uploaded empty document`,
 
 }
@@ -191,6 +191,7 @@ export const PASSWORD = {
 
 export const RESPONSE = {
     SUCCESS_EMAIL: "Email sent successfully",
+    SUCCESS_EMAIL_UPDATE: "Email updated successfully",    
     ACTIVE: "active",
     INACTIVE: "inactive",
     ADD_MEMBER: "Group member added",
@@ -252,7 +253,7 @@ export const TASK_ERROR = {
     APPROVERS_REQUIRED: `Approvers are required for compliance tasks`,
     DUPLICATE_APPROVERS_FOUND: `[Error: 0052] Duplicate approvers found`,
     DUPLICATE_ENDORSERS_FOUND: `[Error: 0053] Duplicate endorsers found`,
-    USER_NOT_PART_OF_PROJECT: `User not found in the list of core team`,
+    USER_NOT_PART_OF_PROJECT:(role: string, taskName: string) =>  `${role} not found in the list of core team for task ${taskName}`,
     WFM_CREATION_FAILED: `[Error: 0054] Failed to create WFM`,
     INVALID_WFM_BY_USER: `[Error: 0055] You don’t have permission to perform this action`,
     INVALID_ACTION_PERFORMED: `[Error: 0056] Invalid action performed`,
@@ -295,12 +296,13 @@ export const PROJECT_ROUTER = {
     USER_ID_REQURED: `User ID is required`,
     PHASE_BEFORE_END_DATE: `Start date can’t exceed the end date`,
     PHASE_OVER_LAP: `There shouldn't be any gap or overlap between phases`,
-    UPLOAD_VALID_FORMAT: `Please upload valid xlsx/csv file`,
+    UPLOAD_VALID_FORMAT: `Please upload valid xlsx or csv file`,
     START_DATE_NOT_IN_PAST: "Start date can’t be in the past",
     START_NOT_LESS_THAN_DUE: "Start date can’t exceed the due date",
     INVALID_PROJECT_ID: "[Error: 0063] Invalid Project ID",
     MANDATORY: "Please fill all mandatory fields",
-    PROJECTS_NOT_THERE: "[Error: 0063] Project not found"
+    PROJECTS_NOT_THERE: "[Error: 0063] Project not found",
+    FINANCIAL_DASHBOARD_NO_ACCESS:`You don't have permission to view financial information`
 }
 
 export const COMPLIANCES = {

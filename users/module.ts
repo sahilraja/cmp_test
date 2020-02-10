@@ -170,10 +170,10 @@ export async function RegisterUser(objBody: any, verifyToken: string) {
         if (!phoneNo(phoneNumber).length) {
             throw new Error(USER_ROUTER.VALID_PHONE_NO)
         }
-        // const users: any = await userList({phone: objBody.phone, countryCode:objBody.countryCode})
-        // if(users.length){
-        //     throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
-        // }
+        const users: any = await userList({phone: objBody.phone, countryCode:objBody.countryCode})
+        if(users.length){
+            throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
+        }
         let constantsList: any = await constantSchema.findOne({ key: 'aboutMe' }).exec();
         if (aboutme.length > Number(constantsList.value)) {
             throw new APIError(USER_ROUTER.ABOUTME_LIMIT.replace('{}', constantsList.value));
@@ -230,10 +230,10 @@ export async function edit_user(id: string, objBody: any, user: any, token: any,
             if (!phoneNo(phoneNumber).length) {
                 throw new Error(USER_ROUTER.VALID_PHONE_NO)
             }
-            // const users: any = await userList({phone: objBody.phone, countryCode:objBody.countryCode})
-            // if(users.length && (users.length > 1 || users[0]._id != id)){
-            //     throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
-            // }
+            const users: any = await userList({phone: objBody.phone, countryCode:objBody.countryCode})
+            if(users.length && (users.length > 1 || users[0]._id != id)){
+                throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
+            }
         };
         let userRole: any = [];
         let editUserInfo: any = await userFindOne("id", id);
@@ -981,7 +981,7 @@ export async function changeEmailInfo(objBody: any, user: any) {
             await userLog({ activityType: "USER-EMAIL-UPADTE", activityBy: user._id, profileId: user._id })
             // webNotification({ notificationType: `USER_PROFILE`, userId: user._id, title: USER_PROFILE.emailUpdateByUser, from: user._id })
             sendNotification({ id: user._id, fullName, email: user.email, mobileNo, newMail: objBody.email, templateName: "changeEmailMessage", mobileTemplateName:'changeEmailMessage' })
-            return {message: RESPONSE.SUCCESS_EMAIL, bypass_otp: true}
+            return {message: RESPONSE.SUCCESS_EMAIL_UPDATE, bypass_otp: true}
         } else {
             let { otp, token } = await generateOtp(4, { "newEmail": objBody.email });
             let { mobileOtp, smsToken } = await generatemobileOtp(4, { "newEmail": objBody.email });
@@ -1104,10 +1104,10 @@ export async function changeMobileNumber(objBody: any, userData: any) {
         if (newCountryCode + newPhone == mobileNo) {
             throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
         }
-        // const users: any = await userList({phone: objBody.newPhone, countryCode:objBody.newCountryCode})
-        // if(users.length && (users.length > 1 || users[0]._id != userData._id)){
-        //     throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
-        // }
+        const users: any = await userList({phone: objBody.newPhone, countryCode:objBody.newCountryCode})
+        if(users.length && (users.length > 1 || users[0]._id != userData._id)){
+            throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
+        }
         if (!comparePassword(password, userData.password)) {
             sendNotification({ id: userData._id, fullName, email: userData.email, mobileNo, templateName: "invalidPassword", mobileTemplateName: "invalidPassword" });
             throw new APIError(USER_ROUTER.INVALID_PASSWORD);
@@ -1282,10 +1282,10 @@ export async function profileEditByAdmin(id: string, body: any, admin: any) {
                 if (!phoneNo(phoneNumber).length) {
                     throw new APIError(USER_ROUTER.VALID_PHONE_NO)
                 }
-                // const users: any = await userList({phone, countryCode})
-                // if(users.length && (users.length > 1 || users[0]._id != id)){
-                //     throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
-                // }
+                const users: any = await userList({phone, countryCode})
+                if(users.length && (users.length > 1 || users[0]._id != id)){
+                    throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
+                }
 
             }
             if (aboutme) {
@@ -1647,10 +1647,10 @@ export async function changeMobileByAdmin(admin: any, objBody: any, id: string) 
     if (objBody.countryCode + objBody.phone == mobileNo) {
         throw new APIError(USER_ROUTER.SIMILAR_MOBILE);
     }
-    // const users: any = await userList({phone: objBody.phone, countryCode:objBody.countryCode})
-    // if(users.length && (users.length > 1 || users[0]._id != id)){
-    //     throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
-    // }
+    const users: any = await userList({phone: objBody.phone, countryCode:objBody.countryCode})
+    if(users.length && (users.length > 1 || users[0]._id != id)){
+        throw new APIError(USER_ROUTER.PHONE_NUMBER_EXISTS)
+    }
     let { otp, token } = await generateOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
     let { mobileOtp, smsToken } = await generatemobileOtp(4, { countryCode: objBody.countryCode, phone: objBody.phone });
     sendNotification({ id: user._id, fullName, email: user.email, mobileNo:objBody.countryCode + objBody.phone, otp, mobileOtp, templateName: "changeMobileOTP", mobileTemplateName: "sendOtp" });
