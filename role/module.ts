@@ -220,6 +220,19 @@ export async function removeCapability(role: string, scope: string, capability: 
         throw err;
     };
 };
+export async function removeAllCapabilities() {
+    try {
+        let Options = {
+            uri: `${RBAC_URL}/capabilities/remove/all`,
+            method: "PUT",
+            body: {},
+            json: true
+        }
+        return await request(Options);
+    } catch (err) {
+        throw err;
+    };
+};
 
 export async function updateCapabilities(addCapabilities: any, removeCapabilities: any, userId: string) {
     try {
@@ -338,4 +351,15 @@ export async function addRoleCapabilitiesFromJSON(userId: string) {
     } catch (err) {
         console.error(err);
     }
+}
+
+export async function resetPermissions(userObj: any) {
+    let response = await removeAllCapabilities()
+    let defaultPermissions: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "default_permissions.json"), "utf8"));
+    let consructedPermissions = defaultPermissions.reduce((p, c) => {
+        p = [...p,...c.permissions.reduce((p1: any,c1: any) => [...p1, {role:c.role, permission:c1}] ,[])]
+        return p
+    }, [])
+    await Promise.all(consructedPermissions.map((permission: any) => addCapability(permission.role, 'global', permission.permission, "", false))) 
+    return response
 }

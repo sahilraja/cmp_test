@@ -139,5 +139,10 @@
         "content": "Phases are updated for the project [projectName] on CMP",
         "templateName":"phaseUpdate",
         "displayName": "Phases updated"
+    },
+    {
+        "content":"New funds has been released for the project [projectName] on CMP",
+        "templateName":"addFundsReleased",
+        "displayName":"Funds Released"
     }
 ]

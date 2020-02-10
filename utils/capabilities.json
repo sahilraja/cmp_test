@@ -140,6 +140,13 @@
     "scope": "global"
   },
   {
+    "capability": "send-message-to-group",
+    "shortDescription": "Send Message to Group",
+    "description": "Ability send message to group",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
     "capability": "create-doc",
     "shortDescription": "Create Document",
     "description": "Ability to create a document",
@@ -194,6 +201,13 @@
     "category":"Project Management",
     "scope":"global",
     "description":"Add Open Comments"
+  },
+  {
+    "capability":"view-dashboard-financial-info",
+    "shortDescription":"View Financial Info at Dashboard",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Financial Info at Dashboard"
   },
   {
     "capability":"view-open-comments",
@@ -270,6 +284,20 @@
     "shortDescription": "Create Project Task",
     "description": "Create Project Task",
     "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "share-document",
+    "shortDescription": "Share Documents",
+    "description": "Share documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-document",
+    "shortDescription": "Edit Documents",
+    "description": "Edit documents",
+    "category": "Document Management",
     "scope": "global"
   },
   {

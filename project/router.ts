@@ -53,7 +53,7 @@ router.get("/list", async (req, res, next) => {
 
 router.get(`/dashboard-info`, async (req, res, next) => {
     try {
-        res.status(OK).send(await projectInfo())
+        res.status(OK).send(await projectInfo(res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }

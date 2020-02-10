@@ -1,10 +1,10 @@
 export const DOC_NOTIFICATIONS = {
     inviteForDocument: (name: string) => `You are invited by [from] to collaborate on the document ${name}`,
     suggestTagNotification: (name: string) => `You have a tag suggestion on the document ${name} from [from]`,
-    approveTagNotification: (name: string) => `A tag you suggested has been approved on the document ${name}`,
-    approveRemoveTagNotification: (name: string) => `A tag you suggested for removal has been approved on the document ${name}`,
-    rejectTagNotification: (name: string) => `A tag you suggested has been rejected on the document ${name}`,
-    rejectRemoveTagNotification: (name: string) => `A tag you suggested for removal has been rejected on the document ${name}`,
+    approveTagNotification: (name: string, tagNames: string) => `A tag ${tagNames} you suggested has been approved on the document ${name}`,
+    approveRemoveTagNotification: (name: string, tagNames: string) => `A tag ${tagNames} you suggested for removal has been approved on the document ${name}`,
+    rejectTagNotification: (name: string, tagNames: string) => `A tag ${tagNames} you suggested has been rejected on the document ${name}`,
+    rejectRemoveTagNotification: (name: string, tagNames: string) => `A tag ${tagNames} you suggested for removal has been rejected on the document ${name}`,
     addCommentToDoc: (name: string) => `A new comment has been added to the document ${name}`,
     documentUpdate: (text: string, name: string) => `Document ${name} has been updated ${text ? "with " + text : ""}`,
     invitePeopleDoc: (sharedUsers: string, role: string, name: string) => `Your document ${name} on CITIIS Management Platform, is shared with ${sharedUsers} in the capacity of ${role}`,
@@ -37,5 +37,6 @@ export const PROJECT_NOTIFICATIONS = {
     MIS_COMPLIANCE_UPDATED:(projectName: string) => `Miscompliance has been updated for the project ${projectName}`,
     // RISK_CREATED:(projectName: string) => ``,
     PHASES_UPDATED:(projectName: string) => `Phases has been updated for the project ${projectName}`,
-    MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`
+    MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`,
+    ADDED_FUND_RELEASE:(projectName: string) => `New fund release has been added to the project ${projectName}`
 }
