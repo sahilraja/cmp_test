@@ -1513,7 +1513,9 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
     //     id: createdDoc.id || createdDoc._id
     //   });
     // }
+    if (!body.parentId) {
     updateOrCreateDocInElasticSearch(createdDoc.id || createdDoc._id,host,token)
+    }
     return createdDoc;
 
   } catch (err) {
