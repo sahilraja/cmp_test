@@ -1136,13 +1136,13 @@ export async function changeMobileNumber(objBody: any, userData: any) {
     }
 }
 
-export async function replaceUser(userId: string, replaceTo: string, userToken: string, userObj: any) {
+export async function replaceUser(userId: string, replaceTo: string, userToken: string, userObj: any,host:string) {
     try {
         let eligible = await checkRoleScope(userObj.role, "replace-user");
         if (!eligible) throw new APIError(USER_ROUTER.INVALID_ADMIN, 403);
         await Promise.all([
             changeRoleToReplaceUser(userId, replaceTo),
-            replaceDocumentUser(userId, replaceTo, userObj),
+            replaceDocumentUser(userId, replaceTo, userObj,userToken,host),
             httpRequest({
                 url: `${MESSAGE_URL}/v1/replace-user`,
                 body: { oldUser: userId, updatedUser: replaceTo },
@@ -1698,6 +1698,23 @@ export async function registerNewEmail(id:string,objBody: any,userId: string) {
         await userLog({ activityType: "INVITE-USER", activityBy: userId, profileId: id })
         return { success: true,response: userUpdate, message: "New Email updated successfully"}
     }catch (err) {
+        throw err
+    }
+}
+export async function createRefreshToken(objBody:any) {
+    try {
+        return await RefreshTokenSchema.create({ userId: objBody.id, access_token: objBody.token, lastUsedAt: new Date() })
+    }
+    catch (err) {
+        throw err
+    }
+}
+
+export async function removeRefreshToken(objBody:any) {
+    try {
+        return await RefreshTokenSchema.remove({ userId: objBody.id, access_token: objBody.token})
+    }
+    catch (err) {
         throw err
     }
 }

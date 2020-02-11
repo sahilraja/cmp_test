@@ -62,7 +62,7 @@ router.get(`/dashboard-info`, async (req, res, next) => {
 //get project details
 router.get("/:id/detail", async (req, res, next) => {
     try {
-        res.status(OK).send(await getProjectDetail(req.params.id, (req as any).token))
+        res.status(OK).send(await getProjectDetail(req.params.id, res.locals.user, (req as any).token))
     } catch (err) {
         next(new APIError(err.message));
     }

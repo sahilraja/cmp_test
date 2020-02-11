@@ -1,7 +1,7 @@
 import { Router, Request, Response, Handler } from "express";
 import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, 
     changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, changeOldPassword, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser, userLogout,
-     updateTaskEndorser, formateRoles,registerNewEmail } from "./module";
+     updateTaskEndorser, formateRoles,registerNewEmail,createRefreshToken,removeRefreshToken } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -411,7 +411,7 @@ router.post("/change/mobile", authenticate, async (req, res, next) => {
 // Replace User
 router.post(`/:id/replace`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await replaceUser(req.params.id, req.body.replaceTo, (req as any).token, res.locals.user))
+        res.status(OK).send(await replaceUser(req.params.id, req.body.replaceTo, (req as any).token, res.locals.user,`${req.protocol}://${req.get('host')}`))
     } catch (error) {
         next(error)
     }
@@ -540,6 +540,24 @@ router.post("/role-formate", authenticate, async (req, res, next) => {
 router.post("/new/email/:id", authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await registerNewEmail(req.params.id,req.body,res.locals.user._id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/create/refresh-token", async (req, res, next) => {
+    try {
+        res.status(OK).send(await createRefreshToken(req.body));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/remove/refresh-token", async (req, res, next) => {
+    try {
+        res.status(OK).send(await removeRefreshToken(req.body));
     }
     catch (error) {
         next(new APIError(error.message));

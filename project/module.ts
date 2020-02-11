@@ -14,7 +14,7 @@ import { userFindMany, userFindOne, userList } from "../utils/users";
 import { APIError } from "../utils/custom-error";
 import { updateProjectTasks } from "../utils/utils"
 import { create as createLog } from "../log/module";
-import { documentsList, updateUserInDOcs,getProjectNamesForES,updateProjectPhaseInDocs } from "../documents/module";
+import { documentsList, updateUserInDOcs,getProjectNamesForES } from "../documents/module";
 import { unlinkSync, readFileSync, writeFileSync } from "fs";
 import { extname, join } from "path";
 import * as xlsx from "xlsx";
@@ -71,10 +71,10 @@ export async function createProject(reqObject: any, user: any) {
 }
 
 export async function projectInfo(user: any) {
-  const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
-  if(!isEligible){
-    throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
-  }
+  // const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
+  // if(!isEligible){
+  //   throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
+  // }
   const projects = await ProjectSchema.find({}).exec()
   let response = projects.reduce((p, c: any) => 
   ({...p, 
@@ -529,9 +529,18 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 }
 
 // get project details
-export async function getProjectDetail(projectId: string, userToken: string) {
+export async function getProjectDetail(projectId: string, user: any, userToken: string) {
   try {
     let projectDetail: any = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
+    // if(!projectDetail.members.includes(user._id)){
+    //   const [isEligible1, isEligible2] = await Promise.all([
+    //     checkRoleScope(user.role, ``),
+    //     checkRoleScope(user.role, ``)
+    //   ])
+    //   if(!isEligible1 && !isEligible2){
+    //     throw new APIError(``)
+    //   }
+    // }
     projectDetail = await mapPhases(projectDetail)
     return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
   } catch (error) {
@@ -1848,7 +1857,7 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   let docsToUpdateInES:any = [...existingDocs]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
 
-  const { releasedDocuments, releasedCost, _id } = payload
+  const { _id } = payload
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
   if(currentObj.utilized && !currentObj.utilized.deleted){
     throw new APIError(PROJECT_ROUTER.CANNOT_REMOVE_RELEASED_AMOUNT)
@@ -1886,9 +1895,9 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
  });
   let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
-  let docsToUpdateInES:any = [...existingDocs, ...payload.utilizedDocuments]
+  let docsToUpdateInES:any = [...existingDocs, ...(payload.utilizedDocuments || [])]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
-  const { utilisedDocuments, utilisedCost, _id } = payload
+  const { _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
   updates['funds.$.utilized.deleted'] = true

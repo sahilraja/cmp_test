@@ -68,9 +68,10 @@ import {
   suggestTagsToAddOrRemove,
   shareDocForUsersNew,
   searchDoc, updateUserInDOcs,
-  createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, getFinancialDocList,getProjectNamesForES,backgroundJobForDocumentPhases
+  createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, 
+  getFinancialDocList,getProjectNamesForES,backgroundJobForDocumentPhases,getProjectDetailsForES,getAllDocs
 } from "./module";
-
+import { GetUserIdsForDocWithRole } from "../utils/groups"
 import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { authenticate } from "../utils/utils";
@@ -310,6 +311,30 @@ router.get(`/get-document/:docId`, async (request, response, next) => {
   } catch (err) {
     next(new APIError(err.message));
   };
+});
+router.get("/all",  async (req, res, next)=> {
+  try {
+    res.status(200).send(await getAllDocs());
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+}
+);
+
+router.post("/project-info-for-docs", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await getProjectNamesForES(req.body.docIds,`${req.protocol}://${req.get('host')}`,(req as any).token));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
+});
+
+router.get("/background", authenticate, async (req, res, next: NextFunction) => {
+  try {
+    res.status(200).send(await  backgroundJobForDocumentPhases((req as any).token));
+  } catch (err) {
+    next(new APIError(err.message));
+  }
 });
 
 // router.get("/get-doc-view/:docId", async (request, response, next) => {
@@ -917,20 +942,31 @@ router.post(`/bulk-document/upload`, authenticate, siteConstants, upload.single(
   };
 });
 
-router.post("/project-info-for-docs", authenticate, async (req, res, next: NextFunction) => {
+
+
+router.get("/:id/details", authenticate, async (req: any, res, next) => {
   try {
-    res.status(200).send(await getProjectNamesForES(req.body.docIds,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await getDocumentById(req.params.id))
   } catch (err) {
-    next(new APIError(err.message));
-  }
+    throw err
+  };
 });
 
-router.get("/background", authenticate, async (req, res, next: NextFunction) => {
+router.get("/:id/get-doc-users", authenticate, async (req: any, res, next) => {
   try {
-    res.status(200).send(await  backgroundJobForDocumentPhases((req as any).token));
+    res.status(200).send(await GetUserIdsForDocWithRole(req.params.id,req.query.role))
   } catch (err) {
-    next(new APIError(err.message));
-  }
+    throw err
+  };
 });
+
+router.get("/:id/get-project-details", authenticate, async (req: any, res, next) => {
+  try {
+    res.status(200).send(await getProjectDetailsForES(req.params.id,((req as any).token)))
+  } catch (err) {
+    throw err
+  };
+});
+
 
 export = router;
