@@ -1444,7 +1444,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
         throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_UPDATE_TAGS, 403);
       }
     }
-    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host,token, docId)
     await Promise.all([
       createActivityLog({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId }),
       createActivityLog({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: docId, fromPublished: docId })
