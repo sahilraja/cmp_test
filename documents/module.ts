@@ -2613,6 +2613,9 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
   try {
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
     if (["no_access", "publish", "viewer"].includes(capability[0])) {
+      if('viewer' == capability[0]){
+        await groupsRemovePolicy(`/user/${newOwnerId}`, doc._id, capability[0])
+      }
       let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
       // await createActivityLog({
       //   activityType: "CHANGE_OWNERSHIP",

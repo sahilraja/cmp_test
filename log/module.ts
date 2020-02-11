@@ -33,7 +33,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
     if (!isEligible) {
         throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION)
     }
-    const activities = await ActivitySchema.find({ taskId }).populate([{path:'oldStepId'},{path:'stepId'},{path:'oldPillarId'},{path:'pillarId'}]).sort({ createdAt: 1 }).exec()
+    const activities = await ActivitySchema.find({ taskId }).populate([{path:'oldStepId'},{path:'stepId'},{path:'oldPillarId'},{path:'pillarId'}]).sort({ createdAt: -1 }).exec()
     const userIds = activities.reduce((p: any, activity: any) =>
         [...p, ...
             ((activity.addedUserIds || []).concat(activity.removedUserIds || []).concat([activity.activityBy]))
@@ -58,7 +58,7 @@ export async function getTaskLogs(taskId: string, token: string, userRole: strin
         tagsAdded: tagObjects.filter(({ id }: any) => (activity.tagsAdded || []).includes(id)),
         tagsRemoved: tagObjects.filter(({ id }: any) => (activity.tagsRemoved || []).includes(id))
     })).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    return (logs.map(logObj => getFormantedTaskLogs(logObj))).reverse()
+    return (logs.map(logObj => getFormantedTaskLogs(logObj)))
 };
 
 export async function getDocumentsLogs(docId: string, token: string, userObj: any) {
@@ -66,11 +66,11 @@ export async function getDocumentsLogs(docId: string, token: string, userObj: an
         const isEligible = await checkRoleScope(userObj.role, `document-activity-log`)
         if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
         const select = { name: true, description: true }
-        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(docId) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).exec()
+        const activities: any[] = await ActivitySchema.find({ documentId: Types.ObjectId(docId) }).populate([{ path: 'fromPublished', select }, { path: 'fromPublished', select }, { path: "documentId", select }]).sort({createdAt:-1}).exec()
         let logs = await Promise.all(activities.map((activity: any) => {
             return activityFetchDetails(activity)
         }))
-        return (logs.map(logObj => getFormantedDocLogs(logObj))).reverse()
+        return (logs.map(logObj => getFormantedDocLogs(logObj)))
     } catch (err) {
         throw err
     };
@@ -103,11 +103,11 @@ async function activityFetchDetails(activity: any) {
 
 export async function getProfileLogs(profileId: string, token: string) {
     try {
-        const activities: any[] = await ActivitySchema.find({ profileId: Types.ObjectId(profileId) }).exec()
+        const activities: any[] = await ActivitySchema.find({ profileId: Types.ObjectId(profileId) }).sort({createdAt:-1}).exec()
         let logs = await Promise.all(activities.map((activity: any) => {
             return profileFetchDetails(activity.toJSON())
         }))
-        return (logs.map(logObj => getFormantedUserLogs(logObj))).reverse()
+        return (logs.map(logObj => getFormantedUserLogs(logObj)))
     } catch (err) {
         throw err
     };
@@ -143,12 +143,12 @@ export async function projectLogs(projectId: string, token: string, userObj: any
         const isEligible = await checkRoleScope(userObj.role, `project-activity-log`)
         if (!isEligible) throw new APIError(TASK_ERROR.UNAUTHORIZED_PERMISSION);
 
-        const activities: any[] = await ActivitySchema.find({ projectId }).populate([{ path: 'projectId' },{ path: 'oldStepId' },{ path: 'stepId' }, { path: 'oldPillarId' }, { path: 'pillarId' }]).exec()
+        const activities: any[] = await ActivitySchema.find({ projectId }).populate([{ path: 'projectId' },{ path: 'oldStepId' },{ path: 'stepId' }, { path: 'oldPillarId' }, { path: 'pillarId' }]).sort({createdAt:-1}).exec()
         let taskObjects: any[] = await getTasksByIds([...new Set((activities.reduce((main, curr) => main.concat([curr.taskId]), [])).filter((id: string) => Types.ObjectId(id)))] as any, token)
         let logs = await Promise.all(activities.map((activity: any) => {
             return fetchProjectLogDetails(activity.toJSON(), taskObjects)
         }))
-        return (logs.map(logObj => getFormantedProjectLogs(logObj))).reverse()
+        return (logs.map(logObj => getFormantedProjectLogs(logObj)))
     } catch (err) {
         throw err
     };
