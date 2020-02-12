@@ -26,7 +26,7 @@ export async function createPhase(payload: any, userObj: any) {
 export async function editPhase(phaseId: string, body: any, userObj: any, token: string,host: string) {
     try {
         let isEligible = await checkRoleScope(userObj.role, "phase-manage");
-        if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
+        // if (!isEligible) throw new APIError(UNAUTHORIZED_ACTION, 403);
         if (!/.*[A-Za-z0-9]{1}.*$/.test(body.phaseName)) throw new Error(USER_ROUTER.NAME_ERROR)
         let phaseInfo: any = await phaseSchema.findByIdAndUpdate(phaseId, { $set: { phaseName: body.phaseName, phaseCode: body.phaseName.toLowerCase(), colorCode: body.colorCode } }, { new: true }).exec()
         let { disable, ...phaseResult } = phaseInfo.toObject();
