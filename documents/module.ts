@@ -650,11 +650,11 @@ export async function cancelUpdate(docId: string, userId: string) {
 
 export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any,host: string, token: string) {
   try {
-    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
-    // const isEligible = await checkRoleScope(getUserRole, "edit-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "edit-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    }
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let capability = await documnetCapabilities(docId, userId);
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_UPDATE_USER);
@@ -1117,10 +1117,10 @@ export async function invitePeople(docId: string, users: any, role: string, user
   try {
     let userRoles = await userRoleAndScope(userId);
     let getUserRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+    }
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     let doc: any = await documents.findById(docId);
     if (doc.status == 2) throw new Error(DOCUMENT_ROUTER.SHARE_PUBLISHED_DOCUMENT)
@@ -2293,6 +2293,8 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
     if (body.tagIdToAdd) {
+      const tags = await getTags([body.tagIdToAdd])
+      const tagNames = tags.map((tag: any) => tag.tag)
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -2320,7 +2322,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
          createActivityLog({ activityType: "SUGGEST_TAGS_ADD_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name), from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name, tagNames.join(`, `)), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
           sucess: true,
@@ -2329,6 +2331,8 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       }
     }
     if (body.tagIdToRemove) {
+      const tags = await getTags([body.tagIdToRemove])
+      const tagNames = tags.map((tag: any) => tag.tag)
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -2353,7 +2357,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
          createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name), from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name, tagNames.join(`, `)), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
           sucess: true,
