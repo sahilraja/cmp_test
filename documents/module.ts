@@ -2802,15 +2802,12 @@ export async function renameFolder(folderId: string, body: any, userId: string) 
 }
 export async function searchDoc(search: string, userId: string, page: number = 1, limit: number = 30, pagination: boolean = true, searchAllCmp: boolean = false) {
   try {
-    let queryObj = {search,userId,page,limit,pagination,searchAllCmp};
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
+    let queryObj = {search,userId,page,limit,searchAllCmp,isEligible};
     let searchResult = await searchInElasticSearch(queryObj)
     return searchResult;
-    // let userRoles = await userRoleAndScope(userId);
-    // let userRole = userRoles.data[0];
-    // let data: any;
-
-    // const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
-    // if (isEligible && searchAllCmp) {
     //   if (search == (null || "")) {
     //     data = {
     //       query: {

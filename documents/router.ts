@@ -74,7 +74,7 @@ import {
 import { GetUserIdsForDocWithRole } from "../utils/groups"
 import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
-import { authenticate } from "../utils/utils";
+import { authenticate, superUserAuthenticate,jwt_Verify } from "../utils/utils";
 import { FILES_SERVER_BASE } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { DOCUMENT_ROUTER } from "../utils/error_msg";
@@ -312,7 +312,7 @@ router.get(`/get-document/:docId`, async (request, response, next) => {
     next(new APIError(err.message));
   };
 });
-router.get("/all",  async (req, res, next)=> {
+router.get("/all",  superUserAuthenticate, async (req, res, next)=> {
   try {
     res.status(200).send(await getAllDocs());
   } catch (err) {
@@ -963,6 +963,14 @@ router.get("/:id/get-doc-users", authenticate, async (req: any, res, next) => {
 router.get("/:id/get-project-details", authenticate, async (req: any, res, next) => {
   try {
     res.status(200).send(await getProjectDetailsForES(req.params.id,((req as any).token)))
+  } catch (err) {
+    throw err
+  };
+});
+
+router.get("/:token/verifyJwt", async (req: any, res, next) => {
+  try {
+    res.status(200).send(await jwt_Verify(req.params.token))
   } catch (err) {
     throw err
   };

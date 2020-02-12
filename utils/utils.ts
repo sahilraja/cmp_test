@@ -70,6 +70,29 @@ export async function authenticate(req: any, res: any, next: any) {
     };
 };
 
+
+/**
+ * User with id -1 is a special user.
+ * @param req U
+ * @param res 
+ * @param next 
+ */
+export async function superUserAuthenticate(req: any, res: any, next: any) {
+    try {
+        if (!req.headers.authorization) throw new Error(AUTHENTICATE_MSG.MISSING_TOKEN)
+        let bearerToken = req.headers.authorization.substring(7, req.headers.authorization.length)
+        let token: any = await jwt_Verify(bearerToken)
+        if (!token) throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN)
+        if (token.id == -1) {
+            return next();
+        } else {
+            throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN);
+        }
+    } catch(error) {
+        next(error);
+    }
+}
+
 //  Hash password
 export function hashPassword(password: any) {
     try {
@@ -305,7 +328,7 @@ export async function updateProjectTasks(body: any, token: string) {
   export async function searchInElasticSearch(queryObj:any) {
     try {
       let Options = {
-        uri: `${ELASTICSEARCH_URL}/v1/search?search=${queryObj.search}&userId=${queryObj.userId}&page=${queryObj.page}&limit=${queryObj.limit}&pagination=${queryObj.pagination}&searchAllCmp=${queryObj.searchAllCmp}`,
+        uri: `${ELASTICSEARCH_URL}/v1/search?search=${queryObj.search}&userId=${queryObj.userId}&page=${queryObj.page}&limit=${queryObj.limit}&searchAllCmp=${queryObj.searchAllCmp}&isEligible=${queryObj.isEligible}`,
         method: "GET",
         json: true
       }
