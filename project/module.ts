@@ -71,10 +71,10 @@ export async function createProject(reqObject: any, user: any) {
 }
 
 export async function projectInfo(user: any) {
-  // const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
-  // if(!isEligible){
-  //   throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
-  // }
+  const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
+  }
   const projects = await ProjectSchema.find({}).exec()
   let response = projects.reduce((p, c: any) => 
   ({...p, 
@@ -1821,7 +1821,12 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
 }
 
 async function sendAllNotificationsOnAddFund(members:any, activityBy: any, projectName:string) {
-  const fetchedUsers = await userFindMany('_id', members, { firstName: 1, middleName: 1, lastName: 1, phone: 1, countryCode: 1, email: 1 })
+  let fetchedUsers = await userFindMany('_id', members, { firstName: 1, middleName: 1, lastName: 1, phone: 1, countryCode: 1, email: 1 })
+  let userRoles = fetchedUsers.map((user: any) => userRoleAndScope(user._id))
+  userRoles = userRoles.map((role: any) => (role.data || [""])[0])
+  fetchedUsers = fetchedUsers.map((user: any, index: number) => ({...user, role:userRoles[index]}))
+  const filterNonCapableUsers = fetchedUsers.map((user: any) => checkRoleScope(user.role, `manage-project-released-fund`))
+  fetchedUsers = fetchedUsers.filter((user: any, index: number) => !filterNonCapableUsers[index])
   Promise.all(fetchedUsers.map((user: any) => {
     const { fullName, mobileNo } = getFullNameAndMobile(user)
     return sendNotification({ templateName: `addFundsReleased`, mobileTemplateName:`addFundsReleased`, mobileNo, email: user.email, fullName, projectName })
