@@ -183,7 +183,7 @@
   },
   {
     "capability": "phase-manage",
-    "shortDescription":"Add/Edit phase",
+    "shortDescription":"Add/Edit phase names",
     "category":"Project Management",
     "scope":"global",
     "description":"manage phase add/edit permission"

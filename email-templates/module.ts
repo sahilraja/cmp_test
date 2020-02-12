@@ -90,9 +90,9 @@ export async function getTemplateBySubstitutions(templateId: string, substitutio
         if(!substitutions){
             substitutions = {};
         }
-        // if(substitutions.role && Array.isArray(substitutions.role)){
-        //     substitutions.role = formatRole(substitutions.role)
-        // }
+        if(substitutions.role && Array.isArray(substitutions.role)){
+            substitutions.role = formatRole(substitutions.role)
+        }
         return {
             subject: Object.keys(substitutions).reduce((prev, key) => {
                 return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);
