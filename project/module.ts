@@ -299,12 +299,12 @@ export async function getProjectMembers(id: string, userId: string) {
   // return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
 }
 
-function formatUserRole(role: string[], formattedRoleObjs: any) {
+export function formatUserRole(role: string[], formattedRoleObjs: any) {
   // let userRole: any = formattedRoleObjs.find((roleObj: any) => roleObj.role === role);
   // return userRole ? userRole.roleName : role;
   return role ? role.map((userRole: string) => {
     let roleObj = formattedRoleObjs.find(({ role: rolecode }: any) => rolecode == userRole)
-    return roleObj ? roleObj.roleName : userRole
+    return roleObj ? (roleObj.roleName || roleObj.description || userRole) : userRole
   }) : ["N/A"]
 }
 
