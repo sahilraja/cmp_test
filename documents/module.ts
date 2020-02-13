@@ -78,7 +78,7 @@ export async function removeIndex(index: string) {
   return await esClient.indices.delete({ index: index });
 
 }
-export async function createNewDoc(body: any, userId: any, siteConstant: any, host: string) {
+export async function createNewDoc(body: any, userId: any, siteConstant: any, host: string,token: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
@@ -122,45 +122,46 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
       })
     }
      createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
-    // const insertDoc = async function(indexName, _id, mappingType, data){
-    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-    let userName;
-    if (userDetails.firstName)
-      userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-    else {
-      userName = userDetails.name
-    }
-    let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
+     updateOrCreateDocInElasticSearch(doc.id,host,token)
+    // // const insertDoc = async function(indexName, _id, mappingType, data){
+    // let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    // let userName;
+    // if (userDetails.firstName)
+    //   userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    // else {
+    //   userName = userDetails.name
+    // }
+    // let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
 
-    let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${doc.fileId}` : "N/A"
+    // let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${doc.fileId}` : "N/A"
 
-    let tags = await getTags((body.tags && body.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
-    tags = tags.map((tagData: any) => { return tagData.tag })
-    let docObj = {
-      accessedBy: [userId],
-      userName: [userName],
-      name: body.docName,
-      description: body.description,
-      tags: tags,
-      thumbnail: thumbnail,
-      status: doc.status,
-      fileName: doc.fileName,
-      updatedAt: doc.updatedAt,
-      createdAt: doc.createdAt,
-      id: doc.id,
-      groupId: [],
-      groupName: [],
-      createdBy: userId,
-      projectName: [],
-      city: [],
-      reference: [],
-      phases: []
-    }
-    let result =esClient.index({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      body: docObj,
-      id: doc.id
-    });
+    // let tags = await getTags((body.tags && body.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+    // tags = tags.map((tagData: any) => { return tagData.tag })
+    // let docObj = {
+    //   accessedBy: [userId],
+    //   userName: [userName],
+    //   name: body.docName,
+    //   description: body.description,
+    //   tags: tags,
+    //   thumbnail: thumbnail,
+    //   status: doc.status,
+    //   fileName: doc.fileName,
+    //   updatedAt: doc.updatedAt,
+    //   createdAt: doc.createdAt,
+    //   id: doc.id,
+    //   groupId: [],
+    //   groupName: [],
+    //   createdBy: userId,
+    //   projectName: [],
+    //   city: [],
+    //   reference: [],
+    //   phases: []
+    // }
+    // let result =esClient.index({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   body: docObj,
+    //   id: doc.id
+    // });
 
     return doc;
   } catch (err) {
@@ -3580,4 +3581,3 @@ export async function getAllDocs() {
   const docs:any = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
   return docs;
 }
-

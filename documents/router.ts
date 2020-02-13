@@ -170,7 +170,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
     req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
     if (fileObj.errors) throw new Error(DOCUMENT_ROUTER.FILE_SIZE(req.siteConstants.docSize))
-    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants, `${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants, `${req.protocol}://${req.get('host')}`,req.token));
   } catch (err) {
     next(new APIError(err.message));
   }
