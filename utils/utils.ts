@@ -328,9 +328,17 @@ export async function updateProjectTasks(body: any, token: string) {
   export async function searchInElasticSearch(queryObj:any) {
     try {
       let Options = {
-        uri: `${ELASTICSEARCH_URL}/v1/search?search=${queryObj.search}&userId=${queryObj.userId}&page=${queryObj.page}&limit=${queryObj.limit}&searchAllCmp=${queryObj.searchAllCmp}&isEligible=${queryObj.isEligible}`,
+        uri: `${ELASTICSEARCH_URL}/v1/search`,
         method: "GET",
-        json: true
+        qs:{
+            search:queryObj.search,
+            userId: queryObj.userId,
+            page: queryObj.page,
+            limit: queryObj.limit,
+            searchAllCmp:queryObj.searchAllCmp,
+            isEligible: queryObj.isEligible
+        },
+        json: true,
       }
       return await request(Options);
     } catch (err) {
