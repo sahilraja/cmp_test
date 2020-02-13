@@ -238,7 +238,7 @@ router.post("/group/create", authenticate, async (req: Request, res: Response, n
 //  List Group
 router.get("/group/list", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await groupList(res.locals.user._id))
+        res.status(200).send(await groupList(res.locals.user))
     } catch (err) {
         next(new APIError(err.message));
     };

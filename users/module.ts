@@ -672,9 +672,18 @@ export async function editGroup(objBody: any, id: string, userObj: any,host:stri
 };
 
 //  Get group List
-export async function groupList(userId: string) {
+export async function groupList(user: any) {
     try {
-        // let groupIds = await userGroupsList(userId)
+        const [canCreate, canEdit, canDeactivate, canViewAll] = await Promise.all([
+            checkRoleScope(user.role, `create-group`),
+            checkRoleScope(user.role, `edit-group`),
+            checkRoleScope(user.role, `deactivate-group`),
+            checkRoleScope(user.role, `view-all-groups`),
+        ])
+        if(!canCreate && !canEdit && !canDeactivate && !canViewAll){
+            throw new APIError(USER_ROUTER.INVALID_ACTION)
+        }
+        // let groupIds = await userGroupsList(user._id)
         let meCreatedGroup = await groupPatternMatch({}, {}, {}, {}, "updatedAt")
         // let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
         // let groups = [...meCreatedGroup, ...sharedGroup]

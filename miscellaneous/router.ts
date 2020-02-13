@@ -8,6 +8,7 @@ import { get as httpGet } from "http";
 import { get as httpsGet } from "https";
 import { uploadToFileService } from "../documents/module";
 import { backGroudJobForPhase } from "../project/module";
+import { getReplacedUserSuggestions } from "../users/module";
 const router = Router()
 
 router.get(`/step-info`, async (req, res, next) =>  {
@@ -125,6 +126,14 @@ router.get(`/download-bulk-user-excel`,async (request, response, next) => {
 router.post(`/getCurrentPhases`, async (req, res, next) => {
     try {
         res.status(OK).send(await backGroudJobForPhase(req.body.projectIds))
+    } catch (error) {
+        next(new APIError(error.message))
+    }
+})
+
+router.get(`/get-replaced-user-suggestions`, async (req, res, next) => {
+    try {
+        res.status(OK).send(await getReplacedUserSuggestions(req.query.user))
     } catch (error) {
         next(new APIError(error.message))
     }
