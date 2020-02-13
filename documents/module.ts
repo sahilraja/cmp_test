@@ -2120,16 +2120,25 @@ async function loopForAddCapability(docId: string, users: any[]) {
 
 export async function suggestTags(docId: string, body: any, userId: string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "suggest-tag");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
-    }
-    if (!body.tags) { throw new Error(DOCUMENT_ROUTER.TAG_REQUIRED) }
     let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
     if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    if(docData.isPublic){
+      // Checking for suggest tag permission on public document
+      const isEligibleOnPublic = await checkRoleScope(userRole, `suggest-tag-on-public-document`)
+      if(!isEligibleOnPublic){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    } else {
+      // If not public then Checking for suggest tag permission on public document
+      let isEligible = await checkRoleScope(userRole, "suggest-tag");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    }
+    if (!body.tags) { throw new Error(DOCUMENT_ROUTER.TAG_REQUIRED) }
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2172,6 +2181,11 @@ export async function approveTags(docId: string, body: any, userId: string,host:
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
+    if(docdetails.isPublic){
+      if(userId != docdetails.ownerId){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2287,6 +2301,11 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
+    if(docdetails.isPublic){
+      if(userId != docdetails.ownerId){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2739,20 +2758,26 @@ export async function markDocumentAsUnPublic(docId: string, userRole: string) {
 
 export async function suggestTagsToAddOrRemove(docId: string, body: any, userId: string) {
   try {
-
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "suggest-tag");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
-    }
-    if (!body.addTags && !body.removeTags) { throw new Error(DOCUMENT_ROUTER.MANDATORY) }
     let [docData, child]: any = await Promise.all([
       documents.findById(docId).exec(),
       documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     ])
     if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    if(docData.isPublic){
+      const isEligibleOnPublic = await checkRoleScope(userRole, `suggest-tag-on-public-document`)
+      if (!isEligibleOnPublic) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    } else {
+      const isEligible = await checkRoleScope(userRole, "suggest-tag");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    }
+    if (!body.addTags && !body.removeTags) { throw new Error(DOCUMENT_ROUTER.MANDATORY) }
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;

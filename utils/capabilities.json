@@ -336,10 +336,24 @@
     "scope": "global"
   },
   {
+    "capability": "view-all-groups",
+    "shortDescription": "",
+    "description": "",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
     "capability": "project-add-core-team",
     "shortDescription": "Add Core Team",
     "description": "Add core team",
     "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability":"suggest-tag-on-public-document",
+    "shortDescription": "Suggest Tag to Public Document",
+    "description": "Ability to suggest Tag to Public Document",
+    "category": "Document Management",
     "scope": "global"
   },
   {
