@@ -650,11 +650,11 @@ export async function cancelUpdate(docId: string, userId: string) {
 
 export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any,host: string, token: string) {
   try {
-    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
-    // const isEligible = await checkRoleScope(getUserRole, "edit-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "edit-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_EDIT, 403);
+    }
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let capability = await documnetCapabilities(docId, userId);
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_UPDATE_USER);
@@ -1117,10 +1117,10 @@ export async function invitePeople(docId: string, users: any, role: string, user
   try {
     let userRoles = await userRoleAndScope(userId);
     let getUserRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE, 403);
+    }
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     let doc: any = await documents.findById(docId);
     if (doc.status == 2) throw new Error(DOCUMENT_ROUTER.SHARE_PUBLISHED_DOCUMENT)
@@ -1216,11 +1216,11 @@ export async function invitePeople(docId: string, users: any, role: string, user
 
 export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
-    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.INVALID_ADMIN, 403);
+    }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let actionUserRole = await documnetCapabilities(docId, userObj._id)
     if (actionUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
@@ -1254,11 +1254,11 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
 
 export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any,host: string,token:string) {
   try {
-    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.INVALID_ADMIN, 403);
+    }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let userRole = await documnetCapabilities(docId, userObj._id)
     if (!userRole.includes("owner")) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY)
@@ -1668,6 +1668,7 @@ export function manualPagination(page: number, limit: number, docs: any[]) {
   limit = Number(limit)
   const skip = ((page - 1) * limit)
   return {
+    total:docs.length,
     page,
     pages: Math.ceil(docs.length / limit),
     docs: docs.slice(skip, skip + limit)
@@ -1988,7 +1989,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
   docsData.docs = documentsSort(docsData.docs, "name", false)
-  return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
+  return {total:docsData.total, page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
 
 
@@ -2120,16 +2121,25 @@ async function loopForAddCapability(docId: string, users: any[]) {
 
 export async function suggestTags(docId: string, body: any, userId: string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "suggest-tag");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
-    }
-    if (!body.tags) { throw new Error(DOCUMENT_ROUTER.TAG_REQUIRED) }
     let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
     if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    if(docData.isPublic){
+      // Checking for suggest tag permission on public document
+      const isEligibleOnPublic = await checkRoleScope(userRole, `suggest-tag-on-public-document`)
+      if(!isEligibleOnPublic){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    } else {
+      // If not public then Checking for suggest tag permission on public document
+      let isEligible = await checkRoleScope(userRole, "suggest-tag");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    }
+    if (!body.tags) { throw new Error(DOCUMENT_ROUTER.TAG_REQUIRED) }
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2172,6 +2182,11 @@ export async function approveTags(docId: string, body: any, userId: string,host:
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
+    if(docdetails.isPublic){
+      if(userId != docdetails.ownerId){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2287,12 +2302,19 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
+    if(docdetails.isPublic){
+      if(userId != docdetails.ownerId){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
     if (body.tagIdToAdd) {
+      const tags = await getTags([body.tagIdToAdd])
+      const tagNames = tags.map((tag: any) => tag.tag)
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -2320,7 +2342,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
          createActivityLog({ activityType: "SUGGEST_TAGS_ADD_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name), from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name, tagNames.join(`, `)), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
           sucess: true,
@@ -2329,6 +2351,8 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       }
     }
     if (body.tagIdToRemove) {
+      const tags = await getTags([body.tagIdToRemove])
+      const tagNames = tags.map((tag: any) => tag.tag)
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -2353,7 +2377,7 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
          createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name), from: userId })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name, tagNames.join(`, `)), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
           sucess: true,
@@ -2506,7 +2530,13 @@ async function RequestList(request: any) {
 
 export async function requestAccept(requestId: string, userObj: any) {
   try {
-    if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    const isEligible = await checkRoleScope(userObj.role, `share-document`)
+    if(!isEligible){
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+    }
+    if (!Types.ObjectId.isValid(requestId)) { 
+      throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID); 
+    }
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let capability: any[] = await documnetCapabilities(requestDetails.docId.id, requestDetails.requestedBy);
@@ -2534,6 +2564,10 @@ export async function requestAccept(requestId: string, userObj: any) {
 
 export async function requestDenied(requestId: string, userObj: any) {
   try {
+    const isEligible = await checkRoleScope(userObj.role, `share-document`)
+    if(!isEligible){
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+    }
     if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
@@ -2615,9 +2649,16 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
     if (["no_access", "publish", "viewer"].includes(capability[0])) {
       if('viewer' == capability[0]){
-        await groupsRemovePolicy(`/user/${newOwnerId}`, doc._id, capability[0])
+        try {
+          await groupsRemovePolicy(`user/${newOwnerId}`, doc._id, capability[0])
+        } catch (error) {
+          console.error(`Error at remove existing access: change document ownership at replace user`)
+        } finally {
+          let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
+        }
+      } else {
+        await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
       }
-      let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
       // await createActivityLog({
       //   activityType: "CHANGE_OWNERSHIP",
       //   activityBy: userObj._id,
@@ -2735,20 +2776,26 @@ export async function markDocumentAsUnPublic(docId: string, userRole: string) {
 
 export async function suggestTagsToAddOrRemove(docId: string, body: any, userId: string) {
   try {
-
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "suggest-tag");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
-    }
-    if (!body.addTags && !body.removeTags) { throw new Error(DOCUMENT_ROUTER.MANDATORY) }
     let [docData, child]: any = await Promise.all([
       documents.findById(docId).exec(),
       documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     ])
     if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    if(docData.isPublic){
+      const isEligibleOnPublic = await checkRoleScope(userRole, `suggest-tag-on-public-document`)
+      if (!isEligibleOnPublic) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    } else {
+      const isEligible = await checkRoleScope(userRole, "suggest-tag");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    }
+    if (!body.addTags && !body.removeTags) { throw new Error(DOCUMENT_ROUTER.MANDATORY) }
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;

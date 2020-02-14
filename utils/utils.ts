@@ -57,7 +57,9 @@ export async function authenticate(req: any, res: any, next: any) {
             next(new APIError(`Your session has timed out. Please login again.`, 401))
             return
         }
-        if(!tokenData) next(new APIError(`You have been logged out. Please login again.`, 401))
+        if(!tokenData) {
+            next(new APIError(`You have been logged out. Please login again.`, 401))
+        }
         tokenData.set('lastUsedAt', new Date())
         await tokenData.save()
         user.role = ((((await userRoleAndScope(token.id))) as any).data || [""])[0];

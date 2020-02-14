@@ -8,7 +8,10 @@ import { PaginateResult, Types } from "mongoose";
 import { addRole, getRoles, roleCapabilitylist, updateRole, revokeRole, roleUsersList } from "../utils/rbac";
 import { groupUserList, addUserToGroup, removeUserToGroup, GetDocIdsForUser, userGroupsList } from "../utils/groups";
 import { ANGULAR_URL, TASKS_URL } from "../utils/urls";
-import { createUser, userDelete, userFindOne, userEdit, createJWT, userPaginatedList, userLogin, userFindMany, userList, groupCreate, groupFindOne, groupEdit, listGroup, userUpdate, otpVerify, getNamePatternMatch, uploadPhoto, changeEmailRoute, verifyJWT, groupPatternMatch, groupUpdateMany, smsRequest, internationalSmsRequest, changePasswordInfo, validateUserCurrentPassword, userListForHome } from "../utils/users";
+import { createUser, userDelete, userFindOne, userEdit, createJWT, userLogin, userFindMany, userList, 
+    groupCreate, groupFindOne, groupEdit, userUpdate, otpVerify, getNamePatternMatch, groupPatternMatch, 
+    groupUpdateMany, smsRequest, internationalSmsRequest, changePasswordInfo, validateUserCurrentPassword, 
+    userListForHome } from "../utils/users";
 import * as phoneNo from "phone";
 import * as request from "request";
 import { createECDH } from "crypto";
@@ -17,7 +20,7 @@ import { getTemplateBySubstitutions } from "../email-templates/module";
 import { APIError } from "../utils/custom-error";
 import { constantSchema } from "../site-constants/model";
 import { privateGroupSchema } from "../private-groups/model";
-import { importExcelAndFormatData } from "../project/module";
+import { importExcelAndFormatData, formatUserRole } from "../project/module";
 import { notificationSchema } from "../notifications/model";
 import { join } from "path"
 import { httpRequest } from "../utils/role_management";
@@ -37,6 +40,7 @@ import { updateUserInDOcs } from "../documents/module";
 import { updateUserInMessages, updateUserInTasks } from "../tags/module"
 import { RefreshTokenSchema } from "./refresh-token-model";
 import { GROUP_NOTIFICATIONS, USER_PROFILE } from "../utils/web-notification-messages";
+import { ReplaceUserSchema } from "./replace-user-model";
 // inside middleware handler
 
 const MESSAGE_URL = process.env.MESSAGE_URL
@@ -672,9 +676,18 @@ export async function editGroup(objBody: any, id: string, userObj: any,host:stri
 };
 
 //  Get group List
-export async function groupList(userId: string) {
+export async function groupList(user: any) {
     try {
-        // let groupIds = await userGroupsList(userId)
+        const [canCreate, canEdit, canDeactivate, canViewAll] = await Promise.all([
+            checkRoleScope(user.role, `create-group`),
+            checkRoleScope(user.role, `edit-group`),
+            checkRoleScope(user.role, `deactivate-group`),
+            checkRoleScope(user.role, `view-all-groups`),
+        ])
+        if(!canCreate && !canEdit && !canDeactivate && !canViewAll){
+            throw new APIError(USER_ROUTER.INVALID_ACTION)
+        }
+        // let groupIds = await userGroupsList(user._id)
         let meCreatedGroup = await groupPatternMatch({}, {}, {}, {}, "updatedAt")
         // let sharedGroup = await groupPatternMatch({ is_active: true }, {}, { _id: groupIds }, {}, "updatedAt")
         // let groups = [...meCreatedGroup, ...sharedGroup]
@@ -1158,7 +1171,8 @@ export async function replaceUser(userId: string, replaceTo: string, userToken: 
         ])
         // changeGroupOwnerShip(userId, replaceTo)      
         // Mark user as inactive
-        let userInfo = await userEdit(userId, {is_active: false});        
+        await userEdit(userId, {is_active: false});
+        await ReplaceUserSchema.create({ oldUser: userId, replacedWith: replaceTo, replacedBy: userObj._id })      
         return { message: RESPONSE.REPLACE_USER }
     } catch (err) {
         throw err
@@ -1717,4 +1731,35 @@ export async function removeRefreshToken(objBody:any) {
     catch (err) {
         throw err
     }
+}
+
+export async function getReplacedUserSuggestions(userId: string) {
+    let data = await ReplaceUserSchema.find({ oldUser: userId }).sort({ createdAt: -1 }).exec()
+    const replacedWithUserData: any[] = (await Promise.all(data.map((replaceInfo: any) => 
+        checkAndReturnUserId(replaceInfo.replacedWith, new Date(replaceInfo.createdAt))
+    ))).reduce((p:string[],c: any) => [...p, ...c] ,[]).sort(
+        (a: any,b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const replacedWithUserIds = Array.from(new Set(replacedWithUserData.map(user => user.userId)))
+    let [usersInfo, roles] = await Promise.all([
+        userFindMany('_id', replacedWithUserIds, { firstName: 1, middleName: 1, lastName: 1, _id: 1, email: 1 }),
+        roles_list()
+    ])
+    const userRoles = await Promise.all(replacedWithUserIds.map((user: any) => getUserRoles(user)))
+    return {
+        userId, 
+        suggestions: replacedWithUserIds.map((s: any, index: number) => ({
+            ...(usersInfo.find((user: any) => user._id == s)),
+            role: formatUserRole(userRoles[index], roles.roles)
+        }))
+    }
+}
+
+async function checkAndReturnUserId(userId: string, createdAt: Date) {
+    let finalArray: any[] = []
+    finalArray.push({userId, createdAt})
+    const data: any[] = await ReplaceUserSchema.find({ oldUser: userId }).exec()
+    if(data.length){
+        data.map((data1: any) => checkAndReturnUserId(data1.replacedWith, new Date(data1.createdAt)))
+    }
+    return finalArray
 }

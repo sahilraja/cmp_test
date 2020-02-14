@@ -71,10 +71,10 @@ export async function createProject(reqObject: any, user: any) {
 }
 
 export async function projectInfo(user: any) {
-  // const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
-  // if(!isEligible){
-  //   throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
-  // }
+  const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
+  if(!isEligible){
+    throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
+  }
   const projects = await ProjectSchema.find({}).exec()
   let response = projects.reduce((p, c: any) => 
   ({...p, 
@@ -299,12 +299,12 @@ export async function getProjectMembers(id: string, userId: string) {
   // return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
 }
 
-function formatUserRole(role: string[], formattedRoleObjs: any) {
+export function formatUserRole(role: string[], formattedRoleObjs: any) {
   // let userRole: any = formattedRoleObjs.find((roleObj: any) => roleObj.role === role);
   // return userRole ? userRole.roleName : role;
   return role ? role.map((userRole: string) => {
     let roleObj = formattedRoleObjs.find(({ role: rolecode }: any) => rolecode == userRole)
-    return roleObj ? roleObj.roleName : userRole
+    return roleObj ? (roleObj.roleName || roleObj.description || userRole) : userRole
   }) : ["N/A"]
 }
 
@@ -1821,7 +1821,12 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
 }
 
 async function sendAllNotificationsOnAddFund(members:any, activityBy: any, projectName:string) {
-  const fetchedUsers = await userFindMany('_id', members, { firstName: 1, middleName: 1, lastName: 1, phone: 1, countryCode: 1, email: 1 })
+  let fetchedUsers = await userFindMany('_id', members, { firstName: 1, middleName: 1, lastName: 1, phone: 1, countryCode: 1, email: 1 })
+  let userRoles = fetchedUsers.map((user: any) => userRoleAndScope(user._id))
+  userRoles = userRoles.map((role: any) => (role.data || [""])[0])
+  fetchedUsers = fetchedUsers.map((user: any, index: number) => ({...user, role:userRoles[index]}))
+  const filterNonCapableUsers = fetchedUsers.map((user: any) => checkRoleScope(user.role, `manage-project-released-fund`))
+  fetchedUsers = fetchedUsers.filter((user: any, index: number) => !filterNonCapableUsers[index])
   Promise.all(fetchedUsers.map((user: any) => {
     const { fullName, mobileNo } = getFullNameAndMobile(user)
     return sendNotification({ templateName: `addFundsReleased`, mobileTemplateName:`addFundsReleased`, mobileNo, email: user.email, fullName, projectName })

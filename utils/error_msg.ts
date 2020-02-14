@@ -84,6 +84,8 @@ export const DOCUMENT_ROUTER = {
     INVALID_ADMIN: "[Error: 0028] You don't have permission to perform this action",
     INVALID_UPDATE_USER: "You don't have permission to update this document",
     NO_PERMISSION: "You don't have permission to create a document",
+    NO_PERMISSION_TO_EDIT: "You don't have permission to edit document",
+    NO_PERMISSION_TO_SHARE: "You don't have permission to share document",
     NO_TAGS_PERMISSION: "You don’t have permission to create tags",
     NO_PERMISSION_TO_UPDATE_TAGS: `You don't have permission to update tags`,
     LIMIT_EXCEEDED: "Document name should not exceed more than 30 characters",
