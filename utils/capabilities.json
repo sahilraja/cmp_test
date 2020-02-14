@@ -337,8 +337,8 @@
   },
   {
     "capability": "view-all-groups",
-    "shortDescription": "",
-    "description": "",
+    "shortDescription": "View All groups",
+    "description": "View All groups",
     "category": "User Management",
     "scope": "global"
   },

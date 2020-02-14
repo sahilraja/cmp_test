@@ -5,7 +5,7 @@ import { OK, INTERNAL_SERVER_ERROR } from "http-status-codes";
 import * as bodyParser from 'body-parser'
 import * as cors from 'cors';
 import { init as SentryInit, captureException } from "@sentry/node";
-SentryInit({ dsn: 'https://a5929734fe1748df85c79e15836e1c93@sentry.io/1878141' });
+SentryInit({ dsn: 'https://2921461edf6e43a3832bd268cccc8d09@sentry.io/2513946' });
 
 //  module imports
 import * as usersRouter from "./users/router";
