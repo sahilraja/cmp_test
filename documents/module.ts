@@ -653,7 +653,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
     let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
     const isEligible = await checkRoleScope(getUserRole, "edit-document");
     if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_EDIT, 403);
     }
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let capability = await documnetCapabilities(docId, userId);
@@ -1119,7 +1119,7 @@ export async function invitePeople(docId: string, users: any, role: string, user
     let getUserRole = userRoles.data[0];
     const isEligible = await checkRoleScope(getUserRole, "share-document");
     if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE, 403);
     }
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
     let doc: any = await documents.findById(docId);
@@ -1216,11 +1216,11 @@ export async function invitePeople(docId: string, users: any, role: string, user
 
 export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
-    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.INVALID_ADMIN, 403);
+    }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let actionUserRole = await documnetCapabilities(docId, userObj._id)
     if (actionUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
@@ -1254,11 +1254,11 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
 
 export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any,host: string,token:string) {
   try {
-    // let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.INVALID_ADMIN, 403);
+    }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let userRole = await documnetCapabilities(docId, userObj._id)
     if (!userRole.includes("owner")) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY)
@@ -1668,6 +1668,7 @@ export function manualPagination(page: number, limit: number, docs: any[]) {
   limit = Number(limit)
   const skip = ((page - 1) * limit)
   return {
+    total:docs.length,
     page,
     pages: Math.ceil(docs.length / limit),
     docs: docs.slice(skip, skip + limit)
@@ -1988,7 +1989,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
   const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
   docsData.docs = documentsSort(docsData.docs, "name", false)
-  return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
+  return {total:docsData.total, page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
 
 
@@ -2529,7 +2530,13 @@ async function RequestList(request: any) {
 
 export async function requestAccept(requestId: string, userObj: any) {
   try {
-    if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    const isEligible = await checkRoleScope(userObj.role, `share-document`)
+    if(!isEligible){
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+    }
+    if (!Types.ObjectId.isValid(requestId)) { 
+      throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID); 
+    }
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let capability: any[] = await documnetCapabilities(requestDetails.docId.id, requestDetails.requestedBy);
@@ -2557,6 +2564,10 @@ export async function requestAccept(requestId: string, userObj: any) {
 
 export async function requestDenied(requestId: string, userObj: any) {
   try {
+    const isEligible = await checkRoleScope(userObj.role, `share-document`)
+    if(!isEligible){
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+    }
     if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
@@ -2638,9 +2649,16 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
     if (["no_access", "publish", "viewer"].includes(capability[0])) {
       if('viewer' == capability[0]){
-        await groupsRemovePolicy(`/user/${newOwnerId}`, doc._id, capability[0])
+        try {
+          await groupsRemovePolicy(`user/${newOwnerId}`, doc._id, capability[0])
+        } catch (error) {
+          console.error(`Error at remove existing access: change document ownership at replace user`)
+        } finally {
+          let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
+        }
+      } else {
+        await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
       }
-      let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
       // await createActivityLog({
       //   activityType: "CHANGE_OWNERSHIP",
       //   activityBy: userObj._id,
