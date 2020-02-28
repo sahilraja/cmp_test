@@ -38,5 +38,6 @@ export const PROJECT_NOTIFICATIONS = {
     // RISK_CREATED:(projectName: string) => ``,
     PHASES_UPDATED:(projectName: string) => `Phases has been updated for the project ${projectName}`,
     MEMBER_ADDED_TO_PROJECT:(projectName: string) => `You are added to a project ${projectName} on CMP`,
-    ADDED_FUND_RELEASE:(projectName: string) => `New fund release has been added to the project ${projectName}`
+    ADDED_FUND_RELEASE:(projectName: string) => `New fund release has been added to the project ${projectName}`,
+    FINANCIAL_INFO_UPDATED:(projectName: string) => `Financial information data has been added to the project ${projectName}`
 }

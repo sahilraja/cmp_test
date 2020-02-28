@@ -26,7 +26,7 @@ const MSG_EXPIRE_OTP = 15;
 const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "http://localhost:4002"
 const msg = msg91(MSG_API_KEY, SENDER_ID, ROUTE_NO);
 const sendOtp = new SendOtp(MSG_API_KEY, 'Your Verification code is {{otp}}');
-
+export const IST_ADJUST = 330 * 60 * 1000
 export async function authenticateConstants() {
 
     let { linkExpire, otpExpire } = await getConstantsAndValues(['linkExpire', 'otpExpire']);
@@ -198,6 +198,9 @@ export async function jwtOtpVerify(otp: any) {
 
 export async function mobileSendOtp(mobileNo: string, id: string) {
     try {
+        if (mobileNo && !phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
         let user = await userFindOne('id', id);
         return await sendMobileOtp(mobileNo, user);
     }
@@ -208,6 +211,9 @@ export async function mobileSendOtp(mobileNo: string, id: string) {
 
 export async function mobileVerifyOtp(mobileNo: string, otp: string, id: string) {
     try {
+        if (mobileNo && !phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
         let userInfo = await userFindOne('id', id);
         let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
         if (otp != OTP_BYPASS) {
@@ -300,12 +306,12 @@ export async function updateProjectTasks(body: any, token: string) {
     };
   };    
 
-  export async function createDocInElasticSearch(docId:string,host:string,token:string) {
+  export async function createDocInElasticSearch(docId:string,token:string) {
     try {
       let Options = {
         uri: `${ELASTICSEARCH_URL}/v1/create`,
         method: "POST",
-        body: {docId,host,token},
+        body: {docId,token},    
         json: true
       }
       return await request(Options);
@@ -314,10 +320,10 @@ export async function updateProjectTasks(body: any, token: string) {
     };
   };
 
-  export async function scriptInElasticSearch(host:string) {
+  export async function scriptInElasticSearch() {
     try {
       let Options = {
-        uri: `${ELASTICSEARCH_URL}/v1/insert-all-docs?host=${host}`,
+        uri: `${ELASTICSEARCH_URL}/v1/insert-all-docs`,
         method: "GET",
         json: true
       }

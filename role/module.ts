@@ -7,8 +7,10 @@ import { roleSchema } from "./model";
 import { init } from '../utils/role_management';
 import { APIError } from "../utils/custom-error";
 import { checkRoleScope } from '../utils/role_management'
-import { USER_ROUTER } from "../utils/error_msg";
+import { USER_ROUTER, ACTIVITY_LOG } from "../utils/error_msg";
 import {  addRoleNotification } from "../notifications/module"
+import { ActivitySchema } from "../log/model";
+import { create } from "../log/module";
 // Get Roles List
 export async function role_list() {
     let roles = await roleSchema.find()
@@ -193,7 +195,11 @@ export async function addCapability(role: string, scope: string, capability: str
         }
         return await request(Options);
     } catch (err) {
-        throw err;
+        if(err.statusCode && err.statusCode < 500){
+            throw new APIError(err.message)
+        } else {
+            throw err;
+        }
     };
 };
 
@@ -234,6 +240,34 @@ export async function removeAllCapabilities() {
     };
 };
 
+// export async function updateCapabilities(addCapabilities: any, removeCapabilities: any, userId: string) {
+//     let userRoles = await userRoleAndScope(userId);
+//     let userRole = userRoles.data[0];
+//     const isEligible = await checkRoleScope(userRole, "display-role-management");
+//     if (!isEligible) {
+//         throw new APIError("Unauthorized for this Action", 403);
+//     }
+//     if ((addCapabilities || []).some((capability: any) => !capability.role || !capability.capability)) {
+//         throw Error("All mandatory fields are required")
+//     }
+//     if ((removeCapabilities || []).some((capability: any) => !capability.role || !capability.capability)) {
+//         throw Error("All mandatory fields are required")
+//     }
+//     return await Promise.all(
+//         [...(addCapabilities || []).map((capability: any) => addCapability(capability.role, 'global', capability.capability, userId)),
+//         ...(removeCapabilities || []).map((capability: any) => removeCapability(capability.role, 'global', capability.capability, userId))
+//     ]).then(resp => {
+//         createLog(addCapabilities, removeCapabilities, userId)
+//         return {
+//             success: true,
+//             message: "Permissions updated successfully"
+//         }
+//     }).catch(error => {
+//         console.error(error)
+//         throw new APIError(error.message)
+//     })
+// }
+
 export async function updateCapabilities(addCapabilities: any, removeCapabilities: any, userId: string) {
     try {
         let userRoles = await userRoleAndScope(userId);
@@ -256,13 +290,50 @@ export async function updateCapabilities(addCapabilities: any, removeCapabilitie
                 await removeCapability(capability.role, 'global', capability.capability, userId)
             }):[]
         ])
+        createLog(addCapabilities, removeCapabilities, userId)
         return {
             success: true,
-            message: "permissions updated successfully"
+            message: "Permissions updated successfully"
         }
     } catch (err) {
         throw err;
     };
+}
+
+async function createLog(addCapabilities: any, removeCapabilities: any, userId: string){
+    let roles = Array.from(new Set([...addCapabilities, ...removeCapabilities].map(capability => capability.role)))
+    let capabilities: Array<any> = JSON.parse(fs.readFileSync(join(__dirname, "..", "utils", "capabilities.json"), "utf8"));
+    const _roles = await role_list()
+
+    roles = roles.map(role => ({
+        role:((_roles.roles.find((_role: any) => _role.role == role) as any).roleName || (_roles.roles.find((_role: any) => _role.role == role) as any).description),
+        addedCapabilities: addCapabilities.filter((_c: any) => _c.role == role).map((_capability: any) => capabilities.find(_c => _c.capability == _capability.capability)),
+        removedCapabilities: removeCapabilities.filter((_c: any) => _c.role == role).map((_capability: any) => capabilities.find(_c => _c.capability == _capability.capability))
+    }))
+    let displayMessages: any[] = []
+    roles.map(role => {
+        // let displayMessage = `[from] ${role.addedCapabilities.length && `added `.concat(
+        //     role.addedCapabilities.map((c: any) => c.shortDescription).join(`, `))
+        //     .concat(`${role.removedCapabilities.length ? ` & ` : ``}`) || ``}`
+        //     .concat(`${role.removedCapabilities.length && `removed ` + 
+        //         role.removedCapabilities.map((c: any) => c.shortDescription).join(`, `)
+        //         || ``}`
+        //     || ``) + ` permission(s) to the role ${role.role}`
+        if(role.addedCapabilities && role.addedCapabilities.length){
+            displayMessages.push({
+                activityBy: userId, activityType:`RBAC`,
+                displayMessage:`[from] added ${role.addedCapabilities.map((c: any) => c.shortDescription).join(`, `)} permission(s) to the role ${role.role}`
+            })
+        }
+        if(role.removedCapabilities && role.removedCapabilities.length){
+            displayMessages.push({
+                activityBy: userId, activityType:ACTIVITY_LOG.RBAC,
+                displayMessage:`[from] removed ${role.removedCapabilities.map((c: any) => c.shortDescription).join(`, `)} permission(s) to the role ${role.role}`
+            })
+        }
+    })
+    await create([...displayMessages])
+    return roles
 }
 export async function updaterole(role: string, bodyObj: any, userId: string) {
     try {

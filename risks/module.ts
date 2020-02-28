@@ -54,9 +54,11 @@ export async function edit(id: string, updates: any, userObj: any) {
 export async function riskSaveAll(projectId: string, updateObjs: any[], userObj: any): Promise<{ message: string }> {
     try {
         const isEligible = await checkRoleScope(userObj.role, `manage-risk-opportunity`)
-        if (!isEligible) throw new APIError(RISK.UNAUTHORIZED_ACCESS)
-        await Promise.all(updateObjs.map((riskObj) => saveaAll(riskObj, projectId, userObj)))
-        return { message: "Saved successfully" }
+        if (!isEligible) {
+            throw new APIError(RISK.UNAUTHORIZED_ACCESS)
+        }
+        let response = await Promise.all(updateObjs.map((riskObj) => saveaAll(riskObj, projectId, userObj)))
+        return response[0]
     } catch (err) {
         throw err
     };
@@ -64,6 +66,7 @@ export async function riskSaveAll(projectId: string, updateObjs: any[], userObj:
 
 async function saveaAll(riskObj: any, projectId: string, userObj: any) {
     try {
+        let message = `Saved successfully`
         if ("_id" in riskObj || "id" in riskObj) {
             const {riskCriticality, phase, riskPrevTrend, showDeleteIcon, showHistoryIcon, dateRaised, ...others} = riskObj
             const oldObject: any = await RiskSchema.findById(riskObj._id || riskObj.id).exec();
@@ -88,12 +91,14 @@ async function saveaAll(riskObj: any, projectId: string, userObj: any) {
                 const {createdAt, updatedAt, ...others} = riskDetails.toJSON()
                 await RiskSchema.create({ ...others, projectId, parentId: riskDetails._id, updatedAt: new Date() })
             };
+            message = `Risk(s) updated successfully`
         } else {
             let risk: any = await RiskSchema.create({ ...riskObj, projectId, createdBy: userObj._id });
             createLog({projectId, riskOpportunityNumber:risk.riskNumber, activityBy: userObj._id, activityType:ACTIVITY_LOG.RISK_CREATED, riskId: risk._id})
             await RiskSchema.create({ ...riskObj, parentId: risk._id, projectId, createdBy: userObj._id })
+            message = `Risk(s) added successfully`
         }
-        return true
+        return {message}
     } catch (err) {
         throw err
     };

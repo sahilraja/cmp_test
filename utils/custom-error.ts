@@ -8,6 +8,14 @@ export class APIError extends Error {
     }
 }
 
+export class UnformatedAPIError extends Error {
+    public code : Number;
+    constructor(message:any, code = 400) {
+        super(message);
+        this.code = code
+    }
+}
+
 export class FormattedAPIError extends Error {
     public code : Number;
     constructor(message:any, shouldFormatError: boolean, code = 400, ) {

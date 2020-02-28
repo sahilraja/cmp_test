@@ -621,6 +621,13 @@
     "category":"Task Management",
     "scope":"global",
     "description":"Ability to edit task completed date"
+  },
+  {
+    "capability":"edit-task-description",
+    "shortDescription":"Edit Task Description",
+    "category":"Task Management",
+    "scope":"global",
+    "description":"Avility to edit task description"
   }
 ]
 

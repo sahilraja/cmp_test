@@ -9,7 +9,8 @@ export async function create(userId: string, payload: any, userRole: any) {
     if (!isEligible) {
         throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
-    return await PillarSchema.create({ ...payload, nameCode: payload.name, createdBy: userId })
+    const pillarInfo = await PillarSchema.create({ ...payload, nameCode: payload.name, createdBy: userId })
+    return {pillarInfo,successMessage:`Pillar created successfully`}
 }
 
 export async function list(userToken: string) {
@@ -42,7 +43,8 @@ export async function updatePillar(id: string, updates: any, userRole: any) {
     if (updates.name) {
         updates = { ...updates, nameCode: updates.name }
     }
-    return await PillarSchema.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec()
+    let pillarInfo = await PillarSchema.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec()
+    return {pillarInfo,successMessage:`Pillar updated successfully`}
 }
 
 export async function getPillars() {

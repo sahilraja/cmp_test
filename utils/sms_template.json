@@ -141,6 +141,11 @@
         "displayName": "Phases updated"
     },
     {
+        "content": "Financial information data has been updated for the project [projectName] on CMP",
+        "templateName": "financialInfoUpdate",
+        "displayName": "Financial Information Update"
+    },
+    {
         "content":"New funds has been released for the project [projectName] on CMP",
         "templateName":"addFundsReleased",
         "displayName":"Funds Released"

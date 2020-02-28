@@ -82,8 +82,8 @@ router.get('/invite/resend/:role/:id', authenticate, async (req: Request, res: R
 //  user list
 router.get('/list', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        req.query.page = req.query.page || 1;
-        req.query.limit = 50;
+        // req.query.page = req.query.page || 1;
+        // req.query.limit = req.query.limit || 50;
         res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.search, req.query.page, req.query.limit, req.query.pagination));
     } catch (err) {
         next(new APIError(err.message));
@@ -115,7 +115,7 @@ router.post('/edit/:id', authenticate, async (req: Request, res: Response, next:
             payload = JSON.stringify(req.body)
         }
         //req.body.profilePic = JSON.parse(imageObj).id
-        res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user, (req as any).token,`${req.protocol}://${req.get('host')}`));
+        res.status(OK).send(await edit_user(req.params.id, JSON.parse(payload), res.locals.user, (req as any).token));
     } catch (err) {
         next(new APIError(err.message));;
     };
@@ -226,7 +226,7 @@ router.post("/forgot/setPassword", async (req: Request, res: Response, next: Nex
 //  Add Group
 router.post("/group/create", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await createGroup(req.body, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token))
+        res.status(200).send(await createGroup(req.body, res.locals.user,(req as any).token))
     } catch (err) {
         if (err.message.includes("E11000")) {
             err.message = `Group name already exists.`
@@ -247,7 +247,7 @@ router.get("/group/list", authenticate, async (req: Request, res: Response, next
 //  Edit Group
 router.put("/group/:id/edit", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await editGroup(req.body, req.params.id, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token))
+        res.status(200).send(await editGroup(req.body, req.params.id, res.locals.user,(req as any).token))
     } catch (err) {
         if (err.message.includes("E11000")) {
             err.message = `Group name already exists.`
@@ -268,7 +268,7 @@ router.put("/group/:id/status", authenticate, async (req: Request, res: Response
 //  Add Member
 router.post("/group/:id/member/add", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await addMember(req.params.id, req.body.users, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token));
+        res.status(200).send(await addMember(req.params.id, req.body.users, res.locals.user,(req as any).token));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -277,7 +277,7 @@ router.post("/group/:id/member/add", authenticate, async (req: Request, res: Res
 //  Remove Member
 router.post("/group/:id/member/remove", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await removeMembers(req.params.id, req.body.users, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token));
+        res.status(200).send(await removeMembers(req.params.id, req.body.users, res.locals.user,(req as any).token));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -411,7 +411,7 @@ router.post("/change/mobile", authenticate, async (req, res, next) => {
 // Replace User
 router.post(`/:id/replace`, authenticate, async (req, res, next) => {
     try {
-        res.status(OK).send(await replaceUser(req.params.id, req.body.replaceTo, (req as any).token, res.locals.user,`${req.protocol}://${req.get('host')}`))
+        res.status(OK).send(await replaceUser(req.params.id, req.body.replaceTo, (req as any).token, res.locals.user))
     } catch (error) {
         next(error)
     }

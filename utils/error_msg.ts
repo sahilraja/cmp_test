@@ -56,7 +56,8 @@ export const USER_ROUTER = {
 };
 export const GROUP_ROUTER = {
     REMOVE_MEMBER: "Please add at least one member to the group",
-    GROUP_NAME: "Group name cannot be modified"
+    GROUP_NAME: "Group name cannot be modified",
+    GROUP_NAME_VALIDATION: (maxCharacters: string) => `Group name should not exceed more than ${maxCharacters} characters`,
 }
 export const MOBILE_MESSAGES = {
     SEND_OTP: "OTP sent successfully",
@@ -71,6 +72,8 @@ export const FINANCIAL_INFO = {
 }
 
 export const DOCUMENT_ROUTER = {
+    SHARE_SUCCESS:`Document shared successfully`,
+    REQUEST_ACCEPTED:`Request approved successfully`,
     FILE_SIZE: (size: number) => `File size shouldn't exceed ${size} MB`,
     DOCUMENT_NAME_LENGTH: (nameLength: number) => `Document name should not exceed more than ${nameLength} characters`,
     DOCUMENT_DESCRIPTION_LENGTH: (descriptionLenth: number) => `Document description should not exceed more than ${descriptionLenth} characters`,
@@ -115,7 +118,7 @@ export const DOCUMENT_ROUTER = {
     USER_ALREADY_THIS_PERMISSION: (user: string) => `${user} already has these permissions`,
     FOLDER_NOT_FOUND: "[Error: 0035] Folder doesn't exist",
     INVALID_FILE_ID: "[Error: 0036] File ID is invalid",
-    PUBLISH_CANT_BE_DELETE: "Published document can't be deleted",
+    PUBLISH_CANT_BE_DELETE: "You can't delete published document",
     TAG_REQUIRED: "Tags are required",
     UNAUTHORIZED: "[Error: 0034] You don’t have permission to perform this action",
     INVALID_ACTION_PERFORMED: "[Error: 0035] Invalid action performed, please contact CMP admin",
@@ -123,6 +126,9 @@ export const DOCUMENT_ROUTER = {
     ALREADY_REQUEST_EXIST: "[Error: 0037] Request is already in progress",
     ALREADY_COLLABORATOR:`You already have edit permissions to this document. Please reload the page and try again`,
     UPLOAD_EMPTY_FOLDER: `[Error: 0015] Uploaded empty document`,
+    ADD_TAG_SUGGESTION_ALREADY_EXISTS: `some of the tags already suggested to add by others`,
+    REMOVE_TAG_SUGGESTION_ALREADY_EXISTS: `some of the tags already suggested to remove by others`,
+    SOME_USERS_INACTIVE:`Some of the users are inactive in the list`,
 
 }
 
@@ -194,10 +200,13 @@ export const PASSWORD = {
 export const RESPONSE = {
     SUCCESS_EMAIL: "Email sent successfully",
     SUCCESS_EMAIL_UPDATE: "Email updated successfully",    
+    MOBILE_UPDATED_SUCCESS: `Mobile number updated successfully`,
+    USER_STATUS_UPDATED:`Status updated succesfully`,
+    NOTIFICATION_UPDATED_SUCCESS:`Notifications updated successfully`,
     ACTIVE: "active",
     INACTIVE: "inactive",
-    ADD_MEMBER: "Group member added",
-    REMOVE_MEMBER: "Group member removed",
+    ADD_MEMBER: "User added successfully",
+    REMOVE_MEMBER: "User removed from group successfully",
     UPDATE_PASSWORD: "Password updated successfully",
     REPLACE_USER: "User replaced successfully",
     PROFILE_UPDATE: "Profile updated successfully",
@@ -231,6 +240,8 @@ export const MISSING = "Missing Field";
 export const ROLE_EXIST = "Role Exists";
 
 export const ROLE_NOT_EXIST = "Role doesn’t Exist"
+export const ROLE_EDIT_SUCCESS = "Role updated successfully."
+export const RESET_USER_SUCCESS =  `User reset successfully`
 
 export const INCORRECT_OTP = "OTP is incorrect. Please try again.";
 
@@ -252,7 +263,9 @@ export const TASK_ERROR = {
     ASSIGNEE_REQUIRED: `Assignee is required`,
     ASSIGNEE_ERROR: `Assignee can’t be an approver or endorser of the same task`,
     APPROVERS_EXISTS: `Approvers and endorsers must be different for the same task`,
-    APPROVERS_REQUIRED: `Approvers are required for compliance tasks`,
+    APPROVERS_REQUIRED:(taskName: string) => `Approvers are required for compliance task ${taskName}`,
+    START_DATE_REQUIRED:(taskName: string) => `Start date is required for compliance task ${taskName}`,
+    DUE_DATE_REQUIRED:(taskName: string) => `End date is required for compliance task ${taskName}`,
     DUPLICATE_APPROVERS_FOUND: `[Error: 0052] Duplicate approvers found`,
     DUPLICATE_ENDORSERS_FOUND: `[Error: 0053] Duplicate endorsers found`,
     USER_NOT_PART_OF_PROJECT:(role: string, taskName: string) =>  `${role} not found in the list of core team for task ${taskName}`,
@@ -356,5 +369,15 @@ export const ACTIVITY_LOG = {
     OPPORTUNITY_CREATED:`OPPORTUNITY_CREATED`,
     OPPORTUNITY_UPDATED:`OPPORTUNITY_UPDATED`,
     INSTALLMENT_ADDED:`INSTALLMENT_ADDED`,
-    INSTALLMENT_UPDATED:`INSTALLMENT_UPDATED`
+    INSTALLMENT_UPDATED:`INSTALLMENT_UPDATED`,
+    FORGOT_PASSWORD_REQUEST:`FORGOT_PASSWORD_REQUEST`,
+    REPLACED_PROJECT_MEMBER:`REPLACED_PROJECT_MEMBER`,
+    RBAC:`RBAC`,
+    MARKED_AS_PUBLIC:`MARKED_AS_PUBLIC`,
+    MARKED_AS_UNPUBLIC:`MARKED_AS_UNPUBLIC`,
+    COMPLIANCE_TASK_EXCEL_UPLOAD:`COMPLIANCE_TASK_EXCEL_UPLOAD`,
+    TASK_EXCEL_UPLOAD:`TASK_EXCEL_UPLOAD`,
+    PHASE_UPDATED:`PHASE_UPDATED`,
+    PROFILE_LOGS_REPLACE_USER_SELF:`PROFILE_LOGS_REPLACE_USER_SELF`,
+    PROFILE_LOGS_REPLACE_USER_OTHERS:`PROFILE_LOGS_REPLACE_USER_OTHERS`
 }
