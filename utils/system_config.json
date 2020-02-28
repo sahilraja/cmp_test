@@ -2,7 +2,7 @@
     {
         "key": "captcha",
         "value": "true",
-        "groupName": "authentication",
+        "groupName": "userManagement",
         "type": "boolean",
         "displayName": "Enable/Disable Captcha"
     },
@@ -10,28 +10,28 @@
         "key": "invalidPassword",
         "value": "true",
         "type": "boolean",
-        "groupName": "authentication",
+        "groupName": "userManagement",
         "displayName": "Enable/Disable wrong password "
     },
     {
         "key": "linkExpire",
         "value": "15",
         "type": "number",
-        "groupName": "authentication",
+        "groupName": "userManagement",
         "displayName": "Link expire time ( in hours )"
     },
     {
         "key": "otpExpire",
         "value": "15",
         "type": "number",
-        "groupName": "authentication",
+        "groupName": "userManagement",
         "displayName": "OTP expire time ( in hours )"
     },
     {
         "key": "systemTimeOut",
         "value": "15",
         "type": "number",
-        "groupName": "authentication",
+        "groupName": "userManagement",
         "displayName": "Session Time Out time ( in minutes )"
     },
     {
@@ -45,35 +45,35 @@
         "key": "passwordMinLength",
         "value": "6",
         "type": "number",
-        "groupName": "password",
+        "groupName": "userManagement",
         "displayName": "Password Minimum Length"
     },
     {
         "key": "passwordMaxLength",
         "value": "8",
         "type": "number",
-        "groupName": "password",
+        "groupName": "userManagement",
         "displayName": "Password Maximum Length"
     },
     {
         "key": "specialCharCount",
         "value": "1",
         "type": "number",
-        "groupName": "password",
+        "groupName": "userManagement",
         "displayName": "Number of Special characters in password"
     },
     {
         "key": "numCount",
         "value": "1",
         "type": "number",
-        "groupName": "password",
+        "groupName": "userManagement",
         "displayName": "Number of Digits in password"
     },
     {
         "key": "upperCaseCount",
         "value": "1",
         "type": "number",
-        "groupName": "password",
+        "groupName": "userManagement",
         "displayName": "Number of Upper Case characters in password"
     },
     {
@@ -108,14 +108,14 @@
         "key": "messageSubjectLength",
         "value": "30",
         "type": "number",
-        "groupName": "messsages",
+        "groupName": "messages",
         "displayName": "Message subject Length ( in characters )"
     },
     {
         "key": "messageExcerptLength",
         "value": "30",
         "type": "number",
-        "groupName": "messsages",
+        "groupName": "messages",
         "displayName": "Message excerpt Length ( in characters )"
     },
     {
@@ -129,21 +129,21 @@
         "key": "bcc",
         "value": "jeevan.balla@transerve.com",
         "type": "string",
-        "groupName": "email",
+        "groupName": "userManagement",
         "displayName": "bcc Email"
     },
     {
         "key": "editRole",
         "value": "true",
         "type": "boolean",
-        "groupName": "capability",
-        "displayName": "Edit Role Permission"
+        "groupName": "userManagement",
+        "displayName": "Add/Edit Role Permission"
     },
     {
         "key": "editTemplate",
         "value": "true",
         "type": "boolean",
-        "groupName": "templates",
+        "groupName": "userManagement",
         "displayName": "Edit Template Permission"
     },
     {
@@ -159,5 +159,12 @@
         "type": "boolean",
         "groupName": "userManagement",
         "displayName": "User Profile Edit Permission"
+    },
+    {
+        "key":"groupName",
+        "value":"15",
+        "type":"string",
+        "groupName":"userManagement",
+        "displayName":"Max characters for group name"
     }
 ]

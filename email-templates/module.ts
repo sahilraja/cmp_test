@@ -85,7 +85,7 @@ export async function getTemplateBySubstitutions(templateId: string, substitutio
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
         if (!template) {
-            throw new Error(TEMPLATE.INVALID_TEMPLATE+`${templateId}`);
+            throw new APIError(TEMPLATE.INVALID_TEMPLATE+` ${templateId}`);
         }
         if(!substitutions){
             substitutions = {};

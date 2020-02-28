@@ -69,7 +69,8 @@ import {
   shareDocForUsersNew,
   searchDoc, updateUserInDOcs,
   createIndex, removeIndex, getDocsAndInsertInElasticSearch, getDocDetailsForSuccessResp, bulkUploadDocument, 
-  getFinancialDocList,getProjectNamesForES,backgroundJobForDocumentPhases,getProjectDetailsForES,getAllDocs
+  getFinancialDocList,getProjectNamesForES,backgroundJobForDocumentPhases,getProjectDetailsForES,getAllDocs,moveToMyDocuments,
+  getListOfFoldersAndFilesWithMovedDocuments,deleteMovedDocInMyDocs, getLatestVersionforDocuments, createTaskActivityOnDoc
 } from "./module";
 import { GetUserIdsForDocWithRole } from "../utils/groups"
 import { get as httpGet } from "http";
@@ -155,8 +156,7 @@ router.post("/create", authenticate, async (req, res, next: NextFunction) => {
 
 router.get(`/insert-in-elastic-search`, async (req:any, res, next: NextFunction) => {
   try {
-    const host = `${req.protocol}://${req.get('host')}`
-    res.status(OK).send(await getDocsAndInsertInElasticSearch(host))
+    res.status(OK).send(await getDocsAndInsertInElasticSearch())
   } catch (error) {
     next(new APIError(error.message))
   }
@@ -170,7 +170,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
     req.body.constants = siteConstants;
     const fileObj: any = JSON.parse(await uploadToFileService(req, req.siteConstants.docSize) as any)
     if (fileObj.errors) throw new Error(DOCUMENT_ROUTER.FILE_SIZE(req.siteConstants.docSize))
-    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants, `${req.protocol}://${req.get('host')}`,req.token));
+    res.status(200).send(await createNewDoc(fileObj, res.locals.user._id, req.siteConstants,req.token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -180,7 +180,7 @@ router.post("/create/new", authenticate, siteConstants, async (req: any, res, ne
 //  Get Public List
 router.get("/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getDocList(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await getDocList(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`,req.query.sortOrder,req.query.sortBy));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -189,7 +189,7 @@ router.get("/list", authenticate, async (req, res, next: NextFunction) => {
 // Get My shared list
 router.get("/shared/me", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await sharedList(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await sharedList(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`,req.query.sortOrder,req.query.sortBy));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -286,7 +286,7 @@ router.post("/add-user-capabilities", authenticate, async (req, res, next) => {
 
 router.post("/add-user-capabilities-new", authenticate, async (req, res, next) => {
   try {
-    res.status(200).send(await shareDocForUsersNew(req.body, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token))
+    res.status(200).send(await shareDocForUsersNew(req.body, res.locals.user,(req as any).token))
   } catch (err) {
     next(new APIError(err.message));
   };
@@ -323,7 +323,7 @@ router.get("/all",  superUserAuthenticate, async (req, res, next)=> {
 
 router.post("/project-info-for-docs", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getProjectNamesForES(req.body.docIds,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await getProjectNamesForES(req.body.docIds,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -336,6 +336,14 @@ router.get("/background", authenticate, async (req, res, next: NextFunction) => 
     next(new APIError(err.message));
   }
 });
+// Used for tasks while approving or endorsing
+router.post(`/get-latest-versions`, async (req, res, next) => {
+  try {
+    res.status(OK).send(await getLatestVersionforDocuments(req.body.documentIds))
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
 
 // router.get("/get-doc-view/:docId", async (request, response, next) => {
 //   try {
@@ -576,7 +584,7 @@ router.get(
 //  invite user
 router.post("/:id/share", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await invitePeople(req.params.id, req.body.users, req.query.role, res.locals.user._id,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -605,7 +613,7 @@ router.put("/:id/share/:type/:userId/edit", authenticate, async (req, res, next:
 router.delete("/:id/share/:type/:userId/remove", authenticate, async (req, res, next: NextFunction) => {
   try {
     const { id, type, userId } = req.params;
-    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await invitePeopleRemove(id, userId, type, req.query.role, res.locals.user,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -625,7 +633,7 @@ router.get("/:id/capabilities", authenticate, async (req, res, next: NextFunctio
 router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await published(req.body, req.params.id, res.locals.user, host,(req as any).token));
+    res.status(200).send(await published(req.body, req.params.id, res.locals.user,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -634,7 +642,7 @@ router.post("/:id/publish", authenticate, async (req, res, next: NextFunction) =
 //  update exist doc
 router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await unPublished(req.params.id, res.locals.user,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await unPublished(req.params.id, res.locals.user,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -642,7 +650,7 @@ router.put("/:id/unpublish", authenticate, async (req, res, next: NextFunction) 
 
 router.put(`/:id/mark-as-public`, authenticate, async (req, res, next) => {
   try {
-    res.status(OK).send(await markDocumentAsPublic(req.params.id, res.locals.user.role))
+    res.status(OK).send(await markDocumentAsPublic(req.params.id, res.locals.user.role, res.locals.user._id))
   } catch (error) {
     next(new APIError(error.message))
   }
@@ -650,7 +658,7 @@ router.put(`/:id/mark-as-public`, authenticate, async (req, res, next) => {
 
 router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
   try {
-    res.status(OK).send(await markDocumentAsUnPublic(req.params.id, res.locals.user.role))
+    res.status(OK).send(await markDocumentAsUnPublic(req.params.id, res.locals.user.role, res.locals.user._id))
   } catch (error) {
     next(new APIError(error.message))
   }
@@ -658,8 +666,7 @@ router.post(`/:id/mark-as-unpublic`, authenticate, async (req, res, next) => {
 //  update exist doc
 router.post("/:id/replace/:replaceDocId", authenticate, siteConstants, async (req, res, next: NextFunction) => {
   try {
-    const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body, host,(req as any).token));
+    res.status(200).send(await replaceDoc(req.params.id, req.params.replaceDocId, res.locals.user, (req as any).siteConstants, req.body,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -678,7 +685,7 @@ router.get("/:id/cancel", authenticate, ensureCanEditDocument, async (req, res, 
 //  update exist doc
 router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await updateDoc(req.body, req.params.id, res.locals.user._id,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -688,7 +695,7 @@ router.post("/:id", authenticate, ensureCanEditDocument, async (req, res, next: 
 router.post("/:id/new", authenticate, ensureCanEditDocument, siteConstants, async (req: any, res, next: NextFunction) => {
   try {
     const fileObj: any = JSON.parse(await uploadToFileService(req) as any)
-    res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id, req.siteConstants,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await updateDocNew(fileObj, req.params.id, res.locals.user._id, req.siteConstants,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -756,7 +763,7 @@ router.get("/folder/list", authenticate, async (req, res, next: NextFunction) =>
 router.get("/folder/:folderId/list", authenticate, async (req, res, next: NextFunction) => {
   try {
     const host = `${req.protocol}://${req.get('host')}`
-    res.status(200).send(await getFolderDetails(req.params.folderId, res.locals.user._id, req.query.page, req.query.limit, host, (req as any).rootPath));
+    res.status(200).send(await getFolderDetails(req.params.folderId, res.locals.user._id, req.query.page, req.query.limit, host, (req as any).rootPath,req.query.sortOrder,req.query.sortBy));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -781,7 +788,7 @@ router.post("/multiple/list", async (req, res, next: NextFunction) => {
 
 router.put("/delete/:id", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await deleteDoc(req.params.id, res.locals.user._id));
+    res.status(200).send(await deleteDoc(req.params.id, res.locals.user._id,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -789,7 +796,7 @@ router.put("/delete/:id", authenticate, async (req, res, next: NextFunction) => 
 
 router.get("/all/me", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getListOfFoldersAndFiles(res.locals.user._id, req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`));
+    res.status(200).send(await getListOfFoldersAndFiles(res.locals.user._id, req.query.page, req.query.limit,req.query.sortOrder,req.query.sortBy, `${req.protocol}://${req.get('host')}`));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -813,7 +820,7 @@ router.post("/:docId/suggest/tags/addOrRemove", authenticate, async (req, res, n
 
 router.post("/:docId/approve/tags", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await approveTags(req.params.docId, req.body, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await approveTags(req.params.docId, req.body, res.locals.user._id,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -878,7 +885,7 @@ router.post("/:docid/requests/raise", authenticate, async (req, res, next: NextF
 //  Get All Cmp Docs List
 router.get("/allcmp/list", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await getAllCmpDocs(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`, res.locals.user._id));
+    res.status(200).send(await getAllCmpDocs(req.query.page, req.query.limit, `${req.protocol}://${req.get('host')}`, res.locals.user._id,req.query.sortOrder,req.query.sortBy));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -912,7 +919,7 @@ router.get("/search/doc", authenticate, async (req, res, next: NextFunction) => 
 
 router.post("/update/userDocs", authenticate, async (req, res, next: NextFunction) => {
   try {
-    res.status(200).send(await updateUserInDOcs(req.body, res.locals.user._id,`${req.protocol}://${req.get('host')}`,(req as any).token));
+    res.status(200).send(await updateUserInDOcs(req.body, res.locals.user._id,(req as any).token));
   } catch (err) {
     next(new APIError(err.message));
   }
@@ -968,6 +975,14 @@ router.get("/:id/get-project-details", authenticate, async (req: any, res, next)
   };
 });
 
+router.post(`/:id/create-task-activity`, async (req, res, next) => {
+  try {
+    res.status(OK).send(await createTaskActivityOnDoc(req.body, req.params.id))
+  } catch (error) {
+    next(new APIError(error.message))
+  }
+})
+
 router.get("/:token/verifyJwt", async (req: any, res, next) => {
   try {
     res.status(200).send(await jwt_Verify(req.params.token))
@@ -976,5 +991,28 @@ router.get("/:token/verifyJwt", async (req: any, res, next) => {
   };
 });
 
+router.get("/:id/move-to-my-docs",authenticate, async (req: any, res, next) => {
+  try {
+    res.status(200).send(await moveToMyDocuments(req.params.id,res.locals.user._id))
+  } catch (err) {
+    throw err
+  };
+});
+
+router.get("/all/mydocs-and-moved-docs",authenticate, async (req: any, res, next) => {
+  try {
+    res.status(200).send(await getListOfFoldersAndFilesWithMovedDocuments(res.locals.user._id, req.query.page, req.query.limit,req.query.sortOrder,req.query.sortBy, `${req.protocol}://${req.get('host')}`));
+  } catch (err) {
+    throw err
+  };
+});
+
+router.get("/:id/delete-moved-doc",authenticate, async (req: any, res, next) => {
+  try {
+    res.status(200).send(await deleteMovedDocInMyDocs(req.params.id,res.locals.user._id));
+  } catch (err) {
+    throw err
+  };
+});
 
 export = router;

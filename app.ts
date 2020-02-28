@@ -88,8 +88,9 @@ app.use(`/web-notifications`, webNotificationRouter)
 app.use(`/jobs`, jobRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
-    console.log((error as any).code, `Error Code`)
-    if((error as any).code >= 500){
+    if((error as any).code > 500){
+        console.log(`Sentrycaptured for url: ${request.originalUrl}`)
+        console.log(`Error code: ${(error as any).code}`)
         captureException(error)
     }
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })
