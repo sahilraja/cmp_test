@@ -11,8 +11,8 @@ if (process.env.EMAIL_ENV == "UAT" || process.env.EMAIL_ENV == "PROD") {
   // EMAIL = process.env.EMAIL || `testmailm588@gmail.com`;
   // PASSWORD = process.env.PASSWORD || 'Hello@123';
 
-  EMAIL = process.env.EMAIL || `tcmpemail@gmail.com`;
-  PASSWORD = process.env.PASSWORD || 'Hello@12';
+  EMAIL = process.env.EMAIL || `tccmp1234@gmail.com`;
+  PASSWORD = process.env.PASSWORD || 'Hello@123';
 }
 
 let transport = (process.env.EMAIL_ENV == "UAT" || process.env.EMAIL_ENV == "PROD") ? smtpTransport({

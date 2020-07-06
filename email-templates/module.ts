@@ -78,15 +78,20 @@ export async function testTemplate(id:string, email: any){
     })
     return {message:"Email sent successfully"}
 }
-
+function formatRole(roles: string[]){
+    return [roles.slice(0,-1).join(`, `), roles.slice(-1)[0]].join(roles.length < 2 ? '' : ' & ')
+}
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
         if (!template) {
-            throw new Error(TEMPLATE.INVALID_TEMPLATE+`${templateId}`);
+            throw new APIError(TEMPLATE.INVALID_TEMPLATE+` ${templateId}`);
         }
         if(!substitutions){
             substitutions = {};
+        }
+        if(substitutions.role && Array.isArray(substitutions.role)){
+            substitutions.role = formatRole(substitutions.role)
         }
         return {
             subject: Object.keys(substitutions).reduce((prev, key) => {

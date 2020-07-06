@@ -8,7 +8,8 @@ import {
     addUtilizedInstallment, getInstallments, addOpenComment, getMyOpenCommentsHistory, myCommentDetail, getAllOpenCOmments,
      getCommentedUsers, editProjectMiscompliance, RemoveProjectMembers, replaceProjectMember, taskProjectDetails, 
      editTriPartiteDate, addPhaseToProject, listPhasesOfProject, addInstallments, addFunds, getFinancialInfoNew, 
-     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo,backGroudJobForPhase, getProjectMemberIds
+     updateReleasedFundNew,updateUtilizedFundNew,deleteReleasedFundNew,deleteUtilizedFundNew,addInstallmentsNew, getStates, projectInfo,
+     backGroudJobForPhase, getProjectMemberIds, AddProjectMembers
 } from "./module";
 import { NextFunction } from "connect";
 import { OK } from "http-status-codes";
@@ -52,7 +53,7 @@ router.get("/list", async (req, res, next) => {
 
 router.get(`/dashboard-info`, async (req, res, next) => {
     try {
-        res.status(OK).send(await projectInfo())
+        res.status(OK).send(await projectInfo(res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -61,7 +62,7 @@ router.get(`/dashboard-info`, async (req, res, next) => {
 //get project details
 router.get("/:id/detail", async (req, res, next) => {
     try {
-        res.status(OK).send(await getProjectDetail(req.params.id, (req as any).token))
+        res.status(OK).send(await getProjectDetail(req.params.id, res.locals.user, (req as any).token))
     } catch (err) {
         next(new APIError(err.message));
     }
@@ -69,7 +70,7 @@ router.get("/:id/detail", async (req, res, next) => {
 
 router.post(`/:id/add-phases`, async (req, res, next) => {
     try {
-        res.status(OK).send(await addPhaseToProject(req.params.id, req.body,(req as any).token, res.locals.user._id))
+        res.status(OK).send(await addPhaseToProject(req.params.id, req.body,(req as any).token, res.locals.user))
     } catch (error) {
         next(new APIError(error.message))
     }
@@ -166,10 +167,18 @@ router.get("/:id/manage-members/:userId/remove", async (req, res, next) => {
     };
 });
 
+router.get("/:id/manage-members/:userId/add", async (req, res, next) => {
+    try {
+        res.status(OK).send(await AddProjectMembers(req.params.id, req.params.userId, res.locals.user._id, (req as any).token))
+    } catch (error) {
+        next(new APIError(error.message))
+    };
+});
+
 
 router.post("/:id/manage-members/replace", async (req, res, next) => {
     try {
-        res.status(OK).send(await replaceProjectMember(req.params.id, req.body, (req as any).token))
+        res.status(OK).send(await replaceProjectMember(req.params.id, req.body, (req as any).token, res.locals.user._id))
     } catch (error) {
         next(new APIError(error.message))
     };
@@ -439,19 +448,19 @@ router.post(`/:id/upload-task-excel`, upload.single('upfile'), async (req, res, 
     try {
         res.status(OK).send(await uploadTasksExcel(req.file.path, req.params.id, (req as any).token, res.locals.user))
     } catch (error) {
-        next(new APIError(error.message))
+        next(error)
     }
 })
 router.put("/:id/project-cost", async (req, res, next) => {
     try {
-        res.status(OK).send(await projectCostInfo(req.params.id, req.body.projectCost, res.locals.user.role, res.locals.user._id));
+        res.status(OK).send(await projectCostInfo(req.params.id, req.body.projectCost, res.locals.user.role, res.locals.user));
     } catch (error) {
         next(new APIError(error.message));
     }
 })
 router.put("/:id/citiis-grants", async (req, res, next) => {
     try {
-        res.status(OK).send(await citiisGrantsInfo(req.params.id, req.body.citiisGrants, res.locals.user.role, res.locals.user._id));
+        res.status(OK).send(await citiisGrantsInfo(req.params.id, req.body.citiisGrants, res.locals.user.role, res.locals.user));
     } catch (error) {
         next(new APIError(error.message));
     }
@@ -536,7 +545,4 @@ router.post(`/getCurrentPhases`, async (req, res, next) => {
         next(new APIError(error.message))
     }
 })
-
-
-
 export = router;

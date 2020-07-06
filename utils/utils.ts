@@ -23,11 +23,10 @@ const MSG_API_KEY = "301746A16myISu5dbc0bc7";//"9d67e9da3bXX"; //"301746A16myISu
 const SENDER_ID = "CMPIND";//"INFOSM";
 const ROUTE_NO = "4";
 const MSG_EXPIRE_OTP = 15;
-
-
+const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "http://localhost:4002"
 const msg = msg91(MSG_API_KEY, SENDER_ID, ROUTE_NO);
 const sendOtp = new SendOtp(MSG_API_KEY, 'Your Verification code is {{otp}}');
-
+export const IST_ADJUST = 330 * 60 * 1000
 export async function authenticateConstants() {
 
     let { linkExpire, otpExpire } = await getConstantsAndValues(['linkExpire', 'otpExpire']);
@@ -58,7 +57,9 @@ export async function authenticate(req: any, res: any, next: any) {
             next(new APIError(`Your session has timed out. Please login again.`, 401))
             return
         }
-        if(!tokenData) next(new APIError(`You have been logged out. Please login again.`, 401))
+        if(!tokenData) {
+            next(new APIError(`You have been logged out. Please login again.`, 401))
+        }
         tokenData.set('lastUsedAt', new Date())
         await tokenData.save()
         user.role = ((((await userRoleAndScope(token.id))) as any).data || [""])[0];
@@ -70,6 +71,29 @@ export async function authenticate(req: any, res: any, next: any) {
         return next(new APIError('Unauthorized'));
     };
 };
+
+
+/**
+ * User with id -1 is a special user.
+ * @param req U
+ * @param res 
+ * @param next 
+ */
+export async function superUserAuthenticate(req: any, res: any, next: any) {
+    try {
+        if (!req.headers.authorization) throw new Error(AUTHENTICATE_MSG.MISSING_TOKEN)
+        let bearerToken = req.headers.authorization.substring(7, req.headers.authorization.length)
+        let token: any = await jwt_Verify(bearerToken)
+        if (!token) throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN)
+        if (token.id == -1) {
+            return next();
+        } else {
+            throw new Error(AUTHENTICATE_MSG.INVALID_TOKEN);
+        }
+    } catch(error) {
+        next(error);
+    }
+}
 
 //  Hash password
 export function hashPassword(password: any) {
@@ -174,6 +198,9 @@ export async function jwtOtpVerify(otp: any) {
 
 export async function mobileSendOtp(mobileNo: string, id: string) {
     try {
+        if (mobileNo && !phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
         let user = await userFindOne('id', id);
         return await sendMobileOtp(mobileNo, user);
     }
@@ -184,6 +211,9 @@ export async function mobileSendOtp(mobileNo: string, id: string) {
 
 export async function mobileVerifyOtp(mobileNo: string, otp: string, id: string) {
     try {
+        if (mobileNo && !phoneNo(mobileNo).length) {
+            throw new Error(USER_ROUTER.VALID_PHONE_NO);
+        }
         let userInfo = await userFindOne('id', id);
         let mobileToken: any = await jwtOtpVerify(userInfo.smsOtpToken);
         if (otp != OTP_BYPASS) {
@@ -268,6 +298,67 @@ export async function updateProjectTasks(body: any, token: string) {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: body,
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };    
+
+  export async function createDocInElasticSearch(docId:string,token:string) {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/create`,
+        method: "POST",
+        body: {docId,token},    
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };
+
+  export async function scriptInElasticSearch() {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/insert-all-docs`,
+        method: "GET",
+        json: true
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };
+
+  export async function searchInElasticSearch(queryObj:any) {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/search`,
+        method: "GET",
+        qs:{
+            search:queryObj.search,
+            userId: queryObj.userId,
+            page: queryObj.page,
+            limit: queryObj.limit,
+            searchAllCmp:queryObj.searchAllCmp,
+            isEligible: queryObj.isEligible
+        },
+        json: true,
+      }
+      return await request(Options);
+    } catch (err) {
+      throw err
+    };
+  };
+
+  export async function backGroundJobForPhasesInElasticSearch() {
+    try {
+      let Options = {
+        uri: `${ELASTICSEARCH_URL}/v1/background/job`,
+        method: "GET",
         json: true
       }
       return await request(Options);

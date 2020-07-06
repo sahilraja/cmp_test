@@ -11,5 +11,7 @@ const schema = new Schema(
 );
 schema.index({ownerId:1})
 schema.index({ownerId:1, parentId:1})
+schema.index({name:1})
+schema.index({doc_id: 1})
 
 export const folders = model("folders", schema);

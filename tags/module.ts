@@ -70,7 +70,7 @@ export async function mergeTags(body: any, token: string, userId: string) {
         tags: tags.map((tagData: any) => { return tagData.tag })
       }
     }))
-    let updateTagsInElasticSearch =  updateTagsInDOcs(val, userId)
+    let updateTagsInElasticSearch =  updateTagsInDOcs(val, token)
     await create({ activityType: "MERGED-TAG", activityBy: userId, mergedTag: body.mergeTag, tagsToMerge: tagData })
     return {
       status: true,

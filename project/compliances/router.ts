@@ -27,7 +27,7 @@ router.post(`/:id/compliance/bulk-upload`, upload.single('upfile'), async (req, 
     try {
         res.status(OK).send(await uploadTasksExcel(req.file.path, req.params.id, (req as any).token, res.locals.user, true))
     } catch (error) {
-        next(new APIError(error.message))
+        next(error)
     }
 })
 

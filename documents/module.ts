@@ -1,5 +1,6 @@
 import { documents } from "./model";
 import { folders } from "./folder-model";
+import { moveToMyDocsModel } from "./document-moveto-mydocs-model"
 import * as http from "http";
 import { Types, STATES, set, disconnect } from "mongoose";
 import { userRoleAndScope } from "../role/module";
@@ -22,23 +23,24 @@ import {
 } from "../utils/groups";
 import { nodemail } from "../utils/email";
 import { docInvitePeople, suggestTagNotification, approveTagNotification, rejectTagNotification } from "../utils/email_template";
-import { DOCUMENT_ROUTER, MOBILE_TEMPLATES } from "../utils/error_msg";
-import { userFindOne, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch, userEdit, groupsFindMany } from "../utils/users";
+import { DOCUMENT_ROUTER, MOBILE_TEMPLATES, ACTIVITY_LOG } from "../utils/error_msg";
+import { userFindOne,createJWT, userFindMany, userList, listGroup, searchByname, groupFindOne, getNamePatternMatch, groupPatternMatch, userEdit, groupsFindMany } from "../utils/users";
 import { checkRoleScope } from '../utils/role_management'
 import { configLimit } from '../utils/systemconfig'
 import { getTemplateBySubstitutions } from "../email-templates/module";
 import { ANGULAR_URL } from "../utils/urls";
 import { APIError } from "../utils/custom-error";
 import { create } from "../log/module";
-import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, groupList, formateRoles, changeGroupOwnerShip } from "../users/module";
+import { userCapabilities, getFullNameAndMobile, sendNotification, userDetails, groupList, formateRoles, changeGroupOwnerShip,createRefreshToken,removeRefreshToken } from "../users/module";
 import { docRequestModel } from "./document-request-model";
 import { userRolesNotification } from "../notifications/module";
-import { mobileSendMessage, getTasksForDocument } from "../utils/utils";
-import { importExcelAndFormatData, add_tag, mapPhases, getCurrentPhase } from "../project/module";
+import { mobileSendMessage, getTasksForDocument,createDocInElasticSearch,scriptInElasticSearch,searchInElasticSearch } from "../utils/utils";
+import { importExcelAndFormatData, add_tag, mapPhases, getCurrentPhase,backGroudJobForPhaseDocs } from "../project/module";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import request = require("request");
 import { project as project_schema } from "../project/project_model";
+import { DocumentTaskActivityModel } from "./doc-task-activity-model";
 
 
 enum STATUS {
@@ -78,7 +80,7 @@ export async function removeIndex(index: string) {
   return await esClient.indices.delete({ index: index });
 
 }
-export async function createNewDoc(body: any, userId: any, siteConstant: any, host: string) {
+export async function createNewDoc(body: any, userId: any, siteConstant: any,token: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
@@ -121,46 +123,47 @@ export async function createNewDoc(body: any, userId: any, siteConstant: any, ho
         $push: { doc_id: doc.id }
       })
     }
-    createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
-    // const insertDoc = async function(indexName, _id, mappingType, data){
-    let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-    let userName;
-    if (userDetails.firstName)
-      userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-    else {
-      userName = userDetails.name
-    }
-    let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
+     createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc._id })
+     updateOrCreateDocInElasticSearch(doc.id,token)
+    // // const insertDoc = async function(indexName, _id, mappingType, data){
+    // let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    // let userName;
+    // if (userDetails.firstName)
+    //   userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    // else {
+    //   userName = userDetails.name
+    // }
+    // let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
 
-    let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${doc.fileId}` : "N/A"
+    // let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${doc.fileId}` : "N/A"
 
-    let tags = await getTags((body.tags && body.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
-    tags = tags.map((tagData: any) => { return tagData.tag })
-    let docObj = {
-      accessedBy: [userId],
-      userName: [userName],
-      name: body.docName,
-      description: body.description,
-      tags: tags,
-      thumbnail: thumbnail,
-      status: doc.status,
-      fileName: doc.fileName,
-      updatedAt: doc.updatedAt,
-      createdAt: doc.createdAt,
-      id: doc.id,
-      groupId: [],
-      groupName: [],
-      createdBy: userId,
-      projectName: [],
-      city: [],
-      reference: [],
-      phases: []
-    }
-    let result =esClient.index({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      body: docObj,
-      id: doc.id
-    });
+    // let tags = await getTags((body.tags && body.tags.length) ? body.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+    // tags = tags.map((tagData: any) => { return tagData.tag })
+    // let docObj = {
+    //   accessedBy: [userId],
+    //   userName: [userName],
+    //   name: body.docName,
+    //   description: body.description,
+    //   tags: tags,
+    //   thumbnail: thumbnail,
+    //   status: doc.status,
+    //   fileName: doc.fileName,
+    //   updatedAt: doc.updatedAt,
+    //   createdAt: doc.createdAt,
+    //   id: doc.id,
+    //   groupId: [],
+    //   groupName: [],
+    //   createdBy: userId,
+    //   projectName: [],
+    //   city: [],
+    //   reference: [],
+    //   phases: []
+    // }
+    // let result =esClient.index({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   body: docObj,
+    //   id: doc.id
+    // });
 
     return doc;
   } catch (err) {
@@ -193,7 +196,7 @@ export async function createDoc(body: any, userId: string) {
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
     let response: any = await insertDOC(body, userId);
-    createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc.id })
+     createActivityLog({ activityType: "DOCUMENT_CREATED", activityBy: userId, tagsAdded: body.tags || [], documentId: doc.id })
     return { doc_id: doc.id };
   } catch (error) {
     throw error;
@@ -223,15 +226,15 @@ async function insertDOC(body: any, userId: string, fileObj?: any) {
 }
 
 //  Get Document Public List
-export async function getDocList(page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
+export async function getDocList(page: number = 1, limit: number = 30, host: string,sortOrder:string = 'asc',sortBy:string = 'name', pagination: boolean = true) {
   try {
     let data = await documents.find({ parentId: null, status: STATUS.PUBLISHED }).sort({ updatedAt: -1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
+    let docs = documentsSortByGivenField(docList,sortBy,sortOrder)
     if (pagination) {
-      data = documentsSort(data, "name", false)
-      return manualPagination(page, limit, docList)
+      return manualPagination(page, limit, docs)
     }
-    return docList
+    return docs
   } catch (error) {
     console.error(error);
     throw error;
@@ -516,7 +519,9 @@ export async function getDocDetails(docId: any, userId: string, token: string, a
       getTags((docList.tags && docList.tags.length) ? docList.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
       userRoleAndScope(docList.ownerId),
       userFindOne("id", docList.ownerId, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 }),
+      // Changed bcz we are saving version ids in tasks
       getTasksForDocument(docList.parentId || docList._id, token),
+      // getTasksForDocument(docList._id, token),
     ])
     let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
     let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1, city: 1, reference: 1, phases:1 }).exec()
@@ -570,7 +575,7 @@ export async function getDocWithVersion(docId: any, versionId: any) {
   }
 }
 
-export async function updateDoc(objBody: any, docId: any, userId: string) {
+export async function updateDoc(objBody: any, docId: any, userId: string,token:string) {
   try {
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
@@ -609,27 +614,28 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
       fileId: parent.fileId,
       fileName: parent.fileName
     })
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-      let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
-      let tagNames = tags.map((tag: any) => { return tag.tag })
-      let updatedData = esClient.update({
-        index: `${ELASTIC_SEARCH_INDEX}_documents`,
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.tags=(params.tags);ctx._source.name=(params.name);ctx._source.description=(params.description);ctx._source.fileName=(params.fileName);",
-            "lang": "painless",
-            "params": {
-              "tags": tagNames,
-              "name": parent.name,
-              "description": parent.description,
-              "fileName": parent.fileName
-            }
-          }
-        }
-      })
-    }
+    // let isDocExists = await checkDocIdExistsInEs(docId)
+    // if (isDocExists) {
+    //   let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
+    //   let tagNames = tags.map((tag: any) => { return tag.tag })
+    //   let updatedData = esClient.update({
+    //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //     id: docId,
+    //     body: {
+    //       "script": {
+    //         "source": "ctx._source.tags=(params.tags);ctx._source.name=(params.name);ctx._source.description=(params.description);ctx._source.fileName=(params.fileName);",
+    //         "lang": "painless",
+    //         "params": {
+    //           "tags": tagNames,
+    //           "name": parent.name,
+    //           "description": parent.description,
+    //           "fileName": parent.fileName
+    //         }
+    //       }
+    //     }
+    //   })
+    // }
+    updateOrCreateDocInElasticSearch(docId,token)
     return parent;
   } catch (err) {
     console.error(err);
@@ -639,21 +645,21 @@ export async function updateDoc(objBody: any, docId: any, userId: string) {
 
 export async function cancelUpdate(docId: string, userId: string) {
   try {
-    createActivityLog({ activityType: `CANCEL_UPDATED`, activityBy: userId, documentId: docId })
+     createActivityLog({ activityType: `CANCEL_UPDATED`, activityBy: userId, documentId: docId })
     return { success: true }
   } catch (err) {
     throw err;
   };
 };
 
-export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any) {
+export async function updateDocNew(objBody: any, docId: any, userId: string, siteConstants: any,token: string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(userRole, "edit-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    let formattedTags = objBody.tags ? typeof objBody.tags == "string" ? JSON.parse(objBody.tags) : [] : ``
+    const isEligible = await checkRoleScope(getUserRole, objBody.tags && Array.isArray(formattedTags) ? "add-tag-to-document" : "edit-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_EDIT, 403);
+    }
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let capability = await documnetCapabilities(docId, userId);
     if (capability.includes("viewer")) throw new Error(DOCUMENT_ROUTER.INVALID_UPDATE_USER);
@@ -692,6 +698,9 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       obj.fileId = objBody.id
       obj.fileName = objBody.name
     }
+    if(!objBody.description && !objBody.docName && !objBody.id){
+      obj.updatedAt = new Date(_document.updatedAt)
+    }
     let child: any = await documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
     if (objBody.description || objBody.docName || objBody.id) obj.versionNum = Number(child[0].versionNum) + 1
@@ -712,9 +721,9 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
       });
       const message = `${_document.name != parent.name ? "name" : ""}${(_document.description != null && _document.description != parent.description) ? _document.name != parent.name ? (_document.fileId != parent.fileId ? ", description" : " and description") : "description" : ""}${_document.fileId != parent.fileId ? (_document.description != null && _document.description != parent.description) ? " and file" : _document.name != parent.name ? " and file" : "file" : ""}`
       mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-      createActivityLog({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId, message })
+       createActivityLog({ activityType: `DOCUMENT_UPDATED`, activityBy: userId, documentId: docId, message })
     } else {
-      await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags })
+      await documents.findByIdAndUpdate(child[child.length - 1]._id, { tags: parent.tags, suggestedTags: parent.suggestedTags, updatedAt:child[child.length - 1].updatedAt })
       let addtags = obj.tags.filter((tag: string) => !child[child.length - 1].tags.includes(tag))
       let removedtags = child[child.length - 1].tags.filter((tag: string) => !obj.tags.includes(tag))
       await approveTagsAuto(docId,addtags,removedtags);
@@ -726,7 +735,7 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         const removedMessage = removedTagNames.lastIndexOf(",") == -1 ? `${removedTagNames} tag removed` : `${removedTagNames.slice(0, removedTagNames.lastIndexOf(",")) + " and " + removedTagNames.slice(removedTagNames.lastIndexOf(",") + 1)} tags removed`
         const message = addMessage + "and" + removedMessage;
         mailAllCmpUsers("documentUpdate", parent, false, userId, message)
-        createActivityLog({ activityType: `TAGS_ADD_AND_REMOVED`, activityBy: userId, documentId: docId, tagsAdded: addtags, tagsRemoved: removedtags })
+         createActivityLog({ activityType: `TAGS_ADD_AND_REMOVED`, activityBy: userId, documentId: docId, tagsAdded: addtags, tagsRemoved: removedtags })
       } else {
         if (addtags.length) {
           let tags = ((await Tags.find({ "_id": { $in: addtags } })).map(({ tag }: any) => tag)).join(",")
@@ -743,27 +752,28 @@ export async function updateDocNew(objBody: any, docId: any, userId: string, sit
         }
       }
     }
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-      let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
-      let tagNames = tags.map((tag: any) => { return tag.tag })
-      let updatedData = esClient.update({
-        index: `${ELASTIC_SEARCH_INDEX}_documents`,
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.tags=(params.tags);ctx._source.name=(params.name);ctx._source.description=(params.description);ctx._source.fileName=(params.fileName);",
-            "lang": "painless",
-            "params": {
-              "tags": tagNames,
-              "name": parent.name,
-              "description": parent.description,
-              "fileName": parent.fileName
-            }
-          }
-        }
-      })
-    }
+    // let isDocExists = await checkDocIdExistsInEs(docId)
+    // if (isDocExists) {
+    //   let tags: any = await getTags(parent.tags.filter((tag: string) => Types.ObjectId.isValid(tag)))
+    //   let tagNames = tags.map((tag: any) => { return tag.tag })
+    //   let updatedData = esClient.update({
+    //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //     id: docId,
+    //     body: {
+    //       "script": {
+    //         "source": "ctx._source.tags=(params.tags);ctx._source.name=(params.name);ctx._source.description=(params.description);ctx._source.fileName=(params.fileName);",
+    //         "lang": "painless",
+    //         "params": {
+    //           "tags": tagNames,
+    //           "name": parent.name,
+    //           "description": parent.description,
+    //           "fileName": parent.fileName
+    //         }
+    //       }
+    //     }
+    //   })
+    // }
+    updateOrCreateDocInElasticSearch(docId,token)
     return parent;
   } catch (err) {
     console.error(err);
@@ -979,7 +989,7 @@ export async function viewerList(docId: string) {
   }
 }
 
-export async function sharedList(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
+export async function sharedList(userId: string, page: number = 1, limit: number = 30, host: string,sortOrder:string = 'asc',sortBy:string = 'name',pagination: boolean = true) {
   try {
     let docIds: any = []
     let groups = await userGroupsList(userId)
@@ -997,8 +1007,8 @@ export async function sharedList(userId: string, page: number = 1, limit: number
       })
     );
     data = data.filter(({ ownerId }: any) => ownerId != userId)
+    data = documentsSortByGivenField(data,sortBy,sortOrder)
     if (pagination) {
-      data = documentsSort(data, "name", false)
       return manualPagination(page, limit, data)
     };
     return data
@@ -1010,8 +1020,8 @@ export async function sharedList(userId: string, page: number = 1, limit: number
 export async function allDocuments(userId: string, page: number = 1, limit: number = 30, host: string, pagination: boolean = true) {
   try {
     let data = [
-      ...(await getDocList(page, limit, host, false) as any),
-      ...(await sharedList(userId, page, limit, host, false) as any),
+      ...(await getDocList(page, limit, host,'asc','name', false) as any),
+      ...(await sharedList(userId, page, limit, host,'asc','name', false) as any),
       ...(await getDocumentListOfMeWithOutFolders(userId, page, limit, host, false) as any),
     ]
     if (pagination) {
@@ -1086,8 +1096,32 @@ function documentsSort(data: any[], key: string, date: boolean = false) {
   };
 };
 
+
+function documentsSortByGivenField(data: any[], key: string, sortOrder: string) {
+  try {
+    if (key == 'date') {
+      if(sortOrder == 'asc'){
+      return data.sort((a: any, b: any) => (new Date(a['updatedAt']) as any) - (new Date(b['updatedAt']) as any));
+    }else{
+      return data.sort((a: any, b: any) => (new Date(b['updatedAt']) as any) - (new Date(a['updatedAt']) as any));
+    }
+  }else{
+    if(sortOrder == 'asc'){
+      return data.sort((a: any, b: any) => (a[key] as string).localeCompare(b[key]));
+    }else{
+      return data.sort((a: any, b: any) => (b[key] as string).localeCompare(a[key]));
+    }
+  }
+    
+  } catch (err) {
+    throw err
+  };
+};
+
 async function invite(user: any, docId: any, role: any, doc: any, actionUserId: string) {
   await shareDoc(user._id, user.type, docId, role);
+  // Set all previous requests is deleted once user has doc access
+  await docRequestModel.updateMany({ docId, requestedBy: user._id }, { $set: { isDelete: true } }, { multi: true }).exec()
   if (user.type == "user") {
     inviteMail(user._id, doc, actionUserId)
   } else if (user.type == "group") {
@@ -1109,20 +1143,23 @@ async function inviteMail(userId: string, doc: any, actionUserId: string) {
   };
 };
 
-export async function invitePeople(docId: string, users: any, role: string, userId: string) {
+export async function invitePeople(docId: string, users: any, role: string, userId: string,token:string) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let getUserRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE, 403);
+    }
     if (!docId || !Array.isArray(users) || !users.length || !role) throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA);
+    if(users.some(user => (user.hasOwnProperty('is_active') && !user.is_active))){
+      throw new APIError(DOCUMENT_ROUTER.SOME_USERS_INACTIVE)
+    }
     let doc: any = await documents.findById(docId);
     if (doc.status == 2) throw new Error(DOCUMENT_ROUTER.SHARE_PUBLISHED_DOCUMENT)
     let userRole = await documnetCapabilities(docId, userId)
-    if (userRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
-    if (userRole.includes("viewer") || userRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
+    if (getUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
+    if (getUserRole.includes("viewer") || getUserRole.includes("no_access")) throw new Error(DOCUMENT_ROUTER.INVALID_VIEWER_ACTION)
     let addUsers: any = []
     let userIds: any = []
     let userNames: any = []
@@ -1164,46 +1201,47 @@ export async function invitePeople(docId: string, users: any, role: string, user
         userNames.push(`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
       })
     );
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-      if (groupIds.length && groupNames.length) {
-        let update = esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: docId,
-          body: {
-            "script": {
-              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames);ctx._source.groupId.addAll(params.groupId);ctx._source.groupName.addAll(params.groupName)",
-              "lang": "painless",
-              "params": {
-                "userId": userIds,
-                "userNames": userNames,
-                "groupId": groupIds,
-                "groupName": groupNames
-              }
-            }
-          }
-        })
-      } else {
-        let updatedData = esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: docId,
-          body: {
-            "script": {
-              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
-              "lang": "painless",
-              "params": {
-                "userId": userIds,
-                "userNames": userNames,
-              }
-            }
-          }
-        })
-      }
-    }
+    // let isDocExists = await checkDocIdExistsInEs(docId)
+    // if (isDocExists) {
+    //   if (groupIds.length && groupNames.length) {
+    //     let update = esClient.update({
+    //       index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //       id: docId,
+    //       body: {
+    //         "script": {
+    //           "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames);ctx._source.groupId.addAll(params.groupId);ctx._source.groupName.addAll(params.groupName)",
+    //           "lang": "painless",
+    //           "params": {
+    //             "userId": userIds,
+    //             "userNames": userNames,
+    //             "groupId": groupIds,
+    //             "groupName": groupNames
+    //           }
+    //         }
+    //       }
+    //     })
+    //   } else {
+    //     let updatedData = esClient.update({
+    //       index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //       id: docId,
+    //       body: {
+    //         "script": {
+    //           "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+    //           "lang": "painless",
+    //           "params": {
+    //             "userId": userIds,
+    //             "userNames": userNames,
+    //           }
+    //         }
+    //       }
+    //     })
+    //   }
+    // }
 
     createActivityLog({ activityType: `DOCUMENT_SHARED_AS_${role}`.toUpperCase(), activityBy: userId, documentId: docId, documentAddedUsers: addUsers })
     mailAllCmpUsers("invitePeopleDoc", doc, false, userId, addUsers)
-    return { message: "Shared successfully." };
+    updateOrCreateDocInElasticSearch(docId,token)
+    return { message: DOCUMENT_ROUTER.SHARE_SUCCESS };
   } catch (err) {
     throw err;
   }
@@ -1211,12 +1249,11 @@ export async function invitePeople(docId: string, users: any, role: string, user
 
 export async function invitePeopleEdit(docId: string, userId: string, type: string, role: string, userObj: any) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userObj._id))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.INVALID_ADMIN, 403);
+    }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let actionUserRole = await documnetCapabilities(docId, userObj._id)
     if (actionUserRole.includes("collaborator") && role != "viewer") throw new Error(DOCUMENT_ROUTER.INVALID_COLLABORATOR_ACTION)
@@ -1248,98 +1285,97 @@ export async function invitePeopleEdit(docId: string, userId: string, type: stri
   }
 }
 
-export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any) {
+export async function invitePeopleRemove(docId: string, userId: string, type: string, role: string, userObj: any,token:string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let getUserRole = userRoles.data[0];
-    // const isEligible = await checkRoleScope(getUserRole, "share-document");
-    // if (!isEligible) {
-    //   throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION, 403);
-    // }
+    let getUserRole = ((((await userRoleAndScope(userId))) as any).data || [""])[0];
+    const isEligible = await checkRoleScope(getUserRole, "share-document");
+    if (!isEligible) {
+      throw new APIError(DOCUMENT_ROUTER.INVALID_ADMIN, 403);
+    }
     if (!docId || !userId || !type || !role) throw new Error(DOCUMENT_ROUTER.MANDATORY);
     let userRole = await documnetCapabilities(docId, userObj._id)
     if (!userRole.includes("owner")) throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_TO_REMOVE_SHARE_CAPABILITY)
     await groupsRemovePolicy(`${type}/${userId}`, docId, role);
-    createActivityLog({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
+     createActivityLog({ activityType: `REMOVED_${type}_FROM_DOCUMENT`.toUpperCase(), activityBy: userObj._id, documentId: docId, documentRemovedUsers: [{ id: userId, type: type, role: role }] })
     // mailAllCmpUsers("invitePeopleRemoveDoc", await documents.findById(docId), false, [{ id: userId, type: type, role: role }])
-    if (type == 'user') {
-      let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
-      let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
-      let isDocExists = await checkDocIdExistsInEs(docId)
-      if (isDocExists) {
-        let updatedData = esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: docId,
-          body: {
-            "script": {
-              "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
-              "lang": "painless",
-              "params": {
-                "accessedBy": userId,
-                "userName": userName
-              }
-            }
-          }
-        })
-      }
-    }
-    if (type == 'group') {
-      let groupData: any = await groupFindOne('_id', userId);
-      let groupName = groupData.name;
-      let groupUserIds = await groupUserList(userId);
-      let idsToUpdate = await Promise.all(groupUserIds.map(async (id: any) => {
-        let userDetails: any = await userFindOne("id", id, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-        if (userDetails) {
-          if (userDetails.firstName)
-            userDetails = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-          else
-            userDetails = userDetails.name
-        }
-        return {
-          docId: docId,
-          userName: userDetails,
-          userId: id,
-          groupId: userId,
-          groupName: groupName
-        }
-      }))
-      let isDocExists = await checkDocIdExistsInEs(docId)
-      if (isDocExists) {
+    // if (type == 'user') {
+    //   let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
+    //   let userName = (`${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`)
+    //   let isDocExists = await checkDocIdExistsInEs(docId)
+    //   if (isDocExists) {
+    //     let updatedData = esClient.update({
+    //       index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //       id: docId,
+    //       body: {
+    //         "script": {
+    //           "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.accessedBy));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
+    //           "lang": "painless",
+    //           "params": {
+    //             "accessedBy": userId,
+    //             "userName": userName
+    //           }
+    //         }
+    //       }
+    //     })
+    //   }
+    // }
+    // if (type == 'group') {
+    //   let groupData: any = await groupFindOne('_id', userId);
+    //   let groupName = groupData.name;
+    //   let groupUserIds = await groupUserList(userId);
+    //   let idsToUpdate = await Promise.all(groupUserIds.map(async (id: any) => {
+    //     let userDetails: any = await userFindOne("id", id, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    //     if (userDetails) {
+    //       if (userDetails.firstName)
+    //         userDetails = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    //       else
+    //         userDetails = userDetails.name
+    //     }
+    //     return {
+    //       docId: docId,
+    //       userName: userDetails,
+    //       userId: id,
+    //       groupId: userId,
+    //       groupName: groupName
+    //     }
+    //   }))
+    //   let isDocExists = await checkDocIdExistsInEs(docId)
+    //   if (isDocExists) {
 
-          await  esClient.update({
-            index: `${ELASTIC_SEARCH_INDEX}_documents`,
-            id: docId,
-            body: {
-              "script": {
-                "inline": "ctx._source.groupName.remove(ctx._source.groupName.indexOf(params.groupName));ctx._source.groupId.remove(ctx._source.groupId.indexOf(params.groupId));",
-                "lang": "painless",
-                "params": {
-                  "groupName": groupName,
-                  "groupId": userId
-                }
-              }
-            }
-          })
+    //       await  esClient.update({
+    //         index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //         id: docId,
+    //         body: {
+    //           "script": {
+    //             "inline": "ctx._source.groupName.remove(ctx._source.groupName.indexOf(params.groupName));ctx._source.groupId.remove(ctx._source.groupId.indexOf(params.groupId));",
+    //             "lang": "painless",
+    //             "params": {
+    //               "groupName": groupName,
+    //               "groupId": userId
+    //             }
+    //           }
+    //         }
+    //       })
         
-        let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-          await  esClient.update({
-            index: `${ELASTIC_SEARCH_INDEX}_documents`,
-            id: user.docId,
-            body: {
-              "script": {
-                "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName));",
-                "lang": "painless",
-                "params": {
-                  "userId": user.userId,
-                  "userName": user.userName,
-                }
-              }
-            }
-          })
-        }))
-      }
-    }
-
+    //     let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+    //       await  esClient.update({
+    //         index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //         id: user.docId,
+    //         body: {
+    //           "script": {
+    //             "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName));",
+    //             "lang": "painless",
+    //             "params": {
+    //               "userId": user.userId,
+    //               "userName": user.userName,
+    //             }
+    //           }
+    //         }
+    //       })
+    //     }))
+    //   }
+    // }
+    updateOrCreateDocInElasticSearch(docId,token)
     return { message: `Removed ${type.toLowerCase()} successfully.` };
   } catch (err) {
     throw err;
@@ -1425,7 +1461,7 @@ export async function docCapabilities(docId: string, userId: string) {
   }
 }
 
-export async function published(body: any, docId: string, userObj: any, host: string, withAuth: boolean = true) {
+export async function published(body: any, docId: string, userObj: any,token:string, withAuth: boolean = true ) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID)
     if (withAuth) {
@@ -1442,7 +1478,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
         throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_UPDATE_TAGS, 403);
       }
     }
-    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc, host, docId)
+    let publishedDoc = await publishedDocCreate({ ...body, status: STATUS.PUBLISHED }, userObj._id, doc,token, docId)
     await Promise.all([
       createActivityLog({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: publishedDoc._id, fromPublished: docId }),
       createActivityLog({ activityType: `DOUCMENT_PUBLISHED`, activityBy: userObj._id, documentId: docId, fromPublished: docId })
@@ -1452,7 +1488,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
       await documents.findByIdAndRemove(publishedDoc._id);
       throw new Error(DOCUMENT_ROUTER.CREATE_ROLE_FAIL);
     }
-    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc, host)
+    let publishedChild = await publishedDocCreate({ ...body, parentId: publishedDoc._id, status: STATUS.DONE }, userObj._id, doc,token)
     if (withAuth) mailAllCmpUsers("publishDocument", publishedDoc, true, userObj._id)
     return publishedDoc
   } catch (err) {
@@ -1460,7 +1496,7 @@ export async function published(body: any, docId: string, userObj: any, host: st
   };
 };
 
-async function publishedDocCreate(body: any, userId: string, doc: any, host: string, docId?: string) {
+async function publishedDocCreate(body: any, userId: string, doc: any, token:string, docId?: string) {
   try {
     let createdDoc: any = await documents.create({
       sourceId: docId || null,
@@ -1476,39 +1512,42 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
       fileName: body.fileName || doc.fileName,
       fileId: body.fileId || doc.fileId
     });
+    // if (!body.parentId) {
+    //   let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    //   let userName;
+    //   if (userDetails.firstName)
+    //     userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    //   else {
+    //     userName = userDetails.name
+    //   }
+    //   let fileType = createdDoc.fileName ? (createdDoc.fileName.split(".")).pop() : ""
+
+    //   let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${createdDoc.fileId}` : "N/A"
+
+    //   let tags = await getTags((createdDoc.tags && createdDoc.tags.length) ? createdDoc.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
+    //   tags = tags.map((tagData: any) => { return tagData.tag })
+    //   let docObj = {
+    //     accessedBy: [userId],
+    //     userName: [userName],
+    //     name: createdDoc.name,
+    //     description: createdDoc.description,
+    //     tags: tags,
+    //     thumbnail: thumbnail,
+    //     status: createdDoc.status,
+    //     fileName: createdDoc.fileName,
+    //     updatedAt: createdDoc.updatedAt,
+    //     id: createdDoc.id || createdDoc._id,
+    //     groupId: [],
+    //     groupName: []
+    //   }
+    //   let result = esClient.index({
+    //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //     body: docObj,
+    //     id: createdDoc.id || createdDoc._id
+    //   });
+    // }
     if (!body.parentId) {
-      let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-      let userName;
-      if (userDetails.firstName)
-        userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-      else {
-        userName = userDetails.name
-      }
-      let fileType = createdDoc.fileName ? (createdDoc.fileName.split(".")).pop() : ""
-
-      let thumbnail = (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${createdDoc.fileId}` : "N/A"
-
-      let tags = await getTags((createdDoc.tags && createdDoc.tags.length) ? createdDoc.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : [])
-      tags = tags.map((tagData: any) => { return tagData.tag })
-      let docObj = {
-        accessedBy: [userId],
-        userName: [userName],
-        name: createdDoc.name,
-        description: createdDoc.description,
-        tags: tags,
-        thumbnail: thumbnail,
-        status: createdDoc.status,
-        fileName: createdDoc.fileName,
-        updatedAt: createdDoc.updatedAt,
-        id: createdDoc.id || createdDoc._id,
-        groupId: [],
-        groupName: []
-      }
-      let result = esClient.index({
-        index: `${ELASTIC_SEARCH_INDEX}_documents`,
-        body: docObj,
-        id: createdDoc.id || createdDoc._id
-      });
+    updateOrCreateDocInElasticSearch(createdDoc.id || createdDoc._id,token)
     }
     return createdDoc;
 
@@ -1518,7 +1557,7 @@ async function publishedDocCreate(body: any, userId: string, doc: any, host: str
 }
 
 
-export async function unPublished(docId: string, userObj: any) {
+export async function unPublished(docId: string, userObj: any,token:string) {
   try {
     if (!Types.ObjectId.isValid(docId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID)
     let [isEligible, docDetail] = await Promise.all([
@@ -1530,56 +1569,58 @@ export async function unPublished(docId: string, userObj: any) {
       throw new APIError(DOCUMENT_ROUTER.UNPUBLISH_PUBLIC_DOCUMENT)
     }
     let success = await documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true });
-    createActivityLog({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-      let updatedData = esClient.update({
-        index: `${ELASTIC_SEARCH_INDEX}_documents`,
-        id: docId,
-        body: {
-          "script": {
-            "source": "ctx._source.status=(params.status)",
-            "lang": "painless",
-            "params": {
-              "status": STATUS.UNPUBLISHED,
-            }
-          }
-        }
-      })
-    }
+     createActivityLog({ activityType: `DOUCMENT_UNPUBLISHED`, activityBy: userObj._id, documentId: docId });
+    // let isDocExists = await checkDocIdExistsInEs(docId)
+    // if (isDocExists) {
+    //   let updatedData = esClient.update({
+    //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //     id: docId,
+    //     body: {
+    //       "script": {
+    //         "source": "ctx._source.status=(params.status)",
+    //         "lang": "painless",
+    //         "params": {
+    //           "status": STATUS.UNPUBLISHED,
+    //         }
+    //       }
+    //     }
+    //   })
+    // }
     mailAllCmpUsers("unPublishDocument", success, true, userObj._id)
+    updateOrCreateDocInElasticSearch(docId,token)
     return success
   } catch (err) {
     throw err;
   };
 };
 
-export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any, payload: any, host: string) {
+export async function replaceDoc(docId: string, replaceDoc: string, userObj: any, siteConstants: any, payload: any,token:string) {
   try {
     if (siteConstants.replaceDoc == "true") {
       let admin_scope = await checkRoleScope(userObj.role, "replace-document");
       if (!admin_scope) throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
       let [doc, unPublished]: any = await Promise.all([documents.findById(replaceDoc).exec(),
       documents.findByIdAndUpdate(docId, { status: STATUS.UNPUBLISHED }, { new: true }).exec()]);
-      let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj, host, false)
-      createActivityLog({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
+      let success = await published({ ...doc, name: payload.name || doc.name, description: payload.description || doc.description, versionNum: 1, status: STATUS.PUBLISHED, ownerId: userObj._id }, doc._id, userObj,token, false)
+       createActivityLog({ activityType: `DOUCMENT_REPLACED`, activityBy: userObj._id, documentId: docId, replaceDoc: success._id })
       mailAllCmpUsers("replaceDocument", success, true, userObj._id)
-      let isDocExists =await checkDocIdExistsInEs(docId)
-      if (isDocExists) {
-        let updatedData = await esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: docId,
-          body: {
-            "script": {
-              "source": "ctx._source.status=(params.status)",
-              "lang": "painless",
-              "params": {
-                "status": STATUS.UNPUBLISHED,
-              }
-            }
-          }
-        })
-      }
+      // let isDocExists =await checkDocIdExistsInEs(docId)
+      // if (isDocExists) {
+      //   let updatedData = await esClient.update({
+      //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      //     id: docId,
+      //     body: {
+      //       "script": {
+      //         "source": "ctx._source.status=(params.status)",
+      //         "lang": "painless",
+      //         "params": {
+      //           "status": STATUS.UNPUBLISHED,
+      //         }
+      //       }
+      //     }
+      //   })
+      // }
+      updateOrCreateDocInElasticSearch(docId,token)
       return success
     }
     else {
@@ -1660,6 +1701,7 @@ export function manualPagination(page: number, limit: number, docs: any[]) {
   limit = Number(limit)
   const skip = ((page - 1) * limit)
   return {
+    total:docs.length,
     page,
     pages: Math.ceil(docs.length / limit),
     docs: docs.slice(skip, skip + limit)
@@ -1676,12 +1718,6 @@ export async function createFolder(body: any, userId: string) {
     }
     if (!body.name) throw new Error(DOCUMENT_ROUTER.MANDATORY);
 
-
-    // let data = await folders
-    //   .find({ ownerId: userId, name: body.name });
-    // if (data.length) {
-    //   throw new Error(DOCUMENT_ROUTER.ALREADY_EXIST);
-    // }
     let folder = await folders.create({
       name: body.name,
       parentId: body.parentId || null,
@@ -1718,7 +1754,7 @@ export async function moveToFolder(folderId: string, body: any, userId: string) 
       })
     }
     return {
-      sucess: true
+      success: true
     }
   } catch (error) {
     console.error(error);
@@ -1743,8 +1779,14 @@ export async function listFolders(userId: String) {
   }
 }
 
-export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30, host: string, root: any) {
+export async function getFolderDetails(folderId: string, userId: any, page: number = 1, limit: number = 30, host: string, root: any,sortOrder:string = 'asc',sortBy:string = 'name') {
   if (!folderId) throw new Error(DOCUMENT_ROUTER.MANDATORY);
+  let sortObj:any = {}
+  if(sortOrder == 'asc'){
+    (sortBy == 'date')?sortObj['updatedAt'] = 1:sortObj[sortBy] = 1
+  }else{
+    (sortBy == 'date')?sortObj['updatedAt'] = -1:sortObj[sortBy] = -1
+  }
   const [fetchedDoc, subfolders] = await Promise.all([
     folders.aggregate([
       {
@@ -1774,7 +1816,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
         }
       }
     ]).exec(),
-    folders.find({ ownerId: userId, parentId: folderId }).collation({ locale: 'en' }).sort({ name: 1 }).exec()
+    folders.find({ ownerId: userId, parentId: folderId }).collation({ locale: 'en' }).sort(sortObj).exec()
   ])
 
   let subFolderList = subfolders.map((folder: any) => {
@@ -1783,6 +1825,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
       folderId: folder._id,
       name: folder.name,
       date: folder.createdAt,
+      updatedAt: folder.updatedAt,
       parentId: folder.parentId
     }
   })
@@ -1796,7 +1839,9 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
   })
   const filteredDocs = docsList.filter(doc => doc.isDeleted == false)
   const folderName: any = await folders.findById(folderId);
-  const docsData = manualPagination(page, limit, [...subFolderList, ...filteredDocs])
+  // let sortedFolderData = documentsSortByGivenField(subFolderList,sortBy,sortOrder)
+  let sortedDocsData = documentsSortByGivenField(filteredDocs,sortBy,sortOrder)
+  const docsData = manualPagination(page, limit, [...subFolderList,...sortedDocsData])
   const filteredSubFolders = docsData.docs.filter(doc => doc.type == 'SUB_FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'SUB_FOLDER')
   // let rootPath:any = [];
@@ -1809,7 +1854,7 @@ export async function getFolderDetails(folderId: string, userId: any, page: numb
     rootPath.push(...path);
   }
   rootPath.push({ id: checkFolderData._id, name: checkFolderData.name })
-  return { page: docsData.page, pages: docsData.pages, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs, path: rootPath };
+  return { page: docsData.page, pages: docsData.pages,total: docsData.total, folderName: folderName.name, subFoldersList: filteredSubFolders, docsList: docsData.docs, path: rootPath };
 }
 
 async function getParentFolderDetails(parentId: string, userId: string, root: any) {
@@ -1904,7 +1949,7 @@ export async function removeFromFolder(folderId: string, body: any, userId: stri
       })
     }
     return {
-      sucess: true
+      success: true
     }
   } catch (error) {
     console.error(error);
@@ -1912,7 +1957,7 @@ export async function removeFromFolder(folderId: string, body: any, userId: stri
   }
 }
 
-export async function deleteDoc(docId: any, userId: string) {
+export async function deleteDoc(docId: any, userId: string,token: string) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
@@ -1921,7 +1966,6 @@ export async function deleteDoc(docId: any, userId: string) {
     if (!isEligible) {
       throw new APIError(DOCUMENT_ROUTER.NO_DELETE_PERMISSION, 403);
     }
-
     if (!Types.ObjectId.isValid(docId))
       throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let findDoc: any = await documents.findOne({ _id: docId, ownerId: userId })
@@ -1930,14 +1974,16 @@ export async function deleteDoc(docId: any, userId: string) {
     }
     if (findDoc.status == 2) throw new Error(DOCUMENT_ROUTER.PUBLISH_CANT_BE_DELETE)
     let deletedDoc = await documents.update({ _id: docId, ownerId: userId }, { isDeleted: true }).exec()
-    createActivityLog({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-      let deleted = esClient.delete({
-        index: `${ELASTIC_SEARCH_INDEX}_documents`,
-        id: docId,
-      })
-    }
+     createActivityLog({ activityType: "DOCUMENT_DELETED", activityBy: userId, documentId: docId })
+     updateOrCreateDocInElasticSearch(docId,token)
+     // let isDocExists = await checkDocIdExistsInEs(docId)
+    // if (isDocExists) {
+    //   let deleted = esClient.delete({
+    //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //     id: docId,
+    //   })
+    // }
+
     if (deletedDoc) {
       return {
         success: true,
@@ -1951,10 +1997,15 @@ export async function deleteDoc(docId: any, userId: string) {
   };
 };
 
-export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30, host: string) {
-
+export async function getListOfFoldersAndFiles(userId: any, page: number = 1, limit: number = 30,sortOrder:string = 'asc',sortBy:string = 'name', host: string) {
+  let sortObj:any = {}
+  if(sortOrder == 'asc'){
+    (sortBy == 'date')?sortObj['updatedAt'] = 1:sortObj[sortBy] = 1
+  }else{
+    (sortBy == 'date')?sortObj['updatedAt'] = -1:sortObj[sortBy] = -1
+  }
   const [foldersData, folderDocs, fetchedDoc] = await Promise.all([
-    folders.find({ ownerId: userId, parentId: null }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+    folders.find({ ownerId: userId, parentId: null }).collation({ locale: 'en' }).sort(sortObj).exec(),
     folders.find({ ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
     documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
   ])
@@ -1970,6 +2021,7 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
       folderId: folder._id,
       name: folder.name,
       date: folder.createdAt,
+      updatedAt: folder.updatedAt,
       parentId: folder.parentId
     }
   })
@@ -1982,11 +2034,13 @@ export async function getListOfFoldersAndFiles(userId: any, page: number = 1, li
       return docs._id == folderDocs;
     });
   })
-  const docsData = manualPagination(page, limit, [...foldersList, ...docsList])
+  // let sortedFolderData = documentsSortByGivenField(foldersList,sortBy,sortOrder)
+  let sortedDocsData = documentsSortByGivenField(docsList,sortBy,sortOrder)
+  const docsData = manualPagination(page, limit, [...foldersList,...sortedDocsData])
   const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
   docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
-  docsData.docs = documentsSort(docsData.docs, "name", false)
-  return { page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
+  // docsData.docs = documentsSortByGivenField(docsData.docs,sortBy,sortOrder)
+  return {total:docsData.total, page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
 }
 
 
@@ -2077,14 +2131,24 @@ async function userWithDocRole(docId: string, userId: string, usersObjects: any[
   };
 };
 
-export async function shareDocForUsersNew(obj: any, userObj: any) {
+export async function shareDocForUsersNew(obj: any, userObj: any, token:string) {
   try {
+    let isEligible = await checkRoleScope(userObj.role, `share-document`)
     if ("add" in obj && obj.add.length) {
-      await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, [{ _id: obj.userId, type: obj.type }], obj.role, userObj._id)))
+      if(!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+      }
+      await Promise.all(obj.add.map((obj: any) => invitePeople(obj.docId, [{ _id: obj.userId, type: obj.type }], obj.role, userObj._id,token)))
     } if ("edit" in obj && obj.edit.length) {
+      if(!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+      }
       await Promise.all(obj.edit.map((obj: any) => invitePeopleEdit(obj.docId, obj.userId, obj.type, obj.role, userObj)))
     } if ("remove" in obj && obj.remove.length) {
-      await Promise.all(obj.remove.map((obj: any) => invitePeopleRemove(obj.docId, obj.userId, obj.type, obj.role, userObj)))
+      if(!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+      }
+      await Promise.all(obj.remove.map((obj: any) => invitePeopleRemove(obj.docId, obj.userId, obj.type, obj.role, userObj,token)))
     }
     return { message: "successfully updated the roles." }
   } catch (err) {
@@ -2100,7 +2164,7 @@ export async function shareDocForUsers(obj: any) {
       if (obj.documents) delete obj.documents
       await Promise.all((Object.keys(obj)).map((docId: string) => loopForAddCapability(docId, obj[docId])))
     }
-    return { message: "shared successfully" }
+    return { message: DOCUMENT_ROUTER.SHARE_SUCCESS }
   } catch (err) {
     throw err
   };
@@ -2118,16 +2182,25 @@ async function loopForAddCapability(docId: string, users: any[]) {
 
 export async function suggestTags(docId: string, body: any, userId: string) {
   try {
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "suggest-tag");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
-    }
-    if (!body.tags) { throw new Error(DOCUMENT_ROUTER.TAG_REQUIRED) }
     let [docData, child]: any = await Promise.all([documents.findById(docId).exec(), documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()])
     if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    if(docData.isPublic){
+      // Checking for suggest tag permission on public document
+      const isEligibleOnPublic = await checkRoleScope(userRole, `suggest-tag-on-public-document`)
+      if(!isEligibleOnPublic){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    } else {
+      // If not public then Checking for suggest tag permission on public document
+      let isEligible = await checkRoleScope(userRole, "suggest-tag");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    }
+    if (!body.tags) { throw new Error(DOCUMENT_ROUTER.TAG_REQUIRED) }
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2139,11 +2212,11 @@ export async function suggestTags(docId: string, body: any, userId: string) {
     ]);
     if (doc) {
       const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-      createActivityLog({ activityType: "SUGGEST_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags })
+       createActivityLog({ activityType: "SUGGEST_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.tags })
       webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
       sendNotification({ id: doc.ownerId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       return {
-        sucess: true,
+        success: true,
         message: "Tag suggested successfully"
       }
     }
@@ -2165,11 +2238,16 @@ async function userInfo(docData: any) {
   }
 }
 
-export async function approveTags(docId: string, body: any, userId: string, ) {
+export async function approveTags(docId: string, body: any, userId: string,token:string ) {
   try {
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
+    if(docdetails.isPublic){
+      if(userId != docdetails.ownerId){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2196,30 +2274,31 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDocs, "$push": { tags: body.tagIdToAdd } })
       let tags: any = await getTags([body.tagIdToAdd])
       let tagNames = tags.map((tag: any) => { return tag.tag })
-      let isDocExists = await checkDocIdExistsInEs(docId)
-      if (isDocExists) {
-        let updatedData = esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: docId,
-          body: {
-            "script": {
-              "source": "ctx._source.tags.addAll(params.tags)",
-              "lang": "painless",
-              "params": {
-                "tags": tagNames,
-              }
-            }
-          }
-        })
-      }
+      // let isDocExists = await checkDocIdExistsInEs(docId)
+      // if (isDocExists) {
+      //   let updatedData = esClient.update({
+      //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      //     id: docId,
+      //     body: {
+      //       "script": {
+      //         "source": "ctx._source.tags.addAll(params.tags)",
+      //         "lang": "painless",
+      //         "params": {
+      //           "tags": tagNames,
+      //         }
+      //       }
+      //     }
+      //   })
+      // }
+      updateOrCreateDocInElasticSearch(docId,token)
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        createActivityLog({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name), from: userId })
+       createActivityLog({ activityType: "SUGGEST_TAGS_ADD_APPROVED", activityBy: userId, documentId: docId, tagsAdded: body.tagIdToAdd })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveTagNotification(docdetails.name, tagNames.join(',')), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
-          sucess: true,
-          message: "Tag Adding approved successfully"
+          success: true,
+          message: "Your suggestion to add tag to document is approved"
         }
       }
     }
@@ -2245,31 +2324,32 @@ export async function approveTags(docId: string, body: any, userId: string, ) {
       let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: filteredDocsRemove, "$pull": { tags: body.tagIdToRemove } })
       let tags: any = await getTags([body.tagIdToRemove])
       let tagNames = tags[0].tag
-      let isDocExists = await checkDocIdExistsInEs(docId)
-      if (isDocExists && tagExists) {
-        let updatedData = esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: docId,
-          body: {
-            "script": {
-              "inline": "ctx._source.tags.remove(ctx._source.tags.indexOf(params.tags))",
-              // "source": "ctx._source.tags.addAll(params.tags)",
-              "lang": "painless",
-              "params": {
-                "tags": tagNames,
-              }
-            }
-          }
-        })
-      }
+      // let isDocExists = await checkDocIdExistsInEs(docId)
+      // if (isDocExists && tagExists) {
+      //   let updatedData = esClient.update({
+      //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      //     id: docId,
+      //     body: {
+      //       "script": {
+      //         "inline": "ctx._source.tags.remove(ctx._source.tags.indexOf(params.tags))",
+      //         // "source": "ctx._source.tags.addAll(params.tags)",
+      //         "lang": "painless",
+      //         "params": {
+      //           "tags": tagNames,
+      //         }
+      //       }
+      //     }
+      //   })
+      // }
+      updateOrCreateDocInElasticSearch(docId,token)
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_APPROVED", activityBy: userId, documentId: docId, tagsRemoved: body.tags })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveRemoveTagNotification(docdetails.name), from: userId })
+         createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_APPROVED", activityBy: userId, documentId: docId, tagsRemoved: body.tags })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.approveRemoveTagNotification(docdetails.name, tagNames), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "approveTagNotification", mobileTemplateName: "approveTagNotification" });
         return {
-          sucess: true,
-          message: "Tag Removal approved successfully"
+          success: true,
+          message: "Your suggestion to remove tag from document is approved"
         }
       }
     }
@@ -2283,12 +2363,19 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
     if (!docId || !body.userId || (!body.tagIdToAdd && !body.tagIdToRemove)) { throw new Error(DOCUMENT_ROUTER.INVALID_OR_MISSING_DATA) }
     let docdetails: any = await documents.findById(docId)
     if (!docdetails) { throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE) }
+    if(docdetails.isPublic){
+      if(userId != docdetails.ownerId){
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403)
+      }
+    }
     let usersData = await userFindMany("_id", [userId, body.userId], { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, countryCode: 1, is_active: 1 })
     let ownerDetails = usersData.find((user: any) => userId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
     let userDetails = usersData.find((user: any) => body.userId == user._id)
     let userName = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
     if (body.tagIdToAdd) {
+      const tags = await getTags([body.tagIdToAdd])
+      const tagNames = tags.map((tag: any) => tag.tag)
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToAdd.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -2315,16 +2402,18 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        createActivityLog({ activityType: "SUGGEST_TAGS_ADD_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name), from: userId })
+         createActivityLog({ activityType: "SUGGEST_TAGS_ADD_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectTagNotification(docdetails.name, tagNames.join(`, `)), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
-          sucess: true,
-          message: "Tag Adding Rejected"
+          success: true,
+          message: "Your suggestion to add tag to document is rejected"
         }
       }
     }
     if (body.tagIdToRemove) {
+      const tags = await getTags([body.tagIdToRemove])
+      const tagNames = tags.map((tag: any) => tag.tag)
       let [filteredDoc, filteredDoc1]: any = await Promise.all([
         docdetails.suggestTagsToRemove.filter((tag: any) => tag.userId == body.userId).map(
           (_respdata: any) => {
@@ -2348,12 +2437,12 @@ export async function rejectTags(docId: string, body: any, userId: string, ) {
       })
       if (doc) {
         const { mobileNo, fullName } = getFullNameAndMobile(userDetails);
-        createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
-        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name), from: userId })
+         createActivityLog({ activityType: "SUGGEST_TAGS_REMOVE_REJECTED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
+        webNotification({ notificationType: `DOCUMENTS`, userId: body.userId, docId, title: DOC_NOTIFICATIONS.rejectRemoveTagNotification(docdetails.name, tagNames.join(`, `)), from: userId })
         sendNotification({ id: body.userId, fullName: ownerName, userName, mobileNo, email: userDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "rejectTagNotification", mobileTemplateName: "rejectTagNotification" });
         return {
-          sucess: true,
-          message: "Tag Removing Rejected"
+          success: true,
+          message: "Your suggestion to remove tag from document is rejected"
         }
       }
     }
@@ -2441,9 +2530,9 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToAdd: filteredDocs
       })
       if (doc) {
-        // createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
+        // await createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd })
         return {
-          sucess: true,
+          success: true,
           message: "Tag removed Successfully"
         }
       }
@@ -2471,9 +2560,9 @@ export async function deleteSuggestedTag(docId: string, body: any, userId: strin
         suggestTagsToRemove: filteredDocs
       })
       if (doc) {
-        // createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd || body.tagIdToRemove })
+        // await createActivityLog({ activityType: "SUGGEST_TAGS_ADDED_MODIFIED", activityBy: userId, documentId: docId, tagsRemoved: body.tagIdToAdd || body.tagIdToRemove })
         return {
-          sucess: true,
+          success: true,
           message: "Tag removed Successfully"
         }
       }
@@ -2502,7 +2591,13 @@ async function RequestList(request: any) {
 
 export async function requestAccept(requestId: string, userObj: any) {
   try {
-    if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+    const isEligible = await checkRoleScope(userObj.role, `share-document`)
+    if(!isEligible){
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+    }
+    if (!Types.ObjectId.isValid(requestId)) { 
+      throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID); 
+    }
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let capability: any[] = await documnetCapabilities(requestDetails.docId.id, requestDetails.requestedBy);
@@ -2516,11 +2611,11 @@ export async function requestAccept(requestId: string, userObj: any) {
     } else {
       throw new Error(DOCUMENT_ROUTER.INVALID_ACTION_PERFORMED)
     }
-    createActivityLog({ activityType: "REQUEST_APPROVED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
+     createActivityLog({ activityType: "REQUEST_APPROVED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
     webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestApproved(requestDetails.docId.name), from: userObj._id })
     if (addedCapability && addedCapability.user.length) {
       await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } })
-      return { message: "Shared successfully." }
+      return { message: DOCUMENT_ROUTER.REQUEST_ACCEPTED }
     }
     throw new Error(DOCUMENT_ROUTER.SOMETHING_WENT_WRONG)
   } catch (err) {
@@ -2530,11 +2625,15 @@ export async function requestAccept(requestId: string, userObj: any) {
 
 export async function requestDenied(requestId: string, userObj: any) {
   try {
+    const isEligible = await checkRoleScope(userObj.role, `share-document`)
+    if(!isEligible){
+      throw new APIError(DOCUMENT_ROUTER.NO_PERMISSION_TO_SHARE)
+    }
     if (!Types.ObjectId.isValid(requestId)) throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
     let requestDetails: any = await docRequestModel.findById(requestId).populate("docId").exec();
     if (userObj._id != requestDetails.docId.ownerId) throw new Error(DOCUMENT_ROUTER.UNAUTHORIZED);
     let success = await docRequestModel.findByIdAndUpdate(requestId, { $set: { isDelete: true } }, {})
-    createActivityLog({ activityType: "REQUEST_DENIED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
+     createActivityLog({ activityType: "REQUEST_DENIED", activityBy: userObj._id, documentId: requestDetails.docId.id, requestUserId: requestDetails.requestedBy })
     webNotification({ notificationType: `DOCUMENTS`, userId: requestDetails.requestedBy, docId: requestDetails.docId.id, title: DOC_NOTIFICATIONS.documentRequestRejected(requestDetails.docId.name), from: userObj._id })
     return success
   } catch (err) {
@@ -2548,8 +2647,12 @@ export async function requestRaise(docId: string, userId: string) {
     let docDetails: any = await documents.findById(docId);
     if (!docDetails || docDetails.parentId || docDetails.status == 2) throw new Error(DOCUMENT_ROUTER.INVALID_FILE_ID)
     let existRequest = await docRequestModel.findOne({ requestedBy: userId, docId: docId, isDelete: false })
+    let capability: any[] = await documnetCapabilities(docId, userId);
+    if(capability.includes('collaborator')){
+      throw new APIError(DOCUMENT_ROUTER.ALREADY_COLLABORATOR)
+    }
     if (existRequest) throw new Error(DOCUMENT_ROUTER.ALREADY_REQUEST_EXIST)
-    createActivityLog({ activityType: "REQUEST_DOCUMENT", activityBy: userId, documentId: docId })
+     createActivityLog({ activityType: "REQUEST_DOCUMENT", activityBy: userId, documentId: docId })
     // webNotification({ notificationType: `DOCUMENTS`, userId: docDetails.owner, docId: docId, title: DOC_NOTIFICATIONS.documentRequest(docDetails.name), from: userId })
     return await docRequestModel.create({ requestedBy: userId, docId: docId })
   } catch (err) {
@@ -2558,7 +2661,7 @@ export async function requestRaise(docId: string, userId: string) {
 }
 
 //  Get All Cmp Documents List
-export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: string, userId: string, pagination: boolean = true) {
+export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: string, userId: string,sortOrder:string = 'asc',sortBy:string = 'name', pagination: boolean = true) {
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
@@ -2568,15 +2671,16 @@ export async function getAllCmpDocs(page: number = 1, limit: number = 30, host: 
     }
     let data = await documents.find({ parentId: null, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 });
     const docList = await Promise.all(data.map(async doc => docData(doc, host)));
-    if (pagination) return manualPagination(page, limit, docList)
-    return docList
+    let docsData = documentsSortByGivenField(docList,sortBy,sortOrder)
+    if (pagination) return manualPagination(page, limit, docsData)
+    return docsData
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
 
-export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any) {
+export async function replaceDocumentUser(ownerId: string, newOwnerId: string, userObj: any,token:string) {
   try {
     let userDetails: any = await userFindOne("id", newOwnerId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
     let userName: any;
@@ -2592,7 +2696,8 @@ export async function replaceDocumentUser(ownerId: string, newOwnerId: string, u
     ])
     await Promise.all(mydocs.map((doc: any) => {
       changeOwnerShip(doc, ownerId, newOwnerId, userObj),
-        replaceUserInES(doc.id, newOwnerId, userName)
+       updateOrCreateDocInElasticSearch(doc.id,token)
+        // replaceUserInES(doc.id, newOwnerId, userName)
     }
     ))
     // await Promise.all(sharedDocs.map((doc: any) => changeSharedOwnerShip(doc, ownerId, newOwnerId, userObj)))
@@ -2605,14 +2710,24 @@ async function changeOwnerShip(doc: any, ownerId: string, newOwnerId: string, us
   try {
     let capability: any[] = await documnetCapabilities(doc._id, newOwnerId)
     if (["no_access", "publish", "viewer"].includes(capability[0])) {
-      let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
-      // createActivityLog({
-      //   activityType: "CHANGE_OWNERSHIP",
-      //   activityBy: userObj._id,
-      //   documentId: doc._id,
-      //   documentAddedUsers: [{ id: newOwnerId, type: "user", role: "owner" }],
-      //   documentRemovedUsers: [{ id: ownerId, type: "user", role: "owner" }]
-      // })
+      if('viewer' == capability[0]){
+        try {
+          await groupsRemovePolicy(`user/${newOwnerId}`, doc._id, capability[0])
+        } catch (error) {
+          console.error(`Error at remove existing access: change document ownership at replace user`)
+        } finally {
+          let document = await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
+        }
+      } else {
+        await groupsAddPolicy(`user/${newOwnerId}`, doc._id, "collaborator")
+      }
+      await createActivityLog({
+        activityType: "CHANGE_OWNERSHIP",
+        activityBy: userObj._id,
+        documentId: doc._id,
+        documentAddedUsers: [{ id: newOwnerId, type: "user", role: "collaborator" }],
+        documentRemovedUsers: [{ id: ownerId, type: "user", role: "collaborator" }]
+      })
     }
     return { success: true, doc: doc._id }
   } catch (err) {
@@ -2635,7 +2750,7 @@ async function changeSharedOwnerShip(doc: any, ownerId: string, newOwnerId: stri
       if (newOwnerCapabilityNumber) await groupsRemovePolicy(`user/${newOwnerId}`, doc._id, addingUserCapability[0])
       await groupsAddPolicy(`user/${newOwnerId}`, doc._id, existingUserCapability[0])
     }
-    createActivityLog({
+     createActivityLog({
       activityType: "REPLACE_USER",
       activityBy: userObj._id,
       documentId: doc._id,
@@ -2692,7 +2807,7 @@ export async function getAllPublicDocuments(currentPage = 1, limit = 20, host: s
   }
 }
 
-export async function markDocumentAsPublic(docId: string, userRole: string) {
+export async function markDocumentAsPublic(docId: string, userRole: string, userId: string) {
   const [isEligible, docDetail] = await Promise.all([
     checkRoleScope(userRole, 'mark-as-public-document'),
     documents.findById(docId).exec()
@@ -2705,10 +2820,11 @@ export async function markDocumentAsPublic(docId: string, userRole: string) {
   }
   await documents.findByIdAndUpdate(docId, { $set: { isPublic: true } }).exec()
   await documents.updateMany({ parentId: docId }, { $set: { isPublic: true } }).exec()
-  return { message: 'success' }
+  createActivityLog({activityBy:userId, activityType:ACTIVITY_LOG.MARKED_AS_PUBLIC, documentId: docId})
+  return { message: `Document published successfully` }
 }
 
-export async function markDocumentAsUnPublic(docId: string, userRole: string) {
+export async function markDocumentAsUnPublic(docId: string, userRole: string, userId: string) {
   const [isEligible, docDetail] = await Promise.all([
     checkRoleScope(userRole, 'mark-as-unpublic-document'),
     documents.findById(docId).exec()
@@ -2718,25 +2834,46 @@ export async function markDocumentAsUnPublic(docId: string, userRole: string) {
   }
   await documents.findByIdAndUpdate(docId, { $set: { isPublic: false } }).exec()
   await documents.updateMany({ parentId: docId }, { $set: { isPublic: false } }).exec()
-  return { message: 'success' }
+  createActivityLog({activityBy:userId, activityType:ACTIVITY_LOG.MARKED_AS_UNPUBLIC, documentId: docId})
+  return { message: `Document unpublished successfully` }
 }
 
 export async function suggestTagsToAddOrRemove(docId: string, body: any, userId: string) {
   try {
-
-    let userRoles = await userRoleAndScope(userId);
-    let userRole = userRoles.data[0];
-    const isEligible = await checkRoleScope(userRole, "suggest-tag");
-    if (!isEligible) {
-      throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
-    }
-    if (!body.addTags && !body.removeTags) { throw new Error(DOCUMENT_ROUTER.MANDATORY) }
     let [docData, child]: any = await Promise.all([
       documents.findById(docId).exec(),
       documents.find({ parentId: docId, isDeleted: false }).sort({ createdAt: -1 }).exec()
     ])
     if (!docData) throw new Error(DOCUMENT_ROUTER.DOCUMENTS_NOT_THERE);
     if (!child.length) throw new Error(DOCUMENT_ROUTER.CHILD_NOT_FOUND);
+    let userRoles = await userRoleAndScope(userId);
+    let userRole = userRoles.data[0];
+    if(docData.isPublic){
+      const isEligibleOnPublic = await checkRoleScope(userRole, `suggest-tag-on-public-document`)
+      if (!isEligibleOnPublic) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    } else {
+      const isEligible = await checkRoleScope(userRole, "suggest-tag");
+      if (!isEligible) {
+        throw new APIError(DOCUMENT_ROUTER.UNAUTHORIZED, 403);
+      }
+    }
+    if (!body.addTags && !body.removeTags) {
+      throw new Error(DOCUMENT_ROUTER.MANDATORY)
+    }
+    const existingSuggestedTagsToAdd = docData.suggestTagsToAdd.filter((t: any) => t.userId != userId).map((t: any) => t.tags).reduce((p: string[], c: any) => [...p, ...c], [])
+    const existingSuggestedTagsToRemove = docData.suggestTagsToRemove.filter((t: any) => t.userId != userId).map((t: any) => t.tags).reduce((p: string[], c: any) => [...p, ...c], [])
+    if (body.addTags) {
+      if (existingSuggestedTagsToAdd.some((tag: any) => body.addTags.includes(tag))) {
+        throw new APIError(DOCUMENT_ROUTER.ADD_TAG_SUGGESTION_ALREADY_EXISTS)
+      }
+    }
+    if (body.removeTags) {
+      if (existingSuggestedTagsToRemove.some((tag: any) => body.removeTags.includes(tag))) {
+        throw new APIError(DOCUMENT_ROUTER.REMOVE_TAG_SUGGESTION_ALREADY_EXISTS)
+      }
+    }
     let usersData = await userFindMany("_id", [docData.ownerId, userId], { firstName: 1, middleName: 1, lastName: 1, email: 1 })
     let ownerDetails = usersData.find((user: any) => docData.ownerId == user._id)
     let ownerName = `${ownerDetails.firstName} ${ownerDetails.middleName || ""} ${ownerDetails.lastName || ""}`;
@@ -2765,12 +2902,12 @@ export async function suggestTagsToAddOrRemove(docId: string, body: any, userId:
       let addedTags = body.addTags.filter((tag: string) => !addSuggestedTagsExist.includes(tag))
       let removedTags = body.removeTags.filter((tag: string) => !removeSuggestedTagsExist.includes(tag))
       if (addedTags.length || removedTags.length) {
-        // createActivityLog({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: body.addTags, tagsRemoved: body.removeTags })
+        createActivityLog({ activityType: "SUGGEST_MODIFIED_TAGS", activityBy: userId, documentId: docId, tagsAdded: addedTags, tagsRemoved: removedTags })
         webNotification({ notificationType: `DOCUMENTS`, userId: doc.ownerId, docId, title: DOC_NOTIFICATIONS.suggestTagNotification(doc.name), from: userId })
         sendNotification({ id: userId, fullName: ownerName, userName, mobileNo, email: ownerDetails.email, documentUrl: `${ANGULAR_URL}/home/resources/doc/${docId}`, templateName: "suggestTagNotification", mobileTemplateName: "suggestTagNotification" });
       }
       return {
-        sucess: true,
+        success: true,
         message: "Tag suggested successfully"
       }
     }
@@ -2793,156 +2930,159 @@ export async function searchDoc(search: string, userId: string, page: number = 1
   try {
     let userRoles = await userRoleAndScope(userId);
     let userRole = userRoles.data[0];
-    let data: any;
-
     const isEligible = await checkRoleScope(userRole, "view-all-cmp-documents");
-    if (isEligible && searchAllCmp) {
-      if (search == (null || "")) {
-        data = {
-          query: {
-            "match_all": {}
-          }
-        }
-      } else {
-        data = {
-          query: {
-            multi_match: {
-              "query": search,
-              "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName', 'fileName','projectName','city','reference','phases'],
-              "type": 'bool_prefix'
-            }
-          }
-        }
-      }
-    } else {
-      if (search == (null || "")) {
-        data = {
-          query: {
-            multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
-          }
-        }
-      }
-      else {
-        data = {
-          query: {
-            bool: {
-              "should": [
-                {
-                  "bool": {
-                    "must": [
-                      { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName', 'groupName','projectName','city','reference','phases'], type: 'bool_prefix' } },
-                      { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
-                    ]
-                  }
-                }]
-            }
-          }
-        }
-      }
-    }
-    let searchdoc: any = await esClient.search({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      size: 1000,
-      body: data
-    });
-    let searchResult = searchdoc.hits.hits.map((doc: any) => {
-      return {
-        _id: doc._source.id,
-        accessedBy: doc._source.accessedBy,
-        userName: doc._source.userName,
-        name: doc._source.name,
-        description: doc._source.description,
-        tags: doc._source.tags,
-        thumbnail: doc._source.thumbnail,
-        status: doc._source.status,
-        fileName: doc._source.fileName,
-        updatedAt: doc._source.updatedAt,
-        createdAt: doc._source.createdAt,
-        groupId: doc._source.groupId,
-        groupName: doc._source.groupName,
-        createdByMe: doc._source.createdBy == userId,
-        projectName: doc._source.projectName,
-        city: doc._source.city,
-        reference: doc._source.reference,
-        phases: doc._source.phases
-      }
-    })
-    if (pagination == true) return manualPagination(page, limit, searchResult);
-    else return { docs: searchResult };
+    let queryObj = {search,userId,page,limit,searchAllCmp,isEligible};
+    let searchResult = await searchInElasticSearch(queryObj)
+    return searchResult;
+    //   if (search == (null || "")) {
+    //     data = {
+    //       query: {
+    //         "match_all": {}
+    //       }
+    //     }
+    //   } else {
+    //     data = {
+    //       query: {
+    //         multi_match: {
+    //           "query": search,
+    //           "fields": ['name', 'description', 'userName', 'tags', 'type', 'groupName', 'fileName','projectName','city','reference','phases'],
+    //           "type": 'bool_prefix'
+    //         }
+    //       }
+    //     }
+    //   }
+    // } else {
+    //   if (search == (null || "")) {
+    //     data = {
+    //       query: {
+    //         multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] },
+    //       }
+    //     }
+    //   }
+    //   else {
+    //     data = {
+    //       query: {
+    //         bool: {
+    //           "should": [
+    //             {
+    //               "bool": {
+    //                 "must": [
+    //                   { multi_match: { "query": search, "fields": ['name', 'description', 'userName', 'tags', 'type', 'fileName', 'groupName','projectName','city','reference','phases'], type: 'bool_prefix' } },
+    //                   { multi_match: { "query": `${userId} 2`, "fields": ['accessedBy', 'status'] } },
+    //                 ]
+    //               }
+    //             }]
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    // let searchdoc: any = await esClient.search({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   size: 1000,
+    //   body: data
+    // });
+    // let searchResult = searchdoc.hits.hits.map((doc: any) => {
+    //   return {
+    //     _id: doc._source.id,
+    //     accessedBy: doc._source.accessedBy,
+    //     userName: doc._source.userName,
+    //     name: doc._source.name,
+    //     description: doc._source.description,
+    //     tags: doc._source.tags,
+    //     thumbnail: doc._source.thumbnail,
+    //     status: doc._source.status,
+    //     fileName: doc._source.fileName,
+    //     updatedAt: doc._source.updatedAt,
+    //     createdAt: doc._source.createdAt,
+    //     groupId: doc._source.groupId,
+    //     groupName: doc._source.groupName,
+    //     createdByMe: doc._source.createdBy == userId,
+    //     projectId: doc._source.projectId,
+    //     projectName: doc._source.projectName,
+    //     city: doc._source.city,
+    //     reference: doc._source.reference,
+    //     phases: doc._source.phases
+    //   }
+    // })
+    // if (pagination == true) return manualPagination(page, limit, searchResult);
+    // else return { docs: searchResult };
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
 
-export async function updateUserInDOcs(id: any, userId: string) {
+export async function updateUserInDOcs(id: any, userId: string,token:string) {
   try {
     // let userIds, userNames;
     let allDocIds: any = []
     // let collaboratedDocsIds: any = await GetDocIdsForUser(id, "user", ["collaborator", "owner","viewer"])
     let groups:any = await userGroupsList(id)
-    allDocIds = groups && groups.lenght?(await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")))):[]
+    allDocIds = groups && groups.length ?(await Promise.all(groups.map((groupId: string) => GetDocIdsForUser(groupId, "group")))):[]
     allDocIds = allDocIds.reduce((main: [], arr: []) => main.concat(arr), [])
     allDocIds = [... new Set(allDocIds.concat(await GetDocIdsForUser(id,"user", ["collaborator", "owner","viewer"])))].filter((id: any) => Types.ObjectId.isValid(id));
-    let userIds = await Promise.all(allDocIds.map(async (docId: any) => {
-      return {
-        docId: docId,
-        collaboratorIds: await GetUserIdsForDocWithRole(docId, "collaborator"),
-        ownerIds: await GetUserIdsForDocWithRole(docId, "owner"),
-        viewerIds: await GetUserIdsForDocWithRole(docId, "viewer")
-      }
-    })
-    )
-    let idsToUpdate = await Promise.all(userIds.map(async (user: any) => {
-      return {
-        docId: user.docId,
-        userNames: await Promise.all([...user.collaboratorIds, ...user.ownerIds].map(async (eachuser: any) => {
-          let userId = eachuser.split('/')[1]
-          let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-          if (userDetails) {
-            if (userDetails.firstName)
-              return `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-            else
-              return userDetails.name
-          }
-        })),
-        userIds: [...user.collaboratorIds, ...user.ownerIds, ...user.viewerIds].map((eachuser: any) => {
-          return eachuser.split('/')[1]
-        })
-      }
-    }))
-    let allDocs: any = await esClient.search({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      size: 1000,
-      body: {
-        query: {
-          "match_all": {}
-        }
-      }
-    })
+    // let userIds = await Promise.all(allDocIds.map(async (docId: any) => {
+    //   return {
+    //     docId: docId,
+    //     collaboratorIds: await GetUserIdsForDocWithRole(docId, "collaborator"),
+    //     ownerIds: await GetUserIdsForDocWithRole(docId, "owner"),
+    //     viewerIds: await GetUserIdsForDocWithRole(docId, "viewer")
+    //   }
+    // })
+    // )
+    // let idsToUpdate = await Promise.all(userIds.map(async (user: any) => {
+    //   return {
+    //     docId: user.docId,
+    //     userNames: await Promise.all([...user.collaboratorIds, ...user.ownerIds].map(async (eachuser: any) => {
+    //       let userId = eachuser.split('/')[1]
+    //       let userDetails: any = await userFindOne("id", userId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+    //       if (userDetails) {
+    //         if (userDetails.firstName)
+    //           return `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+    //         else
+    //           return userDetails.name
+    //       }
+    //     })),
+    //     userIds: [...user.collaboratorIds, ...user.ownerIds, ...user.viewerIds].map((eachuser: any) => {
+    //       return eachuser.split('/')[1]
+    //     })
+    //   }
+    // }))
+    // let allDocs: any = await esClient.search({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   size: 1000,
+    //   body: {
+    //     query: {
+    //       "match_all": {}
+    //     }
+    //   }
+    // })
 
     // let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
-    let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-      // if (docIds.includes(user.docId)) {
-        return await esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: user.docId,
-          body: {
-            "script": {
-              "source": "ctx._source.accessedBy=(params.userId);ctx._source.userName=(params.userNames)",
-              "lang": "painless",
-              "params": {
-                "userId": user.userIds,
-                "userNames": user.userNames
-              }
-            }
-          }
-        })
-      // }
+    // let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+    //   // if (docIds.includes(user.docId)) {
+    //     return await esClient.update({
+    //       index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //       id: user.docId,
+    //       body: {
+    //         "script": {
+    //           "source": "ctx._source.accessedBy=(params.userId);ctx._source.userName=(params.userNames)",
+    //           "lang": "painless",
+    //           "params": {
+    //             "userId": user.userIds,
+    //             "userNames": user.userNames
+    //           }
+    //         }
+    //       }
+    //     })
+    //   // }
+    // }))
+    let updateUsers = await Promise.all(allDocIds.map(async(docId:any)=>{
+      return await updateOrCreateDocInElasticSearch(docId,token)
     }))
-
-    return { userIds, allDocIds, idsToUpdate, updateUsers }
+    return { allDocIds, updateUsers }
 
   } catch (error) {
     console.error(error);
@@ -2950,36 +3090,37 @@ export async function updateUserInDOcs(id: any, userId: string) {
   }
 }
 
-export async function updateTagsInDOcs(bodyObj: any, userId: string) {
+export async function updateTagsInDOcs(bodyObj: any, token: string) {
   try {
 
-    let allDocs: any = await esClient.search({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      size: 1000,
-      body: {
-        query: {
-          "match_all": {}
-        }
-      }
-    })
+    // let allDocs: any = await esClient.search({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   size: 1000,
+    //   body: {
+    //     query: {
+    //       "match_all": {}
+    //     }
+    //   }
+    // })
 
-    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+    // let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
 
     let updateTags = await Promise.all(bodyObj.map(async (tag: any) => {
+      updateOrCreateDocInElasticSearch(tag.docId,token)
       // if (docIds.includes(tag.docId)) {
-        return await esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: tag.docId,
-          body: {
-            "script": {
-              "source": "ctx._source.tags=(params.tags)",
-              "lang": "painless",
-              "params": {
-                "tags": tag.tags
-              }
-            }
-          }
-        })
+        // return await esClient.update({
+        //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+        //   id: tag.docId,
+        //   body: {
+        //     "script": {
+        //       "source": "ctx._source.tags=(params.tags)",
+        //       "lang": "painless",
+        //       "params": {
+        //         "tags": tag.tags
+        //       }
+        //     }
+        //   }
+        // })
       // }
     }))
 
@@ -3008,57 +3149,58 @@ async function checkDocIdExistsInEs(docId: string) {
   }
 }
 
-export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: string) {
+export async function addGroupMembersInDocs(id: any, token: string) {
   try {
 
     let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "viewer", "owner"])
     let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
-      return {
-        docId: docId,
-        userNames: await Promise.all(groupUserIds.map(async (eachuser: any) => {
-          let userDetails: any = await userFindOne("id", eachuser, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-          if (userDetails) {
-            if (userDetails.firstName)
-              return `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-            else
-              return userDetails.name
-          }
-        })),
-        userIds: groupUserIds
-      }
-    }))
-    let allDocs: any = await esClient.search({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      size: 1000,
-      body: {
-        query: {
-          "match_all": {}
-        }
-      }
-    })
-
-    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
-
-    let updateUsers = Promise.all(idsToUpdate.map(async (user: any) => {
-      // if (docIds.includes(user.docId)) {
-        return await esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: user.docId,
-          body: {
-            "script": {
-              "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
-              "lang": "painless",
-              "params": {
-                "userId": user.userIds,
-                "userNames": user.userNames
-              }
-            }
-          }
-        })
+      return await updateOrCreateDocInElasticSearch(docId,token)
+      // {
+      //   docId: docId,
+      //   userNames: await Promise.all(groupUserIds.map(async (eachuser: any) => {
+      //     let userDetails: any = await userFindOne("id", eachuser, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+      //     if (userDetails) {
+      //       if (userDetails.firstName)
+      //         return `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+      //       else
+      //         return userDetails.name
+      //     }
+      //   })),
+      //   userIds: groupUserIds
       // }
     }))
+    // let allDocs: any = await esClient.search({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   size: 1000,
+    //   body: {
+    //     query: {
+    //       "match_all": {}
+    //     }
+    //   }
+    // })
 
-    return { idsToUpdate, updateUsers }
+    // let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+
+    // let updateUsers = Promise.all(idsToUpdate.map(async (user: any) => {
+    //   // if (docIds.includes(user.docId)) {
+    //     return await esClient.update({
+    //       index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //       id: user.docId,
+    //       body: {
+    //         "script": {
+    //           "source": "ctx._source.accessedBy.addAll(params.userId);ctx._source.userName.addAll(params.userNames)",
+    //           "lang": "painless",
+    //           "params": {
+    //             "userId": user.userIds,
+    //             "userNames": user.userNames
+    //           }
+    //         }
+    //       }
+    //     })
+    //   // }
+    // }))
+
+    return { idsToUpdate }
 
   } catch (error) {
     console.error(error);
@@ -3066,56 +3208,57 @@ export async function addGroupMembersInDocs(id: any, groupUserIds: any, userId: 
   }
 }
 
-export async function removeGroupMembersInDocs(id: any, groupUserId: string, userId: string) {
+export async function removeGroupMembersInDocs(id: any, token: string) {
   try {
 
     let groupDocIds: any = await GetDocIdsForUser(id, "group", ["collaborator", "viewer", "owner"])
     let idsToUpdate = await Promise.all(groupDocIds.map(async (docId: any) => {
-      let userDetails: any = await userFindOne("id", groupUserId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
-      if (userDetails) {
-        if (userDetails.firstName)
-          userDetails = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
-        else
-          userDetails = userDetails.name
-      }
-      return {
-        docId: docId,
-        userName: userDetails,
-        userId: groupUserId
-      }
-    }))
-    let allDocs: any = await esClient.search({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      size: 1000,
-      body: {
-        query: {
-          "match_all": {}
-        }
-      }
-    })
-
-    let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
-
-    let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
-      // if (docIds.includes(user.docId)) {
-        return await esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: user.docId,
-          body: {
-            "script": {
-              "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
-              "lang": "painless",
-              "params": {
-                "userId": user.userId,
-                "userName": user.userName
-              }
-            }
-          }
-        })
+      return await updateOrCreateDocInElasticSearch(docId,token)
+      // let userDetails: any = await userFindOne("id", groupUserId, { firstName: 1, middleName: 1, lastName: 1, name: 1 })
+      // if (userDetails) {
+      //   if (userDetails.firstName)
+      //     userDetails = `${userDetails.firstName} ${userDetails.middleName || ""} ${userDetails.lastName || ""}`;
+      //   else
+      //     userDetails = userDetails.name
+      // }
+      // return {
+      //   docId: docId,
+      //   userName: userDetails,
+      //   userId: groupUserId
       // }
     }))
+    // let allDocs: any = await esClient.search({
+    //   index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //   size: 1000,
+    //   body: {
+    //     query: {
+    //       "match_all": {}
+    //     }
+    //   }
+    // })
 
-    return { idsToUpdate, updateUsers }
+    // let docIds = allDocs.hits.hits.map((doc: any) => { return doc._id })
+
+    // let updateUsers = await Promise.all(idsToUpdate.map(async (user: any) => {
+    //   // if (docIds.includes(user.docId)) {
+    //     return await esClient.update({
+    //       index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //       id: user.docId,
+    //       body: {
+    //         "script": {
+    //           "inline": "ctx._source.accessedBy.remove(ctx._source.accessedBy.indexOf(params.userId));ctx._source.userName.remove(ctx._source.userName.indexOf(params.userName))",
+    //           "lang": "painless",
+    //           "params": {
+    //             "userId": user.userId,
+    //             "userName": user.userName
+    //           }
+    //         }
+    //       }
+    //     })
+    //   // }
+    // }))
+
+    return { idsToUpdate }
 
   } catch (error) {
     console.error(error);
@@ -3123,20 +3266,25 @@ export async function removeGroupMembersInDocs(id: any, groupUserId: string, use
   }
 }
 
-export async function getDocsAndInsertInElasticSearch(host: string,token:string) {
-  const docs = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
-  const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host,token)))
+export async function getDocsAndInsertInElasticSearch() {
+  // let user:any = await userFindOne("is_active", true, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 })
+  // let token= await createJWT({ id: user._id }); 
+  // await createRefreshToken({ id: user._id, token: token })
 
-  let insert = await Promise.all(finalData.map(async (doc: any) => {
-    return esClient.index({
-      index: `${process.env.ELASTIC_SEARCH_INDEX}_documents`,
-      body: doc,
-      id: doc.id
-    });
-  }))
-  return insert;
+  // const docs = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
+  // const finalData: any = await Promise.all(docs.map(doc => getShareInfoForEachDocument(doc, host,token)))
+  // await removeRefreshToken({ id: user._id, token: token });
+  // let insert = await Promise.all(finalData.map(async (doc: any) => {
+  //   return esClient.index({
+  //     index: `${process.env.ELASTIC_SEARCH_INDEX}_documents`,
+  //     body: doc,
+  //     id: doc.id
+  //   });
+  // }))
+  // return insert;
   // return doc;
   // connect to elastic search, remove old doc data & add finalData
+  return await scriptInElasticSearch();
 }
 
 async function getShareInfoForEachDocument(doc: any, host: string,token:string) {
@@ -3162,7 +3310,7 @@ async function getShareInfoForEachDocument(doc: any, host: string,token:string) 
   ])
   const userNames = Array.from(new Set(usersInfo.concat(groupMembersInfo))).map(userInfo => (`${userInfo.firstName} ${userInfo.middleName || ``} ${userInfo.lastName}`) || `${userInfo.name}`)
   let fileType = doc.fileName ? (doc.fileName.split(".")).pop() : ""
-  // let projectDetails = await getProjectDetailsForES(doc.id,token)
+  let projectDetails = await getProjectDetailsForES(doc.id,token)
   return {
     docId: doc.id,
     accessedBy: userIds,
@@ -3179,13 +3327,14 @@ async function getShareInfoForEachDocument(doc: any, host: string,token:string) 
     groupId: groupIds,
     groupName: groupsInfo.map((group: any) => group.name),
     createdBy: doc.ownerId,
-    projectName: [],
-    city: [],
-    reference: [],
-    // projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
-    // city: projectDetails&& projectDetails.city?projectDetails.city:[],
-    // reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
-    phases: []
+    // projectName: [],
+    // city: [],
+    // reference: [],
+    projectId:projectDetails&& projectDetails.projectId?projectDetails.projectId:[], 
+    projectName: projectDetails&& projectDetails.projectName?projectDetails.projectName:[],
+    city: projectDetails&& projectDetails.city?projectDetails.city:[],
+    reference: projectDetails&& projectDetails.reference?projectDetails.reference:[],
+    phases: projectDetails&& projectDetails.phases?projectDetails.phases:[],
   }
 }
 
@@ -3253,7 +3402,7 @@ export async function getDocDetailsForSuccessResp(docId: any, userId: string, to
     let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
     let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }, { name: 1, city: 1, reference: 1, phases:1 }).exec()
     projectDetails = (await Promise.all(projectDetails.map(project => mapPhases(project)))).map(project =>({...project, phase:getCurrentPhase(project) || {}}))
-    // createActivityLog({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
+    // await createActivityLog({ activityType: `DOCUMENT_VIEWED`, activityBy: userId, documentId: docId })
     return {
       ...docList, tags: tagObjects,
       owner: { ...ownerObj, role: await formateRoles((ownerRole.data || [""])[0]) },
@@ -3390,67 +3539,69 @@ async function documentCreateApi(name: string, filepath: any, tags: string[], to
 //update project names, cities, reference in documents for search.
 export async function getProjectNamesForES(docIds: any[], token: string) {
   let docsUpdate = await Promise.all(docIds&&docIds.length?docIds.map(async(docId)=>{
-  let publishDocs: any = await documents.findById(docId);
-  const docList = publishDocs.toJSON();
-  let taskDetailsObj: any = await getTasksForDocument(docList.parentId || docList._id, token)
-  let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
-  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] }, "funds.released.deleted":false}, { "funds.utilized.documents": { $in: [docId] },"funds.utilized.deleted":false }] }).exec()
-  // let projectDetailsForDeletedDocs = await project_schema.find({ $or: [{ "funds.released.documents": { $in: [docId] }, "funds.released.deleted":true}, { "funds.utilized.documents": { $in: [docId] },"funds.utilized.deleted":true }] }).exec()
-  let projectName: any = [];
-  let city: any = [];
-  let reference: any = [];
-  let projects = projectDetails.map((project: any) => {
-    projectName.push(project.name);
-    city.push(project.city?project.city:null);
-    reference.push(project.reference?project.reference:null);
-  })
-  if (projectName.length) {
-    let updatedData = esClient.update({
-      index: `${ELASTIC_SEARCH_INDEX}_documents`,
-      id: docId,
-      body: {
-        "script": {
-          "source": "ctx._source.projectName=params.projectName;ctx._source.city=params.city;ctx._source.reference=params.reference;",
-          "lang": "painless",
-          "params": {
-            "projectName": projectName,
-            "city": city,
-            "reference": reference
-          }
-        }
-      }
-    })
-  }
+    return await updateOrCreateDocInElasticSearch(docId,token)
+  // let publishDocs: any = await documents.findById(docId);
+  // const docList = publishDocs.toJSON();
+  // let taskDetailsObj: any = await getTasksForDocument(docList.parentId || docList._id, token)
+  // let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
+  // let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] }, "funds.released.deleted":false}, { "funds.utilized.documents": { $in: [docId] },"funds.utilized.deleted":false }] }).exec()
+  // // let projectDetailsForDeletedDocs = await project_schema.find({ $or: [{ "funds.released.documents": { $in: [docId] }, "funds.released.deleted":true}, { "funds.utilized.documents": { $in: [docId] },"funds.utilized.deleted":true }] }).exec()
+  // let projectName: any = [];
+  // let city: any = [];
+  // let reference: any = [];
+  // let projects = projectDetails.map((project: any) => {
+  //   projectName.push(project.name);
+  //   city.push(project.city?project.city:null);
+  //   reference.push(project.reference?project.reference:null);
+  // })
+  // if (projectName.length) {
+  //   let updatedData = esClient.update({
+  //     index: `${ELASTIC_SEARCH_INDEX}_documents`,
+  //     id: docId,
+  //     body: {
+  //       "script": {
+  //         "source": "ctx._source.projectName=params.projectName;ctx._source.city=params.city;ctx._source.reference=params.reference;",
+  //         "lang": "painless",
+  //         "params": {
+  //           "projectName": projectName,
+  //           "city": city,
+  //           "reference": reference
+  //         }
+  //       }
+  //     }
+  //   })
+  // }
 }):[]
   )
 }
 
-export async function updateGroupInElasticSearch(groupId: string) {
+export async function updateGroupInElasticSearch(groupId: string,token:string) {
   let docIds = await GetDocIdsForUser(groupId, "group")
-  let update = await Promise.all(docIds.map(async (docId: any) => {
-    let groupDetails = await invitePeopleList(docId);
-    let groupData = groupDetails && groupDetails.length ? groupDetails.filter((group: any) => group.type == 'group') : []
-    let groupNames = groupData && groupData.length ? (groupData.map((group: any) => { return group.name })) : []
-    let isDocExists = await checkDocIdExistsInEs(docId)
-    if (isDocExists) {
-      if (groupNames && groupNames.length) {
-        let updatedData =  esClient.update({
-          index: `${ELASTIC_SEARCH_INDEX}_documents`,
-          id: docId,
-          body: {
-            "script": {
-              "source": "ctx._source.groupName=(params.groupName);",
-              "lang": "painless",
-              "params": {
-                "groupName": groupNames
-              }
-            }
-          }
-        })
-      }
-    }
+  let update = await Promise.all(docIds&& docIds.length ? docIds.map(async (docId: any) => {
+    return await updateOrCreateDocInElasticSearch(docId,token)
+    // let groupDetails = await invitePeopleList(docId);
+    // let groupData = groupDetails && groupDetails.length ? groupDetails.filter((group: any) => group.type == 'group') : []
+    // let groupNames = groupData && groupData.length ? (groupData.map((group: any) => { return group.name })) : []
+    // let isDocExists = await checkDocIdExistsInEs(docId)
+    // if (isDocExists) {
+    //   if (groupNames && groupNames.length) {
+    //     let updatedData =  esClient.update({
+    //       index: `${ELASTIC_SEARCH_INDEX}_documents`,
+    //       id: docId,
+    //       body: {
+    //         "script": {
+    //           "source": "ctx._source.groupName=(params.groupName);",
+    //           "lang": "painless",
+    //           "params": {
+    //             "groupName": groupNames
+    //           }
+    //         }
+    //       }
+    //     })
+    //   }
+    // }
   }
-  ))
+  ):[])
 }
 
 export async function approveTagsAuto(docId: string, addTags: any, removedtags: any ) {
@@ -3467,9 +3618,9 @@ export async function approveTagsAuto(docId: string, addTags: any, removedtags: 
             }
           })
       )
-      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDoc})
+      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToAdd: filteredDoc, updatedAt: docdetails.updatedAt})
         return {
-          sucess: true,
+          success: true,
           message: "Tag Adding approved successfully"
         }
       }
@@ -3484,7 +3635,7 @@ export async function approveTagsAuto(docId: string, addTags: any, removedtags: 
             }
           })
       )
-      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: suggestedToRemove})
+      let doc = await documents.findByIdAndUpdate(docId, { suggestTagsToRemove: suggestedToRemove, updatedAt: docdetails.updatedAt})
       }
   } catch (err) {
     throw err
@@ -3496,17 +3647,21 @@ export async function getProjectDetailsForES(docId: string, token: string) {
   const docList = publishDocs.toJSON();
   let taskDetailsObj: any = await getTasksForDocument(docList.parentId || docList._id, token)
   let projectIds = taskDetailsObj.filter(({ projectId }: any) => projectId).map(({ projectId }: any) => projectId)
-  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] } }, { "funds.utilized.documents": { $in: [docId] } }] }).exec()
+  let projectDetails = await project_schema.find({ $or: [{ _id: { $in: projectIds || [] } }, { "funds.released.documents": { $in: [docId] },"funds.released.deleted":false }, { "funds.utilized.documents": { $in: [docId] },"funds.utilized.deleted":false }] }).exec()
   let projectName: any = [];
   let city: any = [];
   let reference: any = [];
+  let projectId: any = [];
   let projects = projectDetails.map((project: any) => {
+    projectId.push(project._id || project.id)
     projectName.push(project.name);
     city.push(project.city?project.city:null);
     reference.push(project.reference?project.reference:null);
   })
-  return{ projectName,city,reference }
+  let phases = await backGroudJobForPhaseDocs(projectId)
+  return{ projectId,projectName,city,reference ,phases}
 }
+
 async function createActivityLog(activity: any) {
   if(activity.documentId){
     const docDetail: any = await documents.findById(activity.documentId).exec()
@@ -3515,4 +3670,155 @@ async function createActivityLog(activity: any) {
     }
   }
   return await create(activity)
+}
+
+
+async function updateOrCreateDocInElasticSearch(docId: string, token:string) {
+  if(Types.ObjectId.isValid(docId)){
+    createDocInElasticSearch(docId,token);
+  }
+}
+
+export async function backgroundJobForDocumentPhases(token:string) {
+  const docs:any = await documents.find({ status: { $ne: 0 }, parentId: null, isDeleted: false }).exec()
+ 
+  let docsUpdate = await Promise.all(docs.map(async(doc:any)=>{
+    let idExist = await checkDocIdExistsInEs(doc.id)
+    if (idExist) {
+    let projectDetails = await getProjectDetailsForES(doc.id,token)
+    let phases= projectDetails&& projectDetails.phases?projectDetails.phases:[]
+    return  esClient.update({
+      index: `${ELASTIC_SEARCH_INDEX}_documents`,
+      id: doc.id,
+      body: {
+          "script": {
+              "source": `ctx._source.phases=(params.phases)`,
+              "lang": "painless",
+              "params": {
+                phases: phases
+              }
+          }
+        }
+    })
+  }
+  }))
+}
+
+export async function getAllDocs() {
+  const docs:any = await documents.find({ status: { $ne: 0 }, parentId: null}).exec()
+  return docs;
+}
+
+export async function moveToMyDocuments(docId:string,userId:string) {
+  if (!Types.ObjectId.isValid(docId)) throw new APIError(DOCUMENT_ROUTER.DOCID_NOT_VALID)
+  const doc: any = await documents.findById(docId);
+  if(!doc){
+    throw new APIError(DOCUMENT_ROUTER.DOCUMENT_NOT_FOUND);
+  }
+  await moveToMyDocsModel.create({
+    docId: docId,
+    userId: userId
+  });
+  return { success: true, message: "Document moved successfully"}
+}
+
+export async function getListOfFoldersAndFilesWithMovedDocuments(userId: any, page: number = 1, limit: number = 30,sortOrder:string = 'asc',sortBy:string = 'name', host: string) {
+  try{
+    let sortObj:any = {}
+    if(sortOrder == 'asc'){
+      (sortBy == 'date')?sortObj['updatedAt'] = 1:sortObj[sortBy] = 1
+    }else{
+      (sortBy == 'date')?sortObj['updatedAt'] = -1:sortObj[sortBy] = -1
+    }
+  const getMovedDocs:any = await moveToMyDocsModel.find({userId:userId,isDeleted:false}).populate("docId").exec();
+    // let requestData = await docRequestModel.find({ docId: Types.ObjectId(docId), isDelete: false }).populate(docId)
+  
+    // return await Promise.all(requestData.map((request: any) => RequestList(request.toJSON())))
+    let movedDocInfo = await Promise.all(getMovedDocs.map((doc:any)=> docDataOfMovedDocs(doc.docId,host)))
+  const [foldersData, folderDocs, fetchedDoc] = await Promise.all([
+    folders.find({ ownerId: userId, parentId: null }).collation({ locale: 'en' }).sort(sortObj).exec(),
+    folders.find({ ownerId: userId }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+    documents.find({ ownerId: userId, parentId: null, isDeleted: false, status: { $ne: STATUS.DRAFT } }).collation({ locale: 'en' }).sort({ name: 1 }).exec(),
+  ])
+  let folder_files = folderDocs.map((folder: any) => {
+    return folder.doc_id
+  })
+  var merged = [].concat.apply([], folder_files);
+  let folderDocIds = JSON.parse(JSON.stringify(merged));
+
+  let foldersList = foldersData.map((folder: any) => {
+    return {
+      type: 'FOLDER',
+      folderId: folder._id,
+      name: folder.name,
+      date: folder.createdAt,
+      parentId: folder.parentId,
+      updatedAt: folder.updatedAt
+    }
+  })
+  const docList = await Promise.all(fetchedDoc.map((doc) => {
+    return docData(doc, host);
+  })
+  );
+  let docsList = docList.filter((docs) => {
+    return !folderDocIds.some((folderDocs: any) => {
+      return docs._id == folderDocs;
+    });
+  })
+  docsList = [...docsList, ...movedDocInfo]
+  // let sortedFolderData = documentsSortByGivenField(foldersList,sortBy,sortOrder)
+  let sortedDocsData = documentsSortByGivenField(docsList,sortBy,sortOrder)
+  const docsData = manualPagination(page, limit, [...foldersList,...sortedDocsData])
+  const filteredFolders = docsData.docs.filter(doc => doc.type == 'FOLDER')
+  docsData.docs = docsData.docs.filter(doc => doc.type != 'FOLDER')
+  // docsData.docs = documentsSortByGivenField(docsData.docs,sortBy,sortOrder)
+  return {total:docsData.total, page: docsData.page, pages: docsData.pages, foldersList: filteredFolders, docsList: docsData.docs };
+} catch (err) {
+  throw err;
+}
+}
+
+async function docDataOfMovedDocs(docData: any, host: string) {
+  try {
+    let fileType = docData.fileName ? (docData.fileName.split(".")).pop() : ""
+    return {
+      ...docData.toJSON(),
+      isMovedDoc: true,
+      tags: await getTags((docData.tags && docData.tags.length) ? docData.tags.filter((tag: string) => Types.ObjectId.isValid(tag)) : []),
+      role: (((await userRoleAndScope(docData.ownerId)) as any).data || [""])[0],
+      owner: await userFindOne("id", docData.ownerId, { firstName: 1, middleName: 1, lastName: 1, email: 1, phone: 1, is_active: 1 }),
+      thumbnail: (fileType == "jpg" || fileType == "jpeg" || fileType == "png") ? `${host}/api/docs/get-document/${docData.fileId}` : "N/A"
+    };
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function deleteMovedDocInMyDocs(docId: string,userId:string) {
+  try {
+    if (!Types.ObjectId.isValid(docId))
+    throw new Error(DOCUMENT_ROUTER.DOCID_NOT_VALID);
+  let findDoc: any = await moveToMyDocsModel.findOne({ docId: Types.ObjectId(docId), userId: userId })
+  if (!findDoc) {
+    throw new Error(DOCUMENT_ROUTER.INVALID_FILE_ID)
+  }
+  await moveToMyDocsModel.update({ docId: docId, userId: userId }, { isDeleted: true }).exec()
+  return { success:true, message:"Document removed successfully"}
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getLatestVersionforDocuments(documentIds: string[]) {
+  const versions = await Promise.all(documentIds.map((documentId: string) => 
+    documents.find({ parentId: documentId, 
+      status: { $ne: STATUS.DRAFT }, isDeleted: false }, 
+      { _id:1 }).sort({ createdAt: -1 }).limit(1).exec()
+    )
+  )
+  return versions.map((version, index: number) => ({documentId: documentIds[index], versionId: version[0].id}))  
+}
+
+export async function createTaskActivityOnDoc(payload: any, docId: string) {
+  return DocumentTaskActivityModel.create({...payload, docId})
 }

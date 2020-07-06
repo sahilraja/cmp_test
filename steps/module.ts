@@ -12,7 +12,8 @@ export async function create(userId: string, payload: any, userRole: any) {
     if(!isEligible){
         throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
-    return await StepsSchema.create({ ...payload, nameCode: payload.name, s_no: (await stepCount()) + 1, createdBy: userId })
+    const stepInfo= await StepsSchema.create({ ...payload, nameCode: payload.name, s_no: (await stepCount()) + 1, createdBy: userId })
+    return {stepInfo,successMessage:`Step created successfully`}
 }
 
 export async function list() {
@@ -31,7 +32,8 @@ export async function updateStep(id: string, updates: any, userRole: any) {
     if(updates.name){
         updates = {...updates, nameCode: updates.name }
     }
-    return await StepsSchema.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec()
+    const stepInfo= await StepsSchema.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec()
+    return {stepInfo,successMessage:`Step updated successfully`}
 }
 
 export async function getStepsByIds(ids: string[]) {

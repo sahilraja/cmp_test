@@ -1,7 +1,7 @@
 import { Router, Request, Response, Handler } from "express";
 import { inviteUser, user_list, edit_user as edit_user, user_status, user_login, userInviteResend, RegisterUser, userDetails, userRoles, userCapabilities, forgotPassword, setNewPassword, createGroup, editGroup, groupList, groupStatus, groupDetail, addMember, removeMembers, userSuggestions, otpVerification, userInformation, 
     changeEmailInfo, getUserDetail, profileOtpVerify, loginHistory, getUsersForProject, changeMobileNumber, bulkInvite, replaceUser, sendNotification, tokenValidation, profileEditByAdmin, changeOldPassword, verifyOtpByAdmin, setPasswordByAdmin, changeEmailByAdmin, changeMobileByAdmin, verificationOtpByUser, userLogout,
-     updateTaskEndorser, formateRoles,registerNewEmail } from "./module";
+     updateTaskEndorser, formateRoles,registerNewEmail,createRefreshToken,removeRefreshToken } from "./module";
 import { authenticate, mobileRetryOtp, mobileVerifyOtp, mobileSendOtp, jwtOtpToken, jwt_Verify } from "../utils/utils";
 import { NextFunction } from "connect";
 import { readFileSync } from "fs";
@@ -82,8 +82,8 @@ router.get('/invite/resend/:role/:id', authenticate, async (req: Request, res: R
 //  user list
 router.get('/list', authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        req.query.page = req.query.page || 1;
-        req.query.limit = 50;
+        // req.query.page = req.query.page || 1;
+        // req.query.limit = req.query.limit || 50;
         res.status(200).send(await user_list(req.query, res.locals.user._id, req.query.search, req.query.page, req.query.limit, req.query.pagination));
     } catch (err) {
         next(new APIError(err.message));
@@ -137,7 +137,7 @@ router.post('/email/login', async (req: Request, res: Response, next: NextFuncti
     } catch (err) {
         next(new APIError(err.message));
     };
-});
+});  
 
 router.post("/email/logout", async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -226,7 +226,7 @@ router.post("/forgot/setPassword", async (req: Request, res: Response, next: Nex
 //  Add Group
 router.post("/group/create", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await createGroup(req.body, res.locals.user))
+        res.status(200).send(await createGroup(req.body, res.locals.user,(req as any).token))
     } catch (err) {
         if (err.message.includes("E11000")) {
             err.message = `Group name already exists.`
@@ -238,7 +238,7 @@ router.post("/group/create", authenticate, async (req: Request, res: Response, n
 //  List Group
 router.get("/group/list", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await groupList(res.locals.user._id))
+        res.status(200).send(await groupList(res.locals.user))
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -247,7 +247,7 @@ router.get("/group/list", authenticate, async (req: Request, res: Response, next
 //  Edit Group
 router.put("/group/:id/edit", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await editGroup(req.body, req.params.id, res.locals.user))
+        res.status(200).send(await editGroup(req.body, req.params.id, res.locals.user,(req as any).token))
     } catch (err) {
         if (err.message.includes("E11000")) {
             err.message = `Group name already exists.`
@@ -268,7 +268,7 @@ router.put("/group/:id/status", authenticate, async (req: Request, res: Response
 //  Add Member
 router.post("/group/:id/member/add", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await addMember(req.params.id, req.body.users, res.locals.user));
+        res.status(200).send(await addMember(req.params.id, req.body.users, res.locals.user,(req as any).token));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -277,7 +277,7 @@ router.post("/group/:id/member/add", authenticate, async (req: Request, res: Res
 //  Remove Member
 router.post("/group/:id/member/remove", authenticate, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).send(await removeMembers(req.params.id, req.body.users, res.locals.user));
+        res.status(200).send(await removeMembers(req.params.id, req.body.users, res.locals.user,(req as any).token));
     } catch (err) {
         next(new APIError(err.message));
     };
@@ -540,6 +540,24 @@ router.post("/role-formate", authenticate, async (req, res, next) => {
 router.post("/new/email/:id", authenticate, async (req, res, next) => {
     try {
         res.status(OK).send(await registerNewEmail(req.params.id,req.body,res.locals.user._id));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/create/refresh-token", async (req, res, next) => {
+    try {
+        res.status(OK).send(await createRefreshToken(req.body));
+    }
+    catch (error) {
+        next(new APIError(error.message));
+    }
+})
+
+router.post("/remove/refresh-token", async (req, res, next) => {
+    try {
+        res.status(OK).send(await removeRefreshToken(req.body));
     }
     catch (error) {
         next(new APIError(error.message));

@@ -5,7 +5,7 @@ import { OK, INTERNAL_SERVER_ERROR } from "http-status-codes";
 import * as bodyParser from 'body-parser'
 import * as cors from 'cors';
 import { init as SentryInit, captureException } from "@sentry/node";
-SentryInit({ dsn: 'https://a5929734fe1748df85c79e15836e1c93@sentry.io/1878141' });
+SentryInit({ dsn: 'https://2921461edf6e43a3832bd268cccc8d09@sentry.io/2513946' });
 
 //  module imports
 import * as usersRouter from "./users/router";
@@ -27,6 +27,7 @@ import * as patternRouter from "./patterns/router"
 import * as smsRouter from "./sms/router"
 import * as miscellaneousRouter from "./miscellaneous/router";
 import * as webNotificationRouter from "./socket-notifications/router";
+import { createJob, jobRouter } from "./jobs";
 // implement multer
 import * as multer from "multer";
 import { authenticate } from "./utils/utils";
@@ -44,6 +45,7 @@ require('./utils/mongoose');
 const swaggerUi = require("swagger-ui-express");
 const YAML = require("yamljs");
 const swaggerDocument = YAML.load("./compiled-swagger.yaml");
+createJob(new Date(new Date().setDate(new Date().getDate() + 1)).setHours(0,0,0,0))
 
 // body paser
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -83,10 +85,12 @@ app.use('/notifications/', authenticate, notificationsRouter);
 app.use('/sms', smsRouter);
 app.use(`/miscellaneous`, miscellaneousRouter)
 app.use(`/web-notifications`, webNotificationRouter)
+app.use(`/jobs`, jobRouter)
 
 app.use((error: Error, request: Request, response: Response, next: Handler) => {
-    console.log((error as any).code, `Error Code`)
-    if((error as any).code >= 500){
+    if((error as any).code > 500){
+        console.log(`Sentrycaptured for url: ${request.originalUrl}`)
+        console.log(`Error code: ${(error as any).code}`)
         captureException(error)
     }
     response.status((error as any).code < 600 ? (error as any).code : INTERNAL_SERVER_ERROR || INTERNAL_SERVER_ERROR).send({ errors: [{ error: error.message || (error as any).error }] })

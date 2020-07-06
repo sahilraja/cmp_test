@@ -1,6 +1,7 @@
 import {smsTemplateSchema} from "./model"; 
 import { USER_ROUTER } from "../utils/error_msg";
 import * as marked from "marked";
+import { APIError } from "../utils/custom-error";
 
 export async function smsTemplateCreate(body: any) {
     try {
@@ -60,7 +61,7 @@ export async function getSmsTemplateBySubstitutions(templateId: string, substitu
         throw err;
     }
     if (!template) {
-        throw new Error(USER_ROUTER.INVALID_EMAIL_TEMP);
+        throw new APIError(USER_ROUTER.INVALID_EMAIL_TEMP);
     }
     let smsContnet:any =Object.keys(substitutions).reduce((prev, key) => {
             return prev.replace(new RegExp(`\\[${key}\\]`, "g"), substitutions[key]);

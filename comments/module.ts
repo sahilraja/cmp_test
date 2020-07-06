@@ -35,9 +35,10 @@ export async function addComment(body: any, user: any, userToken: string) {
         // body: { status: { $nin: [8] } },
         headers: { 'Authorization': `Bearer ${userToken}` }
     })
-    if(taskDetail && taskDetail.success && ![...taskDetail.approvers, ...taskDetail.endorsers, taskDetail.actualAssignee, taskDetail.owner].includes(user._id)){
-      throw new APIError(TASK_ERROR.INVALID_WFM_BY_USER)
-    }
+      if(taskDetail && taskDetail.success && ![...taskDetail.approvers, ...taskDetail.endorsers, taskDetail.actualAssignee, taskDetail.owner].includes(user._id)){
+        throw new APIError(TASK_ERROR.INVALID_WFM_BY_USER)
+      }
+      await create({ activityType: `TASK_COMMENT`, activityBy: user._id, taskId: body.entity_id })
     }
     let commentInfo = await comments.create({
       type: body.type,

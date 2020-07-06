@@ -140,6 +140,13 @@
     "scope": "global"
   },
   {
+    "capability": "send-message-to-group",
+    "shortDescription": "Send Message to Group",
+    "description": "Ability send message to group",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
     "capability": "create-doc",
     "shortDescription": "Create Document",
     "description": "Ability to create a document",
@@ -176,7 +183,7 @@
   },
   {
     "capability": "phase-manage",
-    "shortDescription":"add/edit phase",
+    "shortDescription":"Add/Edit phase names",
     "category":"Project Management",
     "scope":"global",
     "description":"manage phase add/edit permission"
@@ -196,6 +203,13 @@
     "description":"Add Open Comments"
   },
   {
+    "capability":"view-dashboard-financial-info",
+    "shortDescription":"View Financial Info at Dashboard",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Financial Info at Dashboard"
+  },
+  {
     "capability":"view-open-comments",
     "shortDescription":"View Open Comments",
     "category":"Project Management",
@@ -212,7 +226,7 @@
   {
     "capability": "create-folder",
     "shortDescription": "Create/Delete Folder",
-    "description": "Ability to create and delete a folder",
+    "description": "Ability to create & delete a folder",
     "category": "Document Management",
     "scope": "global"
   },
@@ -267,51 +281,79 @@
   },
   {
     "capability": "project-create-task",
-    "shortDescription": "project create task",
-    "description": "project create task",
+    "shortDescription": "Create Project Task",
+    "description": "Create Project Task",
     "category": "Project Management",
     "scope": "global"
   },
   {
+    "capability": "share-document",
+    "shortDescription": "Share Documents",
+    "description": "Share documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-document",
+    "shortDescription": "Edit Documents",
+    "description": "Edit documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
     "capability": "publish-document",
-    "shortDescription": "publish documents",
-    "description": "published documents",
+    "shortDescription": "Publish Documents",
+    "description": "Published documents",
     "category": "Document Management",
     "scope": "global"
   },
   {
     "capability": "unpublish-document",
-    "shortDescription": "unpublish documents",
-    "description": "unpublished documents",
+    "shortDescription": "Unpublish Documents",
+    "description": "Unpublished documents",
     "category": "Document Management",
     "scope": "global"
   },
   {
     "capability": "create-group",
-    "shortDescription": "create group",
-    "description": "create group",
+    "shortDescription": "Create Group",
+    "description": "Create group",
     "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "edit-group",
-    "shortDescription": "edit group",
-    "description": "edit group",
+    "shortDescription": "Edit Group",
+    "description": "Edit group",
     "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "deactivate-group",
-    "shortDescription": "deactivate group",
-    "description": "deactivate group",
+    "shortDescription": "Deactivate Group",
+    "description": "Deactivate group",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-groups",
+    "shortDescription": "View All groups",
+    "description": "View All groups",
     "category": "User Management",
     "scope": "global"
   },
   {
     "capability": "project-add-core-team",
-    "shortDescription": "add core team",
-    "description": "add core team",
+    "shortDescription": "Add Core Team",
+    "description": "Add core team",
     "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability":"suggest-tag-on-public-document",
+    "shortDescription": "Suggest Tag to Public Document",
+    "description": "Ability to suggest Tag to Public Document",
+    "category": "Document Management",
     "scope": "global"
   },
   {
@@ -484,7 +526,7 @@
   },
   {
     "capability": "patterns-management",
-    "shortDescription": "patterns Management",
+    "shortDescription": "Patterns Management",
     "description": "Ability to create patterns",
     "category": "User Management",
     "scope": "global"
@@ -499,7 +541,7 @@
   {
     "capability": "view-user-contact-details",
     "shortDescription": "View User Contact Details",
-    "description": "Ability to view phone number and Email details",
+    "description": "Ability to view phone number & Email details",
     "scope": "global",
     "category": "User Management"
   },
@@ -512,21 +554,21 @@
   },
   {
     "capability": "document-comments",
-    "shortDescription": "Add comment",
+    "shortDescription": "Add Comment",
     "description": "Ability to add comment on document",
     "category": "Document Management",
     "scope": "global"
   },
   {
     "capability": "document-comments-publish",
-    "shortDescription": "Add comment on publish document",
+    "shortDescription": "Add Comment On Publish Document",
     "description": "Ability to add comment on publish document",
     "category": "Document Management",
     "scope": "global"
   },
   {
     "capability": "add-tags-publish",
-    "shortDescription": "Add tag on publish document",
+    "shortDescription": "Add Tag On Publish Document",
     "description": "Ability to add tag on publish document",
     "category": "Document Management",
     "scope": "global"
@@ -568,10 +610,10 @@
   },
   {
     "capability":"view-risks-opportunities",
-    "shortDescription":"View Risks and Opportunities",
+    "shortDescription":"View Risks & Opportunities",
     "category":"Project Management",
     "scope":"global",
-    "description":"Ability to View Risks and Opportunities"
+    "description":"Ability to View Risks & Opportunities"
   },
   {
     "capability":"edit-task-completed-date",
@@ -579,6 +621,13 @@
     "category":"Task Management",
     "scope":"global",
     "description":"Ability to edit task completed date"
+  },
+  {
+    "capability":"edit-task-description",
+    "shortDescription":"Edit Task Description",
+    "category":"Task Management",
+    "scope":"global",
+    "description":"Avility to edit task description"
   }
 ]
 

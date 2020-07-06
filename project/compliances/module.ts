@@ -36,12 +36,12 @@ export async function listCompliances(userToken: string, projectId: string) {
             task: filteredTasks.find((task: any) => task._id == compliance.taskId),
             taskStatus: tasks.find((task: any) => task._id == compliance.taskId).status
         }
-    })
+    }).filter(compliance => compliance.task)
     let spvCompliance = complianceData.filter(({ complianceType }) => complianceType == "SPV")
     let projectCompliance = complianceData.filter(({ complianceType }) => complianceType == "PROJECT")
     return {
-        spvPercentage: spvCompliance ? ((spvCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / spvCompliance.length) * 100 : 0,
-        projectPercentage: projectCompliance ? ((projectCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / projectCompliance.length) * 100 : 0,
+        spvPercentage: spvCompliance ? Math.floor(((spvCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / spvCompliance.length) * 100) : 0,
+        projectPercentage: projectCompliance ? Math.floor(((projectCompliance.filter(({ taskStatus }) => taskStatus == 4 || taskStatus == 5)).length / projectCompliance.length) * 100) : 0,
         spvCompliance, projectCompliance,
         miscompliance: projectDetails
     }

@@ -1,6 +1,6 @@
 import { notificationSchema } from "./model";
 import { APIError } from "../utils/custom-error";
-import { USER_ROUTER, ROLE_NOT_EXIST, NOTIFICATION } from "../utils/error_msg";
+import { USER_ROUTER, ROLE_NOT_EXIST, NOTIFICATION, RESPONSE } from "../utils/error_msg";
 import { role_list } from "../role/module";
 import { TemplateSchema } from "../email-templates/model";
 import { getRoles } from "../utils/rbac";
@@ -18,7 +18,7 @@ export async function notificationsUpdate(reqObject: any) {
         }
         let updatedData = await notificationSchema.update({ 'role': role, "templates.templateName": templateName },
             { $set: { 'templates.$.displayName': displayName, 'templates.$.mobile': mobile, 'templates.$.email': email } })
-        return { message: "Updated successfully", status: true}
+        return { message: RESPONSE.NOTIFICATION_UPDATED_SUCCESS, status: true}
     }
     catch (err) {
         throw err
@@ -125,10 +125,10 @@ export async function getRoleNotification(roleName: string, templateName: string
             })
         })
         return roleInfo.reduce((acc: any, roleObj: any) => {
-            if (roleObj.email == true) {
+            if (roleObj && (roleObj.email == true)) {
                 acc['email'] = true
             }
-            if (roleObj.mobile == true ) {
+            if (roleObj && roleObj.mobile == true ) {
                 acc['mobile'] = true
             }
             return acc

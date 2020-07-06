@@ -11,8 +11,8 @@ import { httpRequest, checkRoleScope } from "../utils/role_management";
 import { TASKS_URL } from "../utils/urls";
 import { getUserDetail, userDetails, getFullNameAndMobile, sendNotification } from "../users/module";
 import { userFindMany, userFindOne, userList } from "../utils/users";
-import { APIError } from "../utils/custom-error";
-import { updateProjectTasks } from "../utils/utils"
+import { APIError, UnformatedAPIError } from "../utils/custom-error";
+import { updateProjectTasks, IST_ADJUST } from "../utils/utils"
 import { create as createLog } from "../log/module";
 import { documentsList, updateUserInDOcs,getProjectNamesForES } from "../documents/module";
 import { unlinkSync, readFileSync, writeFileSync } from "fs";
@@ -30,6 +30,8 @@ import { UNAUTHORIZED } from "http-status-codes";
 import { createCompliance } from "./compliances/module";
 import { create as webNotification } from "../socket-notifications/module"
 import { PROJECT_NOTIFICATIONS } from "../utils/web-notification-messages";
+import { RiskSchema } from "../risks/model";
+import { OpportunitySchema } from "./opportunities/model";
 //  Create Project 
 export async function createProject(reqObject: any, user: any) {
   try {
@@ -41,7 +43,7 @@ export async function createProject(reqObject: any, user: any) {
     // }
     let isEligible = await checkRoleScope(user.role, "manage-project");
     if (!isEligible) {
-      throw new APIError(UNAUTHORIZED, 403);
+      throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS, 403);
     }
     // if (reqObject.name && (!/.*[A-Za-z0-9]{1}.*$/.test(reqObject.name))) throw new Error("you have entered invalid name. please try again.")
     const createdProject = await ProjectSchema.create({
@@ -68,7 +70,11 @@ export async function createProject(reqObject: any, user: any) {
   }
 }
 
-export async function projectInfo() {
+export async function projectInfo(user: any) {
+  const isEligible = await checkRoleScope(user.role, `view-dashboard-financial-info`)
+  // if(!isEligible){
+  //   throw new APIError(PROJECT_ROUTER.FINANCIAL_DASHBOARD_NO_ACCESS)
+  // }
   const projects = await ProjectSchema.find({}).exec()
   let response = projects.reduce((p, c: any) => 
   ({...p, 
@@ -93,7 +99,7 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
       checkRoleScope(user.role, "manage-project")
     ])
     // let isEligible = await checkRoleScope(user.role, "manage-project");
-    if (!isEligible) throw new APIError(UNAUTHORIZED, 403);
+    if (!isEligible) throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS, 403);
 
     if (reqObject.startDate || reqObject.endDate) {
       if (new Date(reqObject.startDate) > new Date(reqObject.endDate)) throw new Error(PROJECT_ROUTER.START_DATE_LESS_THAN)
@@ -124,9 +130,13 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
     if (reqObject.phases) {
       obj.phases = reqObject.phases
     }
-    const updatedProject = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
+    const updatedProject: any = await ProjectSchema.findByIdAndUpdate(id, { $set: obj }, { new: true }).exec();
+    if([`name`, `city`, `reference`, `state`].some((key: string) => updatedProject[key] != preProjectRecord[key])){
+      createLog({ activityType: ACTIVITY_LOG.PROJECT_UPDATED, activityBy: user._id, projectId: id })
+    }
     let phases= await listPhasesOfProject(id);
     let updateTasksInElasticSearch = updateProjectTasks({projectId:id,phases},token);
+    let tasksDocIds =  editProjectInDocsES(id,token);
     return updatedProject
   } catch (err) {
     console.error(err);
@@ -134,10 +144,55 @@ export async function editProject(id: any, reqObject: any, user: any,token:strin
   }
 }
 
+export async function editProjectInDocsES(projectId:string,userToken:string){
+  const options = {
+    url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
+    body: { projectId },
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${userToken}` },
+    json: true
+  }
+  let docIds :any= await httpRequest(options)  
+  const projectData: any = await ProjectSchema.findById(projectId).exec();
+  const { funds } = projectData.toJSON()
+  let fundsReleasedDocuments:any = [];
+  let fundsUtilizedDocuments:any = [];
+  funds.map((fund:any)=>{
+      fundsReleasedDocuments = fundsReleasedDocuments.concat(fund.released.documents || [])
+      fundsUtilizedDocuments = fundsUtilizedDocuments.concat(fund.utilized.documents || [])
+  })
+  let fundsDocuments = [...fundsReleasedDocuments, ...fundsUtilizedDocuments]
+  const existingDocs = fundsDocuments.reduce((a:any, b:any) => a.concat(b), []);
+  let docsToUpdateInES = [...existingDocs, ...docIds ]
+   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
+  return getProjectNamesForES(docsToUpdateInES,userToken)
+}
+
+export async function AddProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
+  try {
+    const projectDetail: any = await ProjectSchema.findById(projectId).exec()
+    if(projectDetail.members.includes(userId)){
+      throw new APIError(PROJECT_ROUTER.MEMBER_ALREADY_EXISTS)
+    }
+    const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $push: { members: userId } }, { new: true }).exec()
+    createLog({ activityType: ACTIVITY_LOG.MEMBER_ADDED, activityBy: loginUserId, projectId, addedUserIds:[userId], removedUserIds:[] })
+    return { success: true, project: updatedProject }
+  } catch (err) {
+    throw err
+  }
+}
+
 export async function RemoveProjectMembers(projectId: string, userId: string, loginUserId: string, token: string) {
   try {
-    // let projectTasks: any = await memberExistInProjectTask(projectId, userId, token)
-    // if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
+    let [projectTasks, riskExists, opportunitityExists]: any = await Promise.all([
+      memberExistInProjectTask(projectId, userId, token),
+      RiskSchema.findOne({riskOwner: userId}).exec(),
+      OpportunitySchema.findOne({opportunityOwner: userId}).exec()
+    ]) 
+    if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
+    if(riskExists || opportunitityExists){
+      return {success: false}
+    }
     const previousProjectData: any = await ProjectSchema.findById(projectId).exec()
     let members = previousProjectData.members.filter((id: any) => id != userId)
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
@@ -148,7 +203,7 @@ export async function RemoveProjectMembers(projectId: string, userId: string, lo
   }
 }
 
-export async function replaceProjectMember(projectId: string, objBody: any, token: string) {
+export async function replaceProjectMember(projectId: string, objBody: any, token: string, userId: string) {
   try {
     if (!objBody || !objBody.oldUser || !objBody.newUser || !projectId) throw new Error(PROJECT_ROUTER.MANDATORY)
     const ProjectData: any = await ProjectSchema.findById(projectId).exec()
@@ -157,6 +212,18 @@ export async function replaceProjectMember(projectId: string, objBody: any, toke
     if (success && !success.success) throw new Error(success)
     let members = [... new Set((ProjectData.members.filter((id: any) => id != objBody.oldUser)).concat([objBody.newUser]))]
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
+    Promise.all([
+      RiskSchema.updateMany({ projectId, riskOwner: objBody.oldUser }, { $set: { riskOwner: objBody.newUser } }, { multi: true }).exec(),
+      OpportunitySchema.updateMany({ projectId, opportunityOwner: objBody.oldUser }, { $set: { opportunityOwner: objBody.newUser } }, { multi: true }).exec()
+    ]) 
+    await createLog({
+      activityType: ACTIVITY_LOG.REPLACED_PROJECT_MEMBER,
+      activityBy: userId,
+      projectId,
+      addedUserIds: [objBody.newUser],
+      removedUserIds: [objBody.oldUser]
+    })
+
     return { message: "User replaced successfully." }
   } catch (err) {
     throw err
@@ -230,7 +297,11 @@ export async function getProjectMembers(id: string, userId: string) {
   if (!viewMyAccess && !viewAllAccess && !manageAccess) {
     throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS);
   }
-  const { members }: any = await ProjectSchema.findById(id).exec()
+  const projectDetail = await ProjectSchema.findById(id).exec()
+  if(!projectDetail){
+    throw new APIError(`Invalid project id`) 
+  }
+  const { members }: any = projectDetail.toJSON()
   const [users, formattedRoleObjs]: any = await Promise.all([
     userFindMany('_id', members, { firstName: 1, lastName: 1, middleName: 1, email: 1, phone: 1, is_active: 1 }),
     role_list()
@@ -243,12 +314,12 @@ export async function getProjectMembers(id: string, userId: string) {
   // return users.map((user: any, i: number) => ({ ...user, role: formatUserRole((usersRoles.find((role: any) => role.user == user._id) as any).data[0], formattedRoleObjs.roles) }))
 }
 
-function formatUserRole(role: string[], formattedRoleObjs: any) {
+export function formatUserRole(role: string[], formattedRoleObjs: any) {
   // let userRole: any = formattedRoleObjs.find((roleObj: any) => roleObj.role === role);
   // return userRole ? userRole.roleName : role;
   return role ? role.map((userRole: string) => {
     let roleObj = formattedRoleObjs.find(({ role: rolecode }: any) => rolecode == userRole)
-    return roleObj ? roleObj.roleName : userRole
+    return roleObj ? (roleObj.roleName || roleObj.description || userRole) : userRole
   }) : ["N/A"]
 }
 
@@ -435,10 +506,10 @@ export async function getProjectsList(userId: any, userToken: string, userRole: 
     if (isEligible1 || isEligible2) {
       query = {}
     }
-    let { docs: list, page, pages } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 } })
+    let { docs: list, page, pages, total } = await ProjectSchema.paginate(query, { page: Number(currentPage), limit: Number(limit), sort: { createdAt: -1 } })
     const projectIds = (list || []).map((_list) => _list.id);
     list = await Promise.all(list.map((proObj) => mapPhases(proObj)))
-    return { docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
+    return {total, docs: await mapProgressPercentageForProjects(projectIds, userToken, list), page, pages };
   } catch (error) {
     console.error(error);
     throw error;
@@ -473,9 +544,18 @@ async function mapProgressPercentageForProjects(projectIds: string[], userToken:
 }
 
 // get project details
-export async function getProjectDetail(projectId: string, userToken: string) {
+export async function getProjectDetail(projectId: string, user: any, userToken: string) {
   try {
     let projectDetail: any = await ProjectSchema.findById(projectId).populate({ path: 'phases' }).exec()
+    // if(!projectDetail.members.includes(user._id)){
+    //   const [isEligible1, isEligible2] = await Promise.all([
+    //     checkRoleScope(user.role, ``),
+    //     checkRoleScope(user.role, ``)
+    //   ])
+    //   if(!isEligible1 && !isEligible2){
+    //     throw new APIError(``)
+    //   }
+    // }
     projectDetail = await mapPhases(projectDetail)
     return (await mapProgressPercentageForProjects([projectId], userToken, [projectDetail]))[0]
   } catch (error) {
@@ -492,7 +572,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
   //   throw new APIError(TASK_ERROR.CREATOR_CANT_BE_ASSIGNEE)
   // }
   if (payload.isCompliance && (!payload.approvers || !payload.approvers.length)) {
-    throw new APIError(TASK_ERROR.APPROVERS_REQUIRED)
+    throw new APIError(TASK_ERROR.APPROVERS_REQUIRED(payload.name))
   }
   if(!payload.isCompliance && !payload.stepId){
     throw new APIError(TASK_ERROR.STEP_IS_REQUIRED)
@@ -512,7 +592,7 @@ export async function createTask(payload: any, projectId: string, userToken: str
   const createdTask: any = await httpRequest(options)
   createLog({ activityType: ACTIVITY_LOG.CREATE_TASK_FROM_PROJECT, taskId: createdTask._id, projectId, activityBy: userObj._id })
   if(payload.documents && payload.documents.length){
-    // getProjectNamesForES(payload.documents,userToken)
+    getProjectNamesForES(payload.documents,userToken)
   }
   return createdTask
 }
@@ -588,7 +668,7 @@ export async function editTask(projectId: string, taskId: string, userObj: any, 
   }
   const updatedTask = await httpRequest(options)
    if(payload.documents && payload.documents.length){
-    // getProjectNamesForES(payload.documents,userToken)
+    getProjectNamesForES(payload.documents,userToken)
    }
   // createLog({ activityBy: userObj._id, activityType: ACTIVITY_LOG.TASK_DATES_UPDATED, taskId, projectId })
   return updatedTask
@@ -732,6 +812,7 @@ export async function projectMembers(id: string, currntUser: any) {
   // const userIds = project.members
   const usersRoles = await Promise.all(userIds.map((userId: string) => userRoleAndScope(userId)))
   return userIds.map((user: any, i: number) => ({
+    is_active:(userObjs.find(({ _id }: any) => _id == user)).is_active,
     isMember: project.members.includes(user),
     value: user,
     fullName: (userObjs.find(({ _id }: any) => _id == user)).fullName,
@@ -1046,22 +1127,23 @@ export async function uploadTasksExcel(filePath: string, projectId: string, user
   const tasksDataWithIds = await Promise.all(validatedTaskData.map(taskData => formatTasksWithIds(taskData, projectId, userObj, isCompliance)))
   let createdData: any[] = []
   for (const taskData in tasksDataWithIds){
-    let createdTask =await createTask(tasksDataWithIds[taskData], projectId, userToken, userObj)
-    createdData.push(createdTask)    
+    let data =await createTask(tasksDataWithIds[taskData], projectId, userToken, userObj)
+    createdData.push(data)  
+    if(isCompliance){
+      await createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[taskData]['Compliance Type']}, projectId, userObj)
+    }  
   }
   // const createdData = await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
-  if(isCompliance){
-    await Promise.all(createdData.map((data, i) => createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
-  }
+  // if(isCompliance){
+  //   await Promise.all(createdData.map((data, i) => createCompliance({taskId: data._id, name:data.name, complianceType:excelFormattedData[i]['Compliance Type']}, projectId, userObj)))
+  // }
   // await Promise.all(tasksDataWithIds.map(taskData => createTask(taskData, projectId, userToken, userObj)))
+  createLog({activityBy: userObj._id, activityType:isCompliance ? ACTIVITY_LOG.COMPLIANCE_TASK_EXCEL_UPLOAD : ACTIVITY_LOG.TASK_EXCEL_UPLOAD, projectId})
   return { message: 'Tasks uploaded successfully' }
 }
 
 async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any, isCompliance:boolean) {
-  const [projectData, memberRoles] = await Promise.all([
-    ProjectSchema.findById(projectId).exec(),
-    projectMembers(projectId, userObj)
-  ])
+  const memberRoles = await projectMembers(projectId, userObj)
   // if ((tags && !Array.isArray(tags)) || (taskObj.approvers && !Array.isArray(taskObj.approvers)) || (taskObj.viewers && !Array.isArray(taskObj.viewers)) || (taskObj.supporters && !Array.isArray(taskObj.supporters))) {
   //   throw new APIError(TASK_ERROR.INVALID_ARRAY);
   // }
@@ -1072,22 +1154,26 @@ async function formatTasksWithIds(taskObj: any, projectId: string, userObj: any,
   if(allRolesFromTask.some((role) => duplicateRoles.includes(role))){
     throw new APIError(`Duplicate members found`)
   }
-  const approverIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
-  const endorserIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
-  const viewerIds = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
-  const assigneeId = memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => [taskObj.assignee].includes(role))).map((val: any) => val.value).pop()
+  const approverIds = taskObj.approvers.map((approver: string) => (memberRoles.find(role => role.key.includes(approver)) || {value:``}).value).filter((val: string) => val)
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.approvers.includes(role))).map((val: any) => val.value)
+  const endorserIds = taskObj.endorsers.map((endorser: string) => (memberRoles.find(role => role.key.includes(endorser)) || {value:``}).value).filter((val: string) => val)
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.endorsers.includes(role))).map((val: any) => val.value)
+  const viewerIds = taskObj.viewers.map((viewer: string) => (memberRoles.find(role => role.key.includes(viewer)) || {value:``}).value).filter((val: string) => val)
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => taskObj.viewers.includes(role))).map((val: any) => val.value)
+  const assigneeId = [taskObj.assignee].map((assignee: string) => (memberRoles.find(role => role.key.includes(assignee)) || {value:``}).value).pop()
+  // memberRoles.filter((memberRole: any) => memberRole.key.some((role: string) => [taskObj.assignee].includes(role))).map((val: any) => val.value).pop()
 
   if (approverIds.length != taskObj.approvers.length) {
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Approver`, taskObj.name))
   }
   if (endorserIds.length != taskObj.endorsers.length) {
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Endorser`, taskObj.name))
   }
   if (viewerIds.length != taskObj.viewers.length) {
-    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Viewer`, taskObj.name))
   }
   if (!assigneeId) {
-    throw new APIError(TASK_ERROR.ASSIGNEE_REQUIRED)
+    throw new APIError(TASK_ERROR.USER_NOT_PART_OF_PROJECT(`Assignee`, taskObj.name))
   }
   if (!taskObj.isCompliance && !taskObj.pillarId){
     throw new APIError(TASK_ERROR.PILLAR_IS_REQUIRED)
@@ -1174,15 +1260,33 @@ function validateObject(data: any, roleNames: any, isCompliance: boolean) {
   // if (data['Start Date'] && new Date().getTime() > new Date(data['Start Date']).setHours(23, 59, 59, 0)) {
   //   throw new Error(PROJECT_ROUTER.START_DATE_NOT_IN_PAST)
   // }
+  if(isCompliance && !data['Start Date']){
+    throw new APIError(TASK_ERROR.START_DATE_REQUIRED(data['Name']))
+  }
+  if(isCompliance && !data['End Date']){
+    throw new APIError(TASK_ERROR.DUE_DATE_REQUIRED(data['Name']))
+  }
+  if(data['Start Date'] && !(data['Start Date'] instanceof Date) && data['Start Date'].split(`/`).length < 3 ){
+    throw new UnformatedAPIError(`Start date format should be MM/DD/YYYY at task ${data['Name']}`)
+  }
+  if(data['End Date'] && !(data['End Date'] instanceof Date) && data['End Date'].split(`/`).length < 3 ){
+    throw new UnformatedAPIError(`End date format should be MM/DD/YYYY at task ${data['Name']}`)
+  }
+  if(data['Start Date'] && isNaN(Date.parse(data['Start Date']))){
+    throw new APIError(`Invalid start date at task ${data['Name']}`)
+  }
+  if(data['End Date'] && isNaN(Date.parse(data['End Date']))){
+    throw new APIError(`Invalid end date at task ${data['Name']}`)
+  }
   if (data['End Date'] && new Date(data['Start Date']).setHours(0, 0, 0, 0) > new Date(data['End Date']).setHours(23, 59, 59, 0)) {
     throw new Error(PROJECT_ROUTER.START_NOT_LESS_THAN_DUE)
   }
   if(isCompliance){
     if(!data['Compliance Type']){
-      throw new APIError(`Compliance type required for ${data.name}`)
+      throw new APIError(`Compliance type required for ${data.Name}`)
     }
     if(![`SPV`, `PROJECT`].includes(data['Compliance Type'])){
-      throw new APIError(`Invalid compliance type found for ${data.name}`)
+      throw new APIError(`Invalid compliance type found for ${data.Name}`)
     }
   }
 
@@ -1205,17 +1309,22 @@ function validateObject(data: any, roleNames: any, isCompliance: boolean) {
   }
 }
 
-export async function projectCostInfo(projectId: string, projectCost: number, userRole: string, userId: string) {
+export async function projectCostInfo(projectId: string, projectCost: number, userRole: string, user: any) {
   try {
     const isEligible = await checkRoleScope(userRole, 'edit-project-cost')
     if (!isEligible) {
       throw new APIError(PROJECT_ROUTER.UNAUTHORIZED_ACCESS)
     }
+    let projectInfo:any = await ProjectSchema.findById(projectId).exec();
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { projectCost } }).exec()
-    createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_PROJECT_COST, oldCost: (updatedProject as any).projectCost, updatedCost: projectCost, projectId });
+    createLog({ activityBy: user._id, activityType: ACTIVITY_LOG.UPDATED_PROJECT_COST, oldCost: (updatedProject as any).projectCost, updatedCost: projectCost, projectId });
 
-    let userDetails = await userFindOne("id", userId);
+    let userDetails = await userFindOne("id", user._id);
     let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
+    
+    // send notification to all core team who has manage-funds-utilized capability
+    // sendAllNotificationsOnFinancialInfo(projectInfo.members.filter((m: string) => m != user._id), user, projectInfo.name)
+    
     // sendNotification({
     //   id: userId, fullName, email: userDetails.email, mobileNo,
     //   oldCost: (updatedProject as any).projectCost, updatedCost: projectCost,
@@ -1229,7 +1338,7 @@ export async function projectCostInfo(projectId: string, projectCost: number, us
   }
 }
 
-export async function citiisGrantsInfo(projectId: string, citiisGrants: number, userRole: string, userId: string) {
+export async function citiisGrantsInfo(projectId: string, citiisGrants: number, userRole: string, user: any) {
   try {
     const isEligible = await checkRoleScope(userRole, 'edit-citiis-grants')
     if (!isEligible) {
@@ -1245,8 +1354,10 @@ export async function citiisGrantsInfo(projectId: string, citiisGrants: number, 
       throw new Error(PROJECT_ROUTER.CITIIS_NOT_LESS_RELEASED)
     }
     const updatedProject = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { citiisGrants } }, { new: true }).exec()
-    createLog({ activityBy: userId, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost: citiisGrants, projectId })
-
+    createLog({ activityBy: user._id, activityType: ACTIVITY_LOG.UPDATED_CITIIS_GRANTS, oldCost: projectInfo.citiisGrants, updatedCost: citiisGrants, projectId })
+   
+    // send notification to all core team who has manage-funds-utilized capability
+    // sendAllNotificationsOnFinancialInfo(projectInfo.members.filter((m: string) => m != user._id), user, projectInfo.name)
     // let userDetails = await userFindOne("id", userId);
     // let { fullName, mobileNo } = getFullNameAndMobile(userDetails);
     // sendNotification({
@@ -1325,8 +1436,9 @@ export async function editProjectMiscompliance(projectId: string, payload: any, 
     let obj: any = {};
     if ("miscomplianceSpv" in payload) obj.miscomplianceSpv = payload.miscomplianceSpv
     if ("miscomplianceProject" in payload) obj.miscomplianceProject = payload.miscomplianceProject
-    await project.findByIdAndUpdate(projectId, obj);
-    return { message: `Saved successfully` }
+    const beforeUpdated: any = await project.findByIdAndUpdate(projectId, obj);
+    createLogOnMiscomplianceUpdate(beforeUpdated, payload, userObj._id)
+    return { message: `Compliance details updated successfully` }
   } catch (err) {
     throw err
   };
@@ -1337,14 +1449,22 @@ export async function editTriPartiteDate(id: string, payload: any, user: any) {
   if (!isEligible) {
     throw new APIError(USER_ROUTER.INVALID_ADMIN)
   }
-  return await ProjectSchema.findByIdAndUpdate(id, { $set: { tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } } }, { new: true }).exec()
+  const updated: any = await ProjectSchema.findByIdAndUpdate(id, { $set: { tripartiteAggrementDate: { modifiedBy: user._id, date: payload.tripartiteAggrementDate } } }, { new: true }).exec()
+  createLog({activityType:ACTIVITY_LOG.TRIPART_DATE_UPDATED,projectId: id, activityBy: user._id})
+  return updated
 }
 
-export async function addPhaseToProject(projectId: string, payload: any,token:string, userId: string) {
+export async function addPhaseToProject(projectId: string, payload: any,token:string, user: any) {
+  const isEligible = await checkRoleScope(user.role, `add-phase-to-project`)
+  if(!isEligible){
+    throw new APIError(USER_ROUTER.INVALID_ADMIN)
+  }
   let phases= await ProjectSchema.findByIdAndUpdate(projectId, { $set: { phases: formatAndValidatePhasePayload(payload) } }, { new: true }).exec()
-  sendNotificationOnPhaseUpdate(projectId, userId)
+  sendNotificationOnPhaseUpdate(projectId, user._id)
   let phaseList= await listPhasesOfProject(projectId);
   let updateTasksInElasticSearch = updateProjectTasks({projectId:projectId,phases:phaseList},token);
+  createLog({activityBy:user._id, activityType:ACTIVITY_LOG.PHASE_UPDATED, projectId})
+  editProjectInDocsES( projectId,token);
 }
 
 export async function listPhasesOfProject(projectId: string) {
@@ -1697,9 +1817,14 @@ export async function updateReleasedFundNew(projectId: string, payload: any, use
   if((previousReleasedAmount + releasedCost) > detail.citiisGrants){
     throw new APIError(PROJECT_ROUTER.TOTAL_RELEASED_EXCEED_CITIIS)
   }
+  let activityType = (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
-  createLog({ activityType: (!currentObj || currentObj.released.deleted) ? ACTIVITY_LOG.ADDED_FUND_RELEASE: ACTIVITY_LOG.UPDATED_FUND_RELEASE, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
-  // getProjectNamesForES(docsToUpdateInES,token)
+  createLog({ activityType, oldCost: currentObj.released.amount, updatedCost: payload.amount, projectId, activityBy: user._id })
+  getProjectNamesForES(docsToUpdateInES,token)
+  if(activityType == ACTIVITY_LOG.ADDED_FUND_RELEASE){
+    // send notification to all core team who has manage-funds-utilized capability
+    // sendAllNotificationsOnFinancialInfo(projectInfo.members.filter((m: string) => m != user._id), user, projectInfo.name)
+  }
   return updatedProject
 }
 
@@ -1739,8 +1864,27 @@ export async function updateUtilizedFundNew(projectId: string, payload: any, use
   }
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({ activityType: (!currentObj || currentObj.utilized.deleted) ? ACTIVITY_LOG.ADDED_FUND_UTILIZATION: ACTIVITY_LOG.UPDATED_FUND_UTILIZATION, projectId, oldCost: currentObj.utilized.amount, updatedCost: amount, activityBy: user._id })
-  // getProjectNamesForES(docsToUpdateInES,token)
+  getProjectNamesForES(docsToUpdateInES,token)
   return updatedProject
+}
+
+async function sendAllNotificationsOnFinancialInfo(members:any, activityBy: any, projectName:string) {
+  let fetchedUsers = await userFindMany('_id', members, { firstName: 1, middleName: 1, lastName: 1, phone: 1, countryCode: 1, email: 1 })
+  let userRoles = fetchedUsers.map((user: any) => userRoleAndScope(user._id))
+  userRoles = userRoles.map((role: any) => (role.data || [""])[0])
+  fetchedUsers = fetchedUsers.map((user: any, index: number) => ({...user, role:userRoles[index]}))
+  const filterNonCapableUsers = fetchedUsers.map((user: any) => checkRoleScope(user.role, `manage-project-utilized-fund`))
+  fetchedUsers = fetchedUsers.filter((user: any, index: number) => !filterNonCapableUsers[index])
+  Promise.all(fetchedUsers.map((user: any) => {
+    const { fullName, mobileNo } = getFullNameAndMobile(user)
+    return sendNotification({ templateName: `financialInfoUpdate`, mobileTemplateName: `financialInfoUpdate`, mobileNo, email: user.email, fullName, projectName })
+  }))
+
+  Promise.all(fetchedUsers.map((user: any) => webNotification({
+    notificationType: `PROJECT`, userId: user._id, from: activityBy._id, 
+    title:PROJECT_NOTIFICATIONS.FINANCIAL_INFO_UPDATED(projectName)
+  })))
+  return
 }
 
 export async function deleteReleasedFundNew(projectId: string, payload: any, user: any,token:string) {
@@ -1767,7 +1911,7 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   let docsToUpdateInES:any = [...existingDocs]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
 
-  const { releasedDocuments, releasedCost, _id } = payload
+  const { _id } = payload
   const currentObj = detail.funds.find((f: any) => f.released._id.toString() == _id)
   if(currentObj.utilized && !currentObj.utilized.deleted){
     throw new APIError(PROJECT_ROUTER.CANNOT_REMOVE_RELEASED_AMOUNT)
@@ -1779,8 +1923,10 @@ export async function deleteReleasedFundNew(projectId: string, payload: any, use
   updates['funds.$.released.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.released._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_RELEASE, oldCost: updatedProject.cost, updatedCost: payload.cost, projectId, activityBy: user._id})
-  // getProjectNamesForES(docsToUpdateInES,token)
-  return updatedProject
+  getProjectNamesForES(docsToUpdateInES,token)
+  // send notification to all core team who has manage-funds-utilized capability
+  // sendAllNotificationsOnFinancialInfo(projectInfo.members.filter((m: string) => m != user._id), user, projectInfo.name)
+  return {...updatedProject.toJSON(), successMessage:`Funds release details removed successfully`}
 }
 
 export async function deleteUtilizedFundNew(projectId: string, payload: any, user: any,token:string) {
@@ -1805,9 +1951,9 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
  });
   let docIds = fundsUtilized && fundsUtilized.length? fundsUtilized.map((docs:any)=>{return docs.documents?docs.documents:[]}):[]
   const existingDocs = docIds.reduce((a:any, b:any) => a.concat(b), []);
-  let docsToUpdateInES:any = [...existingDocs, ...payload.utilizedDocuments]
+  let docsToUpdateInES:any = [...existingDocs, ...(payload.utilizedDocuments || [])]
   docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
-  const { utilisedDocuments, utilisedCost, _id } = payload
+  const { _id } = payload
   let updates: any = {}
   updates = { ...updates, modifiedAt: new Date(), utilisedBy: user._id }
   updates['funds.$.utilized.deleted'] = true
@@ -1815,8 +1961,8 @@ export async function deleteUtilizedFundNew(projectId: string, payload: any, use
   updates['funds.$.utilized.amount'] = 0
   const updatedProject: any = await ProjectSchema.findOneAndUpdate({ _id: projectId, 'funds.utilized._id': _id }, { $set: updates }).exec()
   createLog({activityType: ACTIVITY_LOG.DELETED_FUND_UTILIZATION, projectId, oldCost: updatedProject.cost, updatedCost: payload.cost, activityBy: user._id})
-  // getProjectNamesForES(docsToUpdateInES,token)
-  return updatedProject
+  getProjectNamesForES(docsToUpdateInES,token)
+  return {...updatedProject.toJSON(), successMessage:`Funds utilised details removed successfully`}
 }
 
 export async function addInstallmentsNew(projectId: string, payload: any, user?: any) {
@@ -1843,6 +1989,18 @@ export async function addInstallmentsNew(projectId: string, payload: any, user?:
     throw new APIError(PROJECT_ROUTER.PERCENTAGE_NOT_EXCEED)
   }
   const updated = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { funds: finalPayload } }, { new: true }).exec()
+  if(!projectDetail.funds.length){
+    // Installments added
+    createLog({activityType:ACTIVITY_LOG.INSTALLMENT_ADDED, activityBy:user._id, projectId})
+    return updated
+  }
+  if(projectDetail.funds.some((fund: any, i: number) => 
+    !finalPayload[i] || (fund.percentage != finalPayload[i].percentage) || (fund.phase != finalPayload[i].phase)
+  )){
+    // Installments updated
+    createLog({activityType:ACTIVITY_LOG.INSTALLMENT_UPDATED, activityBy:user._id, projectId})    
+    return updated
+  }
   return updated
 }
 
@@ -1906,16 +2064,23 @@ export async function editProjectPhaseInES(phaseId:string,token:string){
   const projects:any = await ProjectSchema.find({'phases.phase':phaseId}).exec();
   let projectIds =  Promise.all(projects.map(async(project:any)=>{
     let phases: any= await listPhasesOfProject(project.id || project._id);
+    let matchedPhase = phases&&phases.length?phases.filter((phase:any)=>(
+      new Date(phase.startDate) <= new Date() && new Date(phase.endDate) > new Date())
+      ):null
+      let phase= matchedPhase && matchedPhase.length ? matchedPhase[0].phase.phaseName: null
     let updateTasksInElasticSearch = updateProjectTasks({projectId:project.id || project._id,phases},token);
+    let tasksDocIds =  editProjectInDocsES(project.id || project._id,token);
+    // let updateProjectsInElasticSearch = updateProjectPhaseInDocs({projectId:project.id || project._id,phase:phase});
   }))
+  
   return projectIds
 }
 
 export async function backGroudJobForPhase(projectIds:any){
   let projectsInfo = await Promise.all(projectIds.map(async(id:any)=>{
     let phases: any= await listPhasesOfProject(id);
-    let matchedPhase = phases&&phases.length?phases.filter((phase:any)=>(
-      new Date(phase.startDate) <= new Date() && new Date(phase.endDate) > new Date())
+    let matchedPhase = (phases && phases.length) ? phases.filter((phase:any)=>(
+      new Date(phase.startDate).getTime() + IST_ADJUST <= new Date().getTime() && (new Date(phase.endDate).getTime() + IST_ADJUST) > new Date().getTime())
       ):null
     return{
       projectId : id,
@@ -1924,6 +2089,18 @@ export async function backGroudJobForPhase(projectIds:any){
   }))
   return projectsInfo
 }
+
+export async function backGroudJobForPhaseDocs(projectIds:any){
+  let projectsInfo = await Promise.all(projectIds.map(async(id:any)=>{
+    let phases: any= await listPhasesOfProject(id);
+    let matchedPhase = phases&&phases.length?phases.filter((phase:any)=>(
+      new Date(phase.startDate) <= new Date() && new Date(phase.endDate) > new Date())
+      ):null
+    return matchedPhase && matchedPhase.length ? matchedPhase[0].phase.phaseName: null
+  }))
+  return projectsInfo
+}
+
 
 export async function getProjectMemberIds(projectId: string) {
   const detail:any = await ProjectSchema.findById(projectId).exec()
@@ -1941,5 +2118,87 @@ async function sendNotificationOnPhaseUpdate(projectId: string, userId: string) 
     notificationType: `PROJECT`, userId: user._id, from: userId, 
     title: PROJECT_NOTIFICATIONS.PHASES_UPDATED(detail.name), 
   })))
+  return
+}
+
+export async function allDocsOfProjects(userToken:string){
+  let allProjects:any = await ProjectSchema.find({}).exec();
+  let AllDocIds = await Promise.all(allProjects.map(async(project:any)=>{
+    const options = {
+      url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
+      body: { projectId:project.id || project._id },
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${userToken}` },
+      json: true
+    }
+    let docIds :any= await httpRequest(options) 
+    const projectData: any = await ProjectSchema.findById(project.id || project._id ).exec();
+    const { funds } = projectData.toJSON()
+    let fundsReleased:any = [];
+    let fundsUtilized:any = [];
+    let fundsInfo:any = await Promise.all(funds.map((fund:any)=>{
+      let releasedDocuments = fund.released && fund.released.length?fund.released.map((fundInfo:any)=>{
+         fundsReleased.push(fundInfo.documents && fundInfo.documents.length? fundInfo.documents: [])
+      }):[];
+      let utilizedDocuments = fund.utilized && fund.utilized.length?fund.utilized.map((fundInfo:any)=>{
+        fundsUtilized.push(fundInfo.documents && fundInfo.documents.length? fundInfo.documents: [])
+     }):[];
+    }))
+    let fundsDocuments = [...fundsReleased, ...fundsUtilized]
+    const existingDocs = fundsDocuments.reduce((a:any, b:any) => a.concat(b), []);
+    let docsToUpdateInES = [...existingDocs, ...docIds ]
+     docsToUpdateInES=Array.from(new Set(docsToUpdateInES))
+    return docsToUpdateInES;
+  }))
+}
+  // const options = {
+  //   url: `${TASKS_URL}/task/get-docIds-for-projectTasks`,
+  //   body: { projectId },
+  //   method: 'POST',
+  //   headers: { 'Authorization': `Bearer ${userToken}` },
+  //   json: true
+  // }
+  // let docIds :any= await httpRequest(options)  
+
+async function createLogOnMiscomplianceUpdate(beforeUpdated: any, payload: any, userId: string) {
+  let logPayload: any = null
+  // createLog({activityType:ACTIVITY_LOG.TRIPART_DATE_UPDATED,projectId: id, activityBy: user._id})  
+  if (!beforeUpdated.miscomplianceSpv && payload.miscomplianceSpv) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.ADDED_MISCOMPLIANCE_SPV, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: ``, message: payload.miscomplianceSpv
+    }
+  } else if (!beforeUpdated.miscomplianceProject && payload.miscomplianceProject) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.ADDED_MISCOMPLIANCE_PROJECT, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: ``, message: payload.miscomplianceSpv
+    }
+  } else if (payload.miscomplianceSpv && (payload.miscomplianceSpv != beforeUpdated.miscomplianceSpv)) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.EDIT_MISCOMPLIANCE_SPV, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceSpv, message: payload.miscomplianceSpv
+    }
+  } else if(payload.miscomplianceProject && (beforeUpdated.miscomplianceProject != payload.miscomplianceProject)) {
+    logPayload = {
+      activityType: ACTIVITY_LOG.EDIT_MISCOMPLIANCE_PROJECT, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceProject, message: payload.miscomplianceProject
+    }
+  } else if ((payload.miscomplianceSpv == "") && beforeUpdated.miscomplianceSpv){
+    logPayload = {
+      activityType: ACTIVITY_LOG.REMOVE_MISCOMPLIANCE_SPV, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceProject, message: payload.miscomplianceProject
+    }
+  }
+  else if ((payload.miscomplianceProject == "") && beforeUpdated.miscomplianceProject){
+    logPayload = {
+      activityType: ACTIVITY_LOG.REMOVE_MISCOMPLIANCE_PROJECT, projectId: beforeUpdated._id,
+      activityBy: userId, oldMessage: beforeUpdated.miscomplianceProject, message: payload.miscomplianceProject
+    }
+  } else {
+    logPayload = null
+  }
+  if(logPayload){
+    createLog(logPayload)
+  }
   return
 }
