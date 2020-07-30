@@ -6,7 +6,7 @@ let EMAIL: string
 let PASSWORD: string
 if (process.env.EMAIL_ENV == "UAT" || process.env.EMAIL_ENV == "PROD") {
   EMAIL = process.env.EMAIL || "cmp@niua.org";
-  PASSWORD = process.env.PASSWORD || "hahahaha"
+  PASSWORD = process.env.PASSWORD || "niua@123"
 } else {
   // EMAIL = process.env.EMAIL || `testmailm588@gmail.com`;
   // PASSWORD = process.env.PASSWORD || 'Hello@123';
