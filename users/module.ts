@@ -466,6 +466,13 @@ export async function userInviteResend(id: string, role: any, user: any) {
         let { fullName, mobileNo } = getFullNameAndMobile(userData);
         await userLog({ activityType: "RESEND-INVITE-USER", activityBy: user._id, profileId: id })
         let configLink: any = await constantSchema.findOne({ key: 'linkExpire' }).exec();
+        let link= `${ANGULAR_URL}/user/register/${token}`
+        console.log("//////////////////////////////");
+        console.log("Resend Invite");
+        console.log(userData.email,"email");
+        console.log(link, "link");
+        console.log("/////////////////////////////////////");
+          
         sendNotification({ id, fullName, email: userData.email, role: role, linkExpire: Number(configLink.value), link: `${ANGULAR_URL}/user/register/${token}`, templateName: "invite" });
         return { message: RESPONSE.SUCCESS_EMAIL }
     } catch (err) {
