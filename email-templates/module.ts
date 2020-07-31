@@ -83,6 +83,8 @@ function formatRole(roles: string[]){
 }
 export async function getTemplateBySubstitutions(templateId: string, substitutions?: any): Promise<{ subject: string, content: string }> {
     try {
+        console.log("getTemplateBySubstitutions",templateId);
+        
         var template:any = await TemplateSchema.findOne({templateName: templateId}).exec();
         if (!template) {
             throw new APIError(TEMPLATE.INVALID_TEMPLATE+` ${templateId}`);

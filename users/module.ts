@@ -458,6 +458,8 @@ export async function userLogout(req: any, userId: any, token: any) {
 //  Resend invite link
 export async function userInviteResend(id: string, role: any, user: any) {
     try {
+        console.log("Resend Invite Api.....");
+        
         if (!Types.ObjectId.isValid(id)) throw new Error(USER_ROUTER.INVALID_PARAMS_ID);
         let userData: any = await userFindOne("id", id)
         if (userData.emailVerified) throw new Error(USER_ROUTER.EMAIL_VERIFIED)
@@ -1203,6 +1205,8 @@ export function getFullNameAndMobile(userObj: any) {
 }
 
 export async function sendNotification(objBody: any) {
+    console.log("sendNotification");
+    console.log(objBody,"objBody");
     let { id, email, mobileNo, templateName, mobileTemplateName, mobileOtp, ...notificationInfo } = objBody;
     notificationInfo = { ...notificationInfo, fullName: notificationInfo.fullName || "User" }
     let userNotification: any;
