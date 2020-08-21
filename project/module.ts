@@ -189,10 +189,10 @@ export async function RemoveProjectMembers(projectId: string, userId: string, lo
       RiskSchema.findOne({riskOwner: userId}).exec(),
       OpportunitySchema.findOne({opportunityOwner: userId}).exec()
     ]) 
-    if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
-    if(riskExists || opportunitityExists){
-      return {success: false}
-    }
+    // if (projectTasks.success) return { success: false, tasks: projectTasks.tasks }
+    // if(riskExists || opportunitityExists){
+    //   return {success: false}
+    // }
     const previousProjectData: any = await ProjectSchema.findById(projectId).exec()
     let members = previousProjectData.members.filter((id: any) => id != userId)
     const updatedProject: any = await ProjectSchema.findByIdAndUpdate(projectId, { $set: { members } }, { new: true }).exec()
