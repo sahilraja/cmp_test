@@ -1,0 +1,191 @@
+  # add tag
+  addTagToProject:
+  # "/project/tag/add":
+    post:
+      security:
+        - token: []
+      summary: add tag
+      tags:
+        - TAG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tag
+              properties:
+                tag:
+                  type: string
+                  example: document
+                description:
+                  type: string
+                  example: document for vizag project
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # edit tag
+  editTagOfProject:
+  # "/project/tag/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit tag
+      tags:
+        - TAG
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: tag _id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag:
+                  type: string
+                  example: document
+                description: 
+                  type: string
+                  example: document for vizag project
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  #change status
+  activeOrInactiveTagStatus:
+  # "/project/tag/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: active or inactive tag
+      tags:
+        - TAG
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: tag _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # tag List
+  getTagsList:
+  # "/project/tag/list":
+    get:
+      security:
+        - token: []
+      summary: get tags list
+      tags:
+        - TAG
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # merge tags
+  mergeTags:
+  # "/tag/merge":
+    post:
+      security:
+        - token: []
+      summary: merge tags
+      tags:
+        - TAG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags:
+                  type: array
+                  example: 
+                    - tag1234
+                    - tag1224
+                    - tsg3572
+                  description: Must be TagIds which need to be merged 
+                mergeTag:  
+                  type: string
+                  example: tag1233
+                  description: Must be Merge TagId 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  Message:
+                    type: string
+                    example: Tags Merged Successfully
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+        

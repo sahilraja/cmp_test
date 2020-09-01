@@ -1,0 +1,26 @@
+responses:
+  templateME:
+    description: template schema
+    content:
+      application/json:
+        schema:
+          $ref: "#/template/templateSchema"
+  schemas:
+    $ref: ../error.yaml
+      # user schema
+    templateSchema:
+      type: object
+      properties:
+        content: 
+          type: string
+          example: subject
+        templateName:
+          type: string
+          example: information
+        subject: 
+          type: string
+          example: subject
+        displayName:
+          type: string
+          example: Display Name
+        

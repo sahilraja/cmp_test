@@ -1,0 +1,156 @@
+  updateNotification:
+    post:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+        - templateName
+        - email
+        - mobile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+                templateName:
+                  type: string
+                  example: invite
+                displayName:
+                  type: string
+                  example: Invite User
+                email:
+                  type: boolean
+                  example: false
+                mobile:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message : success
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  getNotificationList:
+    get:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ./schema.yaml/#/responses/schemas/notificationsSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  addRoleNotification:
+    post:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: technology-lead
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/notificationsSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  addTemplateNotification:
+    post:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      requierd:
+        - templateName
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateName:
+                  type: string
+                  example: technology-lead
+                displayName:
+                  type: string
+                  example: Invite User
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: ./schema.yaml/#/responses/schemas/notificationsSchema
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  getNotificationInfo:
+    get:
+      security:
+        - token: []
+      tags:
+        - NOTIFICATIONS
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: role
+        - in: query
+          name: templateName
+          schema:
+            type: string
+          required: true
+          description: template name
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  role: "technology-lead"
+                  _id: "5dc97713fab0cd2189498e47"
+                  templateName: "invite"
+                  email: true
+                  mobile: false
+                  displayName: Invite User
+
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

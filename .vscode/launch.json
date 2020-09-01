@@ -1,0 +1,56 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/main.js",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ],
+            // "sourceMaps": true
+            "env": {
+                "FILE_SERVICE_HOST":"localhost",
+                "FILE_SERVICE_PORT": 4040,
+                "USE_REMOTE_DB" : "false",
+                "NODE_ENV": "DEVELOPMENT",
+                "MONGO_URL": "mongodb://localhost/rbac",
+                "RBAC_URL": "http://localhost:8081",
+                "CMP_URL":"http://localhost:3000",
+                "ANGULAR_URL": "http://localhost:4200",
+                "FILES_SERVER_BASE":"http://localhost:4040",
+                "GROUPS_URL": "http://localhost:5051",
+                "MESSAGE_URL":"http://localhost:4001",
+                "ELASTICSEARCH_URL":"http://localhost:4002",
+                "REMOTE_RBAC_URL": "https://cmp-dev.transerve.com/proxy-rbac",
+                "REMOTE_FILE_SERVER_URL" : "https://cmp-dev.transerve.com/proxy-files",
+                "REMOTE_GROUPS_URL": "https://cmp-dev.transerve.com/proxy-groups",
+                "TASK_HOST":"http://localhost:5052",
+                "CURRENT_HOST":"http://localhost:3000",
+                "ELASTIC_SEARCH_INDEX":"dev"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "nodemon",
+            "runtimeExecutable": "nodemon",
+            "program": "${workspaceRoot}/main.js",
+            "restart": true,
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ],
+            // "sourceMaps": true
+            "env": {
+                "NODE_ENV": "DEVELOPMENT",
+                "MONGO_URL": "mongodb://localhost/rbac"
+            }
+        }
+    ]
+}

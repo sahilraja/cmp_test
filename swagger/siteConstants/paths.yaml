@@ -1,0 +1,74 @@
+  addConstant:
+    post:
+      security:
+        - token: []
+      summary: add constants and edit constants
+      tags:
+        - SITE-CONSTANTS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                aboutMe:
+                  type: Number
+                  example: 300
+                docName:
+                  type: Number
+                  example: 30
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  aboutMe: 300
+                  docName: 30                   
+                  
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  constantsList:
+    get:
+      security:
+        - token: []
+      summary: get constants list
+      tags:
+        - SITE-CONSTANTS
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                example:
+                - key: aboutMe
+                  value: 300
+                - key: docName
+                  value: 30      
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  constantsGroupList:
+    get:
+      security:
+        - token: []
+      summary: get constants list
+      tags:
+        - SITE-CONSTANTS
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groupName:
+                    type: array
+                    example: [{}]
+          description: Success
+      "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

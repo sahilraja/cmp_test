@@ -1,0 +1,26 @@
+responses:
+  financialInfo:
+    description: financial info
+    content:
+      application/json:
+        schema:
+          $ref: "#/responses/schemas/financialInfo"
+  schemas:
+    financialInfo:
+      type: object
+      properties:
+        percentage: 
+          type: number
+          example: 23
+        phase:
+          type: string
+          example: initialPhase
+        createdBy:
+          type: string
+          example: 9uiewjf9023jfo39ur39
+        projectId:
+          type: string
+          example: 9uiewjf9023jfo39ur39
+        isDeleted:
+          type: boolean
+          

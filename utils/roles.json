@@ -1,0 +1,103 @@
+[
+    {
+      "role": "technology-lead",
+      "category": "PMU Team",
+      "description": "Technology Lead"
+    },
+    {
+      "role": "program-coordinator",
+      "category": "PMU Team",
+      "description": "Program Coordinator"
+    },
+    {
+      "role": "communication-specialist",
+      "category": "PMU Team",
+      "description": "Communication Specialist"
+    },
+    {
+      "role": "program-manager",
+      "category": "PMU Team",
+      "description": "Program Manager"
+    },
+    {
+      "role": "junior-planners",
+      "category": "PMU Team",
+      "description": "Junior Planner"
+    },
+    {
+      "role": "e&s-specialist",
+      "category": "PMU Team",
+      "description": "E&S Specialist"
+    },
+    {
+      "role": "procurement-specialist",
+      "category": "PMU Team",
+      "description": "Procurement Specialist"
+    },
+    {
+      "role": "director-niua",
+      "category": "PMU Team",
+      "description": "Director NIUA"
+    },
+    {
+      "role": "mentors",
+      "category": "PMU Team",
+      "description": "Mentor"
+    },
+    {
+      "role": "experts",
+      "category": "PMU Team",
+      "description": "Expert"
+    },
+    {
+      "role": "spv-ceo",
+      "category": "SPV",
+      "description": "SPV CEO"
+    },
+    {
+      "role": "spv-project-incharge",
+      "category": "SPV",
+      "description": "SPV Project Incharge"
+    },
+    {
+      "role": "spv-e&s-nodal-officer",
+      "category": "SPV",
+      "description": "SPV E&S Nodal Officer"
+    },
+    {
+      "role": "spv-public-engagement-officer",
+      "category": "SPV",
+      "description": "SPV Public Engagement Officer"
+    },
+    {
+      "role": "joint-secretary",
+      "category": "MoHUA",
+      "description": "Joint Secretary"
+    },
+    {
+      "role": "mission-director",
+      "category": "MoHUA",
+      "description": "Mission Director"
+    },
+    {
+      "role": "assistant-director",
+      "category": "MoHUA",
+      "description": "Assistant Director"
+    },
+    {
+      "role": "dy-secretary",
+      "category": "MoHUA",
+      "description": "Dy. Secretary"
+    },
+    {
+      "role": "dy-director",
+      "category": "AFD",
+      "description": "Dy. Director"
+    },
+    {
+      "role": "afd-project-manager",
+      "category": "AFD",
+      "description": "AFD Project Manager"
+    }
+  ]
+  

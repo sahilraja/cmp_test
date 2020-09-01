@@ -1,0 +1,153 @@
+[  
+    {
+        "content" : "CMP Update - Your user account is [state]" ,
+        "templateName" : "userState",
+        "displayName" : "Marking user as active/inactive"
+    },
+    {
+        "content" : "The password entered by you on CMP is incorrect. Enter the correct password or use Forgot Password to reset it.",
+        "templateName" : "invalidPassword",
+        "displayName" : "invalid password"
+    },
+    {
+        "content" : "You have logged on to CMP.",
+        "templateName" : "login",
+        "displayName" : "user login"
+    },
+    {
+        "content" : "[mobileOtp] is the OTP (One Time Password) to update settings on CMP",
+        "templateName" : "sendOtp",
+        "displayName" : "send otp"
+    },
+    {
+        "content" : "Your email has been changed to [newMail].",
+        "templateName" : "changeEmailMessage",
+        "displayName" : "change email notification"
+    },
+    {
+        "content" : "You are invited to collaborate on the document [documentName] on CMP. Please log on to check the details.",
+        "templateName" : "inviteForDocument",
+        "displayName" : "invite for document"
+    },
+    {
+        "content" : "You have received a new message on CMP. Log on to view it.",
+        "templateName" : "inboxMessage",
+        "displayName" : "New Message"
+    },
+    {
+        "content" : "You have a tag suggestion. Please log on to check the details.",
+        "templateName" : "suggestTagNotification",
+        "displayName" : "suggest tag notification"
+    },
+    {
+        "content" : "A tag suggested by you on CMP is approved. Please log on to check the details.",
+        "templateName" : "approveTagNotification",
+        "displayName" : "approve tag notification"
+    },
+    {
+        "content" : "A tag suggested by you on CMP is rejected. Please log on to check the details.",
+        "templateName" : "rejectTagNotification",
+        "displayName" : "reject tag notification"
+    },
+    {
+        "content" : "Document [documentName] has been published on CMP. Please log on to check the details.",
+        "templateName" : "publishDocument",
+        "displayName" : "publish document"
+    },
+    {
+        "content" : "Document [documentName] is unpublished from CMP. Please log on to check the details.",
+        "templateName" : "unPublishDocument",
+        "displayName" : "unPublish document"
+    },
+    {
+        "content" : "A new comment has been added to Document [documentName] in CMP.",
+        "templateName" : "addCommentToDoc",
+        "displayName" : "New Comment"
+    },
+    {
+        "content" : "The document [documentName] on CMP, is replaced with a new document. Please log on to check the details.",
+        "templateName" : "replaceDocument",
+        "displayName" : "replace document"
+
+    },
+    {
+        "content" : "Your current role on CMP is replaced with [role]",
+        "templateName" : "changeUserRole",
+        "displayName" : "change user role"
+    },
+    {
+        "content" : "A new comment has been added to Document [documentName] in CMP. Please log on to check.",
+        "templateName" : "openComment",
+        "displayName" : "New Comment"
+    },
+    {
+        "content" : "A new task has been assigned to you by [creatorName] on CMP",
+        "templateName" : "taskAssign",
+        "displayName" : "Task Assign"
+    },
+    {
+        "content" : "Status of task:[taskId] is updated on CMP",
+        "templateName" : "taskProgress",
+        "displayName" : "Update Task"
+    },
+    {
+        "content" : "A new document is attached to the task:[taskId] on CMP.",
+        "templateName" : "docAddToTask",
+        "displayName" : "Document attached"
+    },
+    {
+        "content" : "New tag is added to task:[taskId] on CMP.",
+        "templateName" : "addTaskTag",
+        "displayName" : "Add Tag"
+    },
+    {
+        "content" : "Due Date of the task [taskId] is updated on CMP.",
+        "templateName" : "updateTaskDueDate",
+        "displayName" : "Update Task Due Date"
+    },
+    {
+        "content" : "Start Date of the task [taskId] is updated on CMP.",
+        "templateName" : "updateTaskStartDate",
+        "displayName" : "Update Task Start Date"
+    },
+    {
+        "content" : "You have updated your user profile on CMP.",
+        "templateName" : "profile",
+        "displayName" : "Profile Update"
+    },
+    {
+        "content" : "Document [documentName], has been updated with new [text] on CMP.",
+        "templateName" : "documentUpdate",
+        "displayName" : "Document updated"
+    },
+    {
+        "content" : "Dear [fullName], Your Password has been updated successfully on CMP",
+        "templateName" : "changePassword",
+        "displayName" : "change password notification"
+    },
+    {
+        "content" : "You are added to a project [projectName] on CMP.",
+        "templateName" : "addedToProject",
+        "displayName" : "you are added to project"
+    },
+    {
+        "templateName":"progressPercentUpdate",
+        "displayName":"Progress percentage updated",
+        "content":"Progress has been updated for the task [taskId] at project [projectName] on CMP"
+    },
+    {
+        "content": "Phases are updated for the project [projectName] on CMP",
+        "templateName":"phaseUpdate",
+        "displayName": "Phases updated"
+    },
+    {
+        "content": "Financial information data has been updated for the project [projectName] on CMP",
+        "templateName": "financialInfoUpdate",
+        "displayName": "Financial Information Update"
+    },
+    {
+        "content":"New funds has been released for the project [projectName] on CMP",
+        "templateName":"addFundsReleased",
+        "displayName":"Funds Released"
+    }
+]

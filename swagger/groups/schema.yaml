@@ -1,0 +1,23 @@
+responses:
+  project:
+    description: group
+    content:
+      application/json:
+        schema:
+          $ref: "#/responses/schemas/groupSchema"
+  schemas:
+    groupSchema:
+      type: object
+      properties:
+        name: 
+          type: string
+          example: transerve
+        description:
+          type: string
+          example: this group for transerve team
+        createdBy:
+          type: string
+          example: 9uiewjf9023jfo39ur39
+        is_active:
+          type: boolean
+          

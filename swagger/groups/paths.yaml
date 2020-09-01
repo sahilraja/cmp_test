@@ -1,0 +1,204 @@
+  # create project code
+  createGroup:
+    post:
+      security:
+        - token: []
+      summary: create group
+      tags:
+        - GROUPS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+              properties:
+                name:
+                  type: string
+                  example: groupName1
+                description:
+                  type: string
+                  example: project description
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/project"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # edit project code
+  editGroup:
+  # "/project/city/code/edit/{id}":
+    put:
+      security:
+        - token: []
+      summary: edit group
+      tags:
+        - GROUPS
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: groupName1
+                description:
+                  type: string
+                  example: project description
+                
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/project"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # project inactive
+  groupStatus:
+    put:
+      security:
+        - token: []
+      summary: group status
+      tags:
+        - GROUPS
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  addMember:
+    post:
+      security:
+        - token: []
+      summary: add member to group
+      tags:
+        - GROUPS
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+                
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/project"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  removeMember:
+    post:
+      security:
+        - token: []
+      summary: remove member from group
+      tags:
+        - GROUPS
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: user id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  example: []
+                
+      responses:
+        "200":
+          $ref: "./schema.yaml/#/responses/project"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  groupDetails:
+    get:
+        security:
+          - token: []
+        summary: group Details
+        tags:
+          - GROUPS
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {}
+          "400":
+            $ref: "#/definitions/ErrorResponse/BadRequest"
+
+  groupList:
+    get:
+        security:
+          - token: []
+        summary: group list
+        tags:
+          - GROUPS
+        responses:
+          "200":
+            description: success
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "./schema.yaml/#/responses/schemas/groupSchema"
+          "400":
+            $ref: "#/definitions/ErrorResponse/BadRequest"

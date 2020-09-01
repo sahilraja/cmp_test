@@ -1,0 +1,11 @@
+node_modules
+**/*.js
+**/*.js.map
+cmp-api-service-build.zip
+cmp-api-service-build/*
+cmp-api-service-dev.zip
+cmp-api-service-dev/*
+cmp-api-service-uat.zip
+cmp-api-service-uat/*
+cmp-api-service-prod.zip
+cmp-api-service-prod/*

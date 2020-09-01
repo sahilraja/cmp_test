@@ -1,0 +1,393 @@
+# roles
+  #roles list
+  getRoles:
+  # "/role/list":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        scope: 
+                          type: string
+                          example: global
+                        role: 
+                          type: string
+                          example: project lead
+                        
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  #roles scope list    
+  getRolesScopeList:
+  # "/role/scope/list/{userid}":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      parameters:
+        - in: path
+          name: userid
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        scope: 
+                          type: string
+                          example: global
+                        role: 
+                          type: string
+                          example: project lead
+                        
+                      
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest" 
+  # user list
+  getUserListByRole:
+  # "/role/user/list/":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: role for get users list
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        role: 
+                          type: string
+                          example: project lead
+                        users:
+                          type: array
+                          items: 
+                            type: object
+                            properties:
+                              id: 
+                                type: string
+                                example: userid212
+                              firsrName: 
+                                type: string
+                                example: james
+                              secondName:
+                                type: string
+                                example: bond                  
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  getCapabilitiesofAllRole:
+    get:
+      security:
+        - token: []
+      summary: Get All Capabilities of all Roles
+      tags:
+        - ROLE
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  "data":
+                    type: array
+                    items: 
+                        type: object
+                        properties:
+                          role: 
+                            type: string
+                          example: technology-lead
+                          capabilities: 
+                            type: array
+                            example: 
+                              - capability 1
+                              - capability 2
+                              - capability 3
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Get List Of capabilities
+  listCapabilities:
+  # "/capabilities/list":
+    get:
+      security:
+        - token: []
+      summary: Get capabilities list
+      tags:
+        - ROLE
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    example: 
+                      - capability 1
+                      - capability 2
+                      - capability 3
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Add Capability
+  addCapability:
+  # "role/capability/add":
+    post:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      summary: Add capability to a Role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - scope
+                - capability
+              properties:
+                role:
+                  type: string
+                  example: Project manager
+                  description: user roles
+                # scope:
+                #   type: string
+                #   example: Project
+                #   description: Must be project or global scope
+                capability:
+                  type: string
+                  example: document
+                  description: capability for that scope
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - role
+                      - scope
+                      - capability
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Remove Capability
+  removeCapability:
+  # "role/capability/remove":
+    put:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      summary: Remove capability of a Role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - scope
+                - capability
+              properties:
+                role:
+                  type: string
+                  example: Project manager
+                  description: user roles
+                # scope:
+                #   type: string
+                #   example: Project
+                #   description: Must be project or global scope
+                capability:
+                  type: string
+                  example: document
+                  description: capability for that scope
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - role
+                      - scope
+                      - capability
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Add role
+  addRole:
+  # "role/add":
+    post:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      summary: Add role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - roleName
+                - category
+                - description
+              properties:
+                role:
+                  type: string
+                  example: program-coordinator
+                  description: user roles
+                roleName:
+                  type: string
+                  example: Program Coordinator
+                  description: user roles  
+                category:
+                  type: string
+                  example: PMU Team
+                  description: role catogery
+                description:
+                  type: string
+                  example: Program Coordinator
+                  description: Must be role description
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+  # Edit role
+  editRole:
+  # "role/{role}/edit":
+    put:
+      security:
+        - token: []
+      tags:
+        - ROLE
+      parameters:
+        - in: path
+          name: role
+          schema:
+            type: string
+          example: program-coordinator  
+          required: true
+          description: role key
+      summary: Edit role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - roleName
+                - category
+                - description
+              properties:
+                roleName:
+                  type: string
+                  example: Program Coordinator
+                  description: role nsame
+                category:
+                  type: string
+                  example: PMU Team
+                  description: role catogery
+                description:
+                  type: string
+                  example: Program Coordinator
+                  description: Must be role description
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+             

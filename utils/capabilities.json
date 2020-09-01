@@ -1,0 +1,633 @@
+[
+  {
+    "capability": "create-user",
+    "shortDescription": "Invite User",
+    "description": "Invite User",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "bulk-invite",
+    "shortDescription": "Bulk Invitations of User",
+    "description": "Bulk Invitations of User",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "notification-management",
+    "shortDescription": "Notification Management",
+    "description": "Notification Management",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "replace-user",
+    "shortDescription": "Replace New User",
+    "description": "Replace old user to new User",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-task",
+    "shortDescription": "Create Task",
+    "description": "Ability to create a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-subtask",
+    "shortDescription": "Create Subtask",
+    "description": "Ability to create a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability":"manage-approvers",
+    "shortDescription":"Manage Approvers",
+    "description":"Manage Approvers",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"manage-endorsers",
+    "shortDescription":"Manage Endorsers",
+    "description":"Manage Endorsers",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"manage-viewers",
+    "shortDescription":"Manage Viewers",
+    "description":"Manage Viewers",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"view-activity-log",
+    "shortDescription":"View activity log",
+    "description":"View activity log",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability":"view-all-cmp-tasks",
+    "shortDescription":"View all CMP Tasks",
+    "description":"View all CMP Tasks",
+    "category":"Task Management",
+    "scope":"global"
+  },
+  {
+    "capability": "attach-documents-to-task",
+    "shortDescription": "Attach Documents To Task",
+    "description": "Ability to attach documents to a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-task",
+    "shortDescription": "Add Tag To Task",
+    "description": "Ability to add tag to a task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "link-task",
+    "shortDescription": "Link Task",
+    "description": "Ability to link task with other task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-message",
+    "shortDescription": "Create Message",
+    "description": "Ability to create a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "reply-message",
+    "shortDescription": "Reply To Message",
+    "description": "Ability to reply to message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "reply-all-message",
+    "shortDescription": "Reply All Message",
+    "description": "Ability to Reply All a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "forward-message",
+    "shortDescription": "Forward Message",
+    "description": "Ability to forward a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-message",
+    "shortDescription": "Create Message",
+    "description": "Ability to create a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-cmp-messages",
+    "shortDescription": "View All Cmp Messages",
+    "description": "Ability to view all cmp message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "send-message-to-group",
+    "shortDescription": "Send Message to Group",
+    "description": "Ability send message to group",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-doc",
+    "shortDescription": "Create Document",
+    "description": "Ability to create a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "document-activity-log",
+    "shortDescription": "Document Activity Log",
+    "description": "Ability to view Document activity log",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability":"view-all-projects",
+    "shortDescription":"View All Projects",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View All Projects"
+  },
+  {
+    "capability":"project-activity-log",
+    "shortDescription":"View activity log",
+    "description":"View activity log",
+    "category":"Project Management",
+    "scope":"global"
+  },
+  {
+    "capability":"edit-tri-partite-aggrement-date",
+    "description":"Edit Tri-partite Aggrement Date",
+    "category":"Project Management",
+    "scope":"global",
+    "shortDescription":"Edit Tri-partite Aggrement Date"
+  },
+  {
+    "capability": "phase-manage",
+    "shortDescription":"Add/Edit phase names",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"manage phase add/edit permission"
+  },
+  {
+    "capability": "add-phase-to-project",
+    "shortDescription":"Add phase to project",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"Add phase to project"
+  },
+  {
+    "capability":"add-open-comments",
+    "shortDescription":"Add Open Comments",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"Add Open Comments"
+  },
+  {
+    "capability":"view-dashboard-financial-info",
+    "shortDescription":"View Financial Info at Dashboard",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Financial Info at Dashboard"
+  },
+  {
+    "capability":"view-open-comments",
+    "shortDescription":"View Open Comments",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Open Comments"
+  },
+  {
+    "capability": "view-my-project",
+    "shortDescription": "View My Projects",
+    "description": "View My Projects",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-folder",
+    "shortDescription": "Create/Delete Folder",
+    "description": "Ability to create & delete a folder",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "delete-doc",
+    "shortDescription": "Delete Document",
+    "description": "Ability to delete a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-task-progress-dates",
+    "shortDescription": "Edit Task Progress Dates",
+    "description": "Edit Task Progress Percentage",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-citiis-grants",
+    "shortDescription": "Edit Citiis Grants",
+    "description": "Edit Citiis Grants",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-project-cost",
+    "shortDescription": "Edit Project Cost",
+    "description": "Edit Project Cost",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "display-role-management",
+    "shortDescription": "Display Role Management",
+    "description": "Display Role Management",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-project",
+    "shortDescription": "Manage Project (Edit Project Reference)",
+    "description": "Manage Project (Edit Project Reference)",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-document",
+    "shortDescription": "Add Tag To Document",
+    "description": "Ability to add tags to a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "project-create-task",
+    "shortDescription": "Create Project Task",
+    "description": "Create Project Task",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability": "share-document",
+    "shortDescription": "Share Documents",
+    "description": "Share documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-document",
+    "shortDescription": "Edit Documents",
+    "description": "Edit documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "publish-document",
+    "shortDescription": "Publish Documents",
+    "description": "Published documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "unpublish-document",
+    "shortDescription": "Unpublish Documents",
+    "description": "Unpublished documents",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "create-group",
+    "shortDescription": "Create Group",
+    "description": "Create group",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-group",
+    "shortDescription": "Edit Group",
+    "description": "Edit group",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "deactivate-group",
+    "shortDescription": "Deactivate Group",
+    "description": "Deactivate group",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-groups",
+    "shortDescription": "View All groups",
+    "description": "View All groups",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "project-add-core-team",
+    "shortDescription": "Add Core Team",
+    "description": "Add core team",
+    "category": "Project Management",
+    "scope": "global"
+  },
+  {
+    "capability":"suggest-tag-on-public-document",
+    "shortDescription": "Suggest Tag to Public Document",
+    "description": "Ability to suggest Tag to Public Document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "suggest-tag",
+    "shortDescription": "Suggest Tag",
+    "description": "Ability to suggest Tag",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "replace-document",
+    "shortDescription": "Replace Document",
+    "description": "Replace Document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-private-group",
+    "shortDescription": "Create Private Member List",
+    "description": "Create Private Member List",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "delete-message",
+    "shortDescription": "Delete Message",
+    "description": "Ability to delete a message ",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-replace-user-messages",
+    "shortDescription": "View Replace User Messages",
+    "description": "Ability to view a message ",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-cmp-documents",
+    "shortDescription": "View All CMP Documents",
+    "description": "Ability to view all cmp documents ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-finanacial-documents",
+    "shortDescription": "View All Financial Documents",
+    "description": "Ability to view all Finanacial documents ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "mark-as-public-document",
+    "shortDescription": "Mark document as public",
+    "description": "Ability to mark document as public ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "mark-as-unpublic-document",
+    "shortDescription": "Mark document as unpublic",
+    "description": "Ability to mark document as unpublic ",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-project-released-fund",
+    "shortDescription": "Manage Funds Released",
+    "category": "Project Management",
+    "description": "Manage Funds Released",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-project-utilized-fund",
+    "shortDescription": "Manage Funds Utilized",
+    "category": "Project Management",
+    "description": "Manage Funds Released",
+    "scope": "global"
+  },
+  {
+    "capability": "upload-task-excel",
+    "shortDescription": "Bulk Upload of Tasks",
+    "category": "Project Management",
+    "description": "Bulk Upload of Tasks",
+    "scope": "global"
+  },
+  {
+    "capability": "add-edit-pillar",
+    "shortDescription": "Manage Pillars at Project",
+    "category": "Project Management",
+    "description": "Manage Pillars at Project",
+    "scope": "global"
+  },
+  {
+    "capability": "add-edit-step",
+    "shortDescription": "Manage Steps at Project",
+    "category": "Project Management",
+    "description": "Manage Steps at Project",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-compliance",
+    "shortDescription": "Add/Edit Compliances",
+    "category": "Project Management",
+    "description": "Manage Compliances",
+    "scope": "global"
+  },
+  {
+    "capability": "manage-risk-opportunity",
+    "shortDescription": "Add/Edit Risk & Opportunity",
+    "category": "Project Management",
+    "description": "Ability to Add/Edit Risk & Opportunity",
+    "scope": "global"
+  },
+  {
+    "capability": "send-message-to-email",
+    "shortDescription": "Send Message To Email",
+    "category": "Message Management",
+    "description": "Ability to send a message to email",
+    "scope": "global"
+  },
+  {
+    "capability": "activate-deactivate-user",
+    "shortDescription": "Activate/Deactivate User",
+    "description": "Activate/Deactivate User",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "attach-documents-to-message",
+    "shortDescription": "Attach Documents To Messages",
+    "description": "Ability to Attach Documents to a Messages",
+    "scope": "global",
+    "category": "Message Management"
+  },
+  {
+    "capability": "merge-tag",
+    "shortDescription": "Merge Tags",
+    "description": "Ability to merge Tags",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-all-tags",
+    "shortDescription": "View All Tags",
+    "description": "Ability to view all Tags",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tag-to-message",
+    "shortDescription": "Add Tag To Message",
+    "description": "Ability to add tags to a message",
+    "category": "Message Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-template",
+    "shortDescription": "Edit Template",
+    "description": "Ability to edit template",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "display-template-management",
+    "shortDescription": "Display Template Management",
+    "description": "Display Template Management ",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "patterns-management",
+    "shortDescription": "Patterns Management",
+    "description": "Ability to create patterns",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "edit-user-profile",
+    "shortDescription": "Edit User Profile",
+    "description": "Ability to user profile",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "view-user-contact-details",
+    "shortDescription": "View User Contact Details",
+    "description": "Ability to view phone number & Email details",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "change-user-role",
+    "shortDescription": "Edit User Role",
+    "description": "Ability to edit user role",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "document-comments",
+    "shortDescription": "Add Comment",
+    "description": "Ability to add comment on document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "document-comments-publish",
+    "shortDescription": "Add Comment On Publish Document",
+    "description": "Ability to add comment on publish document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "add-tags-publish",
+    "shortDescription": "Add Tag On Publish Document",
+    "description": "Ability to add tag on publish document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability": "bypass-otp",
+    "shortDescription": "Bypass OTP",
+    "description": "Ability to disable otp on change email and change mobile Number",
+    "category": "User Management",
+    "scope": "global"
+  },
+  {
+    "capability": "suggest-tag-to-task",
+    "shortDescription": "Suggest Tag To Task",
+    "description": "Ability to suggest a tag to task",
+    "category": "Task Management",
+    "scope": "global"
+  },
+  {
+    "capability": "view-edit-configurations",
+    "shortDescription": "View Edit Configurations",
+    "description": "View Edit Configurations",
+    "scope": "global",
+    "category": "User Management"
+  },
+  {
+    "capability": "edit-document",
+    "shortDescription": "Edit Document",
+    "description": "Ability to edit a document",
+    "category": "Document Management",
+    "scope": "global"
+  },
+  {
+    "capability":"view-compliance",
+    "shortDescription":"View Compliance",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"View Compliance"
+  },
+  {
+    "capability":"view-risks-opportunities",
+    "shortDescription":"View Risks & Opportunities",
+    "category":"Project Management",
+    "scope":"global",
+    "description":"Ability to View Risks & Opportunities"
+  },
+  {
+    "capability":"edit-task-completed-date",
+    "shortDescription":"Edit Task Completed Date",
+    "category":"Task Management",
+    "scope":"global",
+    "description":"Ability to edit task completed date"
+  },
+  {
+    "capability":"edit-task-description",
+    "shortDescription":"Edit Task Description",
+    "category":"Task Management",
+    "scope":"global",
+    "description":"Avility to edit task description"
+  }
+]
+

@@ -1,0 +1,452 @@
+[
+  {
+    "role": "technology-lead",
+    "category": "PMU Team",
+    "description": "Technology Lead",
+    "capabilities": [
+      {
+        "capability": "create-user",
+        "description": "Create User",
+        "scope": "global"
+      },
+      {
+        "capability": "create-task",
+        "description": "Ability to create a task",
+        "scope": "global"
+      },
+      {
+        "capability": "create-subtask",
+        "description": "Ability to create a task",
+        "scope": "global"
+      },
+      {
+        "capability": "attach-documents-to-task",
+        "description": "Ability to attach documents to a task",
+        "scope": "global"
+      },
+      {
+        "capability": "add-tag-to-task",
+        "description": "Ability to add tag to a task",
+        "scope": "global"
+      },
+      {
+        "capability": "link-task",
+        "description": "Ability to link task with other task",
+        "scope": "global"
+      },
+      {
+        "capability": "create-message",
+        "description": "Ability to create a message",
+        "scope": "global"
+      },
+      {
+        "capability": "view-all-cmp-messages",
+        "description": "Ability to view all cmp message",
+        "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "program-coordinator",
+    "category": "PMU Team",
+    "description": "Program Coordinator",
+    "capabilities": [
+      {
+        "capability":"create-project",
+        "description":"Create Project",
+        "scope":"global"
+      },
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-task",
+        "description": "Ability to create a task",
+        "scope": "global"
+      },
+      {
+        "capability": "attach-documents",
+        "description": "Ability to attach documents to a task",
+        "scope": "global"
+      },
+      {
+        "capability": "add-tag-to-task",
+        "description": "Ability to add tag to a task",
+        "scope": "global"
+      },
+      {
+        "capability": "create-message",
+        "description": "Ability to create a message",
+        "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      },
+      {
+        "capability": "delete-doc",
+        "shortDescription": "Delete Document",
+        "description": "Ability to delete a document",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "communication-specialist",
+    "category": "PMU Team",
+    "description": "Communication Specialist",
+    "capabilities": [
+      {
+        "capability": "publish-document",
+        "description": "Publish Documents",
+        "scope": "global"
+      },
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "program-manager",
+    "category": "PMU Team",
+    "description": "Program Manager",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-doc",
+        "description": "Ability to create a document",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "junior-planners",
+    "category": "PMU Team",
+    "description": "Junior Planners",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "e&s-specialist",
+    "category": "PMU Team",
+    "description": "E&S Specialist",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "procurement-specialist",
+    "category": "PMU Team",
+    "description": "Procurement Specialist",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "director-niua",
+    "category": "PMU Team",
+    "description": "Director NIUA",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "mentors",
+    "category": "PMU Team",
+    "description": "Mentors",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "experts",
+    "category": "PMU Team",
+    "description": "Experts",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "spv-ceo",
+    "category": "SPV",
+    "description": "SPV CEO",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "spv-project-incharge",
+    "category": "SPV",
+    "description": "SPV Project Incharge",
+    "capabilities": [
+      {
+        "capability":"edit-task-progress-dates",
+        "description":"Edit Task Progress Percentage",
+        "scope":"global"
+      },
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "spv-e&s-nodal-officer",
+    "category": "SPV",
+    "description": "SPV E&S Nodal Officer",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "spv-public-engagement-officer",
+    "category": "SPV",
+    "description": "SPV Public Engagement Officer",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "joint-secretary",
+    "category": "MoHUA",
+    "description": "Joint Secretary",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "mission-director",
+    "category": "MoHUA",
+    "description": "Mission Director",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "assistant-director",
+    "category": "MoHUA",
+    "description": "Assistant Director",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "dy-secretary",
+    "category": "MoHUA",
+    "description": "Dy. Secretary",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "dy-director",
+    "category": "AFD",
+    "description": "Dy. Director",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  },
+  {
+    "role": "afd-project-manager",
+    "category": "AFD",
+    "description": "AFD Project Manager",
+    "capabilities": [
+      {
+        "capability": "project-view",
+        "description": "Project View",
+        "scope": "global"
+      },
+      {
+        "capability": "create-folder",
+        "shortDescription": "Create Folder",
+        "description": "Ability to create a folder",
+        "scope": "global"
+      }
+    ]
+  }
+]

@@ -1,0 +1,175 @@
+# Create financial Info
+  createFinancialInfo:
+    post:
+      security:
+        - token: []
+      summary: Create Financial Info
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - percentage
+                - phase
+              properties:
+                percentage:
+                  type: number
+                  example: 10
+                phase:
+                  type: string
+                  example: initialPhase
+      responses:
+        "200":
+          description: success
+          $ref: "./schema.yaml/#/responses/financialInfo"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Edit financial Info
+  editFinancialInfo:
+    post:
+      security:
+        - token: []
+      summary: Edit Financial Info
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+        - in: path
+          name: financialId
+          schema:
+            type: string
+          required: true
+          description: Financial Info Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - percentage
+                - phase
+              properties:
+                percentage:
+                  type: number
+                  example: 10
+                phase:
+                  type: string
+                  example: initialPhase               
+      responses:
+        "200":
+          description: success
+          $ref: "./schema.yaml/#/responses/financialInfo"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Delete Financial Info
+  deleteFinancialInfo:
+    post:
+      security:
+        - token: []
+      summary: Delete Financial Info
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+        - in: path
+          name: financialId
+          schema:
+            type: string
+          required: true
+          description: Financial Info Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                members:
+                  type: array
+                  example: []                
+      responses:
+        "200":
+          description: success
+          $ref: "./schema.yaml/#/responses/financialInfo"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+
+# Financial Info Details
+  detailsFinancialInfo:
+    get:
+      security:
+        - token: []
+      summary: Financial Info Details
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+        - in: path
+          name: financialId
+          schema:
+            type: string
+          required: true
+          description: Financial Info Id
+      responses:
+        "200":
+          description: success
+          $ref: "./schema.yaml/#/responses/financialInfo"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"
+
+# Financial Info List
+  listFinancialInfo:
+    get:
+      security:
+        - token: []
+      summary: Financial Info List
+      tags:
+        - FINANCIAL INFO
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Project Id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./schema.yaml/#/responses/schemas/financialInfo"
+        "400":
+          $ref: "#/definitions/ErrorResponse/BadRequest"

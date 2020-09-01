@@ -1,0 +1,3445 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: "CMP API's "
+
+servers:
+  - url: "https://cmp-dev.transerve.com/api"
+  - url: " http://localhost:3000"
+
+basePath: /
+
+paths:
+# user apis
+  # Invite User
+  "/user/create":
+    post:
+      security:
+        - token: []
+      summary: Invite users
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+                - role
+              properties:
+                name:
+                  type: string
+                  example: jeevan balla
+                email:
+                  type: string
+                  example: Jeevan.balla@transerve.com
+                role:
+                  type: string
+                  example: project manager
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId: 
+                    type: string
+                    example: 123456789
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # Add Grants        
+  "/user/grants/add/{id}":
+    post:
+      security:
+        - token: []
+      summary: Add Grants to User
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+                - projects
+              properties:
+                role:
+                  type: string
+                  example: project lead
+                project:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - project id 1
+                    - project id 2
+                    - project id 3
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: Roles added successfully
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # User Register
+  "/user/register/{token}":
+    post:
+      summary: register user with that role
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: token
+            schema:
+              type: string
+            required: true
+            description: Token with user Details
+      requestBody:
+        required: true
+        content:
+          multipart/form-data::
+            schema:
+              type: object
+              required:
+                - name
+                - phone
+                - uploadPhoto
+                - aboutme
+                - password
+              properties:
+                name:
+                  type: string
+                  example: sai jeevan balla
+                phone:
+                  type: number
+                  example: 7989238348
+                uploadPhoto:
+                  type: string
+                  format: binary
+                aboutme:
+                  type: string
+                  example: "project manager for transerve"
+                password:
+                  type: string
+                  example: password
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "token":
+                    type: boolean
+                    example: kjabsdfviadvhoidjvodjv352kjtrenorg25t1
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user Login
+  "/user/email/login":
+    post:
+      summary: login for user
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: pranay@citiis.com
+                password:
+                  type: string
+                  example: Citiis@123
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "token":
+                    type: string
+                    example: ebiudhvifjvp9WEI0923ONVJKehv9
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user Roles 
+  "/user/me/role":
+    get:
+      security:
+        - token: []
+      summary: get list roles
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - role 1
+                      - role 2
+                      - role 3
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user capabilities
+  "/user/me/capabilities":
+    get:
+      security:
+        - token: []
+      summary: get user capapbilities
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - capability 1
+                      - capability 2
+                      - capability 3
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user details
+  "/user/me/":
+    get:
+      security:
+        - token: []
+      summary: get user details
+      tags:
+        - USERS
+      responses:
+        "200":
+          $ref: "#/components/responses/userME"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user capabilities
+  "/user/resend/invite/{id}":
+    get:
+      security:
+        - token: []
+      summary: register user with that role
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: successfully mail was sent 
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # forgot password
+  "/user/forgot":
+    post:
+      summary: user forgot password
+      tags:
+        - USERS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  example: jeevan.balla@transerve.com
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: string
+                    example: successfully mail was sent
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user set password
+  "/user/forgot/password/{token}":
+    post:
+      summary: user set password
+      tags:
+        - USERS
+      parameters:
+        - in: path
+          name: token
+          schema:
+            type: string
+          required: true
+          description: token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  example: password
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "token":
+                    type: string
+                    example: urgre8t598gwvorjf8hfq439jfao
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # user list
+  "/user/list/":
+    get:
+      security:
+        - token: []
+      summary: get user details list
+      tags:
+        - USERS
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "list":
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        name: 
+                          type: string
+                          example: sai jeevan balla
+                        role:
+                          type: string
+                          example: project managet
+                        cities: 
+                          type: array
+                          items:
+                            type: string
+                          example:
+                            - VIZAG-CODE
+                            - HYD-CODE
+                            - AMR-CODE
+                        is_active: 
+                          type: boolean
+                          example: true
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  #user edit
+  "/user/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit user
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+              properties:
+                name:
+                  type: string
+                  example: jeevan balla
+                email:
+                  type: string
+                  example: Jeevan.balla@transerve.com
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "success":
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: jeevan balla
+                      email:
+                        type: string
+                        example: Jeevan.balla@transerve.com
+                  
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  #user edit status
+  "/user/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: change user status
+      tags:
+        - USERS
+      parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: user id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+
+#project apis
+  # create project code
+  "/project/city/code/add":
+    post:
+      security:
+        - token: []
+      summary: add city code
+      tags:
+        - PROJECT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - citycode
+                - cityname
+              properties:
+                citycode:
+                  type: string
+                  example: CITIIS-OR-BBR
+                cityname:
+                  type: string
+                  example: vizag
+                description:
+                  type: string
+                  example: project for develop schools
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schools
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # edit project code
+  "/project/city/code/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit city code
+      tags:
+        - PROJECT
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - citycode
+                - cityname
+              properties:
+                citycode:
+                  type: string
+                  example: CITIIS-OR-BBR
+                cityname:
+                  type: string
+                  example: vizag
+                description:
+                  type: string
+                  example: project for develop schools
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schoolss
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # project inactive
+  "/project/city/code/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: active or inactive city code
+      tags:
+        - PROJECT
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: inactive
+                    description: inactive or active
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # project list
+  "/project/city/code/list":
+    get:
+      security:
+        - token: []
+      summary: city code list
+      tags:
+        - PROJECT
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: 
+                          type: string
+                          example: project_id
+                        referece: 
+                          type: string
+                          example: VIZAG-CODE
+                          description: city codes
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # project List
+  "/project/list":
+    get:
+      security:
+        - token: []
+      summary: get project list
+      tags:
+        - PROJECT
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: 
+                          type: string
+                          example: project_id
+                        name: 
+                          type: string
+                          example: howrah
+                        city:
+                          type: string
+                          example: agarthala
+                        maturationEndDate:
+                          type: string
+                          example: 22-1-2001
+                        theme: 
+                          type: string
+                          example: theme1
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # get project  
+  "/project/{id}":
+      get:
+        security:
+          - token: []
+        summary: get project list
+        tags:
+          - PROJECT
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            $ref: "#/components/responses/project"
+                        
+          "400":
+            $ref: "#/components/responses/BadRequest"
+  # get task list         
+  "/project/{id}/task/list":
+      get:
+        security:
+          - token: []
+        summary: get project list
+        tags:
+          - PROJECT
+        parameters:
+          - in: path
+            name: id
+            schema:
+              type: string
+            required: true
+            description: project id
+        responses:
+          "200":
+            description: success
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    list: 
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name: 
+                            type: string
+                            example:  Taskname
+                          startDate: 
+                            type: string
+                            example: 22-1-2001
+                          endDate:
+                            type: string
+                            example: 23-2-2019
+                          access:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                  example: owner
+                                role:
+                                  type: string
+                                  example: mentor
+                                status:
+                                  type: string
+                                  example: PENDING
+          "400":
+            $ref: "#/components/responses/BadRequest"
+  # edit project code
+  "/project/{id}/task/add":
+    post:
+      security:
+        - token: []
+      summary: task add
+      tags:
+        - PROJECT
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: project id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: 
+                  type: string
+                  example:  Taskname
+                startDate: 
+                  type: string
+                  example: 22-1-2001
+                endDate:
+                  type: string
+                  example: 23-2-2019
+                access:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: owner
+                      role:
+                        type: string
+                        example: mentor
+                      status:
+                        type: string
+                        example: PENDING
+                
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: 
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: CITIIS-OR-BBR
+                      name:
+                        type: string
+                        example: vizag
+                      summary:
+                        type: string
+                        example: project for develop schoolss
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        
+# roles
+  #roles list
+  "/role/list":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        scope: 
+                          type: string
+                          example: global
+                        role: 
+                          type: string
+                          example: project lead
+                        
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  #roles scope list    
+  "/role/scope/list/{userid}":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      parameters:
+        - in: path
+          name: userid
+          schema:
+            type: string
+          required: true
+          description: project id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        scope: 
+                          type: string
+                          example: global
+                        role: 
+                          type: string
+                          example: project lead
+                        
+                      
+        "400":
+          $ref: "#/components/responses/BadRequest" 
+  # user list
+  "/role/user/list/":
+    get:
+      security:
+        - token: []
+      summary: get role list
+      tags:
+        - ROLE
+      parameters:
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: role for get users list
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+                        role: 
+                          type: string
+                          example: project lead
+                        users:
+                          type: array
+                          items: 
+                            type: object
+                            properties:
+                              id: 
+                                type: string
+                                example: userid212
+                              firsrName: 
+                                type: string
+                                example: james
+                              secondName:
+                                type: string
+                                example: bond
+                                
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # add tag
+  "/project/tag/add":
+    post:
+      security:
+        - token: []
+      summary: add tag
+      tags:
+        - TAG
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tag
+              properties:
+                tag:
+                  type: string
+                  example: document
+                description:
+                  type: string
+                  example: document for vizag project
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # edit tag
+  "/project/tag/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit tag
+      tags:
+        - TAG
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: tag _id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag:
+                  type: string
+                  example: document
+                description:
+                  type: string
+                  example: document for vizag project
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  #change status
+  "/project/tag/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: active or inactive tag
+      tags:
+        - TAG
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: tag _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # tag List
+  "/project/tag/list":
+    get:
+      security:
+        - token: []
+      summary: get tags list
+      tags:
+        - TAG
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # theme add
+  "/project/theme/add":
+    post:
+      security:
+        - token: []
+      summary: add theme
+      tags:
+        - THEME
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - theme
+              properties:
+                theme:
+                  type: string
+                  example: dams
+                description:
+                  type: string
+                  example: dam for vizag
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # theme Edit
+  "/project/theme/edit/{id}":
+    post:
+      security:
+        - token: []
+      summary: edit theme
+      tags:
+        - THEME
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: theme _id
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                theme:
+                  type: string
+                  example: Dam
+                description:
+                  type: string
+                  example: Dam for vizag
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # Theme Status
+  "/project/theme/status/{id}":
+    put:
+      security:
+        - token: []
+      summary: active or inactive theme
+      tags:
+        - THEME
+
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: theme _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # Theme List
+  "/project/theme/list":
+    get:
+      security:
+        - token: []
+      summary: get theme list
+      tags:
+        - THEME
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "status:":
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # Doc Create     
+  "/docs/create":
+    post:
+      security:
+        - token: []
+      summary: Create New Document
+      tags:
+        - RESOURCES
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Annula Report
+                description:
+                  type: string
+                  example: Dam for vizag
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345    
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # doc Version
+  # "/docs/{id}/versions":
+  #   get:
+  #     security:
+  #       - token: []
+  #     summary: Get list of doc versions
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 versions:
+  #                   type: array
+  #                   items:
+  #                     type: object
+  #                     properties:
+  #                       version:
+  #                         type: string
+  #                         example: v1
+  #                       status:
+  #                         type: string
+  #                         example: pending
+  #                       id:
+  #                         type: string
+  #                         example: 123224
+  #                       created_at:
+  #                         type: string
+  #                         example: "2019-08-26T15:17:29.912Z"
+  #                       updated_at:
+  #                         type: string
+  #                         example: "2019-08-26T15:17:29.912Z"
+                
+                    
+                        
+                    
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
+  # submit for approval      
+  "/docs/{id}/submit":
+    put:
+      security:
+        - token: []
+      summary: Submit Document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  doc_id:
+                    type: string
+                    example: 343544
+                  file_name:
+                    type: string
+                    example: filename.pdf
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # doc List
+  "/docs/list":
+    get:
+      security:
+        - token: []
+      summary: list of documents
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        uploadBy:
+                          type: string
+                          example: jeevan
+                        role: 
+                          type: string
+                          example: project manager
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # My list of Docs      
+  "/docs/me":
+    get:
+      security:
+        - token: []
+      summary: my list of documents
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # My list of Docs      
+  "/docs/shared/me":
+    get:
+      security:
+        - token: []
+      summary: document list shared with me
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        docId:
+                          type: string
+                          example: doc12345
+                        name:
+                          type: string
+                          example: docName
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: 
+                              - tagId1234
+                              - tagId5432
+                        date:
+                          type: string
+                          example: "2019-08-26T15:17:29.912Z"
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # create a new copy
+  # "/docs/{id}/versions/{versionId}/create":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: create a new copy
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: parent _id
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               name:
+  #                 type: string
+  #                 example: doc name
+  #               description:
+  #                 type: string
+  #                 example: describe about doc
+  #               tags: 
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                   example:
+  #                     - tag id123
+  #                     - tag id123
+  #               themes:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                 example:
+  #                   - themes id123
+  #                   - theme id133
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                     fileName:
+  #                       type: string
+  #                       example: filename1
+  #                     description:
+  #                       type: string
+  #                       example: this document for dams
+  #                     themes:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - theme1
+  #                         - theme1
+  #                     tags:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - tag 1
+  #                         - tag 2
+  #                     versionId:
+  #                       type: string
+  #                       example: v3
+  #                     docId:
+  #                       type: string
+  #                       example: doc123455
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+          
+  # update version     
+  # "/docs/{id}/versions/{versionId}":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: update version
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: version _id
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               file_name:
+  #                 type: string
+  #                 example: Annula Report
+  #               file_description:
+  #                 type: string
+  #                 example: Dam for vizag
+  #               themes:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                 example: 
+  #                   - 12346
+  #                   - 12345
+  #               tags:
+  #                 type: array
+  #                 items:
+  #                   type: string
+  #                 example: 
+  #                   - 12346
+  #                   - 12345  
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                     fileName:
+  #                       type: string
+  #                       example: filename1
+  #                     description:
+  #                       type: string
+  #                       example: this document for dams
+  #                     themes:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - theme1
+  #                         - theme1
+  #                     tags:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - tag 1
+  #                         - tag 2
+  #                     versionId:
+  #                       type: string
+  #                       example: v3
+  #                     docId:
+  #                       type: string
+  #                       example: doc123455
+                  
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  #   get:
+  #     security:
+  #       - token: []
+  #     summary: get particular version details
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                     fileName:
+  #                       type: string
+  #                       example: filename1
+  #                     description:
+  #                       type: string
+  #                       example: this document for dams
+  #                     themes:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - theme1
+  #                         - theme1
+  #                     tags:
+  #                       type: array
+  #                       items:
+  #                         type: string
+  #                       example:
+  #                         - tag 1
+  #                         - tag 2
+  #                     versionId:
+  #                       type: string
+  #                       example: v3
+  #                     docId:
+  #                       type: string
+  #                       example: doc123455
+                  
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
+  # approve and publish automatically   
+  # "/docs/{id}/versions/{versionId}/publish":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: approve and publish automatically
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: version _id
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message: 
+  #                   type: string
+  #                   example: document approved
+                  
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
+  # reject specific version        
+  # "/docs/{id}/versions/{versionId}/reject":
+  #   post:
+  #     security:
+  #       - token: []
+  #     summary: reject specific version
+  #     tags:
+  #       - RESOURCES
+  #     parameters:
+  #       - in: path
+  #         name: id
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: doc _id 
+  #       - in: path
+  #         name: versionId
+  #         schema:
+  #           type: string
+  #         required: true
+  #         description: version _id
+  #     responses:
+  #       "200":
+  #         description: success
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: document rejected
+                  
+  #       "400":
+  #         $ref: "#/components/responses/BadRequest"
+  
+  # download the file from revision       
+  # "/docs/{id}/versions/{versionId}/file":
+    # get:
+    #   security:
+    #     - token: []
+    #   summary: download the file from revision
+    #   tags:
+    #     - RESOURCES
+    #   parameters:
+    #     - in: path
+    #       name: id
+    #       schema:
+    #         type: string
+    #       required: true
+    #       description: doc _id 
+    #     - in: path
+    #       name: versionId
+    #       schema:
+    #         type: string
+    #       required: true
+    #       description: version _id
+    #   responses:
+    #     "200":
+    #       description: success
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               message: 
+    #                 type: string
+    #                 example: file downloading
+    #     "400":
+    #       $ref: "#/components/responses/BadRequest"
+    
+  
+  # download latest version
+  "/docs/{id}/file":
+    get:
+      security:
+        - token: []
+      summary: download latest version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: file downloading
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    post:
+      security:
+        - token: []
+      summary: Change or create a New file for this version
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  upfile:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      doc_id:
+                        type: string
+                        example: 343544
+                      file_name:
+                        type: string
+                        example: filename.pdf
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  # get Doc details     
+  "/docs/{id}":
+    get:
+      security:
+        - token: []
+      summary: get Doc details
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                      fileName:
+                        type: string
+                        example: filename1
+                      description:
+                        type: string
+                        example: this document for dams
+                      themes:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - theme1
+                          - theme1
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - tag 1
+                          - tag 2
+                      versionId:
+                        type: string
+                        example: v3
+                      docId:
+                        type: string
+                        example: doc123455
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    post:
+      security:
+        - token: []
+      summary: update document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Annula Report
+                description:
+                  type: string
+                  example: Dam for vizag
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+                
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: Annula Report
+                  description:
+                    type: string
+                    example: Dam for vizag
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                      - 12346
+                      - 12345 
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+      
+ 
+  # Add collaborators to document    
+  "/docs/{id}/collaborator/add":
+    post:
+      security:
+        - token: []
+      summary: Add collaborators to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added collaborators successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # remove collaborators to document     
+  "/docs/{id}/collaborator/remove":
+    put:
+      security:
+        - token: []
+      summary: Remove collaborators to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: remove collaborators successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  # Add viewers to document    
+  "/docs/{id}/viewer/add":
+    post:
+      security:
+        - token: []
+      summary: Add viewers to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                viewers:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added viewers successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # remove viewers to document     
+  "/docs/{id}/viewer/remove":
+    put:
+      security:
+        - token: []
+      summary: Remove viewer to the group
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                collaborators:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                    - 12346
+                    - 12345 
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: remove viewers successfully
+                  
+                  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # remove collaborators to document     
+  "/docs/{id}/collaborator/list":
+    get:
+      security:
+        - token: []
+      summary: Collaborators list for document 
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collaboratores:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: 
+                          type: string
+                        email: 
+                          type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  # remove viewers to document     
+  "/docs/{id}/viewer/list":
+    get:
+      security:
+        - token: []
+      summary: viewers list for document 
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  viewers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: 
+                          type: string
+                        email: 
+                          type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+   
+  "/docs/{id}/share":
+    post:
+      security:
+        - token: []
+      summary: doc share to users
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: collaborator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items: 
+                    type: object
+                    $ref: "#/components/schemas/DocPermissions"
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/share/list":
+    get:
+      security:
+        - token: []
+      summary: shared users list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  $ref: "#/components/schemas/DocPermissions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/share/{type}/{userId}/edit":
+    put:
+      security:
+        - token: []
+      summary: edit user permission
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: user Id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: owner
+        - in: path
+          name: type
+          schema:
+            type: string
+          required: true
+          description: group
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+                    
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/{id}/share/{type}/{userId}/remove":
+    delete:
+      security:
+        - token: []
+      summary: edit user permission
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: user Id
+        - in: query
+          name: role
+          schema:
+            type: string
+          required: true
+          description: owner
+        - in: path
+          name: type
+          schema:
+            type: string
+          required: true
+          description: user
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: added successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/user/suggestion":
+    get:
+      security:
+        - token: []
+      summary: shared users list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: true
+          description: sarch name
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  $ref: "#/components/schemas/DocPermissions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/capabilities":
+    get:
+      security:
+        - token: []
+      summary: get Doc Capabilities for user
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - capabilitiy 1
+                      - capability 2
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/{id}/publish":
+    post:
+      security:
+        - token: []
+      summary: publish a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  "/docs/{id}/unpublish":
+    put:
+      security:
+        - token: []
+      summary: unPublish a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/{id}/replace/{replaceDocId}":
+    post:
+      security:
+        - token: []
+      summary: Replace a document
+      tags:
+        - RESOURCES
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: doc _id 
+        - in: path
+          name: replaceDocId
+          schema:
+            type: string
+          required: true
+          description: replace doc _id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  
+  "/docs/publish/list":
+    get:
+      security:
+        - token: []
+      summary: Publish doc list
+      tags:
+        - RESOURCES
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest" 
+
+  "/docs/search":
+    get:
+      security:
+        - token: []
+      summary: Publish doc list
+      tags:
+        - RESOURCES
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            type: string
+          required: true
+          description: "#tagName or documentName"
+      
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  $ref: "#/components/schemas/Document"
+        "400":
+          $ref: "#/components/responses/BadRequest" 
+    
+  # add group
+  "/user/group/create":
+    post:
+      security:
+        - token: []
+      summary: Create new Group
+      tags:
+        - GROUP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - users
+              properties:
+                name:
+                  type: string
+                  example: group Name
+                description:
+                  type: string
+                  example: Group Description
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  is_active: 
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Edit group
+  "/user/group/{id}/edit":
+    put:
+      security:
+        - token: []
+      summary: Edit Group
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: group Name
+                description:
+                  type: string
+                  example: Group Description
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  is_active: 
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Group Status
+  "/user/group/{id}/status":
+    put:
+      security:
+        - token: []
+      summary: active or inactive group
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: active
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  # Get Group List
+  "/user/group/list":
+    get:
+      security:
+        - token: []
+      summary: Get Group List
+      tags:
+        - GROUP
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: group Name
+                    description:
+                      type: string
+                      example: Group Description
+                    users:
+                      type: number
+                      example: 4
+                    is_active:
+                      type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Edit group
+  "/user/group/{id}":
+    get:
+      security:
+        - token: []
+      summary: Get Group Details
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: group Name
+                    description:
+                      type: string
+                      example: Group Description
+                    users:
+                      type: array
+                      items: 
+                        type: object
+                        properties:
+                          name: 
+                            type: string
+                            example: sai jeevan balla
+                          email:
+                            type: string
+                            example: jeevan.balla@transerve.com
+                    is_active:
+                      type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  # Add member
+  "/user/group/{id}/member/add":
+    post:
+      security:
+        - token: []
+      summary: Add Member
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items: 
+                    type: string
+                  example:
+                    - userid 1
+                    - uerrid 2
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  users:
+                    type: array
+                    items: 
+                      type: string
+                    example:
+                      - userid 1
+                      - uerrid 2
+                  is_active: 
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+          
+  # Remove member
+  "/user/group/{id}/member/remove":
+    post:
+      security:
+        - token: []
+      summary: Add Member
+      tags:
+        - GROUP
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: group id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                users:
+                  type: array
+                  items: 
+                    type: string
+                  example:
+                    - userid 1
+                    - uerrid 2
+
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: 
+                    type: string
+                    example: groupId12312
+                  name:
+                    type: string
+                    example: group Name
+                  description:
+                    type: string
+                    example: Group Description
+                  users:
+                    type: array
+                    items: 
+                      type: string
+                    example:
+                      - userid 1
+                      - uerrid 2
+                  is_active: 
+                    type: boolean
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+#components
+components:
+  securitySchemes:
+    token:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    userME:
+      description: user schema
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/userSchema"
+    project:
+      description: project
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/projectSchema"
+    group:
+      description: project
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/group"
+
+  schemas:
+    # error schema
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    # user schema
+    userSchema:
+      type: object
+      properties:
+        name: 
+          type: string
+          example: sai jeevan balla
+        email:
+          type: string
+          example: jeevan.balla@transerve.com
+        emailVerified:
+          type: boolean
+          example: false
+        password: 
+          type: string
+          example: adhdbfverhf92nfn
+          description: hashpassword
+        phone:
+          type: number
+          example: 7989238348
+        phoneVerified:
+          type: boolean
+          example: false
+        aboutme: 
+          type: string
+          example: i am a project manager
+        uploadPhoto:
+          type: string
+          example: https://amazonS3.com/user/profilepic
+        is_active: 
+          type: boolean
+          example: true
+    # project schema
+    projectSchema:
+      type: object
+      properties:
+        name: 
+          type: string
+          example: vizag schools develop
+        city:
+          type: string
+          example: vizag
+        summary:
+          type: string
+          example: this project for de develop schools
+        reference: 
+          type: string
+          example: VIZAG-CODE
+        bannerImage:
+          type: string
+          example: https://amazonS3.com/project/banner
+        maturationStartDate:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: 22-1-2019
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        thirdParyAggrementDate:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: 22-1-2019
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        thirdParyAggrementDocument:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: https://Amazons3.com/thirdPary/Aggrement/Document
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        maturationEndDate:
+          type: array
+          items:
+            type: object
+            properties:
+              date: 
+                type: string
+                example: 22-1-2019
+              created_at: 
+                type: string
+                example: 10-1-2019
+              modified_at: 
+                type: string
+                example: 15-1-2019
+              modified_by:
+                type: string
+                example: 12343567890
+                description: user id
+        projectCost:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        citiisGrants:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        fundsReleased:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        fundsUtilised:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: number
+                  example: 1000
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        fundsUtilisedDocuments:
+            type: array
+            items:
+              type: object
+              properties:
+                date: 
+                  type: string
+                  example: https://Amazons3.com/fundsUtilised/Documents
+                created_at: 
+                  type: string
+                  example: 10-1-2019
+                modified_at: 
+                  type: string
+                  example: 15-1-2019 
+                modified_by:
+                  type: string
+                  example: 12343567890
+                  description: user id
+        themes: 
+          type: string
+          example: 12343567890
+          description: theme id
+        is_active: 
+          type: boolean
+          example: true
+    Trackable:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+          example: "2019-08-28T12:38:39.258+00:00"
+        modifiedAt:
+          type: string
+          format: date-time
+          example: "2019-08-28T12:40:27.316+00:00"
+    # Document schema
+    DocumentContent:
+      allOf:
+        - $ref: '#/components/schemas/Trackable'
+        - type: object
+        - properties:
+            id:
+              type: string
+              format: uniqueid
+              example: 54313797101372181
+            name: 
+              type: string
+              example: Proposal Document
+            description:
+              type: string
+              example: This is a proposal document that covers the plan to execute and the cost and time estimates
+            fileName:
+              type: string
+              example: proposal.pdf
+            tags:
+              type: array
+              items: 
+                type: string
+              example: ["finance", "proposal"]
+            themes:
+              type: array
+              items: 
+                type: string
+              example: ["maturation", "global", "proposal"]
+    Document:
+      allOf:
+        - $ref: '#/components/schemas/DocumentContent'
+        - type: object
+        - properties:
+            owner:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Amarthya Sen
+                id:
+                  type: string
+                  example: 54213790101372682
+            status:
+              type: string
+              enum: ["unpublished", "published", "deleted", "pending-approval", "rejected"]
+              example: published
+            versionNumber:
+              type: integer
+              description: Latest published version number
+              example: 1
+            versionId:
+              type: string
+              format: uniqueid
+              example: 54313797101372179
+    DocumentVersion:
+      allOf:
+        - $ref: '#/components/schemas/DocumentContent'
+        - type: object
+        - properties:
+            versionNumber:
+              type: number
+              example: 1
+            documentId:
+              type: string
+              format: uniqueid
+              example: 54213790101372681
+            status:
+              type: string
+              enum: ["draft", "submitted", "rejected"]
+    status:
+      type: object
+      properties:
+        APPROVED:
+          type: number
+          example: 1
+        REJECTED:
+          type: number
+          example: 2
+        PENDING:
+          type: number
+          example: 3
+    task:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Task Name
+        description:
+          type: string
+          example: Task Description
+        dueDate: 
+          type: string
+          example: 22-1-2019
+        assignTo:
+          type: string
+          example: userId
+        supportUsers:
+          type: array
+          items:
+            type: string
+          example: 
+            - userId 1
+            - userId 2
+        priority:
+          type: string
+          enum: [ 0, 1, 2]
+          description: "HIGH = 0, NORMAL = 1, LOW = 2"
+        status:
+          type: string
+          enum: [ 0, 1, 2, 3, 4, 5]
+          description: "ASSIGN = 0, ACCEPT =  1, REJECT = 2, DONE = 3, APPROVE = 4, COMPLETE = 5"
+        workflow:
+          type: object
+          properties:
+            currentStatus:
+              type: string
+              example: "in progress"
+            current user: 
+              type: string
+              example: "userID 12454"
+            users:
+              type: object
+              properties:
+                approvers:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    -user1
+                owner:
+                  type: string
+                  example: user24
+    group:
+      type: object
+      required:
+        - name
+        - users
+      properties:
+        name: 
+          type: string
+          example: group name
+        description:
+          type: string
+          example: group description
+        users:
+          type: array
+          items:
+            type: string
+          example:
+            - userId 1
+            - userId 2
+        is_asctive: 
+          type: boolean
+          example: true
+          
+    DocPermissions:
+      allOf:
+        - $ref: "#/components/schemas/UserSuggestion"
+        - type: object
+          required: 
+            - permission
+          properties:
+            permission:
+              type: string
+              enum: ["owner", "collaborator", "viewer"]
+          
+    UserSuggestion:
+      type: object
+      required: 
+        - id
+      properties:
+        id:
+          type: string
+          example: 12345432112424
+          description: groupId or userId
+        name:
+          type: string
+          example: hello
+          description: group name or user name
+        email:
+          type: string
+          example: jeevan+23@transerve.com
+          description: user or group email
+        type: 
+          type: string
+          example: user
+          enum: ["group", "user"]
+
+    
+          
+          
+          
+          
+          
+          
+          
+          
+        
+              
+          
+            
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+      

@@ -1,0 +1,472 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: CMP-API
+servers:
+  - url: "https://cmp-dev.transerve.com/api"
+  - url: " http://localhost:3000"
+
+# during dev, should point to your local machine
+host: localhost:4000
+# basePath prefixes all resource paths 
+#
+basePath: /
+
+schemes:
+  # tip: remove http to make production-grade
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+paths:
+# User APIs
+  /user/create:
+    $ref: ./swagger/users/paths.yaml/#/createUser
+  /user/grants/add/{id}:
+    $ref: ./swagger/users/paths.yaml/#/addGrant
+  /user/register/{token}:
+    $ref: ./swagger/users/paths.yaml/#/userRegister
+  /user/email/login:
+    $ref: ./swagger/users/paths.yaml/#/userLogin
+  /user/me/role:
+    $ref: ./swagger/users/paths.yaml/#/userRole
+  /user/me/capabilities:
+    $ref: ./swagger/users/paths.yaml/#/userCapabilities
+  /user/me:
+    $ref: ./swagger/users/paths.yaml/#/userDetails
+  /user/invite/resend/{role}/{id}:
+    $ref: ./swagger/users/paths.yaml/#/resendInvite
+  /user/forgot:
+    $ref: ./swagger/users/paths.yaml/#/forgotPassword
+  /user/forgot/verify:
+    $ref: ./swagger/users/paths.yaml/#/otpVerify
+  /user/forgot/setPassword:
+    $ref: ./swagger/users/paths.yaml/#/setPassword
+  /user/list/:
+    $ref: ./swagger/users/paths.yaml/#/userList
+  /user/detail/{id}:
+    $ref: ./swagger/users/paths.yaml/#/getUserDetail
+  /user/edit/{id}:
+    $ref: ./swagger/users/paths.yaml/#/editUser
+  /user/status/{id}:
+    $ref: ./swagger/users/paths.yaml/#/editUserStatus
+  /user/changeEmail:
+    $ref: ./swagger/users/paths.yaml/#/changeEmail
+  /user/profile/otp/verification:
+    $ref: ./swagger/users/paths.yaml/#/profileOtp
+  /user/verifyEmail:
+    $ref: ./swagger/users/paths.yaml/#/verifyEmail
+  /user/changePassword:
+    $ref: ./swagger/users/paths.yaml/#/changePassword
+  /user/userInfo/{id}:
+    $ref: ./swagger/users/paths.yaml/#/userInfo
+  /user/resend/mobileOtp:
+    $ref: ./swagger/users/paths.yaml/#/mobileOtp
+  /user/mobile/verify:
+    $ref: ./swagger/users/paths.yaml/#/mobileVerify
+  /user/send/mobileOtp:
+    $ref: ./swagger/users/paths.yaml/#/mobileOtp
+  /user/change/mobile:
+    $ref: ./swagger/users/paths.yaml/#/changeMobile
+  /user/{id}/admin/profile/edit:      
+    $ref: ./swagger/users/paths.yaml/#/editAdminProfile
+  /user/otp/verify/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/verifyOtpByAdmin
+  /user/setPassword/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/setPasswordByAdmin
+  /user/changeEmail/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/changeEmailByAdmin
+  /user/changeMobile/admin/{id}:
+    $ref: ./swagger/users/paths.yaml/#/changeMobileByAdmin
+# Groups APIs
+  /user/group/create:
+    $ref: ./swagger/groups/paths.yaml/#/createGroup
+  /user/group/{id}/edit:
+    $ref: ./swagger/groups/paths.yaml/#/editGroup
+  /user/group/{id}/status:
+    $ref: ./swagger/groups/paths.yaml/#/groupStatus
+  /user/group/{id}/member/add:
+    $ref: ./swagger/groups/paths.yaml/#/addMember
+  /user/group/{id}/member/remove:
+    $ref: ./swagger/groups/paths.yaml/#/removeMember
+  /user/group/{id}:
+    $ref: ./swagger/groups/paths.yaml/#/groupDetails
+  /user/group/list:
+    $ref: ./swagger/groups/paths.yaml/#/groupList
+
+
+# Private Groups APIs
+  /private-group/create:
+    $ref: ./swagger/private-groups/paths.yaml/#/createPrivateGroup
+  /private-group/{id}/edit:
+    $ref: ./swagger/private-groups/paths.yaml/#/editPrivateGroup
+  /private-group/{id}/status:
+    $ref: ./swagger/private-groups/paths.yaml/#/privateGroupStatus
+  /private-group/{id}/details:
+    $ref: ./swagger/private-groups/paths.yaml/#/privateGroupDetails
+  /private-group/list:
+    $ref: ./swagger/private-groups/paths.yaml/#/PrivateGroupList
+  /private-group/{id}/member/remove:
+    $ref: ./swagger/private-groups/paths.yaml/#/RemovePrivateGroupMember
+
+# Pattern APIs
+  /pattern/create:
+    $ref: ./swagger/patterns/paths.yaml/#/patternCreate
+  /pattern/{id}/edit:
+    $ref: ./swagger/patterns/paths.yaml/#/patternEdit
+  /pattern/{id}/delete:
+    $ref: ./swagger/patterns/paths.yaml/#/patternDelete
+  /pattern/{id}/details:
+    $ref: ./swagger/patterns/paths.yaml/#/patternDetails
+  /pattern/list:
+    $ref: ./swagger/patterns/paths.yaml/#/patternList
+  /pattern/message-modification:
+    $ref: ./swagger/patterns/paths.yaml/#/patternMessageModification
+    
+# Project APIs
+  /project/create:
+    $ref: ./swagger/projects/paths.yaml/#/createProjectCode
+  /project/list:
+    $ref: ./swagger/projects/paths.yaml/#/projectList
+  /project/{id}/detail:
+    $ref: ./swagger/projects/paths.yaml/#/getProjectDetail
+  /project/{id}/get-member-roles:
+    $ref: ./swagger/projects/paths.yaml/#/getMemberRoles
+  /project/{id}/edit:
+    $ref: ./swagger/projects/paths.yaml/#/editProjectCode
+  /project/{id}/manage-members:
+    $ref: ./swagger/projects/paths.yaml/#/manageProjectMembers
+  /project/{id}/members:
+    $ref: ./swagger/projects/paths.yaml/#/getProjectMemberDetails
+  /project/city/code/list:
+    $ref: ./swagger/projects/paths.yaml/#/projectCodeList
+  /project/cities/list:
+    $ref: ./swagger/projects/paths.yaml/#/citiesList
+  /project/{id}/task-list:
+    $ref: ./swagger/projects/paths.yaml/#/getProjectTaskList
+  /project/{id}/create-task:
+    $ref: ./swagger/projects/paths.yaml/#/addTaskToProject
+  /project/{id}/gantt-chart:
+    $ref: ./swagger/projects/paths.yaml/#/getGanttChartForProject
+  /project/{id}/link-task:
+    $ref: ./swagger/projects/paths.yaml/#/linkTask
+  /project/{id}/task/{task-id}/view:
+    $ref: ./swagger/projects/paths.yaml/#/getTaskDetail
+  /project/{id}/task/{task-id}/edit-date:
+    $ref: ./swagger/projects/paths.yaml/#/editTaskDate
+  /project/{id}/add-released-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addReleasedFund
+  /project/{id}/add-utilized-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addUtilizedFund
+  /project/{id}/delete-released-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addReleasedFund
+  /project/{id}/delete-utilized-fund:
+    $ref: ./swagger/projects/paths.yaml/#/addUtilizedFund
+  /project/{id}/update-released-fund:
+    $ref: ./swagger/projects/paths.yaml/#/updateReleasedFund
+  /project/{id}/update-utilized-fund:
+    $ref: ./swagger/projects/paths.yaml/#/updateUtilizedFund
+  /project/{id}/project-cost:
+    $ref: ./swagger/projects/paths.yaml/#/projectCost
+  /project/{id}/citiis-grants:
+    $ref: ./swagger/projects/paths.yaml/#/citiisGrants
+
+# Roles
+  /role/list:
+    $ref: ./swagger/roles/paths.yaml/#/getRoles
+  /role/scope/list/{userid}:
+    $ref: ./swagger/roles/paths.yaml/#/getRolesScopeList
+  /role/user/list/:
+    $ref: ./swagger/roles/paths.yaml/#/getUserListByRole
+  /role/capabilities/list:
+    $ref: ./swagger/roles/paths.yaml/#/listCapabilities
+  /role/all/capabilities/list:
+    $ref: ./swagger/roles/paths.yaml/#/getCapabilitiesofAllRole
+  /role/capability/add:
+    $ref: ./swagger/roles/paths.yaml/#/addCapability  
+  /role/capability/remove:
+    $ref: ./swagger/roles/paths.yaml/#/removeCapability
+  /role/add:
+    $ref: ./swagger/roles/paths.yaml/#/addRole 
+  /role/{role}/edit:
+    $ref: ./swagger/roles/paths.yaml/#/editRole   
+
+# Comments
+  /comments/add:
+    $ref: ./swagger/comments/paths.yaml/#/addComment  
+  /comments/list/{doc_id}:
+    $ref: ./swagger/comments/paths.yaml/#/getCommets 
+
+# Tags
+  /project/tag/add:
+    $ref: ./swagger/tags/paths.yaml/#/addTagToProject
+  /project/tag/edit/{id}:
+    $ref: ./swagger/tags/paths.yaml/#/editTagOfProject
+  /project/tag/status/{id}:
+    $ref: ./swagger/tags/paths.yaml/#/activeOrInactiveTagStatus
+  /tag/list:
+    $ref: ./swagger/tags/paths.yaml/#/getTagsList
+  /user/countryCodes:
+    $ref: ./swagger/users/paths.yaml/#/countryCodes
+  /user/login/history/{id}:
+    $ref: ./swagger/users/paths.yaml/#/loginHistory
+  /tag/merge:
+     $ref: ./swagger/tags/paths.yaml/#/mergeTags
+    
+# Themes
+  /project/theme/add:
+    $ref: ./swagger/themes/paths.yaml/#/addThemeToProject
+  /project/theme/edit/{id}:
+    $ref: ./swagger/themes/paths.yaml/#/editProjectTheme
+  /project/theme/status/{id}:
+    $ref: ./swagger/themes/paths.yaml/#/activeOrInactiveTheme
+  /project/theme/list:
+    $ref: ./swagger/themes/paths.yaml/#/getThemeList
+
+# document
+  /docs/create:
+    $ref: ./swagger/resources/paths.yaml/#/createDoc
+  /docs/create/new:
+    $ref: ./swagger/resources/paths.yaml/#/createDocNew
+  /docs/{id}/submit:
+    $ref: ./swagger/resources/paths.yaml/#/submitDocForApproval
+  /docs/list:
+    $ref: ./swagger/resources/paths.yaml/#/docsList
+  /docs/me:
+    $ref: ./swagger/resources/paths.yaml/#/myDocs
+  /docs/shared/me:
+    $ref: ./swagger/resources/paths.yaml/#/docsSharedWithMe
+  /docs/{id}/file:
+    $ref: ./swagger/resources/paths.yaml/#/downloadFile
+  /docs/{id}:
+    $ref: ./swagger/resources/paths.yaml/#/docDetail
+  /docs/{id}/collaborator/add:
+    $ref: ./swagger/resources/paths.yaml/#/addCollaboratorToDoc
+  /docs/{id}/collaborator/remove:
+    $ref: ./swagger/resources/paths.yaml/#/removeCollaboratorForDoc
+  /docs/{id}/viewer/add:
+    $ref: ./swagger/resources/paths.yaml/#/addViewerToDoc
+  /docs/{id}/viewer/remove:
+    $ref: ./swagger/resources/paths.yaml/#/removeViewerToDoc
+  /docs/{id}/collaborator/list:
+    $ref: ./swagger/resources/paths.yaml/#/getCollaboratorsForDoc
+  /docs/{id}/viewer/list:
+    $ref: ./swagger/resources/paths.yaml/#/viewersListForDoc    
+  /docs/{id}/share:
+    $ref: ./swagger/resources/paths.yaml/#/shareDocWithUsers   
+  /docs/{id}/share/list:
+    $ref: ./swagger/resources/paths.yaml/#/sharedUsersListOfDoc          
+  /docs/{id}/share/{type}/{userId}/edit:
+    $ref: ./swagger/resources/paths.yaml/#/editUserPermissionToDoc
+  /docs/{id}/share/{type}/{userId}/remove:
+    $ref: ./swagger/resources/paths.yaml/#/deleteUserPermission
+  /user/suggestion:
+    $ref: ./swagger/resources/paths.yaml/#/userSuggestion
+  /user/getUsersForProject:
+    $ref: ./swagger/resources/paths.yaml/#/getUsersForProject
+  /docs/{id}/capabilities:
+    $ref: ./swagger/resources/paths.yaml/#/docCapabilitiesForUser
+  /docs/{id}/publish:
+    $ref: ./swagger/resources/paths.yaml/#/publishDocument
+  /docs/{id}/unpublish:
+    $ref: ./swagger/resources/paths.yaml/#/unpublishDocument
+  /docs/{id}/mark-as-public:
+    $ref: ./swagger/resources/paths.yaml/#/markAsPublic
+  /docs/{id}/replace/{replaceDocId}:
+    $ref: ./swagger/resources/paths.yaml/#/replaceDocument
+  /docs/publish/list:
+    $ref: ./swagger/resources/paths.yaml/#/getPushlishedDocs
+  /docs/search:
+    $ref: ./swagger/resources/paths.yaml/#/searchDocs
+  /docs/folder/create:
+    $ref: ./swagger/resources/paths.yaml/#/createFolder
+  /docs/folder/list:
+    $ref: ./swagger/resources/paths.yaml/#/listFolders  
+  /docs/folder/{folderId}/list:
+    $ref: ./swagger/resources/paths.yaml/#/foldersdocList
+  /docs/moveTo/folder/{id}: 
+    $ref: ./swagger/resources/paths.yaml/#/moveToFolder
+  /docs/folder/rename/{folderId}:
+    $ref: ./swagger/resources/paths.yaml/#/renameFolder   
+  /docs/folder/delete/{id}:
+    $ref: ./swagger/resources/paths.yaml/#/deleteFolder   
+  /docs/removeFrom/folder/{id}: 
+    $ref: ./swagger/resources/paths.yaml/#/removeFromFolder 
+  /docs/delete/{id}: 
+    $ref: ./swagger/resources/paths.yaml/#/deleteDoc   
+  /docs/all/me:
+    $ref: ./swagger/resources/paths.yaml/#/docsListAll  
+  /docs/{docId}/suggest/tags:
+    $ref: ./swagger/resources/paths.yaml/#/suggestTags  
+  /docs/{docId}/suggest/tags/addOrRemove:
+    $ref: ./swagger/resources/paths.yaml/#/suggestTagsToAddOrRemove       
+  /docs/{docId}/approve/tags:
+    $ref: ./swagger/resources/paths.yaml/#/approveTags 
+  /docs/{docId}/reject/tags:
+    $ref: ./swagger/resources/paths.yaml/#/rejectTags
+  /docs/user-capabilities:
+    $ref: ./swagger/resources/paths.yaml/#/userCapabilities 
+  /docs/add-user-capabilities:
+    $ref: ./swagger/resources/paths.yaml/#/adduserCapabilities
+  /docs/{Id}/cancel:
+    $ref: ./swagger/resources/paths.yaml/#/cancelDocUpdate
+  /docs/{docId}/delete/suggested/tags:
+    $ref: ./swagger/resources/paths.yaml/#/deleteSuggestedTags
+  /docs/allcmp/list:
+    $ref: ./swagger/resources/paths.yaml/#/allCmpDocsList  
+  /docs/public:
+    $ref: ./swagger/resources/paths.yaml/#/publicDocsList
+
+#Templates
+  /template/create:
+    $ref: ./swagger/templates/paths.yaml/#/templateCreate
+  /template/list:
+    $ref: ./swagger/templates/paths.yaml/#/templateList
+  /template/edit/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateEdit
+  /template/delete/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateDelete
+  /template/getTemplate/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateGet
+  /template/testTemplate/{id}:
+    $ref: ./swagger/templates/paths.yaml/#/templateTest
+# Pillars
+  /pillars/create:
+    $ref: ./swagger/pillars/paths.yaml/#/createPillar
+  /pillars/list:
+    $ref: ./swagger/pillars/paths.yaml/#/listPillars
+  /pillars/{id}/detail:
+    $ref: ./swagger/pillars/paths.yaml/#/getPillarDetail
+  /pillars/{id}/edit:
+    $ref: ./swagger/pillars/paths.yaml/#/createPillar
+
+  /steps/create:
+    $ref: ./swagger/steps/paths.yaml/#/createStep
+  /steps/list:
+    $ref: ./swagger/steps/paths.yaml/#/listSteps
+  /steps/{id}/detail:
+    $ref: ./swagger/steps/paths.yaml/#/getStepDetail
+  /steps/{id}/edit:
+    $ref: ./swagger/steps/paths.yaml/#/createStep
+
+  /constants/update:
+    $ref: ./swagger/siteConstants/paths.yaml/#/addConstant
+  /constants/list:
+    $ref: ./swagger/siteConstants/paths.yaml/#/constantsList
+  /constants/groupBy:
+    $ref: ./swagger/siteConstants/paths.yaml/#/constantsGroupList
+
+  /project/{id}/compliance/create:
+    $ref: ./swagger/compliances/paths.yaml/#/createCompliance
+  /project/{id}/compliance/list:
+    $ref: ./swagger/compliances/paths.yaml/#/getCompliances
+  /project/{id}/compliance/{id}/edit:
+    $ref: ./swagger/compliances/paths.yaml/#/editCompliance
+  /project/{id}/risk/create:
+    $ref: ./swagger/risk/paths.yaml/#/createRisk
+  /project/{id}/risk/list:
+    $ref: ./swagger/risk/paths.yaml/#/listRisks
+  /project/{id}/risk/{id}/edit:
+    $ref: ./swagger/risk/paths.yaml/#/editRisk
+  /project/{id}/risk/{id}/delete:
+    $ref: ./swagger/risk/paths.yaml/#/deleteRisk
+
+  /project/{id}/opportunity/create:
+    $ref: ./swagger/opportunity/paths.yaml/#/createOpportunity
+  /project/{id}/opportunity/list:
+    $ref: ./swagger/opportunity/paths.yaml/#/listOpportunities
+  /project/{id}/opportunity/{id}/edit:
+    $ref: ./swagger/opportunity/paths.yaml/#/editOpportunity
+  /project/{id}/opportunity/{id}/delete:
+    $ref: ./swagger/opportunity/paths.yaml/#/deleteOpportunity
+
+  /project/{id}/financial-info/instalment/create:
+    $ref: ./swagger/financial-info/paths.yaml/#/createFinancialInfo
+  /project/{id}/financial-info/instalment/list:
+    $ref: ./swagger/financial-info/paths.yaml/#/listFinancialInfo
+  /project/{id}/financial-info/{financialId}/instalment/edit:
+    $ref: ./swagger/financial-info/paths.yaml/#/editFinancialInfo
+  /project/{id}/financial-info/{financialId}/instalment/delete:
+    $ref: ./swagger/financial-info/paths.yaml/#/deleteFinancialInfo
+  /project/{id}/financial-info/{financialId}/instalment/details:
+    $ref: ./swagger/financial-info/paths.yaml/#/detailsFinancialInfo
+
+#Phases
+  /phases/create:
+    $ref: ./swagger/phases/paths.yaml/#/createPhase
+  /phases/edit/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseEdit
+  /phases/getPhase/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseGet
+  /phases/deletePhase/{id}:
+    $ref: ./swagger/phases/paths.yaml/#/phaseDelete
+  /phases/list:
+    $ref: ./swagger/phases/paths.yaml/#/phaseList
+
+
+#notifications
+  /notifications/update:
+    $ref: ./swagger/notifications/paths.yaml/#/updateNotification
+  /notifications/list:
+    $ref: ./swagger/notifications/paths.yaml/#/getNotificationList
+  /notifications/role/add:
+    $ref: ./swagger/notifications/paths.yaml/#/addRoleNotification
+  /notifications/template/add:
+    $ref: ./swagger/notifications/paths.yaml/#/addTemplateNotification
+  /notifications/getNotification:
+    $ref: ./swagger/notifications/paths.yaml/#/getNotificationInfo
+  
+#SMS Templates
+  /sms/create:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateCreate
+  /sms/list:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateList
+  /sms/edit/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateEdit
+  /sms/delete/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateDelete
+  /sms/getTemplate/{id}:
+    $ref: ./swagger/sms/paths.yaml/#/smsTemplateGet
+
+definitions:
+  # Error
+  $ref: ./swagger/error.yaml
+
+components:
+  securitySchemes:
+    token:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    Error:
+      $ref: ./swagger/error.yaml/#/ErrorResponse/Error
+    userME:
+      $ref: ./swagger/users/schema.yaml/#/responses/schemas/userSchema
+    project:
+      $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
+    userSchema:
+      $ref: ./swagger/users/schema.yaml/#/responses/schemas/userSchema
+    projectSchema:
+      $ref: ./swagger/projects/schema.yaml/#/responses/schemas/projectSchema
+    templateSchema:
+      $ref: ./swagger/template/schema.yaml/#/responses/schemas/templateSchema
+    pillarSchema:
+      $ref: ./swagger/pillars/schema.yaml/#/responses/schemas/pillarSchema
+    stepSchema:
+      $ref: ./swagger/steps/schema.yaml/#/responses/schemas/stepSchema
+    groupSchema:
+      $ref: ./swagger/groups/schema.yaml/#/responses/schemas/groupSchema
+    phaseSchema:
+      $ref: ./swagger/phases/schema.yaml/#/responses/schemas/phaseSchema      
+    smsTemplateSchema:
+      $ref: ./swagger/sms/schema.yaml/#/responses/schemas/templateSchema
+    PrivateGroupSchema:
+      $ref: ./swagger/private-groups/schema.yaml/#/responses/schemas/privateGroup
+    PatternSchema:
+      $ref: ./swagger/patterns/schema.yaml/#/responses/schemas/patternSchema

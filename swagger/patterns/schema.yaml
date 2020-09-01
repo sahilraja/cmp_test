@@ -1,0 +1,23 @@
+responses:
+  patterns:
+    description: Patterns
+    content:
+      application/json:
+        schema:
+          $ref: "#/responses/schemas/patternSchema"
+  schemas:
+    patternSchema:
+      type: object
+      properties:
+        patternCode: 
+          type: string
+          example: taj
+        patternName:
+          type: string
+          example: taj mahal
+        createdBy:
+          type: string
+          example: 9uiewjf9023jfo39ur39
+        isDeleted:
+          type: boolean
+          

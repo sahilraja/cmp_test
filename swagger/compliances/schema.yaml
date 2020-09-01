@@ -1,0 +1,12 @@
+schemas:
+  complianceSchema:
+    type: object
+    properties:
+      name:
+        type: string
+      documentNeeded:
+        type: boolean
+      taskId: 
+        type: string
+      document: 
+        type: string
